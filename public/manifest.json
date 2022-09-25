@@ -1,35 +1,53 @@
 {
-  "manifest_version": 3,
-
-  "name": "Chrome Extension TypeScript Starter",
-  "description": "Chrome Extension, TypeScript, Visual Studio Code",
-  "version": "1.0",
-
-  "options_ui": {
-    "page": "options.html"
-  },
-
-  "action": {
-    "default_icon": "icon.png",
-    "default_popup": "popup.html"
-  },
-
-  "content_scripts": [
-      {
-          "matches": ["<all_urls>"],
-          "js": ["js/vendor.js", "js/content_script.js"]
-      }
-  ],
-
-  "background": {
-    "service_worker": "js/background.js"
-  },
-
-  "permissions": [
-    "storage"
-  ],
-
-  "host_permissions": [
-    "<all_urls>"
-  ]
+    "manifest_version": 3,
+    "name": "Twitch Badge Collector V2",
+    "description": "Collect chats you want!",
+    "version": "1.0",
+    "action": {
+        "default_icon": "icon.png",
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.twitch.tv/*"
+            ],
+            "js": [
+                "js/vendor.js",
+                "js/twitch_content_script.js"
+            ],
+            "css": [
+                "css/main/index.css"
+            ]
+        },
+        {
+            "matches": [
+                "https://wtbclight.bluewarn.dev/filter*"
+              ],
+              "js": [
+                "js/vendor.js",
+                "js/filter_content_script.js"
+              ]
+        }
+    ],
+    "background": {
+        "service_worker": "js/background.js"
+    },
+    "permissions": [
+        "storage",
+        "webNavigation"
+    ],
+    "host_permissions": [
+        "*://*.twitch.tv/*"
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "js/overrideFetch.js"
+            ],
+            "matches": [
+                "*://*.twitch.tv/*"
+            ]
+        }
+    ]
 }
