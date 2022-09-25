@@ -6,9 +6,10 @@ const srcDir = path.join(__dirname, "..", "src");
 module.exports = {
     entry: {
       popup: path.join(srcDir, 'popup.tsx'),
-      options: path.join(srcDir, 'options.tsx'),
       background: path.join(srcDir, 'background.ts'),
-      content_script: path.join(srcDir, 'content_script.tsx'),
+      twitch_content_script: path.join(srcDir, 'twitchContentScript.tsx'),
+      filter_content_script: path.join(srcDir, 'filterContentScript.ts'),
+      overrideFetch: path.join(srcDir, 'overrideFetch.ts')
     },
     output: {
         path: path.join(__dirname, "../dist/js"),
