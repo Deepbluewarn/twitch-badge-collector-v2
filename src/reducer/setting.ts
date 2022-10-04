@@ -5,7 +5,6 @@ import Setting, {
   LanguageOptionType,
   PositionOptionType,
   ReducerAction,
-  ThemeOptionType,
 } from "../interfaces/setting";
 
 export function settingReducer(state: Setting, action: ReducerAction): Setting {
@@ -20,9 +19,6 @@ export function settingReducer(state: Setting, action: ReducerAction): Setting {
       return copyState;
     case "pointBoxAuto":
       copyState.autoPointClick = action.value as ToggleOptionType;
-      return copyState;
-    case "miniTheme":
-      copyState.miniTheme = action.value as ThemeOptionType;
       return copyState;
     case "miniLanguage":
       copyState.miniLanguage = action.value as LanguageOptionType;

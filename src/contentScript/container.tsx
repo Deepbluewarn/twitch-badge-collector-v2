@@ -9,6 +9,7 @@ import useArrayFilter from "../hooks/useArrayFilter";
 import { useGlobalSettingContext } from "../context/globalSetting";
 import { ContainerType } from "../interfaces/container";
 import MessageInterface from "../interfaces/message";
+import useMutationObserver from "../hooks/useMutationObserver";
 
 export function ChatRoom() {
   const chatRoomDefault: Element | null = document.querySelector(
@@ -175,6 +176,18 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
   const replayType = ReplayPageType();
   const [ videoId, setVideoId ] = useState(getVideoIdParam(replayType));
 
+  const twitchHTMLTagRef = useRef<HTMLElement>(document.documentElement);
+  const getDarkTheme = () => {
+    return twitchHTMLTagRef.current.classList.contains('tw-root--theme-dark');
+  }
+  const [ darkTheme, setDarkTheme ] = useState(getDarkTheme());
+
+  const themeCallback = (mutationRecord: MutationRecord[]) => {
+    setDarkTheme(getDarkTheme());
+  }
+
+  useMutationObserver(twitchHTMLTagRef, themeCallback);
+
   if (props.type === 'replay') {
     if (replayType && videoId) {
       params.set(replayType, videoId);
@@ -191,15 +204,18 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
 
   const src = `${base_url}${props.type}?${params}`;
 
-  const postSetting = () => {
+  const postSetting = (type: string, value: any) => {
     if (frameRef.current && frameLoaded.current) {
       frameRef.current.contentWindow?.postMessage({
-        sender: 'tbc',
-        type: 'EXTENSION_SETTING',
-        value: globalSetting
+        sender: 'tbc', type, value
       } as MessageInterface, base_url);
     }
   };
+
+  const onFrameLoaded = () => {
+    postSetting('EXTENSION_SETTING', globalSetting);
+    postSetting('TWITCH_DARKMODE', darkTheme);
+  }
 
   useEffect(() => {
     if(props.type !== 'replay') return;
@@ -228,21 +244,26 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
     window.onmessage = (e) => {
       if (e.data.sender === 'wtbc' && e.data.type === 'REQUEST_EXTENSION_SETTING') {
         frameLoaded.current = true;
-        postSetting();
+        postSetting('EXTENSION_SETTING', globalSetting);
+        postSetting('TWITCH_DARKMODE', darkTheme);
       }
     }
   }, []);
 
   useEffect(() => {
-    postSetting();
+    postSetting('EXTENSION_SETTING', globalSetting);
   }, [globalSetting]);
+
+  useEffect(() => {
+    postSetting('TWITCH_DARKMODE', darkTheme);
+  }, [darkTheme]);
 
   return (
     <RemoteChatContainerStyle
       id={`wtbc-${props.type}`}
       src={src}
       frameBorder="0"
-      onLoad={postSetting}
+      onLoad={onFrameLoaded}
       ref={frameRef}
     ></RemoteChatContainerStyle>
   );

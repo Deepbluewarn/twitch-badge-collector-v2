@@ -19,7 +19,6 @@ export default function useGlobalSetting() {
             type: "pointBoxAuto",
             value: setting.autoPointClick,
         });
-        dispatchGlobalSetting({ type: "miniTheme", value: setting.miniTheme });
         dispatchGlobalSetting({
             type: "miniLanguage",
             value: setting.miniLanguage,
@@ -51,7 +50,6 @@ export default function useGlobalSetting() {
                     position: res.position,
                     pointBoxAuto: res.pointBoxAuto,
                     miniChatTime: res.miniChatTime,
-                    miniTheme: res.miniTheme,
                     miniLanguage: res.miniLanguage,
                     miniFontSize: res.miniFontSize,
                 } as Setting);
@@ -63,7 +61,6 @@ export default function useGlobalSetting() {
             chatDisplayMethod: globalSetting.chatDisplayMethod,
             position: globalSetting.position,
             pointBoxAuto: globalSetting.pointBoxAuto,
-            miniTheme: globalSetting.miniTheme,
             miniLanguage: globalSetting.miniLanguage,
             miniFontSize: globalSetting.miniFontSize,
             miniChatTime: globalSetting.miniChatTime,

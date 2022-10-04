@@ -21,6 +21,7 @@ let pointBoxAuto = true;
 let streamChatFound = false;
 let replayChatFound = false;
 let pointBoxFound = false;
+let twitchDarkTheme = false;
 
 const injectMockFetch = () => {
   var s = document.createElement('script');
@@ -34,6 +35,9 @@ const injectMockFetch = () => {
 injectMockFetch();
 
 async function observerCallback(mutationRecord: MutationRecord[]) {
+  const body = document.body;
+  twitchDarkTheme = body.classList.contains('dark-theme');
+
   const streamChat: Element | undefined =
     document.getElementsByClassName("stream-chat")[0];
 
@@ -146,8 +150,6 @@ function App() {
           dispatchGlobalSetting({ type: 'chatDisplayMethod', value: newValue });
         } else if (key === 'pointBoxAuto') {
           pointBoxAuto = newValue;
-        } else if (key === 'miniTheme') {
-          dispatchGlobalSetting({ type: 'miniTheme', value: newValue });
         } else if (key === 'miniLanguage') {
           dispatchGlobalSetting({ type: 'miniLanguage', value: newValue });
         } else if (key === 'miniFontSize') {

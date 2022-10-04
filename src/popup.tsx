@@ -9,7 +9,6 @@ import {
   fontSizeOptions,
   languageOptions,
   positionOptions,
-  themeOptions,
 } from "./interfaces/setting";
 import Link from "./popup/Link";
 import ListContainer from "./popup/ListContainer";
@@ -79,7 +78,6 @@ const Popup = () => {
       <Title title="채팅 클라이언트 설정" />
 
       <ListContainer>
-        <Selector title="채팅창 테마" values={themeOptions} id="miniTheme" />
         <Selector title="언어" values={languageOptions} id="miniLanguage" />
         <Selector
           title="폰트 크기"
