@@ -1,11 +1,17 @@
 {
     "manifest_version": 3,
-    "name": "Twitch Badge Collector V2",
-    "description": "Collect chats you want!",
+    "name": "__MSG_ExtensionName__",
+    "description": "__MSG_ExtensionDesc__",
+    "default_locale": "en",
     "version": "1.0.0",
     "action": {
-        "default_icon": "icon.png",
+        "default_icon": {
+            "128": "icon.png"
+        },
         "default_popup": "popup.html"
+    },
+    "icons": {
+        "128": "icon.png"
     },
     "content_scripts": [
         {
