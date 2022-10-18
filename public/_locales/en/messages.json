@@ -1,0 +1,98 @@
+{
+  "ExtensionName" : {
+    "message" : "Twitch Badge Collector V2 - Collect Twitch Chat"
+  },
+  "language" : {
+    "message" : "en"
+  },
+  "ExtensionDesc" : {
+    "message" : "Collect only the chats you want in Twitch Chat!"
+  },
+  "popup_title": {
+    "message": "Twitch Badge Collector"
+  },
+  "generalSetting" : {
+    "message" : "General settings"
+  },
+  "chatClientSetting" : {
+    "message" : "Chat client settings"
+  },
+  "extraSetting" : {
+    "message" : "Etc"
+  },
+  "review" : {
+    "message" : "Review"
+  },
+  "support" : {
+    "message" : "Support"
+  },
+  "discord" : {
+    "message" : "Discord"
+  },
+  "replay_chat_settings" : {
+    "message" : "VOD Chat Setting"
+  },
+  "chat_window_size_setting" : {
+    "message" : "Chat window size"
+  },
+  "language_text" : {
+    "message" : "Language"
+  },
+  "ko": {
+    "message": "한국어"
+  },
+  "en": {
+    "message": "English"
+  },
+  "fontSize" : {
+    "message" : "Font size"
+  },
+  "small" : {
+    "message" : "Small"
+  },
+  "default" : {
+    "message" : "Default"
+  },
+  "big" : {
+    "message" : "Big"
+  },
+  "bigger" : {
+    "message" : "Bigger"
+  },
+  "chatTime" : {
+    "message" : "Show chat time"
+  },
+  "chatPosition" : {
+    "message" : "Chat Position"
+  },
+  "up" : {
+    "message" : "Up"
+  },
+  "down" : {
+    "message" : "Down"
+  },
+  "dispCopiedChatmethod" : {
+    "message" : "Show chats with"
+  },
+  "local" : {
+    "message" : "Copy from Twitch UI"
+  },
+  "remote" : {
+    "message" : "Chat client"
+  },
+  "pointBoxAutoClick" : {
+    "message" : "Point Box Auto Click"
+  },
+  "on" : {
+    "message" : "On"
+  },
+  "off" : {
+    "message" : "Off"
+  },
+  "p_filter_btn" : {
+    "message" : "Filter Setting"
+  },
+  "p_save_chat_btn" : {
+    "message" : "Save chat as Image"
+  }
+}

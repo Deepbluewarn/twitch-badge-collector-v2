@@ -1,0 +1,98 @@
+{
+  "ExtensionName" : {
+    "message" : "Twitch Badge Collector V2 - 트위치 채팅 수집"
+  },
+  "language" : {
+    "message" : "ko"
+  },
+  "ExtensionDesc" : {
+    "message" : "트위치 채팅에서 원하는 채팅만 모아 볼 수 있는 확장 프로그램입니다!"
+  },
+  "popup_title" : {
+    "message" : "Twitch Badge Collector"
+  },
+  "generalSetting" : {
+    "message" : "일반 설정"
+  },
+  "chatClientSetting" : {
+    "message" : "채팅 클라이언트 설정"
+  },
+  "extraSetting" : {
+    "message" : "기타"
+  },
+  "review" : {
+    "message" : "확장 프로그램 평가"
+  },
+  "support" : {
+    "message" : "지원"
+  },
+  "discord" : {
+    "message" : "디스코드"
+  },
+  "replay_chat_settings" : {
+    "message" : "다시보기 채팅창 설정"
+  },
+  "chat_window_size_setting" : {
+    "message" : "채팅창 크기 설정"
+  },
+  "language_text" : {
+    "message" : "언어"
+  },
+  "ko": {
+    "message": "한국어"
+  },
+  "en": {
+    "message": "English"
+  },
+  "fontSize" : {
+    "message" : "글자 크기"
+  },
+  "small" : {
+    "message" : "작게"
+  },
+  "default" : {
+    "message" : "기본값"
+  },
+  "big" : {
+    "message" : "크게"
+  },
+  "bigger" : {
+    "message" : "더 크게"
+  },
+  "chatTime" : {
+    "message" : "채팅 시간 표시"
+  },
+  "chatPosition" : {
+    "message" : "채팅 위치"
+  },
+  "up" : {
+    "message" : "위쪽"
+  },
+  "down" : {
+    "message" : "아래쪽"
+  },
+  "dispCopiedChatmethod" : {
+    "message" : "채팅 표시 방법"
+  },
+  "local" : {
+    "message" : "트위치 UI 복사"
+  },
+  "remote" : {
+    "message" : "채팅 클라이언트"
+  },
+  "pointBoxAutoClick" : {
+    "message" : "포인트 상자 자동 클릭"
+  },
+  "on" : {
+    "message" : "켜기"
+  },
+  "off" : {
+    "message" : "끄기"
+  },
+  "p_filter_btn" : {
+    "message" : "필터 설정"
+  },
+  "p_save_chat_btn" : {
+    "message" : "채팅을 이미지로 저장"
+  }
+}
