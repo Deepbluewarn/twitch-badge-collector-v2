@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { createGlobalStyle } from "styled-components";
+import browser from "webextension-polyfill";
 import { GlobalSettingContext } from "./context/globalSetting";
 import useGlobalSetting from "./hooks/useGlobalSetting";
 import {
@@ -54,49 +55,48 @@ const Popup = () => {
     <GlobalSettingContext.Provider
       value={{ globalSetting, dispatchGlobalSetting }}
     >
-      <Title title="일반 설정" />
+      <Title title={browser.i18n.getMessage('generalSetting')}/>
 
       <ListContainer>
-        <Link title="필터 설정" url='https://badgecollector.dev/setting/filter'/>
-        <Link title="채팅을 이미지로 저장" url='https://badgecollector.dev/setting/chatsaver' />
+        <Link title={browser.i18n.getMessage('p_filter_btn')} url='https://badgecollector.dev/setting/filter'/>
+        <Link title={browser.i18n.getMessage('p_save_chat_btn')} url='https://badgecollector.dev/setting/chatsaver' />
       </ListContainer>
 
       <ListContainer>
         <Selector
-          title="채팅 표시 방법"
+          title={browser.i18n.getMessage('dispCopiedChatmethod')}
           values={chatDisplayMethodOptions}
           id="chatDisplayMethod"
         />
-        <Selector title="채팅 위치" values={positionOptions} id="position" />
+        <Selector title={browser.i18n.getMessage('chatPosition')} values={positionOptions} id="position" />
         <Selector
-          title="포인트 상자 자동 클릭"
+          title={browser.i18n.getMessage('pointBoxAutoClick')}
           values={toggleOptions}
           id="pointBoxAuto"
         />
       </ListContainer>
 
-      <Title title="채팅 클라이언트 설정" />
+      <Title title={browser.i18n.getMessage('chatClientSetting')} />
 
       <ListContainer>
-        <Selector title="언어" values={languageOptions} id="miniLanguage" />
+        <Selector title={browser.i18n.getMessage('language_text')} values={languageOptions} id="miniLanguage" />
         <Selector
-          title="폰트 크기"
+          title={browser.i18n.getMessage('fontSize')}
           values={fontSizeOptions}
           id="miniFontSize"
         />
         <Selector
-          title="채팅 시간 표시"
+          title={browser.i18n.getMessage('chatTime')}
           values={toggleOptions}
           id="miniChatTime"
         />
       </ListContainer>
 
-      <Title title="기타" />
+      <Title title={browser.i18n.getMessage('extraSetting')} />
 
       <ListContainer>
-        <Link title="확장 프로그램 평가" url='' />
-        <Link title="지원" url=''/>
-        <Link title="디스코드" url='' />
+        <Link title={browser.i18n.getMessage('review')} url='' />
+        <Link title={browser.i18n.getMessage('discord')} url='' />
       </ListContainer>
     </GlobalSettingContext.Provider>
   );

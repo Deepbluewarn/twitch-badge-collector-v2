@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import browser from "webextension-polyfill";
 import { FlexColumnContainer } from "../components/FlexContainer";
 import { useGlobalSettingContext } from "../context/globalSetting";
 import { SettingCategory } from "../interfaces/setting";
@@ -23,7 +24,7 @@ export default function Selector(props: {
   id: string;
 }) {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
-  const options = props.values.map((v) => <option value={v}>{v}</option>);
+  const options = props.values.map((v) => <option value={v}>{browser.i18n.getMessage(v)}</option>);
 
   const onSelectionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     event.preventDefault();
