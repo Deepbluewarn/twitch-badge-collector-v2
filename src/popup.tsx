@@ -57,8 +57,8 @@ const Popup = () => {
       <Title title="일반 설정" />
 
       <ListContainer>
-        <Link title="필터 설정" url='https://wtbclight.bluewarn.dev/filter'/>
-        <Link title="채팅을 이미지로 저장" url='https://wtbclight.bluewarn.dev/chatsaver' />
+        <Link title="필터 설정" url='https://badgecollector.dev/setting/filter'/>
+        <Link title="채팅을 이미지로 저장" url='https://badgecollector.dev/setting/chatsaver' />
       </ListContainer>
 
       <ListContainer>

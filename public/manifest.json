@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Twitch Badge Collector V2",
     "description": "Collect chats you want!",
-    "version": "1.0",
+    "version": "1.0.0",
     "action": {
         "default_icon": "icon.png",
         "default_popup": "popup.html"
@@ -22,7 +22,7 @@
         },
         {
             "matches": [
-                "https://wtbclight.bluewarn.dev/filter*"
+                "https://badgecollector.dev/setting/filter*"
               ],
               "js": [
                 "js/vendor.js",

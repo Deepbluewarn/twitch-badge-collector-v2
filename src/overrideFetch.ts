@@ -2,7 +2,7 @@ import { ReplayPageType } from "./contentScript/utils";
 import MessageInterface from "./interfaces/message";
 
 const { fetch: origFetch } = window;
-const base_url = "https://wtbclight.bluewarn.dev/";
+const base_url = "https://badgecollector.dev/";
 let bodyBuffer: any[] = [];
 
 const frameState = {

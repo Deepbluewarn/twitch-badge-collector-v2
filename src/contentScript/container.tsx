@@ -106,7 +106,6 @@ export function LocalChatContainer() {
       {
         childList: true,
         subtree: true,
-        attributeFilter: ["class"],
       },
       newChatCallback
     );
@@ -171,7 +170,7 @@ const RemoteChatContainerStyle = styled.iframe`
 `;
 
 export function RemoteChatContainer(props: { type: ContainerType }) {
-  const base_url = "https://wtbclight.bluewarn.dev/";
+  const base_url = "https://badgecollector.dev/";
   const params = new URLSearchParams();
   const replayType = ReplayPageType();
   const [ videoId, setVideoId ] = useState(getVideoIdParam(replayType));
