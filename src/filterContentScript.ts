@@ -11,9 +11,11 @@ const filterChannel: BroadcastChannel<ArrayFilterMessageInterface> =
 const messageIdChannel: BroadcastChannel<string> = new BroadcastChannel(
   "MessageId"
 );
+const extensionVersionChannel: BroadcastChannel<string> = new BroadcastChannel('ExtensionVersion');
 const msgId = nanoid();
 
 messageIdChannel.postMessage(msgId);
+extensionVersionChannel.postMessage(browser.runtime.getManifest().version);
 
 browser.storage.local.get("filter").then((res) => {
   const filter: ArrayFilterListInterface[] = res.filter;
