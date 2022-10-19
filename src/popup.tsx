@@ -50,6 +50,7 @@ const PopupGlobalStyle = createGlobalStyle`
 `;
 const Popup = () => {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSetting();
+  const extensionVersion = React.useRef(browser.runtime.getManifest().version);
 
   return (
     <GlobalSettingContext.Provider
@@ -58,8 +59,8 @@ const Popup = () => {
       <Title title={browser.i18n.getMessage('generalSetting')}/>
 
       <ListContainer>
-        <Link title={browser.i18n.getMessage('p_filter_btn')} url='https://badgecollector.dev/setting/filter'/>
-        <Link title={browser.i18n.getMessage('p_save_chat_btn')} url='https://badgecollector.dev/setting/chatsaver' />
+        <Link title={browser.i18n.getMessage('p_filter_btn')} url={`https://badgecollector.dev/setting/filter?ext_version=${extensionVersion.current}`}/>
+        <Link title={browser.i18n.getMessage('p_save_chat_btn')} url={`https://badgecollector.dev/setting/chatsaver?ext_version=${extensionVersion.current}`}/>
       </ListContainer>
 
       <ListContainer>
