@@ -28,11 +28,11 @@
         },
         {
             "matches": [
-                "https://badgecollector.dev/setting/filter*"
+                "https://badgecollector.dev/setting*"
               ],
               "js": [
                 "js/vendor.js",
-                "js/filter_content_script.js"
+                "js/setting_content_script.js"
               ]
         }
     ],

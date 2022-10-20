@@ -8,7 +8,7 @@ module.exports = {
       popup: path.join(srcDir, 'popup.tsx'),
       background: path.join(srcDir, 'background.ts'),
       twitch_content_script: path.join(srcDir, 'twitchContentScript.tsx'),
-      filter_content_script: path.join(srcDir, 'filterContentScript.ts'),
+      setting_content_script: path.join(srcDir, 'settingContentScript.ts'),
       overrideFetch: path.join(srcDir, 'overrideFetch.ts')
     },
     output: {
