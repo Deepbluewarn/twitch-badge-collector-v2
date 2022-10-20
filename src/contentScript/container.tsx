@@ -170,7 +170,7 @@ const RemoteChatContainerStyle = styled.iframe`
 `;
 
 export function RemoteChatContainer(props: { type: ContainerType }) {
-  const base_url = "https://badgecollector.dev/";
+  const [baseUrl, setBaseUrl] = useState('https://badgecollector.dev/');
   const params = new URLSearchParams();
   const replayType = ReplayPageType();
   const [ videoId, setVideoId ] = useState(getVideoIdParam(replayType));
@@ -201,13 +201,13 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const frameLoaded = useRef(false);
 
-  const src = `${base_url}${props.type}?${params}`;
+  const src = `${baseUrl}${props.type}?${params}`;
 
   const postSetting = (type: string, value: any) => {
     if (frameRef.current && frameLoaded.current) {
       frameRef.current.contentWindow?.postMessage({
         sender: 'tbc', type, value
-      } as MessageInterface, base_url);
+      } as MessageInterface, baseUrl);
     }
   };
 
@@ -227,7 +227,7 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
         type: 'PLAYER_TIME',
         value: player.currentTime
       }
-      frameRef.current?.contentWindow?.postMessage(msg, base_url);
+      frameRef.current?.contentWindow?.postMessage(msg, baseUrl);
     };
   }, [props.type]);
 

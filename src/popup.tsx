@@ -52,6 +52,7 @@ const Popup = () => {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSetting();
   const extensionVersion = React.useRef(browser.runtime.getManifest().version);
 
+  const [baseUrl, setBaseUrl] = React.useState('https://badgecollector.dev');
   return (
     <GlobalSettingContext.Provider
       value={{ globalSetting, dispatchGlobalSetting }}
@@ -59,8 +60,8 @@ const Popup = () => {
       <Title title={browser.i18n.getMessage('generalSetting')}/>
 
       <ListContainer>
-        <Link title={browser.i18n.getMessage('p_filter_btn')} url={`https://badgecollector.dev/setting/filter?ext_version=${extensionVersion.current}`}/>
-        <Link title={browser.i18n.getMessage('p_save_chat_btn')} url={`https://badgecollector.dev/setting/chatsaver?ext_version=${extensionVersion.current}`}/>
+        <Link title={browser.i18n.getMessage('p_filter_btn')} url={`${baseUrl}/setting/filter?ext_version=${extensionVersion.current}`}/>
+        <Link title={browser.i18n.getMessage('p_save_chat_btn')} url={`${baseUrl}/setting/chatsaver?ext_version=${extensionVersion.current}`}/>
       </ListContainer>
 
       <ListContainer>
