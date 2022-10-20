@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill";
 
-const newFilter = [
+const defaultFilter = [
   {
     filterType: "include",
     id: "D3vnlEqK-CNmYHe8zkvIJ",
@@ -57,7 +57,7 @@ const newFilter = [
 
 browser.runtime.onInstalled.addListener(function (details: any) {
   if (details.reason === "install") {
-    browser.storage.local.set({ filter: newFilter });
+    browser.storage.local.set({ filter: defaultFilter });
   }
 
   browser.storage.local
