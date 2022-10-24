@@ -28,7 +28,7 @@
         },
         {
             "matches": [
-                "https://badgecollector.dev/setting*"
+                "https://badgecollector.dev/setting/*",
               ],
               "js": [
                 "js/vendor.js",
