@@ -97,8 +97,7 @@ const Popup = () => {
       <Title title={browser.i18n.getMessage('extraSetting')} />
 
       <ListContainer>
-        <Link title={browser.i18n.getMessage('review')} url='' />
-        <Link title={browser.i18n.getMessage('discord')} url='' />
+        <Link title={browser.i18n.getMessage('discord')} url='https://discord.gg/ZM6Eazpz5V' />
       </ListContainer>
     </GlobalSettingContext.Provider>
   );
