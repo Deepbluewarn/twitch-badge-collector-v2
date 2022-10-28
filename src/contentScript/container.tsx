@@ -211,11 +211,6 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
     }
   };
 
-  const onFrameLoaded = () => {
-    postSetting('EXTENSION_SETTING', globalSetting);
-    postSetting('TWITCH_DARKMODE', darkTheme);
-  }
-
   useEffect(() => {
     if(props.type !== 'replay') return;
     
@@ -245,6 +240,9 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
         frameLoaded.current = true;
         postSetting('EXTENSION_SETTING', globalSetting);
         postSetting('TWITCH_DARKMODE', darkTheme);
+        browser.storage.local.get('filter').then(res => {
+          postSetting('ARRAY_FILTER', res.filter);
+        })
       }
     }
   }, []);
@@ -262,7 +260,6 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
       id={`wtbc-${props.type}`}
       src={src}
       frameBorder="0"
-      onLoad={onFrameLoaded}
       ref={frameRef}
     ></RemoteChatContainerStyle>
   );
