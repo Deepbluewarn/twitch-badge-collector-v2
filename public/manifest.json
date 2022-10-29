@@ -18,6 +18,7 @@
             "matches": [
                 "*://*.twitch.tv/*"
             ],
+            "all_frames" : true,
             "js": [
                 "js/vendor.js",
                 "js/twitch_content_script.js"
