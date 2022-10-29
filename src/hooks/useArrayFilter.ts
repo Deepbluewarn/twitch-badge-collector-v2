@@ -61,7 +61,7 @@ export default function useArrayFilter() {
           res = false;
           break;
         } else if (arrayFilter.filterType === "sleep") {
-          res = false;
+          // res = false;
         }
       }
     }
