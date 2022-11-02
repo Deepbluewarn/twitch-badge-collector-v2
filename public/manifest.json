@@ -3,7 +3,7 @@
     "name": "__MSG_ExtensionName__",
     "description": "__MSG_ExtensionDesc__",
     "default_locale": "en",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "action": {
         "default_icon": {
             "128": "icon.png"
@@ -56,7 +56,8 @@
         "webNavigation"
     ],
     "host_permissions": [
-        "*://*.twitch.tv/*"
+        "*://*.twitch.tv/*",
+        "https://*.badgecollector.dev/setting/*"
     ],
     "web_accessible_resources": [
         {
