@@ -1,4 +1,3 @@
-const webpack = require("webpack");
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const srcDir = path.join(__dirname, "..", "src");
@@ -9,6 +8,7 @@ module.exports = {
       background: path.join(srcDir, 'background.ts'),
       twitch_content_script: path.join(srcDir, 'twitchContentScript.tsx'),
       setting_content_script: path.join(srcDir, 'settingContentScript.ts'),
+      remote_content_script: path.join(srcDir, 'remoteContentScript.ts'),
       overrideFetch: path.join(srcDir, 'overrideFetch.ts')
     },
     output: {
