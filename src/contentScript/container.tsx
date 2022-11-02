@@ -170,7 +170,7 @@ const RemoteChatContainerStyle = styled.iframe`
 `;
 
 export function RemoteChatContainer(props: { type: ContainerType }) {
-  const [baseUrl, setBaseUrl] = useState('https://badgecollector.dev/');
+  const [baseUrl, setBaseUrl] = useState(process.env.BASE_URL || '');
   const params = new URLSearchParams();
   const replayType = ReplayPageType();
   const [ videoId, setVideoId ] = useState(getVideoIdParam(replayType));
@@ -201,12 +201,12 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const frameLoaded = useRef(false);
 
-  const src = `${baseUrl}${props.type}?${params}`;
+  const src = `${baseUrl}/${props.type}?${params}`;
 
   const postSetting = (type: string, value: any) => {
     if (frameRef.current && frameLoaded.current) {
       frameRef.current.contentWindow?.postMessage({
-        sender: 'tbc', type, value
+        sender: 'extension', type, value
       } as MessageInterface, baseUrl);
     }
   };
@@ -218,7 +218,7 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
 
     player.ontimeupdate = e => {
       const msg: MessageInterface = {
-        sender: 'tbc',
+        sender: 'extension',
         type: 'PLAYER_TIME',
         value: player.currentTime
       }
@@ -246,6 +246,20 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
       }
     }
   }, []);
+
+  useEffect(() => {
+    browser.storage.onChanged.addListener((changed, areaName) => {
+      if (areaName !== "local") return;
+
+      for (let key in changed) {
+        let newValue = changed[key].newValue;
+
+        if (key === 'filter') {
+          postSetting('ARRAY_FILTER', newValue);
+        }
+      }
+    });
+  }, [])
 
   useEffect(() => {
     postSetting('EXTENSION_SETTING', globalSetting);

@@ -55,6 +55,20 @@ const defaultFilter = [
   },
 ];
 
+browser.runtime.onMessage.addListener((message, sender) => {
+  browser.tabs.query({}).then(tabs=> {
+    for (const tab of tabs) {
+      if(!tab.id) return;
+      
+      browser.tabs.sendMessage(tab.id, {
+        from: 'background', 
+        type: message.type,
+        value: message.value
+      });
+    }
+  });
+});
+
 browser.runtime.onInstalled.addListener(function (details: any) {
   if (details.reason === "install") {
     browser.storage.local.set({ filter: defaultFilter });

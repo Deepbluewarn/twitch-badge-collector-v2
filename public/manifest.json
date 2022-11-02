@@ -29,12 +29,23 @@
         },
         {
             "matches": [
-                "https://badgecollector.dev/setting/*"
-              ],
-              "js": [
+                "https://*.badgecollector.dev/setting/*"
+            ],
+            "js": [
                 "js/vendor.js",
                 "js/setting_content_script.js"
-              ]
+            ]
+        },
+        {
+            "matches": [
+                "https://*.badgecollector.dev/mini*",
+                "https://*.badgecollector.dev/replay*"
+            ],
+            "all_frames": true,
+            "js": [
+                "js/vendor.js",
+                "js/remote_content_script.js"
+            ]
         }
     ],
     "background": {
