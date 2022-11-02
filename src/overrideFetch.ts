@@ -2,7 +2,7 @@ import { ReplayPageType } from "./contentScript/utils";
 import MessageInterface from "./interfaces/message";
 
 const { fetch: origFetch } = window;
-const base_url = "https://badgecollector.dev/";
+const base_url = process.env.BASE_URL || '';
 let bodyBuffer: any[] = [];
 
 const frameState = {
@@ -20,7 +20,7 @@ const postBodyMessage = () => {
             const frame = <HTMLIFrameElement>document.getElementById('wtbc-replay');
 
             frame.contentWindow?.postMessage({
-                sender: 'tbc', 
+                sender: 'extension', 
                 type: 'CHAT_LIST',
                 value: b
             } as MessageInterface, base_url);

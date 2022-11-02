@@ -52,7 +52,7 @@ const Popup = () => {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSetting();
   const extensionVersion = React.useRef(browser.runtime.getManifest().version);
 
-  const [baseUrl, setBaseUrl] = React.useState('https://badgecollector.dev');
+  const [baseUrl, setBaseUrl] = React.useState(process.env.BASE_URL);
   return (
     <GlobalSettingContext.Provider
       value={{ globalSetting, dispatchGlobalSetting }}
