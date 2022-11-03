@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import ReactDOM from 'react-dom/client';
 import { createGlobalStyle } from "styled-components";
 import browser from "webextension-polyfill";
 import { GlobalSettingContext } from "./context/globalSetting";
@@ -103,10 +103,9 @@ const Popup = () => {
   );
 };
 
-ReactDOM.render(
+ReactDOM.createRoot(document.getElementById("root") as Element).render(
   <React.StrictMode>
     <PopupGlobalStyle />
     <Popup />
   </React.StrictMode>,
-  document.getElementById("root")
 );
