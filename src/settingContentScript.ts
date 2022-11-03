@@ -6,6 +6,8 @@ import {
 } from "./interfaces/filter";
 import { nanoid } from "nanoid";
 
+console.log('[extension] Setting Content Script loaded.')
+
 const filterChannel: BroadcastChannel<ArrayFilterMessageInterface> =
   new BroadcastChannel("ArrayFilter");
 const messageIdChannel: BroadcastChannel<string> = new BroadcastChannel(
@@ -29,8 +31,8 @@ browser.storage.local.get("filter").then((res) => {
 });
 
 filterChannel.onmessage = (msg) => {
-  if (msg.from === "extension") return;
-  if (msgId !== msg.msgId) return;
+  if (msg.from === "extension") return
+  if (msgId !== msg.msgId) return
 
   browser.storage.local.set({ filter: msg.filter });
 };

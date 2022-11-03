@@ -13,6 +13,8 @@ import { GlobalSettingContext } from "./context/globalSetting";
 import { PositionOptionType } from "./interfaces/setting";
 import { updateContainerRatio } from "./contentScript/containerHandler";
 
+console.log('[extension] TBC Content Script loaded.')
+
 let streamPageObserver: MutationObserver | undefined;
 let position = "up";
 let containerRatio = 30;

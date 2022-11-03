@@ -1,5 +1,6 @@
 import browser from "webextension-polyfill";
 
+console.log('[extension] Remote Content Script loaded.')
 window.onmessage = (event: MessageEvent) => {
     if (event.source != window)
       return;
