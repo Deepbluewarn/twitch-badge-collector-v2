@@ -29,6 +29,12 @@ export function settingReducer(state: Setting, action: ReducerAction): Setting {
     case "miniChatTime":
       copyState.miniChatTime = action.value as ToggleOptionType;
       return copyState;
+    case "darkTheme":
+      copyState.darkTheme = action.value as ToggleOptionType;
+      return copyState;
+    case "chatTime":
+      copyState.chatTime = action.value as ToggleOptionType;
+      return copyState;
     default:
       throw new Error("Unhandled action");
   }

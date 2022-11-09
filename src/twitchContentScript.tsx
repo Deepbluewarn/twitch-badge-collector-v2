@@ -9,7 +9,7 @@ import {
 } from "./contentScript/container";
 import { ReplayPageType, observer } from "./contentScript/utils";
 import useGlobalSetting from "./hooks/useGlobalSetting";
-import { GlobalSettingContext } from "./context/globalSetting";
+import { GlobalSettingContext } from "./context/GlobalSetting";
 import { PositionOptionType } from "./interfaces/setting";
 import { updateContainerRatio } from "./contentScript/containerHandler";
 

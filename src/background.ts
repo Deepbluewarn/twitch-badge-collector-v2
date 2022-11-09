@@ -55,31 +55,21 @@ const defaultFilter = [
   },
 ];
 
-browser.runtime.onMessage.addListener((message, sender) => {
-  browser.tabs.query({}).then(tabs=> {
-    for (const tab of tabs) {
-      if(!tab.id) return;
-      
-      browser.tabs.sendMessage(tab.id, {
-        from: 'background', 
-        type: message.type,
-        value: message.value
-      });
-    }
-  });
-});
-
 browser.runtime.onInstalled.addListener(function (details: any) {
   if (details.reason === "install") {
     browser.storage.local.set({ filter: defaultFilter });
   }
+
+  // 0.0.8 업데이트인 경우 storage 에 저장된 설정 값 일부 변경,
+  // ToggleType 속성들 string 에서 boolean 으로 변경.
 
   browser.storage.local
     .get([
       "chatDisplayMethod",
       "position",
       "pointBoxAuto",
-      "miniTheme",
+      "darkTheme",
+      "chatTime",
       "miniLanguage",
       "miniFontSize",
       "miniChatTime",
@@ -90,11 +80,12 @@ browser.runtime.onInstalled.addListener(function (details: any) {
           ? res.chatDisplayMethod
           : "local",
         position: res.position ? res.position : "up",
-        pointBoxAuto: res.pointBoxAuto ? res.pointBoxAuto : "on",
-        miniTheme: res.miniTheme ? res.miniTheme : "dark",
+        pointBoxAuto: res.pointBoxAuto ? res.pointBoxAuto : 'on',
+        darkTheme: res.darkTheme ? res.darkTheme : 'off',
+        chatTime: res.chatTime ? res.chatTime : 'off',
         miniLanguage: res.miniLanguage ? res.miniLanguage : navigator.language,
         miniFontSize: res.miniFontSize ? res.miniFontSize : "default",
-        miniChatTime: res.miniChatTime ? res.miniChatTime : "on",
+        miniChatTime: res.miniChatTime ? res.miniChatTime : 'on',
       });
     });
 });

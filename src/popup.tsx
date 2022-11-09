@@ -1,8 +1,8 @@
 import React from "react";
-import ReactDOM from 'react-dom/client';
-import { createGlobalStyle } from "styled-components";
+import ReactDOM from "react-dom/client";
+import GlobalStyles from "@mui/material/GlobalStyles";
 import browser from "webextension-polyfill";
-import { GlobalSettingContext } from "./context/globalSetting";
+import { GlobalSettingContext } from "./context/GlobalSetting";
 import useGlobalSetting from "./hooks/useGlobalSetting";
 import {
   chatDisplayMethodOptions,
@@ -11,101 +11,157 @@ import {
   languageOptions,
   positionOptions,
 } from "./interfaces/setting";
-import Link from "./popup/Link";
-import ListContainer from "./popup/ListContainer";
-import Selector from "./popup/Selector";
-import Title from "./popup/Title";
+import Selector from "./components/Selector";
+import Title from "./components/Title";
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
+import Divider from "@mui/material/Divider";
+import { styled } from "@mui/material/styles";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 
-const PopupGlobalStyle = createGlobalStyle`
-    *, *::before, *::after {
-        box-sizing: border-box;
-    }
-    *::-webkit-scrollbar{
-        width: 6px;
-        background-color: rgba(255, 255, 255, 0);
-    }
-    *::-webkit-scrollbar-thumb{
-        border-radius: 4px;
-        margin: 2px;
-        background-color: #d3d3d3;
-    }
-    body {
-        font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-        padding: 0;
-        margin: 0;
-        width: 16rem;
-        height: 
-        line-height: 1.5;
-    }
-    a, a:link, a:visited, a:hover, a:active {
-      color: inherit;
-      text-decoration: inherit;
-      font-weight: inherit;
-    }
-    #root{
-        height: 21rem;
-        overflow: auto;
-        user-select: none;
-    }
-`;
+const PopupGlobalStyle = (
+  <GlobalStyles
+    styles={(theme) => ({
+      "*, *::before, *::after": {
+        boxSizing: "border-box",
+      },
+      "*::-webkit-scrollbar": {
+        width: "6px",
+        backgroundColor: "rgba(255, 255, 255, 0)",
+      },
+      "*::-webkit-scrollbar-thumb": {
+        borderRadius: "4px",
+        margin: "2px",
+        backgroundColor: "#d3d3d3",
+      },
+      body: {
+        fontFamily:
+          "'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif",
+        padding: "0",
+        margin: "0",
+        width: "16rem",
+        lineHeight: "1.5",
+      },
+      "a, a:link, a:visited, a:hover, a:active": {
+        color: "inherit",
+        textDecoration: "inherit",
+        fontWeight: "inherit",
+      },
+      "#root": {
+        height: "21rem",
+        overflow: "auto",
+        userSelect: "none",
+      },
+    })}
+  ></GlobalStyles>
+);
+
+const ButtonLink = styled(Button)({
+  width: "100%",
+  fontSize: "0.8rem",
+});
+
 const Popup = () => {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSetting();
-  const extensionVersion = React.useRef(browser.runtime.getManifest().version);
-
-  const [baseUrl, setBaseUrl] = React.useState(process.env.BASE_URL);
+  const onPageButtonClicked = (path: string) => {
+    browser.tabs.create({
+      url: browser.runtime.getURL(`setting.html?initialPath=${path}`),
+    });
+  };
   return (
     <GlobalSettingContext.Provider
       value={{ globalSetting, dispatchGlobalSetting }}
     >
-      <Title title={browser.i18n.getMessage('generalSetting')}/>
+      <Title title={browser.i18n.getMessage("generalSetting")} />
 
-      <ListContainer>
-        <Link title={browser.i18n.getMessage('p_filter_btn')} url={`${baseUrl}/setting/filter?ext_version=${extensionVersion.current}`}/>
-        <Link title={browser.i18n.getMessage('p_save_chat_btn')} url={`${baseUrl}/setting/chatsaver?ext_version=${extensionVersion.current}`}/>
-      </ListContainer>
+      <Stack alignItems="flex-end">
+        <ButtonLink
+          endIcon={<ArrowRightIcon />}
+          onClick={() => {
+            onPageButtonClicked("filter");
+          }}
+        >
+          <Stack direction="row" sx={{ width: "100%" }}>
+            <span>{browser.i18n.getMessage("p_filter_btn")}</span>
+          </Stack>
+        </ButtonLink>
+        <ButtonLink
+          endIcon={<ArrowRightIcon />}
+          onClick={() => {
+            onPageButtonClicked("chatsaver");
+          }}
+        >
+          <Stack direction="row" sx={{ width: "100%" }}>
+            <span>{browser.i18n.getMessage("p_save_chat_btn")}</span>
+          </Stack>
+        </ButtonLink>
+      </Stack>
 
-      <ListContainer>
+      <Divider />
+
+      <Stack>
         <Selector
-          title={browser.i18n.getMessage('dispCopiedChatmethod')}
+          title={browser.i18n.getMessage("dispCopiedChatmethod")}
           values={chatDisplayMethodOptions}
           id="chatDisplayMethod"
         />
-        <Selector title={browser.i18n.getMessage('chatPosition')} values={positionOptions} id="position" />
+        <Divider />
         <Selector
-          title={browser.i18n.getMessage('pointBoxAutoClick')}
+          title={browser.i18n.getMessage("chatPosition")}
+          values={positionOptions}
+          id="position"
+        />
+        <Divider />
+        <Selector
+          title={browser.i18n.getMessage("pointBoxAutoClick")}
           values={toggleOptions}
           id="pointBoxAuto"
         />
-      </ListContainer>
+      </Stack>
 
-      <Title title={browser.i18n.getMessage('chatClientSetting')} />
+      <Title title={browser.i18n.getMessage("chatClientSetting")} />
 
-      <ListContainer>
-        <Selector title={browser.i18n.getMessage('language_text')} values={languageOptions} id="miniLanguage" />
+      <Stack>
         <Selector
-          title={browser.i18n.getMessage('fontSize')}
+          title={browser.i18n.getMessage("language_text")}
+          values={languageOptions}
+          id="miniLanguage"
+        />
+        <Divider />
+        <Selector
+          title={browser.i18n.getMessage("fontSize")}
           values={fontSizeOptions}
           id="miniFontSize"
         />
+        <Divider />
         <Selector
-          title={browser.i18n.getMessage('chatTime')}
+          title={browser.i18n.getMessage("chatTime")}
           values={toggleOptions}
           id="miniChatTime"
         />
-      </ListContainer>
+      </Stack>
 
-      <Title title={browser.i18n.getMessage('extraSetting')} />
+      <Title title={browser.i18n.getMessage("extraSetting")} />
 
-      <ListContainer>
-        <Link title={browser.i18n.getMessage('discord')} url='https://discord.gg/ZM6Eazpz5V' />
-      </ListContainer>
+      <Stack>
+        <Button
+          sx={{ width: "100%", fontSize: "0.8rem" }}
+          endIcon={<ArrowRightIcon />}
+          href="https://discord.gg/ZM6Eazpz5V"
+          target="_blank"
+        >
+          <Stack direction="row" sx={{ width: "100%" }}>
+            <span>{browser.i18n.getMessage("discord")}</span>
+          </Stack>
+        </Button>
+      </Stack>
     </GlobalSettingContext.Provider>
   );
 };
 
 ReactDOM.createRoot(document.getElementById("root") as Element).render(
   <React.StrictMode>
-    <PopupGlobalStyle />
+    {PopupGlobalStyle}
     <Popup />
-  </React.StrictMode>,
+  </React.StrictMode>
 );
