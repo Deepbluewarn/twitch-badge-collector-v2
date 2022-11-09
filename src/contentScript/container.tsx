@@ -66,7 +66,7 @@ const TwitchChatContainerStyle = styled("div")({
 
 export function LocalChatContainer() {
   const [chatList, setChatList] = useState<Node[]>([]);
-  const { arrayFilterRef, checkFilter } = useArrayFilter();
+  const { setArrayFilter, arrayFilterRef, checkFilter } = useArrayFilter();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const container = document.getElementsByClassName("tbc-origin")[0];
@@ -85,6 +85,26 @@ export function LocalChatContainer() {
   message_container.textContent = ""; //remove all chat lines.
 
   const [chatIsBottom, setChatIsBottom] = useState(true);
+
+  useEffect(() => {
+    browser.storage.onChanged.addListener((changed, areaName) => {
+      if (areaName !== "local") return;
+
+      for (let key in changed) {
+        let newValue = changed[key].newValue;
+
+        if (key === "filter") {
+          setArrayFilter(newValue);
+        }
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    browser.storage.local.get('filter').then(res => {
+      setArrayFilter(res.filter);
+    })
+  }, [])
 
   useEffect(() => {
     const scrollArea = getScrollArea();

@@ -11,7 +11,6 @@ export default function useArrayFilter() {
     const [ arrayFilter, setArrayFilter ] = useState<ArrayFilterListInterface[]>([]);
     const arrayFilterRef = useRef<ArrayFilterListInterface[]>([]);
     const isFilterInitialized = useRef(false);
-    const { addAlert } = useAlertContext();
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -34,20 +33,14 @@ export default function useArrayFilter() {
             const empty = newFilter.filters.some(row => row.value === '');
 
             if(empty) {
-                addAlert({
-                    message: t('alert.no_value_filter'),
-                    serverity: 'warning'
-                });
+                alert(t('alert.no_value_filter'))
                 return false;
             }
     
             setArrayFilter(afLists => {
                 for (let af of afLists) {
                     if(arrayFiltersEqual(af.filters, newFilter.filters)){
-                        addAlert({
-                            message: t('alert.filter_already_exist'),
-                            serverity: 'warning'
-                        });
+                        alert(t('alert.filter_already_exist'))
                         return afLists;
                     }
                 }
