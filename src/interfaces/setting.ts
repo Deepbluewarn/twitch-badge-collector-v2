@@ -9,7 +9,7 @@ export type ChatDisplayMethodOptionType =
 export type PositionOptionType = typeof positionOptions[number];
 export type FontSizeOptionType = typeof fontSizeOptions[number];
 export type LanguageOptionType = typeof languageOptions[number];
-export type ToggleOptionType = typeof toggleOptions[number];
+export type ToggleOptionType = typeof toggleOptions[number];;
 
 export type SettingOptions =
   | ChatDisplayMethodOptionType
@@ -23,7 +23,9 @@ export type SettingCategory =
   | "chatDisplayMethod"
   | "position"
   | "ratio"
+  | "darkTheme"
   | "pointBoxAuto"
+  | "chatTime"
   | "miniLanguage"
   | "miniFontSize"
   | "miniChatTime";
@@ -34,10 +36,12 @@ export interface ReducerAction {
 }
 
 export default interface Setting {
-  [index: string]: string | number;
+  [index: string]: SettingOptions;
   chatDisplayMethod: ChatDisplayMethodOptionType;
+  darkTheme: ToggleOptionType;
   position: PositionOptionType;
   pointBoxAuto: ToggleOptionType;
+  chatTime: ToggleOptionType;
   miniChatTime: ToggleOptionType;
   miniLanguage: LanguageOptionType;
   miniFontSize: FontSizeOptionType;

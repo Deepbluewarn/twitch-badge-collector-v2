@@ -1,22 +1,22 @@
 import React from "react";
-import styled from "styled-components";
+import { styled } from "@mui/material/styles";
+import Stack from "@mui/material/Stack";
 import browser from "webextension-polyfill";
-import { FlexColumnContainer } from "../components/FlexContainer";
-import { useGlobalSettingContext } from "../context/globalSetting";
+import { useGlobalSettingContext } from "../context/GlobalSetting";
 import { SettingCategory } from "../interfaces/setting";
 
-const SelectorContainerStyle = styled(FlexColumnContainer)`
-  gap: 8px;
-  padding: 8px;
-`;
+const SelectorContainerStyle = styled(Stack)({
+  gap: "8px",
+  padding: "8px",
+});
 
-const Select = styled.select`
-  background-color: var(--select-bgcolor);
-  height: 1.7rem;
-  font-family: inherit;
-  padding-left: 4px;
-  border: 1px solid #cfcfcf;
-`;
+const Select = styled("select")({
+  backgroundColor: "var(--select-bgcolor)",
+  height: "1.7rem",
+  fontFamily: "inherit",
+  paddingLeft: "4px",
+  border: "1px solid #cfcfcf",
+});
 
 export default function Selector(props: {
   title: string;
@@ -24,20 +24,22 @@ export default function Selector(props: {
   id: string;
 }) {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
-  const options = props.values.map((v) => <option value={v}>{browser.i18n.getMessage(v)}</option>);
+  const options = props.values.map((v) => (
+    <option value={v}>{browser.i18n.getMessage(v)}</option>
+  ));
 
   const onSelectionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     event.preventDefault();
-    
+
     const value = event.target.value;
     dispatchGlobalSetting({ type: props.id as SettingCategory, value: value });
   };
   return (
-    <SelectorContainerStyle>
+    <SelectorContainerStyle direction="column">
       <span>{props.title}</span>
       <Select
         name={props.title}
-        value={globalSetting[props.id]}
+        value={globalSetting[props.id] as string}
         id={`select-${props.id}`}
         onChange={onSelectionChange}
       >

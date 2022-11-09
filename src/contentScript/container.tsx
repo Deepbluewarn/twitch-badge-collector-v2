@@ -1,12 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import browser from "webextension-polyfill";
-import styled from "styled-components";
+import { styled } from "@mui/material/styles";
 import convert from "react-from-dom";
 import createContainerHandler from "./containerHandler";
-import { getChannelFromPath, getVideoIdParam, ReplayPageType, observer } from "./utils";
+import {
+  getChannelFromPath,
+  getVideoIdParam,
+  ReplayPageType,
+  observer,
+} from "./utils";
 import ChatFromTwitchUi from "./twitchUiChat";
 import useArrayFilter from "../hooks/useArrayFilter";
-import { useGlobalSettingContext } from "../context/globalSetting";
+import { useGlobalSettingContext } from "../context/GlobalSetting";
 import { ContainerType } from "../interfaces/container";
 import MessageInterface from "../interfaces/message";
 import useMutationObserver from "../hooks/useMutationObserver";
@@ -46,22 +51,22 @@ export function createCloneContainer() {
 }
 
 export function createReplayContainer(video_chat: Element) {
-  const replayContainer = document.createElement('div');
-  replayContainer.id = 'tbc-container';
+  const replayContainer = document.createElement("div");
+  replayContainer.id = "tbc-container";
 
   video_chat.classList.add("tbc-origin");
-  video_chat.parentElement?.classList.add('flex_column');
+  video_chat.parentElement?.classList.add("flex_column");
   video_chat.parentElement?.appendChild(createContainerHandler());
   video_chat.parentElement?.appendChild(replayContainer);
 }
 
-const TwitchChatContainerStyle = styled.div`
-  height: 100%;
-`;
+const TwitchChatContainerStyle = styled("div")({
+  height: "100%",
+});
 
 export function LocalChatContainer() {
-  const [ chatList, setChatList ] = useState<Node[]>([]);
-  const { filterRef, checkFilter } = useArrayFilter();
+  const [chatList, setChatList] = useState<Node[]>([]);
+  const { arrayFilterRef, checkFilter } = useArrayFilter();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const container = document.getElementsByClassName("tbc-origin")[0];
@@ -89,7 +94,7 @@ export function LocalChatContainer() {
     const scrollCallback = () => {
       setChatIsBottom(
         scrollArea.scrollTop + scrollArea.clientHeight >=
-        scrollArea.scrollHeight - 40
+          scrollArea.scrollHeight - 40
       );
     };
 
@@ -163,31 +168,31 @@ export function LocalChatContainer() {
   );
 }
 
-const RemoteChatContainerStyle = styled.iframe`
-  width: 100%;
-  height: 100%;
-  margin-bottom: 8px;
-`;
+const RemoteChatContainerStyle = styled("iframe")({
+  width: "100%",
+  height: "100%",
+  marginBottom: "8px",
+});
 
 export function RemoteChatContainer(props: { type: ContainerType }) {
-  const [baseUrl, setBaseUrl] = useState(process.env.BASE_URL || '');
+  const [baseUrl, setBaseUrl] = useState(process.env.BASE_URL || "");
   const params = new URLSearchParams();
   const replayType = ReplayPageType();
-  const [ videoId, setVideoId ] = useState(getVideoIdParam(replayType));
+  const [videoId, setVideoId] = useState(getVideoIdParam(replayType));
 
   const twitchHTMLTagRef = useRef<HTMLElement>(document.documentElement);
   const getDarkTheme = () => {
-    return twitchHTMLTagRef.current.classList.contains('tw-root--theme-dark');
-  }
-  const [ darkTheme, setDarkTheme ] = useState(getDarkTheme());
+    return twitchHTMLTagRef.current.classList.contains("tw-root--theme-dark");
+  };
+  const [darkTheme, setDarkTheme] = useState(getDarkTheme());
 
   const themeCallback = (mutationRecord: MutationRecord[]) => {
     setDarkTheme(getDarkTheme());
-  }
+  };
 
   useMutationObserver(twitchHTMLTagRef, themeCallback);
 
-  if (props.type === 'replay') {
+  if (props.type === "replay") {
     if (replayType && videoId) {
       params.set(replayType, videoId);
     }
@@ -205,23 +210,30 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
 
   const postSetting = (type: string, value: any) => {
     if (frameRef.current && frameLoaded.current) {
-      frameRef.current.contentWindow?.postMessage({
-        sender: 'extension', type, value
-      } as MessageInterface, baseUrl);
+      frameRef.current.contentWindow?.postMessage(
+        {
+          sender: "extension",
+          type,
+          value,
+        } as MessageInterface,
+        baseUrl
+      );
     }
   };
 
   useEffect(() => {
-    if(props.type !== 'replay') return;
-    
-    const player: HTMLVideoElement | undefined = document.getElementsByClassName('video-ref')[0].getElementsByTagName('video')[0];
+    if (props.type !== "replay") return;
 
-    player.ontimeupdate = e => {
+    const player: HTMLVideoElement | undefined = document
+      .getElementsByClassName("video-ref")[0]
+      .getElementsByTagName("video")[0];
+
+    player.ontimeupdate = (e) => {
       const msg: MessageInterface = {
-        sender: 'extension',
-        type: 'PLAYER_TIME',
-        value: player.currentTime
-      }
+        sender: "extension",
+        type: "PLAYER_TIME",
+        value: player.currentTime,
+      };
       frameRef.current?.contentWindow?.postMessage(msg, baseUrl);
     };
   }, [props.type]);
@@ -229,22 +241,25 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
   useEffect(() => {
     browser.runtime.onMessage.addListener((message, sender) => {
       if (message.action === "onHistoryStateUpdated") {
-        if(props.type === 'replay') {
+        if (props.type === "replay") {
           setVideoId(getVideoIdParam(ReplayPageType()));
         }
       }
     });
 
     window.onmessage = (e) => {
-      if (e.data.sender === 'wtbc' && e.data.type === 'REQUEST_EXTENSION_SETTING') {
+      if (
+        e.data.sender === "wtbc" &&
+        e.data.type === "REQUEST_EXTENSION_SETTING"
+      ) {
         frameLoaded.current = true;
-        postSetting('EXTENSION_SETTING', globalSetting);
-        postSetting('TWITCH_DARKMODE', darkTheme);
-        browser.storage.local.get('filter').then(res => {
-          postSetting('ARRAY_FILTER', res.filter);
-        })
+        postSetting("EXTENSION_SETTING", globalSetting);
+        postSetting("TWITCH_DARKMODE", darkTheme);
+        browser.storage.local.get("filter").then((res) => {
+          postSetting("ARRAY_FILTER", res.filter);
+        });
       }
-    }
+    };
   }, []);
 
   useEffect(() => {
@@ -254,19 +269,19 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
       for (let key in changed) {
         let newValue = changed[key].newValue;
 
-        if (key === 'filter') {
-          postSetting('ARRAY_FILTER', newValue);
+        if (key === "filter") {
+          postSetting("ARRAY_FILTER", newValue);
         }
       }
     });
-  }, [])
+  }, []);
 
   useEffect(() => {
-    postSetting('EXTENSION_SETTING', globalSetting);
+    postSetting("EXTENSION_SETTING", globalSetting);
   }, [globalSetting]);
 
   useEffect(() => {
-    postSetting('TWITCH_DARKMODE', darkTheme);
+    postSetting("TWITCH_DARKMODE", darkTheme);
   }, [darkTheme]);
 
   return (

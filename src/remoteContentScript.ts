@@ -20,12 +20,12 @@ window.onmessage = (event: MessageEvent) => {
 }
 
 browser.runtime.onMessage.addListener((message, sender) => {
-    if (message.from === 'background' && message.type === 'CHATSAVER_REQUEST_CHANNEL_INFO') {
+    if (message.from === 'extension_setting' && message.type === 'CHATSAVER_REQUEST_CHANNEL_INFO') {
         window.postMessage({
             sender: 'extension',
             type: 'CHATSAVER_REQUEST_CHANNEL_INFO'
         }, '*');
-    }else if (message.from === 'background' && message.type === 'CHATSAVER_REQUEST_CHAT_LIST'){
+    }else if (message.from === 'extension_setting' && message.type === 'CHATSAVER_REQUEST_CHAT_LIST'){
         window.postMessage({
             sender: 'extension',
             type: 'CHATSAVER_REQUEST_CHAT_LIST',
