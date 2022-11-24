@@ -71,8 +71,6 @@ export default function createContainerHandler() {
   handle_container.addEventListener("touchstart", startDrag);
   handle_container.appendChild(resize_handle);
 
-  updateContainerRatio(containerRatio, position, isReplay);
-
   return handle_container;
 }
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import GlobalStyles from "@mui/material/GlobalStyles";
 import browser from "webextension-polyfill";
@@ -68,6 +68,23 @@ const Popup = () => {
       url: browser.runtime.getURL(`setting.html?initialPath=${path}`),
     });
   };
+
+  useEffect(() => {
+    browser.storage.onChanged.addListener((changed, areaName) => {
+      if (areaName !== "local") return;
+
+      for (let key in changed) {
+        if (key === "position") {
+          browser.storage.local.get('containerRatio').then(res => {
+            let cr = res.containerRatio;
+            cr = 100 - cr;
+            browser.storage.local.set({ containerRatio: cr });
+          })
+        }
+      }
+    })
+  }, [])
+
   return (
     <GlobalSettingContext.Provider
       value={{ globalSetting, dispatchGlobalSetting }}

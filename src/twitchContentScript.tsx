@@ -16,7 +16,7 @@ import { updateContainerRatio } from "./contentScript/containerHandler";
 console.log('[extension] TBC Content Script loaded.')
 
 let streamPageObserver: MutationObserver | undefined;
-let position = "up";
+let position: PositionOptionType;
 let containerRatio = 30;
 let pointBoxAuto = true;
 
@@ -24,6 +24,7 @@ let streamChatFound = false;
 let replayChatFound = false;
 let pointBoxFound = false;
 let twitchDarkTheme = false;
+let observerStatus = false;
 
 const injectMockFetch = () => {
   var s = document.createElement('script');
@@ -145,19 +146,20 @@ function App() {
       for (let key in changed) {
         let newValue = changed[key].newValue;
 
-        if (key === 'position') {
-          updatePosition(newValue);
-          dispatchGlobalSetting({ type: 'position', value: newValue });
-        } else if (key === 'chatDisplayMethod') {
-          dispatchGlobalSetting({ type: 'chatDisplayMethod', value: newValue });
-        } else if (key === 'pointBoxAuto') {
+        if (key === "position") {
+          position = newValue;
+          updatePosition(position);
+          dispatchGlobalSetting({ type: "position", value: newValue });
+        } else if (key === "chatDisplayMethod") {
+          dispatchGlobalSetting({ type: "chatDisplayMethod", value: newValue });
+        } else if (key === "pointBoxAuto") {
           pointBoxAuto = newValue;
-        } else if (key === 'miniLanguage') {
-          dispatchGlobalSetting({ type: 'miniLanguage', value: newValue });
-        } else if (key === 'miniFontSize') {
-          dispatchGlobalSetting({ type: 'miniFontSize', value: newValue });
-        } else if (key === 'miniChatTime') {
-          dispatchGlobalSetting({ type: 'miniChatTime', value: newValue });
+        } else if (key === "miniLanguage") {
+          dispatchGlobalSetting({ type: "miniLanguage", value: newValue });
+        } else if (key === "miniFontSize") {
+          dispatchGlobalSetting({ type: "miniFontSize", value: newValue });
+        } else if (key === "miniChatTime") {
+          dispatchGlobalSetting({ type: "miniChatTime", value: newValue });
         } else if (key === "containerRatio") {
           containerRatio = newValue;
         }
@@ -209,6 +211,8 @@ function observePage() {
   } else {
     streamPageObserver = observer(document.body, config, observerCallback);
   }
+
+  observerStatus = true;
 }
 function observePointBox(target: Element) {
   observer(
@@ -222,21 +226,32 @@ function observePointBox(target: Element) {
   );
 }
 
-browser.storage.local.get(['position', 'pointBoxAuto', 'containerRatio']).then((res) => {
-  position = res.position;
-  pointBoxAuto = res.pointBoxAuto;
-  containerRatio = res.containerRatio;
+const updateLocalSettingValues = () => {
+  browser.storage.local.get(['position', 'pointBoxAuto', 'containerRatio']).then((res) => {
+    position = res.position;
+    pointBoxAuto = res.pointBoxAuto;
+    containerRatio = res.containerRatio;
+  
+    observePage();
+  });
+}
 
-  observePage();
-});
+
+updateLocalSettingValues();
+
+let currentPath = '';
 
 browser.runtime.onMessage.addListener((message, sender) => {
   if (message.action === "onHistoryStateUpdated") {
+    if(window.location.hostname !== 'www.twitch.tv') return;
+    if(currentPath === window.location.pathname) return;
+
+    currentPath = window.location.pathname;
 
     streamChatFound = false;
     replayChatFound = false;
     pointBoxFound = false;
 
-    observePage();
+    updateLocalSettingValues();
   }
 });
