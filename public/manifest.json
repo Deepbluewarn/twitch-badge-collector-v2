@@ -29,15 +29,6 @@
         },
         {
             "matches": [
-                "https://*.badgecollector.dev/setting/*"
-            ],
-            "js": [
-                "js/vendor.js",
-                "js/setting_content_script.js"
-            ]
-        },
-        {
-            "matches": [
                 "https://*.badgecollector.dev/mini*",
                 "https://*.badgecollector.dev/replay*"
             ],
@@ -56,8 +47,7 @@
         "webNavigation"
     ],
     "host_permissions": [
-        "*://*.twitch.tv/*",
-        "https://*.badgecollector.dev/setting/*"
+        "*://*.twitch.tv/*"
     ],
     "web_accessible_resources": [
         {
