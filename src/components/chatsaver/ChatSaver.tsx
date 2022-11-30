@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import Button from "@mui/material/Button";
 import { BroadcastChannel } from "broadcast-channel";
 import browser from "webextension-polyfill";
@@ -68,7 +68,7 @@ export default function ChatSaver() {
     }
   };
 
-  const saveChatAsImage = () => {
+  const saveChatAsImage = useCallback(() => {
     if (chatContainerWrapperRef.current === null) return;
 
     const chatContainer =
@@ -78,6 +78,8 @@ export default function ChatSaver() {
 
     if (!chatContainer) return;
 
+    const date = new Date();
+
     htmlToImage
       .toPng(chatContainer, {
         cacheBust: true,
@@ -85,7 +87,7 @@ export default function ChatSaver() {
       })
       .then((dataUrl) => {
         const link = document.createElement("a");
-        link.download = "my-image-name.png";
+        link.download = `${date.toLocaleString()}-${channel?.value}.png`;
         link.href = dataUrl;
         link.click();
 
@@ -94,7 +96,7 @@ export default function ChatSaver() {
       .catch((err) => {
         console.log(err);
       });
-  };
+  }, [channel]);
 
   const sendMessageToFrame = (from: string, type: string, value?: any) => {
     browser.tabs.query({}).then((tabs) => {
