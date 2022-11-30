@@ -80,12 +80,12 @@ browser.runtime.onInstalled.addListener(function (details: any) {
           ? res.chatDisplayMethod
           : "local",
         position: res.position ? res.position : "up",
-        pointBoxAuto: res.pointBoxAuto ? res.pointBoxAuto : 'on',
-        darkTheme: res.darkTheme ? res.darkTheme : 'off',
-        chatTime: res.chatTime ? res.chatTime : 'off',
+        pointBoxAuto: res.pointBoxAuto ? res.pointBoxAuto : "on",
+        darkTheme: res.darkTheme ? res.darkTheme : "off",
+        chatTime: res.chatTime ? res.chatTime : "off",
         miniLanguage: res.miniLanguage ? res.miniLanguage : navigator.language,
         miniFontSize: res.miniFontSize ? res.miniFontSize : "default",
-        miniChatTime: res.miniChatTime ? res.miniChatTime : 'on',
+        miniChatTime: res.miniChatTime ? res.miniChatTime : "on",
       });
     });
 });

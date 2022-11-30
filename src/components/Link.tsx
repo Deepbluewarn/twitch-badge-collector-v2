@@ -16,7 +16,7 @@ const LinkButtonStyle = styled(Button)({
   //   borderBottom: "none",
   // },
 });
-export function Link(props: {title: string, url: string}) {
+export function Link(props: { title: string; url: string }) {
   return (
     <LinkButtonStyle {...props} href={props.url}>
       <span>{props.title}</span>

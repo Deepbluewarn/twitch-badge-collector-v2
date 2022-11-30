@@ -34,17 +34,15 @@ export default function Setting(props: { expand?: boolean }) {
     <Box>
       <List
         subheader={
-          <ListSubheader disableSticky={true}>
-            {t('common.chat')}
-          </ListSubheader>
+          <ListSubheader disableSticky={true}>{t("common.chat")}</ListSubheader>
         }
       >
         <ListItem>
-          <ListItemText primary={t('setting.chat_time')} />
+          <ListItemText primary={t("setting.chat_time")} />
 
           <Switch
-            id='chat-time-switch'
-            checked={globalSetting.chatTime === 'on'}
+            id="chat-time-switch"
+            checked={globalSetting.chatTime === "on"}
             onChange={handleSwitchChange}
           />
         </ListItem>
@@ -64,7 +62,7 @@ export default function Setting(props: { expand?: boolean }) {
 
           <Switch
             id="dark-theme-switch"
-            checked={globalSetting.darkTheme === 'on'}
+            checked={globalSetting.darkTheme === "on"}
             onChange={handleSwitchChange}
           />
         </ListItem>

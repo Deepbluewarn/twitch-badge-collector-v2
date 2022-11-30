@@ -75,15 +75,15 @@ const Popup = () => {
 
       for (let key in changed) {
         if (key === "position") {
-          browser.storage.local.get('containerRatio').then(res => {
+          browser.storage.local.get("containerRatio").then((res) => {
             let cr = res.containerRatio;
             cr = 100 - cr;
             browser.storage.local.set({ containerRatio: cr });
-          })
+          });
         }
       }
-    })
-  }, [])
+    });
+  }, []);
 
   return (
     <GlobalSettingContext.Provider

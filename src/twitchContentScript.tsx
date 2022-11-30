@@ -13,7 +13,7 @@ import { GlobalSettingContext } from "./context/GlobalSetting";
 import { PositionOptionType } from "./interfaces/setting";
 import { updateContainerRatio } from "./contentScript/containerHandler";
 
-console.log('[extension] TBC Content Script loaded.')
+console.log("[extension] TBC Content Script loaded.");
 
 let streamPageObserver: MutationObserver | undefined;
 let position: PositionOptionType;
@@ -27,19 +27,19 @@ let twitchDarkTheme = false;
 let observerStatus = false;
 
 const injectMockFetch = () => {
-  var s = document.createElement('script');
-  s.src = browser.runtime.getURL('js/overrideFetch.js');
+  var s = document.createElement("script");
+  s.src = browser.runtime.getURL("js/overrideFetch.js");
   s.onload = function () {
     s.remove();
   };
   (document.head || document.documentElement).appendChild(s);
-}
+};
 
 injectMockFetch();
 
 async function observerCallback(mutationRecord: MutationRecord[]) {
   const body = document.body;
-  twitchDarkTheme = body.classList.contains('dark-theme');
+  twitchDarkTheme = body.classList.contains("dark-theme");
 
   const streamChat: Element | undefined =
     document.getElementsByClassName("stream-chat")[0];
@@ -51,11 +51,14 @@ async function observerCallback(mutationRecord: MutationRecord[]) {
   const replay = ReplayPageType();
 
   if (replay) {
-    const video_chat: Element = document.getElementsByClassName('video-chat__message-list-wrapper')[0];
-    const video_player: HTMLVideoElement | undefined = document.getElementsByClassName('video-ref')[0].getElementsByTagName('video')[0];
+    const video_chat: Element = document.getElementsByClassName(
+      "video-chat__message-list-wrapper"
+    )[0];
+    const video_player: HTMLVideoElement | undefined = document
+      .getElementsByClassName("video-ref")[0]
+      .getElementsByTagName("video")[0];
 
     if (video_chat && video_player) {
-
       let tbcContainer = document.getElementById("tbc-container");
       if (tbcContainer) return false;
 
@@ -86,7 +89,6 @@ async function observerCallback(mutationRecord: MutationRecord[]) {
     updatePosition(position);
 
     createRoot(tbcContainer).render(<App />);
-
   } else if (pointBox && !pointBoxFound) {
     pointBoxFound = true;
     observePointBox(pointBox);
@@ -130,12 +132,12 @@ function App() {
   let chat = null;
 
   if (isReplay.current) {
-    chat = <RemoteChatContainer type='replay' />;
+    chat = <RemoteChatContainer type="replay" />;
   } else {
     if (displayMethod === "local") {
       chat = <LocalChatContainer />;
     } else if (displayMethod === "remote") {
-      chat = <RemoteChatContainer type='mini' />;
+      chat = <RemoteChatContainer type="mini" />;
     }
   }
 
@@ -198,13 +200,13 @@ function updatePosition(position: PositionOptionType) {
     handleConainer.style.order = "2";
     originContainer.style.order = "3";
   }
-};
+}
 
 function observePage() {
   const config = {
     childList: true,
     subtree: true,
-  }
+  };
 
   if (streamPageObserver) {
     streamPageObserver.observe(document.body, config);
@@ -227,24 +229,25 @@ function observePointBox(target: Element) {
 }
 
 const updateLocalSettingValues = () => {
-  browser.storage.local.get(['position', 'pointBoxAuto', 'containerRatio']).then((res) => {
-    position = res.position;
-    pointBoxAuto = res.pointBoxAuto;
-    containerRatio = res.containerRatio;
-  
-    observePage();
-  });
-}
+  browser.storage.local
+    .get(["position", "pointBoxAuto", "containerRatio"])
+    .then((res) => {
+      position = res.position;
+      pointBoxAuto = res.pointBoxAuto;
+      containerRatio = res.containerRatio;
 
+      observePage();
+    });
+};
 
 updateLocalSettingValues();
 
-let currentPath = '';
+let currentPath = "";
 
 browser.runtime.onMessage.addListener((message, sender) => {
   if (message.action === "onHistoryStateUpdated") {
-    if(window.location.hostname !== 'www.twitch.tv') return;
-    if(currentPath === window.location.pathname) return;
+    if (window.location.hostname !== "www.twitch.tv") return;
+    if (currentPath === window.location.pathname) return;
 
     currentPath = window.location.pathname;
 

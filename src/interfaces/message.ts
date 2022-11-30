@@ -1,5 +1,5 @@
 export default interface MessageInterface {
-    sender: string,
-    type: string,
-    value: any
+  sender: string;
+  type: string;
+  value: any;
 }

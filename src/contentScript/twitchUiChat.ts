@@ -4,8 +4,7 @@ export default function ChatFromTwitchUi(node: Node) {
   let nodeElement = <HTMLElement>node;
 
   if (!nodeElement || nodeElement.nodeType !== 1) return;
-  if (!nodeElement.closest(".chat-scrollable-area__message-container"))
-    return;
+  if (!nodeElement.closest(".chat-scrollable-area__message-container")) return;
 
   let room_clone_parent = <HTMLDivElement>(
     nodeElement.closest(".scrollable-area.tbc-origin")?.parentNode

@@ -101,10 +101,10 @@ export function LocalChatContainer() {
   }, []);
 
   useEffect(() => {
-    browser.storage.local.get('filter').then(res => {
+    browser.storage.local.get("filter").then((res) => {
       setArrayFilter(res.filter);
-    })
-  }, [])
+    });
+  }, []);
 
   useEffect(() => {
     const scrollArea = getScrollArea();

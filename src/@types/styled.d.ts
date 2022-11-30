@@ -1,9 +1,9 @@
-import { Theme } from '@mui/material/styles';
+import { Theme } from "@mui/material/styles";
 
 interface CustomTheme {
   palette: {
-    mode: 'dark' | 'light',
-  },
+    mode: "dark" | "light";
+  };
   colors: {
     textColor_1: string;
     textColorInverted: string;
@@ -25,9 +25,9 @@ interface CustomTheme {
     scrollbarBgColor: string;
     modalBgColor: string;
     borderColor: string;
-  },
+  };
 }
-declare module '@mui/material/styles' {
-  interface Theme extends CustomTheme { }
-  interface ThemeOptions extends CustomTheme { }
+declare module "@mui/material/styles" {
+  interface Theme extends CustomTheme {}
+  interface ThemeOptions extends CustomTheme {}
 }

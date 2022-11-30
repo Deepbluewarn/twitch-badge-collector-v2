@@ -11,11 +11,11 @@ export default function Donation() {
   const { globalSetting } = useGlobalSettingContext();
 
   const getDonationImageName = () => {
-    return globalSetting.darkTheme === 'on'
-      ? i18n.language.includes('ko')
+    return globalSetting.darkTheme === "on"
+      ? i18n.language.includes("ko")
         ? "toonation_b18"
         : "toonation_b19"
-      : i18n.language.includes('ko')
+      : i18n.language.includes("ko")
       ? "toonation_b13"
       : "toonation_b14";
   };

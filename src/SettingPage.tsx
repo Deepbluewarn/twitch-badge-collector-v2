@@ -26,7 +26,7 @@ import { TwitchAPIContext } from "./context/TwitchAPIContext";
 import useTwitchAPI from "./hooks/useTwitchAPI";
 import axios from "axios";
 import globalStyles from "./style/global";
-import './i18n/i18n';
+import "./i18n/i18n";
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSetting();
@@ -61,9 +61,9 @@ function App() {
   };
 
   useEffect(() => {
-    i18n.changeLanguage(getClientLocale())
+    i18n.changeLanguage(getClientLocale());
   }, []);
-  
+
   return (
     <ThemeProvider theme={getTheme(globalSetting.darkTheme)}>
       <GlobalSettingContext.Provider

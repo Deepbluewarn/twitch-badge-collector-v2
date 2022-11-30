@@ -13,12 +13,12 @@ export function getChannelFromPath() {
   }
   return channel;
 }
-export function getVideoIdParam(replayType: 'replay' | 'clip' | boolean) {
+export function getVideoIdParam(replayType: "replay" | "clip" | boolean) {
   const paths = window.location.pathname.split("/");
 
-  if (replayType === 'clip') {
+  if (replayType === "clip") {
     return paths[3];
-  } else if (replayType === 'replay') {
+  } else if (replayType === "replay") {
     return paths[2];
   }
 }

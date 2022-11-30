@@ -9,7 +9,7 @@ export type ChatDisplayMethodOptionType =
 export type PositionOptionType = typeof positionOptions[number];
 export type FontSizeOptionType = typeof fontSizeOptions[number];
 export type LanguageOptionType = typeof languageOptions[number];
-export type ToggleOptionType = typeof toggleOptions[number];;
+export type ToggleOptionType = typeof toggleOptions[number];
 
 export type SettingOptions =
   | ChatDisplayMethodOptionType

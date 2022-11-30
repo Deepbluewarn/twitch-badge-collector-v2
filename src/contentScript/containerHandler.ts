@@ -3,7 +3,7 @@ import { PositionOptionType } from "../interfaces/setting";
 import { ChatRoom } from "./container";
 import { ReplayPageType } from "./utils";
 
-const videoWrapperClassName = 'video-chat__message-list-wrapper';
+const videoWrapperClassName = "video-chat__message-list-wrapper";
 
 export default function createContainerHandler() {
   const handle_container = document.createElement("div");
@@ -12,7 +12,7 @@ export default function createContainerHandler() {
   resize_handle.id = "tbc-resize-handle";
 
   let containerRatio = 0;
-  let position: string = 'up';
+  let position: string = "up";
   let tbcContainer: HTMLDivElement;
   let isReplay: boolean | string = false;
 
@@ -42,7 +42,8 @@ export default function createContainerHandler() {
     let chat_room;
 
     if (isReplay) {
-      chat_room = document.getElementsByClassName(videoWrapperClassName)[0].parentElement;
+      chat_room = document.getElementsByClassName(videoWrapperClassName)[0]
+        .parentElement;
     } else {
       chat_room = ChatRoom();
     }
@@ -77,7 +78,7 @@ export default function createContainerHandler() {
 export function updateContainerRatio(
   ratio: number,
   position: PositionOptionType,
-  replay: boolean | string,
+  replay: boolean | string
 ) {
   if (ratio != 0) ratio = ratio ? ratio : 30;
 
@@ -95,7 +96,11 @@ export function updateContainerRatio(
     [orig_size, clone_size] = [clone_size, orig_size];
   }
 
-  orig = <HTMLDivElement>document.getElementsByClassName(replay ? videoWrapperClassName : "tbc-origin")[0];
+  orig = <HTMLDivElement>(
+    document.getElementsByClassName(
+      replay ? videoWrapperClassName : "tbc-origin"
+    )[0]
+  );
   clone = <HTMLDivElement>document.getElementById("tbc-container");
 
   if (!orig || !clone) return;
