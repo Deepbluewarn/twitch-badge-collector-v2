@@ -8,15 +8,16 @@ import {
   createReplayContainer,
 } from "./contentScript/container";
 import { ReplayPageType, observer } from "./contentScript/utils";
-import useGlobalSetting from "./hooks/useGlobalSetting";
-import { GlobalSettingContext } from "./context/GlobalSetting";
-import { PositionOptionType } from "./interfaces/setting";
 import { updateContainerRatio } from "./contentScript/containerHandler";
-
-console.log("[extension] TBC Content Script loaded.");
+import {
+  useGlobalSetting,
+  SettingInterface,
+  Context as TBCContext,
+  useAlert
+} from 'twitch-badge-collector-cc';
 
 let streamPageObserver: MutationObserver | undefined;
-let position: PositionOptionType;
+let position: SettingInterface.PositionOptionsType;
 let containerRatio = 30;
 let pointBoxAuto = true;
 
@@ -126,7 +127,8 @@ function pointBoxObserverCallback(mutationRecord: MutationRecord[]) {
 }
 
 function App() {
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting();
+  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension');
+  const { alerts, setAlerts, addAlert } = useAlert();
   const displayMethod = globalSetting.chatDisplayMethod;
   const isReplay = useRef(ReplayPageType());
   let chat = null;
@@ -170,15 +172,17 @@ function App() {
   }, []);
 
   return (
-    <GlobalSettingContext.Provider
+    <TBCContext.GlobalSettingContext.Provider
       value={{ globalSetting, dispatchGlobalSetting }}
     >
-      {chat}
-    </GlobalSettingContext.Provider>
+      <TBCContext.AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
+        {chat}
+      </TBCContext.AlertContext.Provider>
+    </TBCContext.GlobalSettingContext.Provider>
   );
 }
 
-function updatePosition(position: PositionOptionType) {
+function updatePosition(position: SettingInterface.PositionOptionsType) {
   const tbcContainer = document.getElementById(
     "tbc-container"
   ) as HTMLDivElement;

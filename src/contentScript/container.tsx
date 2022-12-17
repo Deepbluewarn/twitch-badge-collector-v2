@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import browser from "webextension-polyfill";
-import { styled } from "@mui/material/styles";
 import convert from "react-from-dom";
+import { styled } from "@mui/material/styles";
 import createContainerHandler from "./containerHandler";
 import {
   getChannelFromPath,
@@ -10,11 +10,13 @@ import {
   observer,
 } from "./utils";
 import ChatFromTwitchUi from "./twitchUiChat";
-import useArrayFilter from "../hooks/useArrayFilter";
-import { useGlobalSettingContext } from "../context/GlobalSetting";
 import { ContainerType } from "../interfaces/container";
 import MessageInterface from "../interfaces/message";
 import useMutationObserver from "../hooks/useMutationObserver";
+import {
+  useArrayFilter,
+  Context as TBCContext,
+} from 'twitch-badge-collector-cc';
 
 export function ChatRoom() {
   const chatRoomDefault: Element | null = document.querySelector(
@@ -66,7 +68,7 @@ const TwitchChatContainerStyle = styled("div")({
 
 export function LocalChatContainer() {
   const [chatList, setChatList] = useState<Node[]>([]);
-  const { setArrayFilter, arrayFilterRef, checkFilter } = useArrayFilter();
+  const { setArrayFilter, arrayFilterRef, checkFilter } = useArrayFilter('Extension');
   const containerRef = useRef<HTMLDivElement>(null);
 
   const container = document.getElementsByClassName("tbc-origin")[0];
@@ -126,7 +128,7 @@ export function LocalChatContainer() {
   }, []);
 
   useEffect(() => {
-    observer(
+    const chatObserver = observer(
       document.getElementsByClassName("stream-chat")[0],
       {
         childList: true,
@@ -134,6 +136,10 @@ export function LocalChatContainer() {
       },
       newChatCallback
     );
+    
+    return () => {
+      if(chatObserver) chatObserver.disconnect();
+    }
   }, []);
 
   useEffect(() => {
@@ -202,7 +208,7 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
 
   const twitchHTMLTagRef = useRef<HTMLElement>(document.documentElement);
   const getDarkTheme = () => {
-    return twitchHTMLTagRef.current.classList.contains("tw-root--theme-dark");
+    return twitchHTMLTagRef.current.classList.contains("tw-root--theme-dark") ? 'on' : 'off';
   };
   const [darkTheme, setDarkTheme] = useState(getDarkTheme());
 
@@ -222,7 +228,7 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
 
   params.set("ext_version", browser.runtime.getManifest().version);
 
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
+  const { globalSetting, dispatchGlobalSetting } = TBCContext.useGlobalSettingContext();
   const frameRef = useRef<HTMLIFrameElement>(null);
   const frameLoaded = useRef(false);
 

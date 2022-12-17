@@ -1,7 +1,7 @@
 import browser from "webextension-polyfill";
-import { PositionOptionType } from "../interfaces/setting";
 import { ChatRoom } from "./container";
 import { ReplayPageType } from "./utils";
+import { SettingInterface } from 'twitch-badge-collector-cc';
 
 const videoWrapperClassName = "video-chat__message-list-wrapper";
 
@@ -77,7 +77,7 @@ export default function createContainerHandler() {
 
 export function updateContainerRatio(
   ratio: number,
-  position: PositionOptionType,
+  position: SettingInterface.PositionOptionsType,
   replay: boolean | string
 ) {
   if (ratio != 0) ratio = ratio ? ratio : 30;

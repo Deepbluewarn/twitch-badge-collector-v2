@@ -1,4 +1,4 @@
-import { ArrayFilterInterface } from "./interfaces/filter";
+import { FilterInterface } from "twitch-badge-collector-cc";
 
 export const getQueryParams = (queryName: string) => {
   const urlSearchParams = new URLSearchParams(window.location.search);
@@ -45,8 +45,8 @@ export function getErrorMessage(error: unknown) {
 }
 
 export function arrayFilterEqual(
-  a: ArrayFilterInterface,
-  b: ArrayFilterInterface
+  a: FilterInterface.ArrayFilterInterface,
+  b: FilterInterface.ArrayFilterInterface
 ) {
   return (
     Object.keys(a).length === Object.keys(b).length &&
@@ -61,8 +61,8 @@ export function arrayFilterEqual(
 }
 
 export function arrayFiltersEqual(
-  a: ArrayFilterInterface[],
-  b: ArrayFilterInterface[]
+  a: FilterInterface.ArrayFilterInterface[],
+  b: FilterInterface.ArrayFilterInterface[]
 ) {
   return (
     a.length === b.length && a.every((o, idx) => arrayFilterEqual(o, b[idx]))

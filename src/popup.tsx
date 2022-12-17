@@ -1,23 +1,20 @@
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import GlobalStyles from "@mui/material/GlobalStyles";
 import browser from "webextension-polyfill";
-import { GlobalSettingContext } from "./context/GlobalSetting";
-import useGlobalSetting from "./hooks/useGlobalSetting";
-import {
-  chatDisplayMethodOptions,
-  toggleOptions,
-  fontSizeOptions,
-  languageOptions,
-  positionOptions,
-} from "./interfaces/setting";
-import Selector from "./components/Selector";
-import Title from "./components/Title";
+
+import GlobalStyles from "@mui/material/GlobalStyles";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
-import Divider from "@mui/material/Divider";
-import { styled } from "@mui/material/styles";
-import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import { Typography } from "@mui/material";
+import { styled, ThemeProvider } from "@mui/material/styles";
+import Selector from "./components/Selector";
+import {
+  useGlobalSetting,
+  SettingInterface,
+  Context as TBCContext,
+  useCustomTheme,
+  SocialFooter
+} from 'twitch-badge-collector-cc';
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -35,11 +32,22 @@ const PopupGlobalStyle = (
         backgroundColor: "#d3d3d3",
       },
       body: {
-        fontFamily:
-          "'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif",
+        fontFamily: `
+          'Pretendard Variable', 
+          -apple-system, 
+          BlinkMacSystemFont, 
+          system-ui, 
+          Roboto, 
+          'Helvetica Neue', 
+          'Segoe UI', 
+          'Apple SD Gothic Neo', 
+          'Noto Sans KR', 
+          'Malgun Gothic', 
+          sans-serif
+        `,
         padding: "0",
         margin: "0",
-        width: "16rem",
+        width: "18rem",
         lineHeight: "1.5",
       },
       "a, a:link, a:visited, a:hover, a:active": {
@@ -61,8 +69,13 @@ const ButtonLink = styled(Button)({
   fontSize: "0.8rem",
 });
 
+const Icon = styled('img')({
+  width: '1rem',
+  height: '1rem'
+})
+
 const Popup = () => {
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting();
+  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension');
   const onPageButtonClicked = (path: string) => {
     browser.tabs.create({
       url: browser.runtime.getURL(`setting.html?initialPath=${path}`),
@@ -86,93 +99,89 @@ const Popup = () => {
   }, []);
 
   return (
-    <GlobalSettingContext.Provider
-      value={{ globalSetting, dispatchGlobalSetting }}
-    >
-      <Title title={browser.i18n.getMessage("generalSetting")} />
-
-      <Stack alignItems="flex-end">
-        <ButtonLink
-          endIcon={<ArrowRightIcon />}
-          onClick={() => {
-            onPageButtonClicked("filter");
-          }}
-        >
-          <Stack direction="row" sx={{ width: "100%" }}>
-            <span>{browser.i18n.getMessage("p_filter_btn")}</span>
+    <ThemeProvider theme={useCustomTheme('off')}>
+      <TBCContext.GlobalSettingContext.Provider
+        value={{ globalSetting, dispatchGlobalSetting }}
+      >
+        
+        <Stack direction='row' spacing={4} sx={{margin: '8px'}}>
+          <Stack direction='row' alignItems='center' spacing={1}>
+            <Icon src={browser.runtime.getURL('icon.png')} alt="" />
+            <Typography variant="body2" sx={{fontWeight: '600'}}>Twitch Badge Collector V2</Typography>
           </Stack>
-        </ButtonLink>
-        <ButtonLink
-          endIcon={<ArrowRightIcon />}
-          onClick={() => {
-            onPageButtonClicked("chatsaver");
-          }}
-        >
-          <Stack direction="row" sx={{ width: "100%" }}>
-            <span>{browser.i18n.getMessage("p_save_chat_btn")}</span>
+          <Typography variant="body2" sx={{fontWeight: '600', color: '#A7A7A7'}}>{browser.runtime.getManifest().version}</Typography>
+        </Stack>
+
+        <Stack direction='row' sx={{ width: '100%', 'gap': '8px', 'padding': '8px' }}>
+          <Button
+            variant="outlined"
+            sx={{ 'width': '100%' }}
+            onClick={() => {
+              onPageButtonClicked("filter");
+            }}
+          >
+            {browser.i18n.getMessage("p_filter_btn")}
+          </Button>
+          <Button
+            variant="outlined"
+            sx={{ 'width': '100%' }}
+            onClick={() => {
+              onPageButtonClicked("chatsaver");
+            }}
+          >
+            {browser.i18n.getMessage("p_save_chat_btn")}
+          </Button>
+        </Stack>
+
+        <Stack sx={{padding: '8px'}}>
+          <Typography variant="h6" sx={{fontWeight: 'bold'}}>{browser.i18n.getMessage("generalSetting")}</Typography>
+          <Stack sx={{margin: '8px 0 8px 0'}}>
+            <Selector
+              title={browser.i18n.getMessage("dispCopiedChatmethod")}
+              values={SettingInterface.ChatDisplayMethodOptions}
+              id="chatDisplayMethod"
+              key='chatDisplayMethod'
+            />
+            <Selector
+              title={browser.i18n.getMessage("chatPosition")}
+              values={SettingInterface.PositionOptions}
+              id="position"
+              key='position'
+            />
+            <Selector
+              title={browser.i18n.getMessage("pointBoxAutoClick")}
+              values={SettingInterface.ToggleOptions}
+              id="pointBoxAuto"
+              key='pointBoxAuto'
+            />
           </Stack>
-        </ButtonLink>
-      </Stack>
-
-      <Divider />
-
-      <Stack>
-        <Selector
-          title={browser.i18n.getMessage("dispCopiedChatmethod")}
-          values={chatDisplayMethodOptions}
-          id="chatDisplayMethod"
-        />
-        <Divider />
-        <Selector
-          title={browser.i18n.getMessage("chatPosition")}
-          values={positionOptions}
-          id="position"
-        />
-        <Divider />
-        <Selector
-          title={browser.i18n.getMessage("pointBoxAutoClick")}
-          values={toggleOptions}
-          id="pointBoxAuto"
-        />
-      </Stack>
-
-      <Title title={browser.i18n.getMessage("chatClientSetting")} />
-
-      <Stack>
-        <Selector
-          title={browser.i18n.getMessage("language_text")}
-          values={languageOptions}
-          id="miniLanguage"
-        />
-        <Divider />
-        <Selector
-          title={browser.i18n.getMessage("fontSize")}
-          values={fontSizeOptions}
-          id="miniFontSize"
-        />
-        <Divider />
-        <Selector
-          title={browser.i18n.getMessage("chatTime")}
-          values={toggleOptions}
-          id="miniChatTime"
-        />
-      </Stack>
-
-      <Title title={browser.i18n.getMessage("extraSetting")} />
-
-      <Stack>
-        <Button
-          sx={{ width: "100%", fontSize: "0.8rem" }}
-          endIcon={<ArrowRightIcon />}
-          href="https://discord.gg/ZM6Eazpz5V"
-          target="_blank"
-        >
-          <Stack direction="row" sx={{ width: "100%" }}>
-            <span>{browser.i18n.getMessage("discord")}</span>
+          <Typography variant="h6" sx={{fontWeight: 'bold'}}>{browser.i18n.getMessage("chatClientSetting")}</Typography>
+          <Stack sx={{margin: '8px 0 8px 0'}}>
+            <Selector
+              title={browser.i18n.getMessage("language_text")}
+              values={SettingInterface.LanguageOptions}
+              id="miniLanguage"
+              key='miniLanguage'
+            />
+            
+            <Selector
+              title={browser.i18n.getMessage("fontSize")}
+              values={SettingInterface.FontSizeOptions}
+              id="miniFontSize"
+              key='miniFontSize'
+            />
+            
+            <Selector
+              title={browser.i18n.getMessage("chatTime")}
+              values={SettingInterface.ToggleOptions}
+              id="miniChatTime"
+              key='miniChatTime'
+            />
           </Stack>
-        </Button>
-      </Stack>
-    </GlobalSettingContext.Provider>
+          <SocialFooter/>
+        </Stack>
+      </TBCContext.GlobalSettingContext.Provider>
+    </ThemeProvider>
   );
 };
 
