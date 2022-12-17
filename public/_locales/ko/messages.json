@@ -93,6 +93,6 @@
     "message" : "필터 설정"
   },
   "p_save_chat_btn" : {
-    "message" : "채팅을 이미지로 저장"
+    "message" : "채팅 저장"
   }
 }
