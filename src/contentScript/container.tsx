@@ -308,6 +308,7 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
 
   useEffect(() => {
     postSetting("TWITCH_DARKMODE", darkTheme);
+    dispatchGlobalSetting({type: 'darkTheme', value: darkTheme});
   }, [darkTheme]);
 
   return (
