@@ -60,9 +60,6 @@ browser.runtime.onInstalled.addListener(function (details: any) {
     browser.storage.local.set({ filter: defaultFilter });
   }
 
-  // 0.0.8 업데이트인 경우 storage 에 저장된 설정 값 일부 변경,
-  // ToggleType 속성들 string 에서 boolean 으로 변경.
-
   browser.storage.local
     .get([
       "chatDisplayMethod",
@@ -70,6 +67,7 @@ browser.runtime.onInstalled.addListener(function (details: any) {
       "pointBoxAuto",
       "darkTheme",
       "chatTime",
+      "maximumNumberChats",
       "miniLanguage",
       "miniFontSize",
       "miniChatTime",
@@ -83,6 +81,7 @@ browser.runtime.onInstalled.addListener(function (details: any) {
         pointBoxAuto: res.pointBoxAuto ? res.pointBoxAuto : "on",
         darkTheme: res.darkTheme ? res.darkTheme : "off",
         chatTime: res.chatTime ? res.chatTime : "off",
+        maximumNumberChats: res.maximumNumberChats ? res.maximumNumberChats : 100,
         miniLanguage: res.miniLanguage ? res.miniLanguage : navigator.language,
         miniFontSize: res.miniFontSize ? res.miniFontSize : "default",
         miniChatTime: res.miniChatTime ? res.miniChatTime : "on",
