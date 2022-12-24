@@ -94,5 +94,11 @@
   },
   "p_save_chat_btn": {
     "message": "Save Chat"
+  },
+  "maximumNumberChats" : {
+    "message": "Maximum number of chats"
+  },
+  "needRefresh" : {
+    "message": "Need to refresh"
   }
 }

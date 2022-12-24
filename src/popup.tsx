@@ -1,11 +1,10 @@
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import browser from "webextension-polyfill";
-
 import GlobalStyles from "@mui/material/GlobalStyles";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
-import { Typography } from "@mui/material";
+import Typography from "@mui/material/Typography";
 import { styled, ThemeProvider } from "@mui/material/styles";
 import Selector from "./components/Selector";
 import {
@@ -15,6 +14,7 @@ import {
   useCustomTheme,
   SocialFooter
 } from 'twitch-badge-collector-cc';
+import CustomTextField from "./components/CustomTextField";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -147,6 +147,10 @@ const Popup = () => {
               values={SettingInterface.PositionOptions}
               id="position"
               key='position'
+            />
+            <CustomTextField 
+              title={`${browser.i18n.getMessage('maximumNumberChats')} (${browser.i18n.getMessage('needRefresh')})`}
+              id='maximumNumberChats'
             />
             <Selector
               title={browser.i18n.getMessage("pointBoxAutoClick")}

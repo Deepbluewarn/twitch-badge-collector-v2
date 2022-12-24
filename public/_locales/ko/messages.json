@@ -94,5 +94,11 @@
   },
   "p_save_chat_btn" : {
     "message" : "채팅 저장"
+  },
+  "maximumNumberChats" : {
+    "message": "채팅 최대 개수"
+  },
+  "needRefresh" : {
+    "message": "새로고침 필요"
   }
 }

@@ -68,7 +68,8 @@ const TwitchChatContainerStyle = styled("div")({
 
 export function LocalChatContainer() {
   const [chatList, setChatList] = useState<Node[]>([]);
-  const { setArrayFilter, arrayFilterRef, checkFilter } = useArrayFilter('Extension');
+  const { setArrayFilter, checkFilter } = useArrayFilter('Extension');
+  const { globalSetting } = TBCContext.useGlobalSettingContext();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const container = document.getElementsByClassName("tbc-origin")[0];
@@ -149,6 +150,14 @@ export function LocalChatContainer() {
       )[0];
 
       if (!chatListContainer) return;
+
+      if(chatListContainer.childElementCount > (globalSetting.maximumNumberChats || 100)){
+        const firstChild = chatListContainer.firstElementChild;
+
+        if(firstChild === null) return;
+
+        chatListContainer.removeChild(firstChild)
+      }
 
       chatListContainer.appendChild(chat);
     });
