@@ -29,7 +29,7 @@ export default function Selector(props: {
       <Typography variant="subtitle2">{props.title}</Typography>
       <FormControl>
         <Select
-          value={globalSetting[props.id] || props.values[0]}
+          value={globalSetting[props.id] as string || props.values[0]}
           sx={{ marginTop: '4px' }}
           size='small'
           id={`select-${props.id}`}
