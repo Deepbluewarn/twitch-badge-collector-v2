@@ -153,10 +153,8 @@ export function LocalChatContainer() {
       )[0];
 
       if (!chatListContainer) return;
-
-      const chatListCnt = chatListContainer.childElementCount;
       
-      while(chatListCnt >= (maxNumChats || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number)){
+      if(chatListContainer.childElementCount >= (maxNumChats || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number)){
         const firstChild = chatListContainer.firstElementChild;
 
         if(firstChild === null) return;
