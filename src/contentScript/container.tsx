@@ -100,7 +100,7 @@ export function LocalChatContainer() {
         if (key === "filter") {
           setArrayFilter(newValue);
         } else if (key === 'maximumNumberChats') {
-          setMaxNumChats(newValue || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number);
+          // setMaxNumChats(newValue || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number);
         }
       }
     });
@@ -154,7 +154,9 @@ export function LocalChatContainer() {
 
       if (!chatListContainer) return;
 
-      while(chatListContainer.childElementCount > (maxNumChats || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number)){
+      const chatListCnt = chatListContainer.childElementCount;
+      
+      while(chatListCnt >= (maxNumChats || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number)){
         const firstChild = chatListContainer.firstElementChild;
 
         if(firstChild === null) return;
