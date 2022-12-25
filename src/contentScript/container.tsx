@@ -70,6 +70,7 @@ export function LocalChatContainer() {
   const [chatList, setChatList] = useState<Node[]>([]);
   const { setArrayFilter, checkFilter } = useArrayFilter('Extension');
   const { globalSetting } = TBCContext.useGlobalSettingContext();
+  const [maxNumChats, setMaxNumChats] = useState(globalSetting.maximumNumberChats || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const container = document.getElementsByClassName("tbc-origin")[0];
@@ -98,6 +99,8 @@ export function LocalChatContainer() {
 
         if (key === "filter") {
           setArrayFilter(newValue);
+        } else if (key === 'maximumNumberChats') {
+          setMaxNumChats(newValue || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number);
         }
       }
     });
@@ -141,7 +144,7 @@ export function LocalChatContainer() {
     return () => {
       if(chatObserver) chatObserver.disconnect();
     }
-  }, []);
+  }, [maxNumChats]);
 
   useEffect(() => {
     chatList.forEach((chat) => {
@@ -151,12 +154,12 @@ export function LocalChatContainer() {
 
       if (!chatListContainer) return;
 
-      if(chatListContainer.childElementCount > (globalSetting.maximumNumberChats || 100)){
+      while(chatListContainer.childElementCount > (maxNumChats || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number)){
         const firstChild = chatListContainer.firstElementChild;
 
         if(firstChild === null) return;
 
-        chatListContainer.removeChild(firstChild)
+        chatListContainer.removeChild(firstChild);
       }
 
       chatListContainer.appendChild(chat);
@@ -165,7 +168,7 @@ export function LocalChatContainer() {
 
     if (!scrollArea) return;
     if (chatIsBottom) scrollArea.scrollTop = scrollArea.scrollHeight;
-  }, [chatList]);
+  }, [chatList, maxNumChats]);
 
   const getScrollArea = () => {
     if (!containerRef.current) return;
@@ -188,7 +191,12 @@ export function LocalChatContainer() {
         const filterRes = checkFilter(chat);
 
         if (typeof filterRes !== "undefined" && filterRes) {
-          setChatList((n) => [...n, node.cloneNode(true)]);
+          setChatList((n) => {
+            if (n.length > maxNumChats) {
+              n = n.slice(-maxNumChats);
+            }
+            return [...n, node.cloneNode(true)];
+          });
         }
       });
     });
