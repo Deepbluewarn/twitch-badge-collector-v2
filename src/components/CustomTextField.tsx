@@ -22,7 +22,7 @@ export default function CustomTextField(props: {
       <Typography variant="subtitle2">{props.title}</Typography>
       <TextField
         sx={{ marginTop: '4px' }}
-        value={globalSetting[props.id] as number}
+        value={globalSetting[props.id] as number || 0}
         onChange={onTextFieldChange}
         type="number"
         size="small"
