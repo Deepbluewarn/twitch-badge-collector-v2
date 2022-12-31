@@ -55,9 +55,11 @@ async function observerCallback(mutationRecord: MutationRecord[]) {
     const video_chat: Element = document.getElementsByClassName(
       "video-chat__message-list-wrapper"
     )[0];
-    const video_player: HTMLVideoElement | undefined = document
-      .getElementsByClassName("video-ref")[0]
-      .getElementsByTagName("video")[0];
+    const video_ref = document.getElementsByClassName('video-ref')[0];
+
+    if(!video_ref) return;
+
+    const video_player: HTMLVideoElement | undefined = video_ref.getElementsByTagName("video")[0];
 
     if (video_chat && video_player) {
       let tbcContainer = document.getElementById("tbc-container");
