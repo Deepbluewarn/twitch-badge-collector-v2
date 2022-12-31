@@ -15,6 +15,7 @@ import {
   SocialFooter
 } from 'twitch-badge-collector-cc';
 import CustomTextField from "./components/CustomTextField";
+import Box from "@mui/material/Box";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -47,7 +48,7 @@ const PopupGlobalStyle = (
         `,
         padding: "0",
         margin: "0",
-        width: "18rem",
+        width: "20rem",
         lineHeight: "1.5",
       },
       "a, a:link, a:visited, a:hover, a:active": {
@@ -73,6 +74,11 @@ const Icon = styled('img')({
   width: '1rem',
   height: '1rem'
 })
+
+const CustomAnchor = styled('a')({
+  display: 'flex',
+  width: '5.5rem'
+});
 
 const Popup = () => {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension');
@@ -182,7 +188,20 @@ const Popup = () => {
               key='miniChatTime'
             />
           </Stack>
-          <SocialFooter/>
+          <Stack 
+            direction='row' 
+            alignItems='center'
+            spacing={1}
+          >
+            <CustomAnchor href='https://toon.at/donate/637883567462544456' target='_blank'>
+              <Box
+                component='img'
+                sx={{ width: 'inherit', borderRadius: '8px' }}
+                src={`https://cdn.jsdelivr.net/npm/twitch-badge-collector-cc@0.0.70/dist/donation/toonation_b14.gif`}
+              />
+            </CustomAnchor>
+            <SocialFooter />
+          </Stack>
         </Stack>
       </TBCContext.GlobalSettingContext.Provider>
     </ThemeProvider>

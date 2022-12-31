@@ -100,5 +100,14 @@
   },
   "needRefresh" : {
     "message": "Need to refresh"
+  },
+  "closePermanently" : {
+    "message": "Don't show again"
+  },
+  "close" : {
+    "message": "Close"
+  },
+  "donationMessage" : {
+    "message": "If you find the extension useful please rate or sponsor it!"
   }
 }

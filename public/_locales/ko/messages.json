@@ -98,7 +98,13 @@
   "maximumNumberChats" : {
     "message": "채팅 최대 개수"
   },
-  "needRefresh" : {
-    "message": "새로고침 필요"
+  "closePermanently" : {
+    "message": "다시 보지 않기"
+  },
+  "close" : {
+    "message": "닫기"
+  },
+  "donationMessage" : {
+    "message": "확장 프로그램을 유용하게 사용 중이라면 평가 또는 후원을 해주세요!"
   }
 }

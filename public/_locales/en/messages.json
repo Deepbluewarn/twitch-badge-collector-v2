@@ -12,10 +12,10 @@
     "message": "Twitch Badge Collector"
   },
   "generalSetting" : {
-    "message" : "General settings"
+    "message" : "General Settings"
   },
   "chatClientSetting" : {
-    "message" : "Chat client settings"
+    "message" : "Chat Client Settings"
   },
   "extraSetting" : {
     "message" : "Etc"
@@ -33,7 +33,7 @@
     "message" : "VOD Chat Setting"
   },
   "chat_window_size_setting" : {
-    "message" : "Chat window size"
+    "message" : "Chat Window Size"
   },
   "language_text" : {
     "message" : "Language"
@@ -45,7 +45,7 @@
     "message": "English"
   },
   "fontSize" : {
-    "message" : "Font size"
+    "message" : "Font Size"
   },
   "small" : {
     "message" : "Small"
@@ -60,7 +60,7 @@
     "message" : "Bigger"
   },
   "chatTime" : {
-    "message" : "Show chat time"
+    "message" : "Show Chat Time"
   },
   "chatPosition" : {
     "message" : "Chat Position"
@@ -72,13 +72,13 @@
     "message" : "Down"
   },
   "dispCopiedChatmethod" : {
-    "message" : "Show chats with"
+    "message" : "Show Chats with.."
   },
   "local" : {
     "message" : "Copy from Twitch UI"
   },
   "remote" : {
-    "message" : "Chat client"
+    "message" : "Chat Client"
   },
   "pointBoxAutoClick" : {
     "message" : "Point Box Auto Click"
@@ -100,5 +100,14 @@
   },
   "needRefresh" : {
     "message": "Need to refresh"
+  },
+  "closePermanently" : {
+    "message": "Don't show again"
+  },
+  "close" : {
+    "message": "Close"
+  },
+  "donationMessage" : {
+    "message": "If you find the extension useful please rate or sponsor it!"
   }
 }

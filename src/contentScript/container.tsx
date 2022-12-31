@@ -31,6 +31,16 @@ export function ChatRoom() {
   return chatRoomDefault ? chatRoomDefault : chatRoomOther;
 }
 
+export function createNoticeContainer() {
+  const container = document.createElement("div");
+  container.style.position = 'absolute';
+  container.style.zIndex = '4444';
+  container.style.top = '88px';
+  container.style.left = '280px';
+  container.id = "tbc-notice-container";
+  document.body.appendChild(container);
+}
+
 export function createCloneContainer() {
   const chatroom = ChatRoom();
 

@@ -3,7 +3,7 @@
     "name": "__MSG_ExtensionName__",
     "description": "__MSG_ExtensionDesc__",
     "default_locale": "en",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "action": {
         "default_icon": {
             "128": "icon.png"
@@ -52,7 +52,8 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "js/overrideFetch.js"
+                "js/overrideFetch.js",
+                "icon.png"
             ],
             "matches": [
                 "*://*.twitch.tv/*"
