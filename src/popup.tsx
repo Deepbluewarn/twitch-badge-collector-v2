@@ -16,6 +16,7 @@ import {
 } from 'twitch-badge-collector-cc';
 import CustomTextField from "./components/CustomTextField";
 import Box from "@mui/material/Box";
+import Link from "@mui/material/Link";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -89,6 +90,7 @@ const Popup = () => {
   };
 
   useEffect(() => {
+    console.log('process.env.RATE_EXT_LINK: ', process.env.RATE_EXT_LINK)
     browser.storage.onChanged.addListener((changed, areaName) => {
       if (areaName !== "local") return;
 
@@ -109,13 +111,12 @@ const Popup = () => {
       <TBCContext.GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
-        
-        <Stack direction='row' spacing={4} sx={{margin: '8px'}}>
+        <Stack direction='row' spacing={4} sx={{ margin: '8px' }}>
           <Stack direction='row' alignItems='center' spacing={1}>
             <Icon src={browser.runtime.getURL('icon.png')} alt="" />
-            <Typography variant="body2" sx={{fontWeight: '600'}}>Twitch Badge Collector V2</Typography>
+            <Typography variant="body2" sx={{ fontWeight: '600' }}>Twitch Badge Collector V2</Typography>
           </Stack>
-          <Typography variant="body2" sx={{fontWeight: '600', color: '#A7A7A7'}}>{browser.runtime.getManifest().version}</Typography>
+          <Typography variant="body2" sx={{ fontWeight: '600', color: '#A7A7A7' }}>{browser.runtime.getManifest().version}</Typography>
         </Stack>
 
         <Stack direction='row' sx={{ width: '100%', 'gap': '8px', 'padding': '8px' }}>
@@ -139,9 +140,9 @@ const Popup = () => {
           </Button>
         </Stack>
 
-        <Stack sx={{padding: '8px'}}>
-          <Typography variant="h6" sx={{fontWeight: 'bold'}}>{browser.i18n.getMessage("generalSetting")}</Typography>
-          <Stack sx={{margin: '8px 0 8px 0'}}>
+        <Stack spacing={1} sx={{ padding: '8px' }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{browser.i18n.getMessage("generalSetting")}</Typography>
+          <Stack sx={{ margin: '8px 0 8px 0' }}>
             <Selector
               title={browser.i18n.getMessage("dispCopiedChatmethod")}
               values={SettingInterface.ChatDisplayMethodOptions}
@@ -154,7 +155,7 @@ const Popup = () => {
               id="position"
               key='position'
             />
-            <CustomTextField 
+            <CustomTextField
               title={`${browser.i18n.getMessage('maximumNumberChats')} (${browser.i18n.getMessage('needRefresh')})`}
               id='maximumNumberChats'
             />
@@ -165,8 +166,8 @@ const Popup = () => {
               key='pointBoxAuto'
             />
           </Stack>
-          <Typography variant="h6" sx={{fontWeight: 'bold'}}>{browser.i18n.getMessage("chatClientSetting")}</Typography>
-          <Stack sx={{margin: '8px 0 8px 0'}}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{browser.i18n.getMessage("chatClientSetting")}</Typography>
+          <Stack sx={{ margin: '8px 0 8px 0' }}>
             <Selector
               title={browser.i18n.getMessage("language_text")}
               values={SettingInterface.LanguageOptions}
@@ -180,7 +181,7 @@ const Popup = () => {
               id="miniFontSize"
               key='miniFontSize'
             />
-            
+
             <Selector
               title={browser.i18n.getMessage("chatTime")}
               values={SettingInterface.ToggleOptions}
@@ -188,8 +189,13 @@ const Popup = () => {
               key='miniChatTime'
             />
           </Stack>
-          <Stack 
-            direction='row' 
+          <Link href={process.env.RATE_EXT_LINK} underline="none" target='_blank'>
+            <Button variant="outlined" sx={{ width: '100%' }}>
+              {browser.i18n.getMessage('review')}
+            </Button>
+          </Link>
+          <Stack
+            direction='row'
             alignItems='center'
             spacing={1}
           >
