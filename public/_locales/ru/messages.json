@@ -20,8 +20,8 @@
   "extraSetting": {
     "message": "Etc"
   },
-  "review": {
-    "message": "ОБЗОР"
+  "review" : {
+    "message" : "Rate the Extension"
   },
   "support" : {
     "message" : "Support"

@@ -98,6 +98,9 @@
   "maximumNumberChats" : {
     "message": "채팅 최대 개수"
   },
+  "needRefresh" : {
+    "message": "새로고침 필요"
+  },
   "closePermanently" : {
     "message": "다시 보지 않기"
   },
