@@ -108,18 +108,18 @@ async function observerCallback(mutationRecord: MutationRecord[]) {
   } else if (pointBox && !pointBoxFound) {
     pointBoxFound = true;
     observePointBox(pointBox);
-  } 
-  
-  if(!noticeEntryInserted) {
-    noticeEntryInserted = true;
-
-    createNoticeContainer();
-    const noticeContainer = document.getElementById('tbc-notice-container');
-
-    if (!noticeContainer) return false;
-
-    createRoot(noticeContainer).render(<NoticeEntry />);
   }
+  
+  // if(!noticeEntryInserted) {
+  //   noticeEntryInserted = true;
+
+  //   createNoticeContainer();
+  //   const noticeContainer = document.getElementById('tbc-notice-container');
+
+  //   if (!noticeContainer) return false;
+
+  //   createRoot(noticeContainer).render(<NoticeEntry />);
+  // }
 }
 
 function pointBoxObserverCallback(mutationRecord: MutationRecord[]) {
@@ -262,14 +262,14 @@ function NoticeEntry() {
             <Link 
               underline="none"
               target='_blank'
-              href='https://chrome.google.com/webstore/detail/twitch-badge-collector-v2/gbcdobpipglclbhabpkacoecddmopojp'
+              href={process.env.RATE_EXT_LINK}
             >
               <CustomButton variant="contained">
                 {browser.i18n.getMessage('review')}
               </CustomButton>
             </Link>
             <Divider />
-            <CustomAnchor href='https://toon.at/donate/637883567462544456' target='_blank'>
+            <CustomAnchor href={process.env.DONATE_LINK} target='_blank'>
               <Box
                 component='img'
                 sx={{ width: 'inherit', borderRadius: '8px' }}
