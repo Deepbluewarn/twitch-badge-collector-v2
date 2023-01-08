@@ -12,6 +12,10 @@
     height: 0.5rem;
     margin : 0.5rem;
 }
+/* For compatibility with FrankerFaceZ Extension */
+div.chat-scroll-footer__placeholder {
+    order: 4;
+}
 .flex_column{
     display: flex;
     flex-direction: column;
