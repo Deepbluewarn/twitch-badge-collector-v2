@@ -111,7 +111,7 @@ const Popup = () => {
       <TBCContext.GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
-        <Stack direction='row' spacing={4} sx={{ margin: '8px' }}>
+        <Stack direction='row' spacing={4} justifyContent='space-between' sx={{ margin: '8px' }}>
           <Stack direction='row' alignItems='center' spacing={1}>
             <Icon src={browser.runtime.getURL('icon.png')} alt="" />
             <Typography variant="body2" sx={{ fontWeight: '600' }}>Twitch Badge Collector V2</Typography>
@@ -199,14 +199,16 @@ const Popup = () => {
             alignItems='center'
             spacing={1}
           >
-            <CustomAnchor href='https://toon.at/donate/637883567462544456' target='_blank'>
+            <CustomAnchor href={process.env.DONATE_LINK} target='_blank'>
               <Box
                 component='img'
                 sx={{ width: 'inherit', borderRadius: '8px' }}
                 src={`https://cdn.jsdelivr.net/npm/twitch-badge-collector-cc@0.0.70/dist/donation/toonation_b14.gif`}
               />
             </CustomAnchor>
-            <SocialFooter />
+            <Box sx={{ color: '#2196f3'}}>
+              <SocialFooter />
+            </Box>
           </Stack>
         </Stack>
       </TBCContext.GlobalSettingContext.Provider>
