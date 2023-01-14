@@ -108,6 +108,8 @@ window.fetch = async (...args) => {
             }
             if (b.extensions.operationName === 'Chat_ChannelData') {
               updateChannelData(b.data.channel.login);
+            }else if(b.extensions.operationName === 'UseLive') {
+              updateChannelData(b.data.user.login);
             }
           }
         } else {
@@ -120,9 +122,6 @@ window.fetch = async (...args) => {
             });
 
             isComment = true;
-          }
-          if (body.extensions.operationName === 'Chat_ChannelData') {
-            updateChannelData(body.data.channel.login);
           }
         }
 
