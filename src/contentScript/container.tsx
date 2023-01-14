@@ -54,11 +54,11 @@ export function createCloneContainer() {
   original_container.classList.add("tbc-origin");
   tbcContainer.id = "tbc-container";
 
-  const chatroomChild = chatroom.firstChild as Element;
+  const containerParent = original_container.parentElement;
 
-  if (chatroomChild) {
-    chatroomChild.prepend(createContainerHandler());
-    chatroomChild.prepend(tbcContainer);
+  if (containerParent) {
+    containerParent.prepend(createContainerHandler());
+    containerParent.prepend(tbcContainer);
   }
 }
 
@@ -143,7 +143,7 @@ export function LocalChatContainer() {
 
   useEffect(() => {
     const chatObserver = observer(
-      document.getElementsByClassName("stream-chat")[0],
+      document.getElementsByClassName("tbc-origin")[0],
       {
         childList: true,
         subtree: true,
@@ -189,9 +189,17 @@ export function LocalChatContainer() {
   };
 
   const newChatCallback = (mutationRecord: MutationRecord[]) => {
-    Array.from(mutationRecord).forEach((mr) => {
+    const records = Array.from(mutationRecord);
+
+    // const isRemoved = records.some(r => r.removedNodes.length > 0)
+
+    // if(isRemoved) return;
+    
+    records.forEach((mr) => {
       const addedNodes = mr.addedNodes;
       if (!addedNodes) return;
+
+      // console.log('[extension] newChatCallback addedNodes: ', addedNodes);
 
       addedNodes.forEach((node) => {
         const chat = ChatFromTwitchUi(node);
