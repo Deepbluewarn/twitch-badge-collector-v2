@@ -191,15 +191,9 @@ export function LocalChatContainer() {
   const newChatCallback = (mutationRecord: MutationRecord[]) => {
     const records = Array.from(mutationRecord);
 
-    // const isRemoved = records.some(r => r.removedNodes.length > 0)
-
-    // if(isRemoved) return;
-    
     records.forEach((mr) => {
       const addedNodes = mr.addedNodes;
       if (!addedNodes) return;
-
-      // console.log('[extension] newChatCallback addedNodes: ', addedNodes);
 
       addedNodes.forEach((node) => {
         const chat = ChatFromTwitchUi(node);
@@ -257,8 +251,6 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
     if (replayType && videoId) {
       params.set(replayType, videoId);
     }
-  } else {
-    params.set("channel", getChannelFromPath());
   }
 
   params.set("ext_version", browser.runtime.getManifest().version);
