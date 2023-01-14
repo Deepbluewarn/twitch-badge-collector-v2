@@ -27,10 +27,13 @@ const postBodyMessage = () => {
   const replayType = ReplayPageType();
 
   if(!replayType) return;
+  if(replayFrameState.url !== location.href || !replayFrameState.loaded) return;
 
   for (let b of bodyBuffer) {
     if (location.href === b.url && !b.sent) {
       const frame = <HTMLIFrameElement>document.getElementById("wtbc-replay");
+
+      if(!frame) return;
 
       frame.contentWindow?.postMessage(
         {
@@ -51,8 +54,12 @@ const postChannelData = () => {
 
   if(replayType) return;
 
-  if (!currentChannel.sent) {
+  if(!liveFrameState.loaded || currentChannel.channel === '') return;
+
+  if (!currentChannel.sent && currentChannel.channel !== '') {
     const frame = <HTMLIFrameElement>document.getElementById("wtbc-mini");
+
+    if(!frame) return;
 
     frame.contentWindow?.postMessage(
       {
@@ -72,8 +79,7 @@ const updateChannelData = (channel: string) => {
 
   currentChannel.channel = channel;
 
-  if(oldChannel !== channel) {
-    setLiveFrameState(false);
+  if(oldChannel !== '' && oldChannel !== channel) {
     currentChannel.sent = false;
   }
 }
@@ -120,17 +126,8 @@ window.fetch = async (...args) => {
           }
         }
 
-        if (
-          replayFrameState.url === location.href &&
-          replayFrameState.loaded &&
-          isComment
-        ) {
-          postBodyMessage();
-        }
-
-        if (liveFrameState.loaded && currentChannel.channel !== '') {
-          postChannelData();
-        }
+        if (isComment) postBodyMessage();
+        postChannelData();
 
         bodyBuffer = bodyBuffer.filter((e) => !e.sent);
 
