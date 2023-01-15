@@ -3,8 +3,11 @@ import MessageInterface from "./interfaces/message";
 
 const { fetch: origFetch } = window;
 const base_url = process.env.BASE_URL || "";
+const postTryCount = 10;
 let bodyBuffer: any[] = [];
 let currentChannel = { channel: '', sent: false };
+let postCount = 0;
+let postInterval = 0;
 
 const replayFrameState = {
   loaded: false,
@@ -53,6 +56,12 @@ const postChannelData = () => {
   const replayType = ReplayPageType();
 
   if(replayType) return;
+
+  postCount++;
+
+  if (postCount >= postTryCount) {
+    clearPostInterval();
+  }
 
   if(!liveFrameState.loaded || currentChannel.channel === '') return;
 
@@ -126,7 +135,6 @@ window.fetch = async (...args) => {
         }
 
         if (isComment) postBodyMessage();
-        postChannelData();
 
         bodyBuffer = bodyBuffer.filter((e) => !e.sent);
 
@@ -138,6 +146,13 @@ window.fetch = async (...args) => {
 
   return response;
 };
+
+function clearPostInterval() {
+  window.clearInterval(postInterval);
+  postInterval = 0;
+  postCount = 0;
+}
+
 window.onmessage = (e) => {
   if (e.data.sender === "wtbc" && e.data.type === "REQUEST_CHAT_LIST") {
     setReplayFrameState(true);
@@ -146,5 +161,15 @@ window.onmessage = (e) => {
   if (e.data.sender === 'wtbc' && e.data.type === 'REQUEST_CHANNEL_ID') {
     setLiveFrameState(true);
     postChannelData();
+
+    if(postInterval === 0){
+      postInterval = window.setInterval(() => {
+        postChannelData();
+      }, 1000);
+    }
+  }
+  if (e.data.sender === 'wtbc' && e.data.type === 'CHANNEL_DATA_RECEIVED') {
+    currentChannel.sent = true;
+    clearPostInterval();
   }
 };
