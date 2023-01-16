@@ -26,6 +26,21 @@ const setLiveFrameState = (loaded: boolean) => {
   liveFrameState.url = location.href;
 };
 
+function postFrameMessage(type: string, value: any) {
+  const frame = <HTMLIFrameElement>document.getElementById("wtbc-mini");
+
+  if(!frame) return false;
+
+  frame.contentWindow?.postMessage(
+    {
+      sender: "extension", type, value
+    } as MessageInterface,
+    base_url
+  );
+
+  return true;
+}
+
 const postBodyMessage = () => {
   const replayType = ReplayPageType();
 
@@ -34,18 +49,9 @@ const postBodyMessage = () => {
 
   for (let b of bodyBuffer) {
     if (location.href === b.url && !b.sent) {
-      const frame = <HTMLIFrameElement>document.getElementById("wtbc-replay");
+      const post = postFrameMessage("CHAT_LIST", b);
 
-      if(!frame) return;
-
-      frame.contentWindow?.postMessage(
-        {
-          sender: "extension",
-          type: "CHAT_LIST",
-          value: b,
-        } as MessageInterface,
-        base_url
-      );
+      if(!post) return;
 
       b.sent = true;
     }
@@ -61,6 +67,10 @@ const postChannelData = () => {
 
   if (postCount >= postTryCount) {
     clearPostInterval();
+
+    postFrameMessage("CHANNEL_NOT_RESOLVED", currentChannel);
+
+    return;
   }
 
   if(!liveFrameState.loaded || currentChannel.channel === '') return;
