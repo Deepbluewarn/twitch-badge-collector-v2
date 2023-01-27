@@ -119,6 +119,14 @@ const Popup = () => {
           <Typography variant="body2" sx={{ fontWeight: '600', color: '#A7A7A7' }}>{browser.runtime.getManifest().version}</Typography>
         </Stack>
 
+        <Stack sx={{'padding': '8px'}}>
+          <Link href={process.env.DOCUMENTATION} underline="none" target='_blank'>
+            <Button variant="outlined" sx={{ width: '100%' }}>
+              {browser.i18n.getMessage('documentation')}
+            </Button>
+          </Link>
+        </Stack>
+
         <Stack direction='row' sx={{ width: '100%', 'gap': '8px', 'padding': '8px' }}>
           <Button
             variant="outlined"
