@@ -23,6 +23,9 @@
   "review" : {
     "message" : "확장 프로그램 평가"
   },
+  "documentation" : {
+    "message" : "설명서"
+  },
   "support" : {
     "message" : "지원"
   },

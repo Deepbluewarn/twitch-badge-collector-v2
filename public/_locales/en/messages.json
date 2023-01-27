@@ -23,6 +23,9 @@
   "review" : {
     "message" : "Rate the Extension"
   },
+  "documentation" : {
+    "message" : "Documentation"
+  },
   "support" : {
     "message" : "Support"
   },
