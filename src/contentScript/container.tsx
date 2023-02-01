@@ -78,7 +78,7 @@ const TwitchChatContainerStyle = styled("div")({
 
 export function LocalChatContainer() {
   const [chatList, setChatList] = useState<Node[]>([]);
-  const { setArrayFilter, checkFilter } = useArrayFilter('Extension');
+  const { setArrayFilter, checkFilter } = useArrayFilter('Extension', true);
   const { globalSetting } = TBCContext.useGlobalSettingContext();
   const [maxNumChats, setMaxNumChats] = useState(globalSetting.maximumNumberChats || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -109,16 +109,8 @@ export function LocalChatContainer() {
 
         if (key === "filter") {
           setArrayFilter(newValue);
-        } else if (key === 'maximumNumberChats') {
-          // setMaxNumChats(newValue || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number);
         }
       }
-    });
-  }, []);
-
-  useEffect(() => {
-    browser.storage.local.get("filter").then((res) => {
-      setArrayFilter(res.filter);
     });
   }, []);
 

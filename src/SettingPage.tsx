@@ -24,7 +24,7 @@ import i18n, {
 } from 'twitch-badge-collector-cc';
 
 function App() {
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension');
+  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', false);
   const { alerts, setAlerts, addAlert } = useAlert();
   process.env.BASE_URL
   const twitchAPI = useTwitchAPI(process.env.BUILD_ENV === 'DEV');
@@ -81,7 +81,7 @@ function App() {
 function Router() {
   const { t, i18n } = useTranslation();
   const { arrayFilter, setArrayFilter, addArrayFilter, checkFilter } =
-    useArrayFilter('Extension');
+    useArrayFilter('Extension', false);
 
   return (
     <TBCContext.ArrayFilterContext.Provider

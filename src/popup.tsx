@@ -82,7 +82,7 @@ const CustomAnchor = styled('a')({
 });
 
 const Popup = () => {
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension');
+  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', false);
   const onPageButtonClicked = (path: string) => {
     browser.tabs.create({
       url: browser.runtime.getURL(`setting.html?initialPath=${path}`),

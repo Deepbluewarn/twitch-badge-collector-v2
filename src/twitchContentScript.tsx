@@ -153,7 +153,7 @@ function pointBoxObserverCallback(mutationRecord: MutationRecord[]) {
 }
 
 function App() {
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension');
+  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', true);
   const { alerts, setAlerts, addAlert } = useAlert();
   const displayMethod = globalSetting.chatDisplayMethod;
   const isReplay = useRef(ReplayPageType());
