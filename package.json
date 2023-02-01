@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "watch": "webpack --config webpack/webpack.dev.js --watch",
-    "build": "webpack --config webpack/webpack.prod.js",
+    "build-ff": "cross-env BUILD_FOR=firefox webpack --config webpack/webpack.prod.js && cross-env BUILD_FOR=firefox node ./archiver/build.js",
+    "build-ch": "cross-env BUILD_FOR=chromium webpack --config webpack/webpack.prod.js && cross-env BUILD_FOR=chromium node ./archiver/build.js",
+    "build": "npm run build-ff && npm run build-ch",
     "clean": "rimraf dist",
     "test": "npx jest",
     "style": "prettier --write \"src/**/*.{ts,tsx}\""
@@ -27,11 +29,13 @@
     "@mui/material": "^5.10.17",
     "@mui/x-data-grid": "^5.17.11",
     "@tanstack/react-query": "^4.19.1",
+    "archiver": "^5.3.1",
     "assert": "^2.0.0",
     "axios": "^1.2.1",
     "broadcast-channel": "^4.18.1",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
+    "cross-env": "^7.0.3",
     "html-to-image": "^1.11.1",
     "https-browserify": "^1.0.0",
     "i18next": "^22.3.0",
@@ -44,7 +48,7 @@
     "react-router-dom": "^6.4.3",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
-    "twitch-badge-collector-cc": "^0.2.1",
+    "twitch-badge-collector-cc": "^0.3.1",
     "url": "^0.11.0"
   },
   "devDependencies": {
