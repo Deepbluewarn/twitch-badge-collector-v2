@@ -292,7 +292,7 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
       }
     });
 
-    window.onmessage = (e) => {
+    window.addEventListener('message', e=> {
       if (
         e.data.sender === "wtbc" &&
         e.data.type === "REQUEST_EXTENSION_SETTING"
@@ -304,7 +304,7 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
           postSetting("ARRAY_FILTER", res.filter);
         });
       }
-    };
+    });
   }, []);
 
   useEffect(() => {

@@ -66,6 +66,7 @@ const postChannelData = () => {
   postCount++;
 
   if (postCount >= postTryCount) {
+    console.debug('[tbc-extension] overrideFetch CHANNEL_NOT_RESOLVED')
     clearPostInterval();
 
     postFrameMessage("CHANNEL_NOT_RESOLVED", currentChannel);
@@ -114,6 +115,7 @@ window.fetch = async (...args) => {
         let isComment = false;
 
         if (Array.isArray(body)) {
+          console.log('[tbc-extension] overrideFetch fetch body: ', body);
           for (let b of body) {
             if (
               b.extensions.operationName === "VideoCommentsByOffsetOrCursor"
@@ -163,12 +165,14 @@ function clearPostInterval() {
   postCount = 0;
 }
 
-window.onmessage = (e) => {
+window.addEventListener('message', e=> {
   if (e.data.sender === "wtbc" && e.data.type === "REQUEST_CHAT_LIST") {
+    console.log('[tbc-extension] overrideFetch REQUEST_CHAT_LIST')
     setReplayFrameState(true);
     postBodyMessage();
   }
   if (e.data.sender === 'wtbc' && e.data.type === 'REQUEST_CHANNEL_ID') {
+    console.log('[tbc-extension] overrideFetch REQUEST_CHANNEL_ID')
     setLiveFrameState(true);
     postChannelData();
 
@@ -179,7 +183,8 @@ window.onmessage = (e) => {
     }
   }
   if (e.data.sender === 'wtbc' && e.data.type === 'CHANNEL_DATA_RECEIVED') {
+    console.log('[tbc-extension] overrideFetch CHANNEL_DATA_RECEIVED')
     currentChannel.sent = true;
     clearPostInterval();
   }
-};
+});

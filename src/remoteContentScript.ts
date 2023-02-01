@@ -1,7 +1,8 @@
 import browser from "webextension-polyfill";
 
 console.log("[extension] Remote Content Script loaded.");
-window.onmessage = (event: MessageEvent) => {
+
+window.addEventListener('message', event=> {
   if (event.source != window) return;
 
   if (
@@ -23,7 +24,7 @@ window.onmessage = (event: MessageEvent) => {
       value: event.data.value,
     });
   }
-};
+})
 
 browser.runtime.onMessage.addListener((message, sender) => {
   if (
