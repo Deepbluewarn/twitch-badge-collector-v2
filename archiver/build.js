@@ -5,12 +5,16 @@ const archiver = require('archiver');
 const build_for = process.env.BUILD_FOR;
 const manifest = file_system.readFileSync(path.join(__dirname, '../dist/manifest.json'), 'utf-8');
 const manifestJSON = JSON.parse(manifest);
-const outputDir = path.join(__dirname, `../versions/tbc2_${manifestJSON.version}-${build_for}.zip`);
+const outputDir = path.join(__dirname, '../versions')
+const fileOutputDir = path.join(__dirname, `../versions/tbc2_${manifestJSON.version}-${build_for}.zip`);
 
 console.log('[build] manifest version: ', manifestJSON.version)
-console.log('[build] output dir: ', outputDir)
 
-const output = file_system.createWriteStream(outputDir);
+if (!file_system.existsSync(outputDir)){
+    file_system.mkdirSync(outputDir);
+}
+
+const output = file_system.createWriteStream(fileOutputDir);
 const archive = archiver('zip');
 
 output.on('close', function () {
