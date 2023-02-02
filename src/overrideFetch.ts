@@ -115,7 +115,6 @@ window.fetch = async (...args) => {
         let isComment = false;
 
         if (Array.isArray(body)) {
-          console.log('[tbc-extension] overrideFetch fetch body: ', body);
           for (let b of body) {
             if (
               b.extensions.operationName === "VideoCommentsByOffsetOrCursor"
