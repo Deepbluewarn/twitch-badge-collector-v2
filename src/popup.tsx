@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import browser from "webextension-polyfill";
 import GlobalStyles from "@mui/material/GlobalStyles";
@@ -83,6 +83,7 @@ const CustomAnchor = styled('a')({
 
 const Popup = () => {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', false);
+  const [rateLink, setRateLink] = useState('');
   const onPageButtonClicked = (path: string) => {
     browser.tabs.create({
       url: browser.runtime.getURL(`setting.html?initialPath=${path}`),
@@ -90,7 +91,6 @@ const Popup = () => {
   };
 
   useEffect(() => {
-    console.log('process.env.RATE_EXT_LINK: ', process.env.RATE_EXT_LINK)
     browser.storage.onChanged.addListener((changed, areaName) => {
       if (areaName !== "local") return;
 
@@ -105,6 +105,16 @@ const Popup = () => {
       }
     });
   }, []);
+
+  useEffect(() => {
+    browser.runtime.getBrowserInfo().then(info => {
+      if(info.name === 'Firefox'){
+        setRateLink(process.env.FIREFOX_RATE_EXT_LINK || '');
+      }else{
+        setRateLink(process.env.CHROMIUM_RATE_EXT_LINK || '');
+      }
+    })
+  }, [])
 
   return (
     <ThemeProvider theme={useCustomTheme('off')}>
@@ -197,7 +207,7 @@ const Popup = () => {
               key='miniChatTime'
             />
           </Stack>
-          <Link href={process.env.RATE_EXT_LINK} underline="none" target='_blank'>
+          <Link href={rateLink} underline="none" target='_blank'>
             <Button variant="outlined" sx={{ width: '100%' }}>
               {browser.i18n.getMessage('review')}
             </Button>
