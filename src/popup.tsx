@@ -107,13 +107,17 @@ const Popup = () => {
   }, []);
 
   useEffect(() => {
-    browser.runtime.getBrowserInfo().then(info => {
-      if(info.name === 'Firefox'){
-        setRateLink(process.env.FIREFOX_RATE_EXT_LINK || '');
-      }else{
-        setRateLink(process.env.CHROMIUM_RATE_EXT_LINK || '');
-      }
-    })
+    if(typeof browser.runtime.getBrowserInfo === 'undefined'){
+      setRateLink(process.env.CHROMIUM_RATE_EXT_LINK || '');
+    }else{
+      browser.runtime.getBrowserInfo().then(info => {
+        if(info.name === 'Firefox'){
+          setRateLink(process.env.FIREFOX_RATE_EXT_LINK || '');
+        }else{
+          setRateLink(process.env.CHROMIUM_RATE_EXT_LINK || '');
+        }
+      })
+    }
   }, [])
 
   return (
