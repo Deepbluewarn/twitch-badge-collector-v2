@@ -6,6 +6,9 @@ module.exports = merge(common, {
     mode: 'production',
     plugins: [
         new Dotenv({
+            path: './.env'
+        }),
+        new Dotenv({
             path: './prod.env'
         })
     ]
