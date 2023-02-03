@@ -4,7 +4,8 @@
   "description": "chrome-extension-typescript-starter",
   "main": "index.js",
   "scripts": {
-    "watch": "webpack --config webpack/webpack.dev.js --watch",
+    "watch-ff": "cross-env BUILD_FOR=firefox webpack --config webpack/webpack.dev.js --watch",
+    "watch-ch": "cross-env BUILD_FOR=chromium webpack --config webpack/webpack.dev.js --watch",
     "build-ff": "cross-env BUILD_FOR=firefox webpack --config webpack/webpack.prod.js && cross-env BUILD_FOR=firefox node ./archiver/build.js",
     "build-ch": "cross-env BUILD_FOR=chromium webpack --config webpack/webpack.prod.js && cross-env BUILD_FOR=chromium node ./archiver/build.js",
     "build": "npm run build-ff && npm run build-ch",
@@ -48,7 +49,7 @@
     "react-router-dom": "^6.4.3",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
-    "twitch-badge-collector-cc": "^0.3.2",
+    "twitch-badge-collector-cc": "^0.3.4",
     "url": "^0.11.0"
   },
   "devDependencies": {
