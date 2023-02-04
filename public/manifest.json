@@ -46,6 +46,9 @@
         "storage",
         "webNavigation"
     ],
+    "host_permissions": [
+        "*://*.twitch.tv/*"
+    ],
     "web_accessible_resources": [
         {
             "resources": [
