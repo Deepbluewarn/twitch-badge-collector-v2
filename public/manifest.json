@@ -3,7 +3,7 @@
     "name": "__MSG_ExtensionName__",
     "description": "__MSG_ExtensionDesc__",
     "default_locale": "en",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "action": {
         "default_icon": {
             "128": "icon.png"
@@ -45,9 +45,6 @@
     "permissions": [
         "storage",
         "webNavigation"
-    ],
-    "host_permissions": [
-        "*://*.twitch.tv/*"
     ],
     "web_accessible_resources": [
         {
