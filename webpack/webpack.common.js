@@ -10,13 +10,17 @@ function modify(buffer) {
   const manifest = JSON.parse(buffer.toString());
   const isFirefox = build_for === 'firefox';
 
-  manifest.background = isFirefox ? {
-    "scripts": ["js/background.js"]
-  } : {
-    "service_worker": 'js/background.js'
-  }
-
-  if(isFirefox){
+  if(isFirefox) {
+    manifest.manifest_version = 2;
+    manifest.background = {
+      "scripts": ["js/background.js"]
+    }
+    manifest.browser_action = manifest.action;
+    delete manifest.action;
+    manifest.web_accessible_resources = [
+      "js/overrideFetch.js",
+      "icon.png"
+    ]
     manifest.browser_specific_settings = {
       gecko: {
         id: 'tbcextension@gmail.com'
