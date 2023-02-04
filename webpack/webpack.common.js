@@ -17,6 +17,8 @@ function modify(buffer) {
     }
     manifest.browser_action = manifest.action;
     delete manifest.action;
+    delete manifest.host_permissions;
+    manifest.permissions.push('*://*.twitch.tv/*');
     manifest.web_accessible_resources = [
       "js/overrideFetch.js",
       "icon.png"
