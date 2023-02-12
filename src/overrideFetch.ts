@@ -27,7 +27,8 @@ const setLiveFrameState = (loaded: boolean) => {
 };
 
 function postFrameMessage(type: string, value: any) {
-  const frame = <HTMLIFrameElement>document.getElementById("wtbc-mini");
+  const replayType = ReplayPageType();
+  const frame = <HTMLIFrameElement>document.getElementById(replayType ? 'wtbc-replay' : 'wtbc-mini');
 
   if(!frame) return false;
 
