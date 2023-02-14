@@ -12,6 +12,9 @@
     height: 0.5rem;
     margin : 0.5rem;
 }
+.chat-paused-footer {
+    z-index: 4444;
+}
 /* For compatibility with FrankerFaceZ Extension */
 div.chat-scroll-footer__placeholder {
     order: 4;
