@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import browser from "webextension-polyfill";
 import {
@@ -6,7 +6,6 @@ import {
   RemoteChatContainer,
   LocalChatContainer,
   createReplayContainer,
-  createNoticeContainer,
 } from "./contentScript/container";
 import { ReplayPageType, observer } from "./contentScript/utils";
 import { updateContainerRatio } from "./contentScript/containerHandler";
@@ -14,19 +13,9 @@ import {
   useGlobalSetting,
   SettingInterface,
   Context as TBCContext,
-  useAlert,
-  useCustomTheme
+  useAlert
 } from 'twitch-badge-collector-cc';
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import { createTheme, styled, ThemeProvider } from '@mui/material/styles';
-import Stack from "@mui/material/Stack";
-import globalStyles from "./style/global";
-import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
-import { borderRadius } from "@mui/system";
-import Divider from "@mui/material/Divider";
-import Link from "@mui/material/Link";
+import useTwitchTheme from "./hooks/useTwitchTheme";
 
 let streamPageObserver: MutationObserver | undefined;
 let position: SettingInterface.PositionOptionsType;
@@ -38,7 +27,6 @@ let replayChatFound = false;
 let pointBoxFound = false;
 let twitchDarkTheme = false;
 let observerStatus = false;
-let noticeEntryInserted = false;
 
 const injectMockFetch = () => {
   var s = document.createElement("script");
@@ -51,7 +39,7 @@ const injectMockFetch = () => {
 
 injectMockFetch();
 
-async function observerCallback(mutationRecord: MutationRecord[]) {
+function initPage() {
   const body = document.body;
   twitchDarkTheme = body.classList.contains("dark-theme");
 
@@ -64,62 +52,54 @@ async function observerCallback(mutationRecord: MutationRecord[]) {
 
   const replay = ReplayPageType();
 
+  let container = document.getElementById('tbc-container');
+
+  if(container) return false;
+
   if (replay) {
     const video_chat: Element = document.getElementsByClassName(
       "video-chat__message-list-wrapper"
     )[0];
     const video_ref = document.getElementsByClassName('video-ref')[0];
 
-    if(!video_ref) return;
+    if (!video_ref) return;
 
     const video_player: HTMLVideoElement | undefined = video_ref.getElementsByTagName("video")[0];
 
     if (video_chat && video_player) {
-      let tbcContainer = document.getElementById("tbc-container");
-      if (tbcContainer) return false;
-
       createReplayContainer(video_chat);
 
-      tbcContainer = document.getElementById("tbc-container");
+      container = document.getElementById("tbc-container");
 
-      if (!tbcContainer) return;
+      if (!container) return;
 
       updateContainerRatio(containerRatio, position, replay);
       updatePosition(position);
 
-      createRoot(tbcContainer).render(<App />);
+      createRoot(container).render(<App />);
     }
   } else if (streamChat && !streamChatFound) {
     streamChatFound = true;
 
-    let tbcContainer = document.getElementById("tbc-container");
 
-    if (tbcContainer) return false;
 
     createCloneContainer();
-    tbcContainer = document.getElementById("tbc-container");
+    container = document.getElementById("tbc-container");
 
-    if (!tbcContainer) return;
+    if (!container) return;
 
     updateContainerRatio(containerRatio, position, replay);
     updatePosition(position);
 
-    createRoot(tbcContainer).render(<App />);
+    createRoot(container).render(<App />);
   } else if (pointBox && !pointBoxFound) {
     pointBoxFound = true;
     observePointBox(pointBox);
   }
-  
-  // if(!noticeEntryInserted) {
-  //   noticeEntryInserted = true;
+}
 
-  //   createNoticeContainer();
-  //   const noticeContainer = document.getElementById('tbc-notice-container');
-
-  //   if (!noticeContainer) return false;
-
-  //   createRoot(noticeContainer).render(<NoticeEntry />);
-  // }
+async function observerCallback(mutationRecord: MutationRecord[]) {
+  initPage();
 }
 
 function pointBoxObserverCallback(mutationRecord: MutationRecord[]) {
@@ -157,15 +137,16 @@ function App() {
   const { alerts, setAlerts, addAlert } = useAlert();
   const displayMethod = globalSetting.chatDisplayMethod;
   const isReplay = useRef(ReplayPageType());
+  const { theme: twitchTheme } = useTwitchTheme();
   let chat = null;
 
   if (isReplay.current) {
-    chat = <RemoteChatContainer type="replay" />;
+    chat = <RemoteChatContainer type="replay" twitchTheme={twitchTheme} />;
   } else {
     if (displayMethod === "local") {
       chat = <LocalChatContainer />;
     } else if (displayMethod === "remote") {
-      chat = <RemoteChatContainer type="mini" />;
+      chat = <RemoteChatContainer type="mini" twitchTheme={twitchTheme} />;
     }
   }
 
@@ -208,85 +189,6 @@ function App() {
   );
 }
 
-const CustomAnchor = styled('a')({
-  width: '28rem'
-});
-const Icon = styled('img')({
-  width: '2rem',
-  height: '2rem'
-});
-
-const NoticePaper = styled(Paper)(({theme}) => ({
-  padding: '16px',
-  backgroundColor: theme.palette.background.default,
-  border: `1px solid ${theme.palette.divider}`
-}))
-
-const CustomButton = styled(Button)(({theme}) => ({
-  fontSize: '1.2rem',
-  width: '100%'
-}))
-
-function NoticeEntry() {
-  const [showNotice, setShowNotice] = useState(false);
-  const onButtonClick = (closePermanently: boolean) => {
-    browser.storage.local.set({noticeClosePermanently: closePermanently});
-    setShowNotice(false);
-  }
-
-  useEffect(() => {
-    browser.storage.local.get('noticeClosePermanently').then(res => {
-      const ncp = res.noticeClosePermanently;
-
-      if(typeof ncp === 'undefined') {
-        setShowNotice(true);
-      }
-
-      setShowNotice(!res.noticeClosePermanently);
-    })
-  }, [])
-
-  return showNotice ? (
-    <ThemeProvider theme={useCustomTheme('on')}>
-      <NoticePaper>
-        {globalStyles}
-        <Stack spacing={2} sx={{ width: '28rem' }}>
-          <Stack direction='row' spacing={1} alignItems="center">
-            <Icon src={browser.runtime.getURL('icon.png')} alt="" />
-            <Typography variant="h5">{browser.i18n.getMessage('popup_title')}</Typography>
-          </Stack>
-
-          <Typography variant="h6">{browser.i18n.getMessage('donationMessage')}</Typography>
-
-          <Stack justifyContent='center' spacing={1}>
-            <Link 
-              underline="none"
-              target='_blank'
-              href={process.env.RATE_EXT_LINK}
-            >
-              <CustomButton variant="contained">
-                {browser.i18n.getMessage('review')}
-              </CustomButton>
-            </Link>
-            <Divider />
-            <CustomAnchor href={process.env.DONATE_LINK} target='_blank'>
-              <Box
-                component='img'
-                sx={{ width: 'inherit', borderRadius: '8px' }}
-                src={`https://cdn.jsdelivr.net/npm/twitch-badge-collector-cc@0.0.70/dist/donation/toonation_b14.gif`}
-              />
-            </CustomAnchor>
-          </Stack>
-          
-          <Stack direction='row' spacing={1} justifyContent='flex-end'>
-            <CustomButton onClick={() => {onButtonClick(true)}}>{browser.i18n.getMessage('closePermanently')}</CustomButton>
-            <CustomButton onClick={() => {onButtonClick(false)}}>{browser.i18n.getMessage('close')}</CustomButton>
-          </Stack>
-        </Stack>
-      </NoticePaper>
-    </ThemeProvider>
-  ) : null;
-}
 
 function updatePosition(position: SettingInterface.PositionOptionsType) {
   const tbcContainer = document.getElementById(

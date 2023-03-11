@@ -1,4 +1,4 @@
-#handle-container{
+#handle-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -6,23 +6,32 @@
     height: 2rem;
     cursor: row-resize;
 }
-#tbc-resize-handle{
+
+#tbc-resize-handle {
     display: flex;
     border-top: 2px solid var(--color-background-alt-2);
     height: 0.5rem;
-    margin : 0.5rem;
+    margin: 0.5rem;
 }
+
+.tbcv2-highlight {
+    border-left: 4px solid lavender;
+}
+
 .chat-paused-footer {
     z-index: 4444;
 }
+
 /* For compatibility with FrankerFaceZ Extension */
 div.chat-scroll-footer__placeholder {
     order: 4;
 }
-.flex_column{
+
+.flex_column {
     display: flex;
     flex-direction: column;
 }
-.freeze{
+
+.freeze {
     pointer-events: none;
 }

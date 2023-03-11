@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import browser from "webextension-polyfill";
 import convert from "react-from-dom";
 import { styled } from "@mui/material/styles";
 import createContainerHandler from "./containerHandler";
 import {
-  getChannelFromPath,
   getVideoIdParam,
   ReplayPageType,
   observer,
@@ -12,11 +11,11 @@ import {
 import ChatFromTwitchUi from "./twitchUiChat";
 import { ContainerType } from "../interfaces/container";
 import MessageInterface from "../interfaces/message";
-import useMutationObserver from "../hooks/useMutationObserver";
 import {
   useArrayFilter,
   Context as TBCContext,
 } from 'twitch-badge-collector-cc';
+import { TwitchTheme } from "../hooks/useTwitchTheme";
 
 export function ChatRoom() {
   const chatRoomDefault: Element | null = document.querySelector(
@@ -77,28 +76,28 @@ const TwitchChatContainerStyle = styled("div")({
 });
 
 export function LocalChatContainer() {
-  const [chatList, setChatList] = useState<Node[]>([]);
-  const { setArrayFilter, checkFilter } = useArrayFilter('Extension', true);
   const { globalSetting } = TBCContext.useGlobalSettingContext();
+  const [chatList, setChatList] = useState<Node[]>([]);
+  const [chatIsBottom, setChatIsBottom] = useState(true);
   const [maxNumChats, setMaxNumChats] = useState(globalSetting.maximumNumberChats || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number);
+  const { setArrayFilter, checkFilter } = useArrayFilter('Extension', true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const container = document.getElementsByClassName("tbc-origin")[0];
+  let originalContainer = null;
 
-  if (!container) return null;
+  if (container) {
+    originalContainer = container.cloneNode(true) as HTMLElement;
 
-  const originalContainer = container.cloneNode(true) as HTMLElement;
+    originalContainer.setAttribute("style", "");
+    originalContainer.classList.remove("tbc-origin");
+    originalContainer.id = "tbc-clone__twitchui";
 
-  originalContainer.setAttribute("style", "");
-  originalContainer.classList.remove("tbc-origin");
-  originalContainer.id = "tbc-clone__twitchui";
-
-  const message_container = originalContainer.getElementsByClassName(
-    "chat-scrollable-area__message-container"
-  )[0];
-  message_container.textContent = ""; //remove all chat lines.
-
-  const [chatIsBottom, setChatIsBottom] = useState(true);
+    const message_container = originalContainer.getElementsByClassName(
+      "chat-scrollable-area__message-container"
+    )[0];
+    message_container.textContent = ""; //remove all chat lines.
+  }
 
   useEffect(() => {
     browser.storage.onChanged.addListener((changed, areaName) => {
@@ -195,16 +194,22 @@ export function LocalChatContainer() {
         const filterRes = checkFilter(chat);
 
         if (typeof filterRes !== "undefined" && filterRes) {
+          const clone = node.cloneNode(true);
+
+          (node as HTMLElement).classList.add('tbcv2-highlight');
+
           setChatList((n) => {
             if (n.length > maxNumChats) {
               n = n.slice(-maxNumChats);
             }
-            return [...n, node.cloneNode(true)];
+            return [...n, clone];
           });
         }
       });
     });
   };
+
+  if (!container || !originalContainer) return null;
 
   const twitchClone = convert(originalContainer) as React.ReactNode;
 
@@ -221,23 +226,11 @@ const RemoteChatContainerStyle = styled("iframe")({
   marginBottom: "8px",
 });
 
-export function RemoteChatContainer(props: { type: ContainerType }) {
+export function RemoteChatContainer(props: { type: ContainerType, twitchTheme: TwitchTheme }) {
   const [baseUrl, setBaseUrl] = useState(process.env.BASE_URL || "");
   const params = new URLSearchParams();
   const replayType = ReplayPageType();
   const [videoId, setVideoId] = useState(getVideoIdParam(replayType));
-
-  const twitchHTMLTagRef = useRef<HTMLElement>(document.documentElement);
-  const getDarkTheme = () => {
-    return twitchHTMLTagRef.current.classList.contains("tw-root--theme-dark") ? 'on' : 'off';
-  };
-  const [darkTheme, setDarkTheme] = useState(getDarkTheme());
-
-  const themeCallback = (mutationRecord: MutationRecord[]) => {
-    setDarkTheme(getDarkTheme());
-  };
-
-  useMutationObserver(twitchHTMLTagRef, themeCallback);
 
   if (props.type === "replay") {
     if (replayType && videoId) {
@@ -252,6 +245,10 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
   const frameLoaded = useRef(false);
 
   const src = `${baseUrl}/${props.type}?${params}`;
+
+  const isDarkTheme = useCallback(() => {
+    return props.twitchTheme === 'dark' ? 'on' : 'off'
+  }, [props.twitchTheme])
 
   const postSetting = (type: string, value: any) => {
     if (frameRef.current && frameLoaded.current) {
@@ -299,7 +296,7 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
       ) {
         frameLoaded.current = true;
         postSetting("EXTENSION_SETTING", globalSetting);
-        postSetting("TWITCH_DARKMODE", darkTheme);
+        postSetting("TWITCH_DARKMODE", isDarkTheme());
         browser.storage.local.get("filter").then((res) => {
           postSetting("ARRAY_FILTER", res.filter);
         });
@@ -326,9 +323,9 @@ export function RemoteChatContainer(props: { type: ContainerType }) {
   }, [globalSetting]);
 
   useEffect(() => {
-    postSetting("TWITCH_DARKMODE", darkTheme);
-    dispatchGlobalSetting({type: 'darkTheme', value: darkTheme});
-  }, [darkTheme]);
+    postSetting("TWITCH_DARKMODE", isDarkTheme());
+    dispatchGlobalSetting({type: 'darkTheme', value: isDarkTheme()});
+  }, [props.twitchTheme]);
 
   return (
     <RemoteChatContainerStyle
