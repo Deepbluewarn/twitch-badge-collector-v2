@@ -102,6 +102,7 @@ const updateChannelData = (channel: string) => {
 
   if(oldChannel !== '' && oldChannel !== channel) {
     currentChannel.sent = false;
+    postChannelData();
   }
 }
 
