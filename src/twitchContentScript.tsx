@@ -50,6 +50,11 @@ function initPage() {
     "community-points-summary"
   )[0];
 
+  if (pointBox && !pointBoxFound) {
+    pointBoxFound = true;
+    observePointBox(pointBox);
+  }
+
   const replay = ReplayPageType();
 
   let container = document.getElementById('tbc-container');
@@ -81,8 +86,6 @@ function initPage() {
   } else if (streamChat && !streamChatFound) {
     streamChatFound = true;
 
-
-
     createCloneContainer();
     container = document.getElementById("tbc-container");
 
@@ -92,9 +95,6 @@ function initPage() {
     updatePosition(position);
 
     createRoot(container).render(<App />);
-  } else if (pointBox && !pointBoxFound) {
-    pointBoxFound = true;
-    observePointBox(pointBox);
   }
 }
 
