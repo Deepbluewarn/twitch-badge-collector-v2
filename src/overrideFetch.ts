@@ -151,7 +151,9 @@ window.fetch = async (...args) => {
 
         bodyBuffer = bodyBuffer.filter((e) => !e.sent);
 
-        console.debug('TBC - [extension] overrideFetch bodyBuffer: ', bodyBuffer);
+        if(bodyBuffer.length > 0) {
+          console.debug('TBC - [extension] overrideFetch bodyBuffer: ', bodyBuffer);
+        }
 
         isComment = false;
       });
