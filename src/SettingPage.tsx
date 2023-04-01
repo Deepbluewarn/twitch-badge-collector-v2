@@ -21,6 +21,7 @@ import i18n, {
   ChatSaver,
   DrawerTemplate,
   SettingPageDrawer,
+  AlertContainer,
 } from 'twitch-badge-collector-cc';
 
 function App() {
@@ -69,6 +70,7 @@ function App() {
           <QueryClientProvider client={queryClient}>
             <TBCContext.TwitchAPIContext.Provider value={twitchAPI}>
               {globalStyles}
+              <AlertContainer />
               <Router />
             </TBCContext.TwitchAPIContext.Provider>
           </QueryClientProvider>
