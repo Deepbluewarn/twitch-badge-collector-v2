@@ -58,6 +58,10 @@ const defaultFilter = [
 browser.runtime.onInstalled.addListener(function (details: any) {
   if (details.reason === "install") {
     browser.storage.local.set({ filter: defaultFilter });
+
+    browser.tabs.create({
+      url: browser.runtime.getURL(`welcome.html`),
+    });
   }
 
   browser.storage.local

@@ -38,6 +38,7 @@ module.exports = {
   entry: {
     popup: path.join(srcDir, "popup.tsx"),
     setting: path.join(srcDir, "SettingPage.tsx"),
+    welcome: path.join(srcDir, "welcome.tsx"),
     background: path.join(srcDir, "background.ts"),
     twitch_content_script: path.join(srcDir, "twitchContentScript.tsx"),
     remote_content_script: path.join(srcDir, "remoteContentScript.ts"),
