@@ -1,4 +1,27 @@
 import browser from "webextension-polyfill";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, setDoc, Firestore } from "firebase/firestore";
+import { FilterInterface } from "twitch-badge-collector-cc";
+import { nanoid } from 'nanoid';
+let db: Firestore;
+
+try {
+  const firebaseConfig = {
+    apiKey: "AIzaSyAENP-JCqMSQpJTndPTjt6f71g7KzYrDU4",
+    authDomain: "twitch-badge-collector.firebaseapp.com",
+    projectId: "twitch-badge-collector",
+    storageBucket: "twitch-badge-collector.appspot.com",
+    messagingSenderId: "933598780752",
+    appId: "1:933598780752:web:4b72960eca0cce837fe055",
+    measurementId: "G-VMF9V945NN",
+    databaseURL: "https://twitch-badge-collector-default-rtdb.firebaseio.com/"
+  };
+  const app = initializeApp(firebaseConfig);
+
+  db = getFirestore(app);
+} catch (e) {
+  console.error(e);
+}
 
 const defaultFilter = [
   {
@@ -54,6 +77,53 @@ const defaultFilter = [
     ],
   },
 ];
+
+const getExtensionUserId = async () => {
+  let res = await browser.storage.local.get('extensionUserId');
+
+  if(typeof res.extensionUserId === 'undefined'){
+    let extUserId = nanoid(24);
+    await browser.storage.local.set({extensionUserId: extUserId});
+    return extUserId;
+  }
+
+  return res.extensionUserId;
+}
+
+browser.storage.onChanged.addListener(async (changed, areaName) => {
+  if (areaName !== "local") return;
+
+  for (let key in changed) {
+
+    if(key === 'filter') return;
+
+    const id = await getExtensionUserId();
+
+    setDoc(doc(db, key, id), {
+      value: changed[key].newValue
+    });
+  }
+});
+
+browser.storage.local.get('filter').then(async res => {
+  // 필터 요소가 모두 제외로 설정되어 있으면 사용자의 의도와 다르게 동작할 수 있음.
+  // 필터 구조의 데이터를 수집하여 통계 작성.
+
+  if(typeof res.filter === 'undefined') return;
+
+  const filter: Array<FilterInterface.ArrayFilterListInterface>= res.filter;
+
+  const r = filter.some(v=> {
+    return v.filters.some(f=> f.type === 'exclude');
+  });
+
+  const id = await getExtensionUserId();
+
+  setDoc(doc(db, 'hasAllExcludedFilter', id), {
+    filterCount: filter.length,
+    value: r
+  });
+})
 
 browser.runtime.onInstalled.addListener(function (details: any) {
   if (details.reason === "install") {
