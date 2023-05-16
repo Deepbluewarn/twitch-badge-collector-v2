@@ -78,12 +78,14 @@ const defaultFilter = [
   },
 ];
 
+const fbExcludedKeys = ['filter', 'extensionUserId'];
+
 const getExtensionUserId = async () => {
   let res = await browser.storage.local.get('extensionUserId');
 
-  if(typeof res.extensionUserId === 'undefined'){
-    let extUserId = nanoid(24);
-    await browser.storage.local.set({extensionUserId: extUserId});
+  if (typeof res.extensionUserId === 'undefined') {
+    const extUserId = nanoid(24);
+    await browser.storage.local.set({ extensionUserId: extUserId });
     return extUserId;
   }
 
@@ -95,7 +97,7 @@ browser.storage.onChanged.addListener(async (changed, areaName) => {
 
   for (let key in changed) {
 
-    if(key === 'filter') return;
+    if (fbExcludedKeys.includes(key)) return;
 
     const id = await getExtensionUserId();
 
@@ -105,24 +107,44 @@ browser.storage.onChanged.addListener(async (changed, areaName) => {
   }
 });
 
-browser.storage.local.get('filter').then(async res => {
+browser.storage.local.get([
+  "chatDisplayMethod",
+  "position",
+  "pointBoxAuto",
+  "darkTheme",
+  "chatTime",
+  "maximumNumberChats",
+  "miniLanguage",
+  "miniFontSize",
+  "miniChatTime",
+  "filter"
+]
+).then(async res => {
   // 필터 요소가 모두 제외로 설정되어 있으면 사용자의 의도와 다르게 동작할 수 있음.
   // 필터 구조의 데이터를 수집하여 통계 작성.
 
-  if(typeof res.filter === 'undefined') return;
-
-  const filter: Array<FilterInterface.ArrayFilterListInterface>= res.filter;
-
-  const r = filter.some(v=> {
-    return v.filters.some(f=> f.type === 'exclude');
-  });
-
   const id = await getExtensionUserId();
 
-  setDoc(doc(db, 'hasAllExcludedFilter', id), {
-    filterCount: filter.length,
-    value: r
+  Object.keys(res).forEach(key => {
+    if (fbExcludedKeys.includes(key)) return;
+
+    setDoc(doc(db, key, id), {
+      value: res[key]
+    });
   });
+
+  if (typeof res.filter !== 'undefined') {
+    const filter: Array<FilterInterface.ArrayFilterListInterface> = res.filter;
+
+    const r = filter.some(v => {
+      return v.filters.every(f => f.type === 'exclude') && v.filterType !== 'sleep';
+    });
+
+    setDoc(doc(db, 'hasAllExcludedFilter', id), {
+      filterCount: filter.length,
+      value: r
+    });
+  }
 })
 
 browser.runtime.onInstalled.addListener(function (details: any) {
