@@ -7,7 +7,7 @@ let db: Firestore;
 
 try {
   const firebaseConfig = {
-    apiKey: "AIzaSyAENP-JCqMSQpJTndPTjt6f71g7KzYrDU4",
+    apiKey: "AIzaSyAXi7dKofuQ0xRnB9gaFHxH19OlL4I2pLY",
     authDomain: "twitch-badge-collector.firebaseapp.com",
     projectId: "twitch-badge-collector",
     storageBucket: "twitch-badge-collector.appspot.com",
