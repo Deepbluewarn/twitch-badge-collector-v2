@@ -80,6 +80,14 @@ const defaultFilter = [
 
 const fbExcludedKeys = ['filter', 'extensionUserId'];
 
+const getRandomBoolean = () => {
+  return Math.random() < 0.2;
+}
+
+const setFbDoc = (key: string, id: string, value: any) => {
+  setDoc(doc(db, key, id), value);
+}
+
 const getExtensionUserId = async () => {
   let res = await browser.storage.local.get('extensionUserId');
 
@@ -92,68 +100,60 @@ const getExtensionUserId = async () => {
   return res.extensionUserId;
 }
 
-browser.storage.onChanged.addListener(async (changed, areaName) => {
-  if (areaName !== "local") return;
+const sendFbSettings = (ignoreLimit: boolean) => {
 
-  for (let key in changed) {
+  if (!getRandomBoolean() && !ignoreLimit) return;
 
-    if (fbExcludedKeys.includes(key)) return;
+  browser.storage.local.get([
+    "chatDisplayMethod",
+    "position",
+    "pointBoxAuto",
+    "darkTheme",
+    "chatTime",
+    "maximumNumberChats",
+    "miniLanguage",
+    "miniFontSize",
+    "miniChatTime",
+    "filter"
+  ]
+  ).then(async res => {
+    // 필터 요소가 모두 제외로 설정되어 있으면 사용자의 의도와 다르게 동작할 수 있음.
+    // 필터 구조의 데이터를 수집하여 통계 작성.
 
     const id = await getExtensionUserId();
 
-    setDoc(doc(db, key, id), {
-      value: changed[key].newValue
-    });
-  }
-});
+    Object.keys(res).forEach(key => {
+      if (fbExcludedKeys.includes(key)) return;
 
-browser.storage.local.get([
-  "chatDisplayMethod",
-  "position",
-  "pointBoxAuto",
-  "darkTheme",
-  "chatTime",
-  "maximumNumberChats",
-  "miniLanguage",
-  "miniFontSize",
-  "miniChatTime",
-  "filter"
-]
-).then(async res => {
-  // 필터 요소가 모두 제외로 설정되어 있으면 사용자의 의도와 다르게 동작할 수 있음.
-  // 필터 구조의 데이터를 수집하여 통계 작성.
-
-  const id = await getExtensionUserId();
-
-  Object.keys(res).forEach(key => {
-    if (fbExcludedKeys.includes(key)) return;
-
-    setDoc(doc(db, key, id), {
-      value: res[key]
-    });
-  });
-
-  if (typeof res.filter !== 'undefined') {
-    const filter: Array<FilterInterface.ArrayFilterListInterface> = res.filter;
-
-    const r = filter.some(v => {
-      return v.filters.every(f => f.type === 'exclude') && v.filterType !== 'sleep';
+      setFbDoc('hasAllExcludedFilter', id, { value: res[key] });
     });
 
-    setDoc(doc(db, 'hasAllExcludedFilter', id), {
-      filterCount: filter.length,
-      value: r
-    });
-  }
-})
+    if (typeof res.filter !== 'undefined') {
+      const filter: Array<FilterInterface.ArrayFilterListInterface> = res.filter;
 
-browser.runtime.onInstalled.addListener(function (details: any) {
+      const r = filter.some(v => {
+        return v.filters.every(f => f.type === 'exclude') && v.filterType !== 'sleep';
+      });
+
+      setFbDoc('hasAllExcludedFilter', id, {
+        filterCount: filter.length,
+        value: r
+      });
+    }
+  })
+}
+sendFbSettings(false);
+
+
+browser.runtime.onInstalled.addListener(function (details) {
   if (details.reason === "install") {
     browser.storage.local.set({ filter: defaultFilter });
 
     browser.tabs.create({
       url: browser.runtime.getURL(`welcome.html`),
     });
+  } else if (details.reason === 'update' || details.reason === 'browser_update') {
+    sendFbSettings(true);
   }
 
   browser.storage.local
