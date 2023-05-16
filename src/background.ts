@@ -125,7 +125,7 @@ const sendFbSettings = (ignoreLimit: boolean) => {
     Object.keys(res).forEach(key => {
       if (fbExcludedKeys.includes(key)) return;
 
-      setFbDoc('hasAllExcludedFilter', id, { value: res[key] });
+      setFbDoc(key, id, { value: res[key] });
     });
 
     if (typeof res.filter !== 'undefined') {
@@ -142,7 +142,7 @@ const sendFbSettings = (ignoreLimit: boolean) => {
     }
   })
 }
-sendFbSettings(false);
+// sendFbSettings(false);
 
 
 browser.runtime.onInstalled.addListener(function (details) {
