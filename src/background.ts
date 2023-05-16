@@ -122,11 +122,7 @@ const sendFbSettings = (ignoreLimit: boolean) => {
 
     const id = await getExtensionUserId();
 
-    Object.keys(res).forEach(key => {
-      if (fbExcludedKeys.includes(key)) return;
-
-      setFbDoc(key, id, { value: res[key] });
-    });
+    const {filter, extensionUserId, ...newRes} = res;
 
     if (typeof res.filter !== 'undefined') {
       const filter: Array<FilterInterface.ArrayFilterListInterface> = res.filter;
@@ -134,16 +130,14 @@ const sendFbSettings = (ignoreLimit: boolean) => {
       const r = filter.some(v => {
         return v.filters.every(f => f.type === 'exclude') && v.filterType !== 'sleep';
       });
-
-      setFbDoc('hasAllExcludedFilter', id, {
+      newRes.hasAllExcludedFilter = {
         filterCount: filter.length,
         value: r
-      });
+      }
     }
+    setFbDoc('userSetting', id, newRes);
   })
 }
-// sendFbSettings(false);
-
 
 browser.runtime.onInstalled.addListener(function (details) {
   if (details.reason === "install") {
