@@ -176,6 +176,7 @@ window.addEventListener('message', e=> {
   }
   if (e.data.sender === 'wtbc' && e.data.type === 'REQUEST_CHANNEL_ID') {
     console.log('[tbc-extension] overrideFetch REQUEST_CHANNEL_ID')
+    currentChannel.sent = false;
     setLiveFrameState(true);
     postChannelData();
 
