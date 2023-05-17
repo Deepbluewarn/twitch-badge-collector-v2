@@ -166,7 +166,7 @@ browser.runtime.onInstalled.addListener(function (details) {
       browser.storage.local.set({
         chatDisplayMethod: res.chatDisplayMethod
           ? res.chatDisplayMethod
-          : "local",
+          : "remote",
         position: res.position ? res.position : "up",
         pointBoxAuto: res.pointBoxAuto ? res.pointBoxAuto : "on",
         darkTheme: res.darkTheme ? res.darkTheme : "off",
