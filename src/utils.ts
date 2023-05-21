@@ -1,4 +1,5 @@
 import { FilterInterface } from "twitch-badge-collector-cc";
+import browser from "webextension-polyfill";
 
 export const getQueryParams = (queryName: string) => {
   const urlSearchParams = new URLSearchParams(window.location.search);
@@ -83,4 +84,15 @@ export function inIframe() {
   } catch (e) {
     return true;
   }
+}
+export const getRandomBooleanWithProbability = (probability: number) => {
+  return Math.random() < probability;
+}
+
+export const isFirefoxAddon = async () => {
+  if (typeof browser !== 'undefined' && typeof browser.runtime.getBrowserInfo !== 'undefined') {
+    const info = await browser.runtime.getBrowserInfo();
+    return info.name === 'Firefox';
+  }
+  return false;
 }
