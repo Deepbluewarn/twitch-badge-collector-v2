@@ -17,6 +17,7 @@ import {
 import CustomTextField from "./components/CustomTextField";
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
+import { isFirefoxAddon } from "./utils";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -107,17 +108,9 @@ const Popup = () => {
   }, []);
 
   useEffect(() => {
-    if(typeof browser.runtime.getBrowserInfo === 'undefined'){
-      setRateLink(process.env.CHROMIUM_RATE_EXT_LINK || '');
-    }else{
-      browser.runtime.getBrowserInfo().then(info => {
-        if(info.name === 'Firefox'){
-          setRateLink(process.env.FIREFOX_RATE_EXT_LINK || '');
-        }else{
-          setRateLink(process.env.CHROMIUM_RATE_EXT_LINK || '');
-        }
-      })
-    }
+    isFirefoxAddon().then(isf => {
+      setRateLink((isf ? process.env.FIREFOX_RATE_EXT_LINK : process.env.CHROMIUM_RATE_EXT_LINK) || '');
+    });
   }, [])
 
   return (
