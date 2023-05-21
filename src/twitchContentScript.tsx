@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import browser from "webextension-polyfill";
+import styled from "@emotion/styled";
 import {
   createCloneContainer,
   RemoteChatContainer,
@@ -13,9 +14,18 @@ import {
   useGlobalSetting,
   SettingInterface,
   Context as TBCContext,
-  useAlert
+  useAlert,
+  CustomTheme,
+  useCustomTheme
 } from 'twitch-badge-collector-cc';
 import useTwitchTheme from "./hooks/useTwitchTheme";
+import { ThemeProvider } from '@mui/material/styles';
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Link from "@mui/material/Link";
+import { isFirefoxAddon } from "./utils";
 
 let streamPageObserver: MutationObserver | undefined;
 let position: SettingInterface.PositionOptionsType;
@@ -59,7 +69,7 @@ function initPage() {
 
   let container = document.getElementById('tbc-container');
 
-  if(container) return false;
+  if (container) return false;
 
   if (replay) {
     const video_chat: Element = document.getElementsByClassName(
@@ -178,17 +188,87 @@ function App() {
     });
   }, []);
 
+  const customTheme = useCustomTheme(twitchTheme === 'dark' ? 'on' : 'off');
+
   return (
-    <TBCContext.GlobalSettingContext.Provider
-      value={{ globalSetting, dispatchGlobalSetting }}
-    >
-      <TBCContext.AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
-        {chat}
-      </TBCContext.AlertContext.Provider>
-    </TBCContext.GlobalSettingContext.Provider>
+    <ThemeProvider<CustomTheme> theme={customTheme}>
+      <TBCContext.GlobalSettingContext.Provider
+        value={{ globalSetting, dispatchGlobalSetting }}
+      >
+        <TBCContext.AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
+          <PeriodicSupportPopup />
+          {chat}
+        </TBCContext.AlertContext.Provider>
+      </TBCContext.GlobalSettingContext.Provider>
+    </ThemeProvider>
   );
 }
 
+function PeriodicSupportPopup() {
+  const [displayPopup, setDisplayPopup] = useState(false);
+  const popupProbability = useRef(0.25);
+  const [rateLink, setRateLink] = useState('');
+
+  const daysElapsedSince = useCallback((time: number): number => {
+    let daysElapsed: number = (new Date().getTime() - time) / (1000 * 60 * 60 * 24);
+    return daysElapsed;
+  }, []);
+
+  const onCloseButtonClicked = useCallback(() => {
+    browser.storage.local.set({lastPopupTime: new Date().getTime()});
+    setDisplayPopup(false);
+  }, []);
+
+  useEffect(() => {
+    browser.storage.local.get('lastPopupTime').then(res => {
+      const lastPopupTime = res.lastPopupTime;
+      setDisplayPopup(!lastPopupTime || daysElapsedSince(Number(lastPopupTime)) >= 60);
+    });
+  }, []);
+
+  useEffect(() => {
+    isFirefoxAddon().then(isf => {
+      setRateLink((isf ? process.env.FIREFOX_RATE_EXT_LINK : process.env.CHROMIUM_RATE_EXT_LINK) || '');
+    });
+  }, [])
+
+  return popupProbability.current && displayPopup ? (
+    <PaperPopup variant="outlined">
+      <Stack sx={{ height: '100%' }} gap={1} justifyContent='space-between'>
+        <Typography sx={{ fontWeight: 'bold' }} variant="h5">{browser.runtime.getManifest().name}</Typography>
+        <Typography variant="h6">{browser.i18n.getMessage("supportMessage")}</Typography>
+        <Stack direction='row' gap={1}>
+          <Link href={process.env.DONATE_LINK || ''} rel="noopener" target='_blank'>
+            <Button variant='contained'>
+              <Typography variant="h6">
+              {browser.i18n.getMessage('donation')}
+              </Typography>
+            </Button>
+          </Link>
+          <Link href={rateLink} target='_blank' rel="noopener">
+            <Button variant='contained'>
+              <Typography variant="h6">
+                {browser.i18n.getMessage('review_2')}
+              </Typography>
+            </Button>
+          </Link>
+          <Button sx={{ marginLeft: 'auto' }}><Typography variant="h6" onClick={onCloseButtonClicked}>{browser.i18n.getMessage('close')}</Typography></Button>
+        </Stack>
+      </Stack>
+    </PaperPopup>
+  ) : null
+}
+
+const PaperPopup = styled(Paper)({
+  position: 'absolute',
+  width: '84%',
+  height: '180px',
+  padding: '16px',
+  zIndex: '44444444',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)'
+});
 
 function updatePosition(position: SettingInterface.PositionOptionsType) {
   const tbcContainer = document.getElementById(
