@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, doc, setDoc, Firestore } from "firebase/firestore";
 import { FilterInterface } from "twitch-badge-collector-cc";
 import { nanoid } from 'nanoid';
+import { getRandomBooleanWithProbability } from "./utils";
 let db: Firestore;
 
 try {
@@ -80,10 +81,6 @@ const defaultFilter = [
 
 const fbExcludedKeys = ['filter', 'extensionUserId'];
 
-const getRandomBoolean = () => {
-  return Math.random() < 0.2;
-}
-
 const setFbDoc = (key: string, id: string, value: any) => {
   setDoc(doc(db, key, id), value);
 }
@@ -102,7 +99,7 @@ const getExtensionUserId = async () => {
 
 const sendFbSettings = (ignoreLimit: boolean) => {
 
-  if (!getRandomBoolean() && !ignoreLimit) return;
+  if (!getRandomBooleanWithProbability(0.2) && !ignoreLimit) return;
 
   browser.storage.local.get([
     "chatDisplayMethod",
@@ -146,9 +143,9 @@ browser.runtime.onInstalled.addListener(function (details) {
     browser.tabs.create({
       url: browser.runtime.getURL(`welcome.html`),
     });
-  } else if (details.reason === 'update' || details.reason === 'browser_update') {
-    sendFbSettings(true);
   }
+
+  sendFbSettings(true);
 
   browser.storage.local
     .get([
