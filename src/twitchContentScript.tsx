@@ -25,7 +25,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Link from "@mui/material/Link";
-import { isFirefoxAddon } from "./utils";
+import { getRandomBooleanWithProbability, isFirefoxAddon } from "./utils";
 
 let streamPageObserver: MutationObserver | undefined;
 let position: SettingInterface.PositionOptionsType;
@@ -206,7 +206,7 @@ function App() {
 
 function PeriodicSupportPopup() {
   const [displayPopup, setDisplayPopup] = useState(false);
-  const popupProbability = useRef(0.25);
+  const popupProbability = useRef(getRandomBooleanWithProbability(0.25));
   const [rateLink, setRateLink] = useState('');
 
   const daysElapsedSince = useCallback((time: number): number => {
