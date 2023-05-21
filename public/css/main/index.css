@@ -7,6 +7,9 @@
     cursor: row-resize;
 }
 
+#tbc-container{
+    position: relative;
+}
 #tbc-resize-handle {
     display: flex;
     border-top: 2px solid var(--color-background-alt-2);
