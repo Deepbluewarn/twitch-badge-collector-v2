@@ -23,6 +23,9 @@
   "review" : {
     "message" : "Rate the Extension"
   },
+  "review_2" : {
+    "message": "Review"
+  },
   "documentation" : {
     "message" : "Documentation"
   },
@@ -110,7 +113,13 @@
   "close" : {
     "message": "Close"
   },
+  "donation" : {
+    "message" : "Donation"
+  },
   "donationMessage" : {
     "message": "If you find the extension useful please rate or sponsor it!"
+  },
+  "supportMessage" : {
+    "message": "If you find the program useful, please help us improve and keep it updated by donating and rating!"
   }
 }

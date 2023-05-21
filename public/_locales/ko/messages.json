@@ -23,6 +23,9 @@
   "review" : {
     "message" : "확장 프로그램 평가"
   },
+  "review_2" : {
+    "message": "평가하기"
+  },
   "documentation" : {
     "message" : "설명서"
   },
@@ -110,7 +113,13 @@
   "close" : {
     "message": "닫기"
   },
+  "donation" : {
+    "message" : "후원하기"
+  },
   "donationMessage" : {
     "message": "확장 프로그램을 유용하게 사용 중이라면 평가 또는 후원을 해주세요!"
+  },
+  "supportMessage" : {
+    "message": "프로그램이 유용하다면, 후원과 평가를 통해 서비스 개선과 지속적인 업데이트를 지원해주세요!"
   }
 }
