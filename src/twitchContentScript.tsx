@@ -196,7 +196,7 @@ function App() {
         value={{ globalSetting, dispatchGlobalSetting }}
       >
         <TBCContext.AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
-          <PeriodicSupportPopup />
+          {/* <PeriodicSupportPopup /> */}
           {chat}
         </TBCContext.AlertContext.Provider>
       </TBCContext.GlobalSettingContext.Provider>
