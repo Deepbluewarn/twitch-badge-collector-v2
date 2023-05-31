@@ -50,7 +50,7 @@
     "react-router-dom": "^6.4.3",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
-    "twitch-badge-collector-cc": "^1.0.2",
+    "twitch-badge-collector-cc": "^1.1.2",
     "url": "^0.11.0"
   },
   "devDependencies": {
