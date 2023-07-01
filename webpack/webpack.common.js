@@ -75,28 +75,7 @@ module.exports = {
       assert: require.resolve("assert/"),
       zlib: require.resolve("browserify-zlib"),
       buffer: require.resolve("buffer/"),
-    },
-    // 컴포넌트 라이브러리의 의존성을 참조하지 않고 해당 프로젝트의 의존성을 참조하기 위함.
-    alias: {
-      'react': path.resolve('./node_modules/react'),
-      'react-dom': path.resolve('./node_modules/react-dom'),
-      'react-router-dom': path.resolve('./node_modules/react-router-dom'),
-      '@emotion/react': path.resolve('./node_modules/@emotion/react'),
-      '@emotion/styled': path.resolve('./node_modules/@emotion/styled'),
-      '@mui/icons-material': path.resolve('./node_modules/@mui/icons-material'),
-      '@mui/material': path.resolve('./node_modules/@mui/material'),
-      '@mui/x-data-grid': path.resolve('./node_modules/@mui/x-data-grid'),
-      '@tanstack/react-query': path.resolve('./node_modules/@tanstack/react-query'),
-      '@fortawesome': path.resolve('./node_modules/@fortawesome'),
-      'axios': path.resolve('./node_modules/axios'),
-      'broadcast-channel': path.resolve('./node_modules/broadcast-channel'),
-      'html-to-image': path.resolve('./node_modules/html-to-image'),
-      'i18next': path.resolve('./node_modules/i18next'),
-      'webextension-polyfill': path.resolve('./node_modules/webextension-polyfill'),
-      'i18next-browser-languagedetector': path.resolve('./node_modules/i18next-browser-languagedetector'),
-      'react-i18next': path.resolve('./node_modules/react-i18next'),
-    },
-    // modules: [path.resolve(__dirname, 'node_modules'), 'node_modules']
+    }
   },
   plugins: [
     new CopyPlugin({
