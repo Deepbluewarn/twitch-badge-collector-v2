@@ -18,6 +18,10 @@ import CustomTextField from "./components/CustomTextField";
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
 import { isFirefoxAddon } from "./utils";
+import { RouterProvider, createBrowserRouter, createMemoryRouter } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faAngleLeft } from "@fortawesome/free-solid-svg-icons";
+import Divider from "@mui/material/Divider";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -59,7 +63,7 @@ const PopupGlobalStyle = (
         fontWeight: "inherit",
       },
       "#root": {
-        height: "21rem",
+        maxHeight: "21rem",
         overflow: "auto",
         userSelect: "none",
       },
@@ -79,12 +83,94 @@ const Icon = styled('img')({
 
 const CustomAnchor = styled('a')({
   display: 'flex',
-  width: '5.5rem'
+  width: '100%'
 });
 
-const Popup = () => {
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', false);
+const routes = [
+  {
+    path: "/",
+    element: <Popup />
+  },
+  {
+    path: "/setting",
+    element: <PopupSetting />
+  }
+];
+
+const router = createMemoryRouter(routes, {
+  initialEntries: ["/"],
+  initialIndex: 1,
+});
+
+function PopupSetting() {
+  return (
+    <Stack spacing={1} sx={{ padding: '8px' }}>
+      <Stack direction='row' alignItems='center' gap={2}>
+        <Box onClick={() => {router.navigate('/')}} sx={{cursor: 'pointer'}}>
+          <FontAwesomeIcon icon={faAngleLeft} size='xl' />
+        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{browser.i18n.getMessage("generalSetting")}</Typography>
+      </Stack>
+
+      <Stack sx={{ margin: '8px 0 8px 0' }}>
+        <Selector
+          title={browser.i18n.getMessage("dispCopiedChatmethod")}
+          values={SettingInterface.ChatDisplayMethodOptions}
+          id="chatDisplayMethod"
+          key='chatDisplayMethod'
+        />
+        <Selector
+          title={browser.i18n.getMessage("chatPosition")}
+          values={SettingInterface.PositionOptions}
+          id="position"
+          key='position'
+        />
+        <CustomTextField
+          title={`${browser.i18n.getMessage('maximumNumberChats')} (${browser.i18n.getMessage('needRefresh')})`}
+          id='maximumNumberChats'
+        />
+        <Selector
+          title={browser.i18n.getMessage("pointBoxAutoClick")}
+          values={SettingInterface.ToggleOptions}
+          id="pointBoxAuto"
+          key='pointBoxAuto'
+        />
+      </Stack>
+      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{browser.i18n.getMessage("chatClientSetting")}</Typography>
+      <Stack sx={{ margin: '8px 0 8px 0' }}>
+        <Selector
+          title={browser.i18n.getMessage("language_text")}
+          values={SettingInterface.LanguageOptions}
+          id="miniLanguage"
+          key='miniLanguage'
+        />
+
+        <Selector
+          title={browser.i18n.getMessage("fontSize")}
+          values={SettingInterface.FontSizeOptions}
+          id="miniFontSize"
+          key='miniFontSize'
+        />
+
+        <Selector
+          title={browser.i18n.getMessage("chatTime")}
+          values={SettingInterface.ToggleOptions}
+          id="miniChatTime"
+          key='miniChatTime'
+        />
+      </Stack>
+    </Stack>
+  )
+}
+function Popup() {
   const [rateLink, setRateLink] = useState('');
+
+  useEffect(() => {
+    isFirefoxAddon().then(isf => {
+      setRateLink((isf ? process.env.FIREFOX_RATE_EXT_LINK : process.env.CHROMIUM_RATE_EXT_LINK) || '');
+    });
+  }, [])
+
   const onPageButtonClicked = (path: string) => {
     browser.tabs.create({
       url: browser.runtime.getURL(`setting.html?initialPath=${path}`),
@@ -107,133 +193,109 @@ const Popup = () => {
     });
   }, []);
 
-  useEffect(() => {
-    isFirefoxAddon().then(isf => {
-      setRateLink((isf ? process.env.FIREFOX_RATE_EXT_LINK : process.env.CHROMIUM_RATE_EXT_LINK) || '');
-    });
-  }, [])
+  return (
+    <Stack sx={{ margin: '8px' }} gap={1}>
+      <Stack direction='row' spacing={4} justifyContent='space-between'>
+        <Stack direction='row' alignItems='center' spacing={1}>
+          <Icon src={browser.runtime.getURL('icon.png')} alt="" />
+          <Typography variant="body2" sx={{ fontWeight: '600' }}>Twitch Badge Collector V2</Typography>
+        </Stack>
+        <Typography variant="body2" sx={{ fontWeight: '600', color: '#A7A7A7' }}>{browser.runtime.getManifest().version}</Typography>
+      </Stack>
+
+      <Stack>
+        <Link href={process.env.DOCUMENTATION} underline="none" target='_blank'>
+          <Button variant="outlined" sx={{ width: '100%' }}>
+            {browser.i18n.getMessage('documentation')}
+          </Button>
+        </Link>
+      </Stack>
+
+      <Stack direction='row' sx={{ width: '100%', 'gap': '8px' }}>
+
+        <Button
+          variant="outlined"
+          sx={{ 'width': '100%' }}
+          onClick={() => {
+            router.navigate("/setting");
+          }}
+        >
+          {browser.i18n.getMessage("generalSetting")}
+        </Button>
+
+        <Button
+          variant="outlined"
+          sx={{ 'width': '100%' }}
+          onClick={() => {
+            onPageButtonClicked("filter");
+          }}
+        >
+          {browser.i18n.getMessage("p_filter_btn")}
+        </Button>
+        <Button
+          variant="outlined"
+          sx={{ 'width': '100%' }}
+          onClick={() => {
+            onPageButtonClicked("chatsaver");
+          }}
+        >
+          {browser.i18n.getMessage("p_save_chat_btn")}
+        </Button>
+      </Stack>
+
+      <Link href={rateLink} underline="none" target='_blank'>
+        <Button variant="outlined" sx={{ width: '100%' }}>
+          {browser.i18n.getMessage('review')}
+        </Button>
+      </Link>
+      <Stack direction='row'>
+        <CustomAnchor href={process.env.DONATE_LINK} target='_blank'>
+          <Box
+            component='img'
+            sx={{ width: 'inherit', borderRadius: '8px' }}
+            src={`https://cdn.jsdelivr.net/npm/twitch-badge-collector-cc@0.0.70/dist/donation/toonation_b14.gif`}
+          />
+        </CustomAnchor>
+        <Divider sx={{m: 1}} orientation="vertical" flexItem />
+        <CustomAnchor href="https://www.buymeacoffee.com/bluewarndev" target="_blank">
+          <Box
+            component='img'
+            sx={{ width: 'inherit', borderRadius: '8px' }}
+            src={browser.runtime.getURL('assets/bmc-button.svg')}
+          />
+        </CustomAnchor>
+      </Stack>
+      <Stack
+        direction='row'
+        alignItems='center'
+        justifyContent='center'
+        spacing={1}
+      >
+        <Box sx={{ color: '#2196f3' }}>
+          <SocialFooter />
+        </Box>
+      </Stack>
+    </Stack>
+  );
+};
+
+const ContextRouter = () => {
+  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', false);
 
   return (
     <ThemeProvider theme={useCustomTheme('off')}>
       <TBCContext.GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
-        <Stack direction='row' spacing={4} justifyContent='space-between' sx={{ margin: '8px' }}>
-          <Stack direction='row' alignItems='center' spacing={1}>
-            <Icon src={browser.runtime.getURL('icon.png')} alt="" />
-            <Typography variant="body2" sx={{ fontWeight: '600' }}>Twitch Badge Collector V2</Typography>
-          </Stack>
-          <Typography variant="body2" sx={{ fontWeight: '600', color: '#A7A7A7' }}>{browser.runtime.getManifest().version}</Typography>
-        </Stack>
-
-        <Stack sx={{'padding': '8px'}}>
-          <Link href={process.env.DOCUMENTATION} underline="none" target='_blank'>
-            <Button variant="outlined" sx={{ width: '100%' }}>
-              {browser.i18n.getMessage('documentation')}
-            </Button>
-          </Link>
-        </Stack>
-
-        <Stack direction='row' sx={{ width: '100%', 'gap': '8px', 'padding': '8px' }}>
-          <Button
-            variant="outlined"
-            sx={{ 'width': '100%' }}
-            onClick={() => {
-              onPageButtonClicked("filter");
-            }}
-          >
-            {browser.i18n.getMessage("p_filter_btn")}
-          </Button>
-          <Button
-            variant="outlined"
-            sx={{ 'width': '100%' }}
-            onClick={() => {
-              onPageButtonClicked("chatsaver");
-            }}
-          >
-            {browser.i18n.getMessage("p_save_chat_btn")}
-          </Button>
-        </Stack>
-
-        <Stack spacing={1} sx={{ padding: '8px' }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{browser.i18n.getMessage("generalSetting")}</Typography>
-          <Stack sx={{ margin: '8px 0 8px 0' }}>
-            <Selector
-              title={browser.i18n.getMessage("dispCopiedChatmethod")}
-              values={SettingInterface.ChatDisplayMethodOptions}
-              id="chatDisplayMethod"
-              key='chatDisplayMethod'
-            />
-            <Selector
-              title={browser.i18n.getMessage("chatPosition")}
-              values={SettingInterface.PositionOptions}
-              id="position"
-              key='position'
-            />
-            <CustomTextField
-              title={`${browser.i18n.getMessage('maximumNumberChats')} (${browser.i18n.getMessage('needRefresh')})`}
-              id='maximumNumberChats'
-            />
-            <Selector
-              title={browser.i18n.getMessage("pointBoxAutoClick")}
-              values={SettingInterface.ToggleOptions}
-              id="pointBoxAuto"
-              key='pointBoxAuto'
-            />
-          </Stack>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{browser.i18n.getMessage("chatClientSetting")}</Typography>
-          <Stack sx={{ margin: '8px 0 8px 0' }}>
-            <Selector
-              title={browser.i18n.getMessage("language_text")}
-              values={SettingInterface.LanguageOptions}
-              id="miniLanguage"
-              key='miniLanguage'
-            />
-            
-            <Selector
-              title={browser.i18n.getMessage("fontSize")}
-              values={SettingInterface.FontSizeOptions}
-              id="miniFontSize"
-              key='miniFontSize'
-            />
-
-            <Selector
-              title={browser.i18n.getMessage("chatTime")}
-              values={SettingInterface.ToggleOptions}
-              id="miniChatTime"
-              key='miniChatTime'
-            />
-          </Stack>
-          <Link href={rateLink} underline="none" target='_blank'>
-            <Button variant="outlined" sx={{ width: '100%' }}>
-              {browser.i18n.getMessage('review')}
-            </Button>
-          </Link>
-          <Stack
-            direction='row'
-            alignItems='center'
-            spacing={1}
-          >
-            <CustomAnchor href={process.env.DONATE_LINK} target='_blank'>
-              <Box
-                component='img'
-                sx={{ width: 'inherit', borderRadius: '8px' }}
-                src={`https://cdn.jsdelivr.net/npm/twitch-badge-collector-cc@0.0.70/dist/donation/toonation_b14.gif`}
-              />
-            </CustomAnchor>
-            <Box sx={{ color: '#2196f3'}}>
-              <SocialFooter />
-            </Box>
-          </Stack>
-        </Stack>
+        <RouterProvider router={router} />
       </TBCContext.GlobalSettingContext.Provider>
     </ThemeProvider>
-  );
-};
+  )
+}
 
 ReactDOM.createRoot(document.getElementById("root") as Element).render(
   <React.StrictMode>
     {PopupGlobalStyle}
-    <Popup />
+    <ContextRouter />
   </React.StrictMode>
 );
