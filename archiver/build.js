@@ -31,3 +31,5 @@ archive.pipe(output);
 archive.directory('dist/', false);
 
 archive.finalize();
+
+console.log(`FILE_OUTPUT_DIR=${fileOutputDir}`);
