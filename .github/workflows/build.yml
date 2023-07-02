@@ -42,23 +42,23 @@ jobs:
         prerelease: false
       
     - name: Upload Chromium Files
-        id: upload_files
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./versions/tbc2_${{env.FILE_OUTPUT_DIR}}-chromium.zip
-          asset_name: tbc2_${{env.FILE_OUTPUT_DIR}}-chromium.zip
-          asset_content_type: application/zip
+      id: upload_files
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./versions/tbc2_${{env.FILE_OUTPUT_DIR}}-chromium.zip
+        asset_name: tbc2_${{env.FILE_OUTPUT_DIR}}-chromium.zip
+        asset_content_type: application/zip
 
     - name: Upload Firefox Files
-        id: upload_files
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./versions/tbc2_${{env.FILE_OUTPUT_DIR}}-firefox.zip
-          asset_name: tbc2_${{env.FILE_OUTPUT_DIR}}-firefox.zip
-          asset_content_type: application/zip
+      id: upload_files
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./versions/tbc2_${{env.FILE_OUTPUT_DIR}}-firefox.zip
+        asset_name: tbc2_${{env.FILE_OUTPUT_DIR}}-firefox.zip
+        asset_content_type: application/zip
