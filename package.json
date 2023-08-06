@@ -5,8 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "build:watch": "tsc && vite build --watch --mode dev",
+
+    "build": "npm run build:firefox && npm run build:chromium",
+    "build:firefox": "tsc && cross-env VITE_BUILD_FOR=firefox vite build",
+    "build:chromium": "tsc && cross-env VITE_BUILD_FOR=chromium vite build",
+
+    "build:watch:chromium": "tsc && cross-env VITE_BUILD_FOR=chromium vite build --watch --mode dev",
+    "build:watch:firefox": "tsc && cross-env VITE_BUILD_FOR=firefox vite build --watch --mode dev",
+
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -48,11 +54,14 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vitejs/plugin-react": "^4.0.3",
+    "cross-env": "^7.0.3",
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "typescript": "^5.1.6",
     "vite": "^4.4.7",
+    "vite-plugin-static-copy": "^0.17.0",
+    "vite-plugin-zip-pack": "^1.0.6",
     "webextension-polyfill": "^0.10.0"
   }
 }
