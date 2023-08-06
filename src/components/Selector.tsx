@@ -1,4 +1,3 @@
-import React from "react";
 import browser from "webextension-polyfill";
 import Stack from "@mui/material/Stack";
 import Select, { SelectChangeEvent } from "@mui/material/Select";

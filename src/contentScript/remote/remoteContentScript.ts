@@ -5,10 +5,13 @@ console.log("[extension] Remote Content Script loaded.");
 window.addEventListener('message', event=> {
   if (event.source != window) return;
 
+  console.log(`[extension] remoteContentScript message received. type: ${event.data.type}`)
+
   if (
     event.data.sender === "wtbc" &&
     event.data.type === "CHATSAVER_RESPONSE_CHANNEL_INFO"
   ) {
+    // Frame to Extension
     browser.runtime.sendMessage({
       from: "remoteContentScript",
       type: "CHATSAVER_RESPONSE_CHANNEL_INFO",
@@ -18,6 +21,7 @@ window.addEventListener('message', event=> {
     event.data.sender === "wtbc" &&
     event.data.type === "CHATSAVER_RESPONSE_CHAT_LIST"
   ) {
+    // Frame to Extension
     browser.runtime.sendMessage({
       from: "remoteContentScript",
       type: "CHATSAVER_RESPONSE_CHAT_LIST",
@@ -26,11 +30,14 @@ window.addEventListener('message', event=> {
   }
 })
 
-browser.runtime.onMessage.addListener((message, sender) => {
+browser.runtime.onMessage.addListener((message) => {
+  console.log(`[extension] remoteContentScript message received. type: ${message.type}`)
+
   if (
     message.from === "extension_setting" &&
     message.type === "CHATSAVER_REQUEST_CHANNEL_INFO"
   ) {
+    // Extension to Frame
     window.postMessage(
       {
         sender: "extension",
@@ -42,6 +49,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
     message.from === "extension_setting" &&
     message.type === "CHATSAVER_REQUEST_CHAT_LIST"
   ) {
+    // Extension to Frame
     window.postMessage(
       {
         sender: "extension",

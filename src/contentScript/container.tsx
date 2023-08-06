@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import browser from "webextension-polyfill";
 import convert from "react-from-dom";
@@ -7,13 +8,13 @@ import {
   getVideoIdParam,
   ReplayPageType,
   observer,
-} from "./utils";
+} from "../utils";
 import ChatFromTwitchUi from "./twitchUiChat";
 import { ContainerType } from "../interfaces/container";
 import MessageInterface from "../interfaces/message";
 import {
-  useArrayFilter,
   Context as TBCContext,
+  useArrayFilterExtension
 } from 'twitch-badge-collector-cc';
 import { TwitchTheme } from "../hooks/useTwitchTheme";
 
@@ -79,8 +80,8 @@ export function LocalChatContainer() {
   const { globalSetting } = TBCContext.useGlobalSettingContext();
   const [chatList, setChatList] = useState<Node[]>([]);
   const [chatIsBottom, setChatIsBottom] = useState(true);
-  const [maxNumChats, setMaxNumChats] = useState(globalSetting.maximumNumberChats || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number);
-  const { setArrayFilter, checkFilter } = useArrayFilter('Extension', true);
+  const [maxNumChats] = useState(globalSetting.maximumNumberChats || (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number);
+  const { setArrayFilter, checkFilter } = useArrayFilterExtension(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const container = document.getElementsByClassName("tbc-origin")[0];
@@ -103,8 +104,8 @@ export function LocalChatContainer() {
     browser.storage.onChanged.addListener((changed, areaName) => {
       if (areaName !== "local") return;
 
-      for (let key in changed) {
-        let newValue = changed[key].newValue;
+      for (const key in changed) {
+        const newValue = changed[key].newValue;
 
         if (key === "filter") {
           setArrayFilter(newValue);
@@ -155,7 +156,7 @@ export function LocalChatContainer() {
 
       if (!chatListContainer) return;
       
-      if(chatListContainer.childElementCount >= (maxNumChats || (process.env.MAXNUMCHATS_DEFAULT as unknown) as number)){
+      if(chatListContainer.childElementCount >= (maxNumChats || (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number)){
         const firstChild = chatListContainer.firstElementChild;
 
         if(firstChild === null) return;
@@ -227,7 +228,7 @@ const RemoteChatContainerStyle = styled("iframe")({
 });
 
 export function RemoteChatContainer(props: { type: ContainerType, twitchTheme: TwitchTheme }) {
-  const [baseUrl, setBaseUrl] = useState(process.env.BASE_URL || "");
+  const [baseUrl] = useState(import.meta.env.VITE_BASE_URL || "");
   const params = new URLSearchParams();
   const replayType = ReplayPageType();
   const [videoId, setVideoId] = useState(getVideoIdParam(replayType));
@@ -270,7 +271,7 @@ export function RemoteChatContainer(props: { type: ContainerType, twitchTheme: T
       .getElementsByClassName("video-ref")[0]
       .getElementsByTagName("video")[0];
 
-    player.ontimeupdate = (e) => {
+    player.ontimeupdate = () => {
       const msg: MessageInterface = {
         sender: "extension",
         type: "PLAYER_TIME",
@@ -281,7 +282,7 @@ export function RemoteChatContainer(props: { type: ContainerType, twitchTheme: T
   }, [props.type]);
 
   useEffect(() => {
-    browser.runtime.onMessage.addListener((message, sender) => {
+    browser.runtime.onMessage.addListener((message) => {
       if (message.action === "onHistoryStateUpdated") {
         if (props.type === "replay") {
           setVideoId(getVideoIdParam(ReplayPageType()));
@@ -308,8 +309,8 @@ export function RemoteChatContainer(props: { type: ContainerType, twitchTheme: T
     browser.storage.onChanged.addListener((changed, areaName) => {
       if (areaName !== "local") return;
 
-      for (let key in changed) {
-        let newValue = changed[key].newValue;
+      for (const key in changed) {
+        const newValue = changed[key].newValue;
 
         if (key === "filter") {
           postSetting("ARRAY_FILTER", newValue);
@@ -331,7 +332,6 @@ export function RemoteChatContainer(props: { type: ContainerType, twitchTheme: T
     <RemoteChatContainerStyle
       id={`wtbc-${props.type}`}
       src={src}
-      frameBorder="0"
       ref={frameRef}
     ></RemoteChatContainerStyle>
   );
