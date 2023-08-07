@@ -38,7 +38,7 @@ function ExtensionTitle() {
                     height: '3rem'
                 }}
                 alt={browser.runtime.getManifest().name}
-                src={browser.runtime.getURL(`icon.png`)}
+                src={browser.runtime.getURL(`src/assets/icon.png`)}
             >
             </Box>
             <Typography variant="h6" sx={{ fontWeight: '500' }}>

@@ -6,7 +6,7 @@ browser.runtime.onInstalled.addListener(function (details) {
     browser.storage.local.set({ filter: defaultFilter });
 
     browser.tabs.create({
-      url: browser.runtime.getURL(`welcome.html`),
+      url: browser.runtime.getURL(`src/welcome/welcome.html`),
     });
   }
 
