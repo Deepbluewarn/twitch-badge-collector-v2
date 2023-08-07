@@ -55,7 +55,8 @@ function modify(build_for: string, buffer: string) {
   if(isFirefox) {
     manifest.manifest_version = 2;
     manifest.background = {
-      "scripts": [manifest.background.service_worker]
+      "scripts": [manifest.background.service_worker],
+      "type": "module"
     }
     manifest.browser_action = manifest.action;
     delete manifest.action;
