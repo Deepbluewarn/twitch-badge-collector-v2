@@ -13,16 +13,16 @@ import globalStyles from "../style/global";
 import { 
   Context as TBCContext,
   useCustomTheme,
-  useExtensionGlobalSetting,
   useAlert,
   useTwitchAPI,
   Filter, 
   DrawerTemplate,
   SettingPageDrawer,
   AlertContainer,
-  useArrayFilterExtension,
-  ChatSaverExtension,
 } from 'twitch-badge-collector-cc';
+import ChatSaverExtension from "../components/chatsaver/ChatSaverExtension";
+import useExtensionGlobalSetting from "../hooks/useGlobalSettingExtension";
+import useArrayFilterExtension from "../hooks/useArrayFilterExtension";
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(false);

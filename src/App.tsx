@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import {
-  useExtensionGlobalSetting,
-} from 'twitch-badge-collector-cc';
+import useExtensionGlobalSetting from './hooks/useGlobalSettingExtension'
 
 function App() {
   const [count, setCount] = useState(0)

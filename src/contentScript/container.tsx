@@ -14,9 +14,9 @@ import { ContainerType } from "../interfaces/container";
 import MessageInterface from "../interfaces/message";
 import {
   Context as TBCContext,
-  useArrayFilterExtension
 } from 'twitch-badge-collector-cc';
 import { TwitchTheme } from "../hooks/useTwitchTheme";
+import useArrayFilterExtension from "../hooks/useArrayFilterExtension";
 
 export function ChatRoom() {
   const chatRoomDefault: Element | null = document.querySelector(

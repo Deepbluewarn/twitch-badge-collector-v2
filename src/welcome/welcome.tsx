@@ -7,7 +7,6 @@ import globalStyles from "../style/global";
 import {
     Context as TBCContext,
     useCustomTheme,
-    useExtensionGlobalSetting,
 } from 'twitch-badge-collector-cc';
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -15,6 +14,7 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Link from "@mui/material/Link";
 import Alert from "@mui/material/Alert";
+import useExtensionGlobalSetting from "../hooks/useGlobalSettingExtension";
 
 function DocumentLink(props: { children: React.ReactNode }) {
     return (

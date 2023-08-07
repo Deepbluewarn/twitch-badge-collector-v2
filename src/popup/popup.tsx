@@ -12,7 +12,6 @@ import {
   Context as TBCContext,
   useCustomTheme,
   SocialFooter,
-  useExtensionGlobalSetting
 } from 'twitch-badge-collector-cc';
 import CustomTextField from "../components/CustomTextField";
 import Box from "@mui/material/Box";
@@ -22,6 +21,7 @@ import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons";
 import Divider from "@mui/material/Divider";
+import useExtensionGlobalSetting from "../hooks/useGlobalSettingExtension";
 
 const PopupGlobalStyle = (
   <GlobalStyles
