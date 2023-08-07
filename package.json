@@ -5,14 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-
     "build": "npm run build:firefox && npm run build:chromium",
     "build:firefox": "tsc && cross-env VITE_BUILD_FOR=firefox vite build",
     "build:chromium": "tsc && cross-env VITE_BUILD_FOR=chromium vite build",
-
-    "build:watch:chromium": "tsc && cross-env VITE_BUILD_FOR=chromium vite build --watch --mode dev",
-    "build:watch:firefox": "tsc && cross-env VITE_BUILD_FOR=firefox vite build --watch --mode dev",
-
+    "watch:chromium": "tsc && cross-env VITE_BUILD_FOR=chromium vite build --watch --mode dev",
+    "watch:firefox": "tsc && cross-env VITE_BUILD_FOR=firefox vite build --watch --mode dev",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -41,7 +38,7 @@
     "react-ga4": "^2.1.0",
     "react-i18next": "^13.0.2",
     "react-router-dom": "^6.14.2",
-    "twitch-badge-collector-cc": "file:../twitch-badge-collector-common/twitch-badge-collector-cc-1.3.0.tgz"
+    "twitch-badge-collector-cc": "^1.4.0"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.18",
