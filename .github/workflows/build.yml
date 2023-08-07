@@ -53,8 +53,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./versions/tbc2_${{ env.VERSION }}-chromium.zip
-        asset_name: tbc2_${{ env.VERSION }}-chromium.zip
+        asset_path: ./versions/tbc2-${{ env.VERSION }}-chromium.zip
+        asset_name: tbc2-${{ env.VERSION }}-chromium.zip
         asset_content_type: application/zip
 
     - name: Upload Firefox Files
@@ -64,6 +64,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./versions/tbc2_${{ env.VERSION }}-firefox.zip
-        asset_name: tbc2_${{ env.VERSION }}-firefox.zip
+        asset_path: ./versions/tbc2-${{ env.VERSION }}-firefox.zip
+        asset_name: tbc2-${{ env.VERSION }}-firefox.zip
         asset_content_type: application/zip

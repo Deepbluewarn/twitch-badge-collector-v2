@@ -41,7 +41,7 @@ export default defineConfig(() => {
       isWatch ? null : (
         zipPack({
           outDir: './versions',
-          outFileName: `tbc-${manifestJSON.version}-${build_for}.zip`
+          outFileName: `tbc2-${manifestJSON.version}-${build_for}.zip`
         })
       )
     ],
