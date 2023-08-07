@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill";
 import { ChatRoom } from "./container";
-import { ReplayPageType } from "./utils";
+import { ReplayPageType } from "../utils";
 import { SettingInterface } from 'twitch-badge-collector-cc';
 
 const videoWrapperClassName = "video-chat__message-list-wrapper";
@@ -90,18 +90,18 @@ export function updateContainerRatio(
     orig_size = parseFloat((1 - clone_size).toFixed(2));
   }
 
-  let orig, clone;
+  // let orig, clone;
 
   if (position === "up") {
     [orig_size, clone_size] = [clone_size, orig_size];
   }
 
-  orig = <HTMLDivElement>(
+  const orig = <HTMLDivElement>(
     document.getElementsByClassName(
       replay ? videoWrapperClassName : "tbc-origin"
     )[0]
   );
-  clone = <HTMLDivElement>document.getElementById("tbc-container");
+  const clone = <HTMLDivElement>document.getElementById("tbc-container");
 
   if (!orig || !clone) return;
 

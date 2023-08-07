@@ -3,11 +3,10 @@ import ReactDOM from "react-dom/client";
 import browser from "webextension-polyfill";
 import { Trans, useTranslation } from "react-i18next";
 import { ThemeProvider } from "@mui/material/styles";
-import globalStyles from "./style/global";
+import globalStyles from "../style/global";
 import {
     Context as TBCContext,
     useCustomTheme,
-    useGlobalSetting,
 } from 'twitch-badge-collector-cc';
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -15,10 +14,11 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Link from "@mui/material/Link";
 import Alert from "@mui/material/Alert";
+import useExtensionGlobalSetting from "../hooks/useGlobalSettingExtension";
 
 function DocumentLink(props: { children: React.ReactNode }) {
     return (
-        <Link href={process.env.DOCUMENTATION} color="inherit" target="_blank">
+        <Link href={import.meta.env.VITE_DOCUMENTATION} color="inherit" target="_blank">
             {props.children}
         </Link>
     )
@@ -38,7 +38,7 @@ function ExtensionTitle() {
                     height: '3rem'
                 }}
                 alt={browser.runtime.getManifest().name}
-                src={browser.runtime.getURL(`icon.png`)}
+                src={browser.runtime.getURL(`src/assets/icon.png`)}
             >
             </Box>
             <Typography variant="h6" sx={{ fontWeight: '500' }}>
@@ -48,7 +48,7 @@ function ExtensionTitle() {
     )
 }
 function App() {
-    const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', false);
+    const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(false);
     const { t, i18n } = useTranslation();
 
     const getClientLocale = () => {

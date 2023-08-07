@@ -6,26 +6,26 @@ import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { styled, ThemeProvider } from "@mui/material/styles";
-import Selector from "./components/Selector";
+import Selector from "../components/Selector";
 import {
-  useGlobalSetting,
   SettingInterface,
   Context as TBCContext,
   useCustomTheme,
-  SocialFooter
+  SocialFooter,
 } from 'twitch-badge-collector-cc';
-import CustomTextField from "./components/CustomTextField";
+import CustomTextField from "../components/CustomTextField";
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
-import { isFirefoxAddon } from "./utils";
-import { RouterProvider, createBrowserRouter, createMemoryRouter } from "react-router-dom";
+import { isFirefoxAddon } from "../utils-brwoser";
+import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons";
 import Divider from "@mui/material/Divider";
+import useExtensionGlobalSetting from "../hooks/useGlobalSettingExtension";
 
 const PopupGlobalStyle = (
   <GlobalStyles
-    styles={(theme) => ({
+    styles={() => ({
       "*, *::before, *::after": {
         boxSizing: "border-box",
       },
@@ -71,10 +71,10 @@ const PopupGlobalStyle = (
   ></GlobalStyles>
 );
 
-const ButtonLink = styled(Button)({
-  width: "100%",
-  fontSize: "0.8rem",
-});
+// const ButtonLink = styled(Button)({
+//   width: "100%",
+//   fontSize: "0.8rem",
+// });
 
 const Icon = styled('img')({
   width: '1rem',
@@ -167,13 +167,13 @@ function Popup() {
 
   useEffect(() => {
     isFirefoxAddon().then(isf => {
-      setRateLink((isf ? process.env.FIREFOX_RATE_EXT_LINK : process.env.CHROMIUM_RATE_EXT_LINK) || '');
+      setRateLink((isf ? import.meta.env.VITE_FIREFOX_RATE_EXT_LINK : import.meta.env.VITE_CHROMIUM_RATE_EXT_LINK) || '');
     });
   }, [])
 
   const onPageButtonClicked = (path: string) => {
     browser.tabs.create({
-      url: browser.runtime.getURL(`setting.html?initialPath=${path}`),
+      url: browser.runtime.getURL(`src/setting/setting.html?initialPath=${path}`),
     });
   };
 
@@ -181,7 +181,7 @@ function Popup() {
     browser.storage.onChanged.addListener((changed, areaName) => {
       if (areaName !== "local") return;
 
-      for (let key in changed) {
+      for (const key in changed) {
         if (key === "position") {
           browser.storage.local.get("containerRatio").then((res) => {
             let cr = res.containerRatio;
@@ -197,14 +197,14 @@ function Popup() {
     <Stack sx={{ margin: '8px' }} gap={1}>
       <Stack direction='row' spacing={4} justifyContent='space-between'>
         <Stack direction='row' alignItems='center' spacing={1}>
-          <Icon src={browser.runtime.getURL('icon.png')} alt="" />
+          <Icon src={browser.runtime.getURL('src/assets/icon.png')} alt="" />
           <Typography variant="body2" sx={{ fontWeight: '600' }}>Twitch Badge Collector V2</Typography>
         </Stack>
         <Typography variant="body2" sx={{ fontWeight: '600', color: '#A7A7A7' }}>{browser.runtime.getManifest().version}</Typography>
       </Stack>
 
       <Stack>
-        <Link href={process.env.DOCUMENTATION} underline="none" target='_blank'>
+        <Link href={import.meta.env.VITE_DOCUMENTATION} underline="none" target='_blank'>
           <Button variant="outlined" sx={{ width: '100%' }}>
             {browser.i18n.getMessage('documentation')}
           </Button>
@@ -249,7 +249,7 @@ function Popup() {
         </Button>
       </Link>
       <Stack direction='row'>
-        <CustomAnchor href={process.env.DONATE_LINK} target='_blank'>
+        <CustomAnchor href={import.meta.env.VITE_DONATE_LINK} target='_blank'>
           <Box
             component='img'
             sx={{ width: 'inherit', borderRadius: '8px' }}
@@ -261,7 +261,7 @@ function Popup() {
           <Box
             component='img'
             sx={{ width: 'inherit', borderRadius: '8px' }}
-            src={browser.runtime.getURL('assets/bmc-button.svg')}
+            src={browser.runtime.getURL('src/assets/bmc-button.svg')}
           />
         </CustomAnchor>
       </Stack>
@@ -277,10 +277,10 @@ function Popup() {
       </Stack>
     </Stack>
   );
-};
+}
 
 const ContextRouter = () => {
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', false);
+  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(false);
 
   return (
     <ThemeProvider theme={useCustomTheme('off')}>

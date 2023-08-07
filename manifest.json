@@ -3,15 +3,15 @@
     "name": "__MSG_ExtensionName__",
     "description": "__MSG_ExtensionDesc__",
     "default_locale": "en",
-    "version": "2.5.1",
+    "version": "2.7.0",
     "action": {
         "default_icon": {
-            "128": "icon.png"
+            "128": "src/assets/icon.png"
         },
-        "default_popup": "popup.html"
+        "default_popup": "src/popup/popup.html"
     },
     "icons": {
-        "128": "icon.png"
+        "128": "src/assets/icon.png"
     },
     "content_scripts": [
         {
@@ -20,11 +20,10 @@
             ],
             "all_frames" : true,
             "js": [
-                "js/vendor.js",
-                "js/twitch_content_script.js"
+                "src/contentScript/twitch/twitchContentScript.tsx"
             ],
             "css": [
-                "css/main/index.css"
+                "twitchContentScript.css"
             ]
         },
         {
@@ -34,13 +33,12 @@
             ],
             "all_frames": true,
             "js": [
-                "js/vendor.js",
-                "js/remote_content_script.js"
+                "src/contentScript/remote/remoteContentScript.ts"
             ]
         }
     ],
     "background": {
-        "service_worker": "js/background.js"
+        "service_worker": "src/background/background.ts"
     },
     "permissions": [
         "storage",
@@ -52,8 +50,8 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "js/overrideFetch.js",
-                "icon.png"
+                "src/assets/icon.png",
+                "src/assets/bmc-button.svg"
             ],
             "matches": [
                 "*://*.twitch.tv/*"
