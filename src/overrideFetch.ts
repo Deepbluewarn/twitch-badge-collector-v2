@@ -1,11 +1,12 @@
-import { ReplayPageType } from "./contentScript/utils";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { ReplayPageType } from "./utils";
 import MessageInterface from "./interfaces/message";
 
 const { fetch: origFetch } = window;
-const base_url = process.env.BASE_URL || "";
+const base_url = import.meta.env.VITE_BASE_URL || "";
 const postTryCount = 10;
+const currentChannel = { channel: '', sent: false };
 let bodyBuffer: any[] = [];
-let currentChannel = { channel: '', sent: false };
 let postCount = 0;
 let postInterval = 0;
 
@@ -48,7 +49,7 @@ const postBodyMessage = () => {
   if(!replayType) return;
   if(replayFrameState.url !== location.href || !replayFrameState.loaded) return;
 
-  for (let b of bodyBuffer) {
+  for (const b of bodyBuffer) {
     if (location.href === b.url && !b.sent) {
       const post = postFrameMessage("CHAT_LIST", b);
 
@@ -109,6 +110,8 @@ const updateChannelData = (channel: string) => {
 window.fetch = async (...args) => {
   const response = await origFetch(...args);
 
+  console.log('[extension] overrideFetch response: ', response);
+
   if (response.url === "https://gql.twitch.tv/gql") {
     response
       .clone()
@@ -117,7 +120,7 @@ window.fetch = async (...args) => {
         let isComment = false;
 
         if (Array.isArray(body)) {
-          for (let b of body) {
+          for (const b of body) {
             if (
               b.extensions.operationName === "VideoCommentsByOffsetOrCursor"
             ) {

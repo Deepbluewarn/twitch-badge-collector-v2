@@ -3,11 +3,11 @@ import ReactDOM from "react-dom/client";
 import browser from "webextension-polyfill";
 import { Trans, useTranslation } from "react-i18next";
 import { ThemeProvider } from "@mui/material/styles";
-import globalStyles from "./style/global";
+import globalStyles from "../style/global";
 import {
     Context as TBCContext,
     useCustomTheme,
-    useGlobalSetting,
+    useExtensionGlobalSetting,
 } from 'twitch-badge-collector-cc';
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -18,7 +18,7 @@ import Alert from "@mui/material/Alert";
 
 function DocumentLink(props: { children: React.ReactNode }) {
     return (
-        <Link href={process.env.DOCUMENTATION} color="inherit" target="_blank">
+        <Link href={import.meta.env.VITE_DOCUMENTATION} color="inherit" target="_blank">
             {props.children}
         </Link>
     )
@@ -48,7 +48,7 @@ function ExtensionTitle() {
     )
 }
 function App() {
-    const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', false);
+    const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(false);
     const { t, i18n } = useTranslation();
 
     const getClientLocale = () => {

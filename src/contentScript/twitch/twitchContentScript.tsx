@@ -1,31 +1,26 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import browser from "webextension-polyfill";
-import styled from "@emotion/styled";
 import {
   createCloneContainer,
   RemoteChatContainer,
   LocalChatContainer,
   createReplayContainer,
-} from "./contentScript/container";
-import { ReplayPageType, observer } from "./contentScript/utils";
-import { updateContainerRatio } from "./contentScript/containerHandler";
+} from "../container";
+import { ReplayPageType, observer } from "../../utils";
+import { updateContainerRatio } from "../containerHandler";
 import {
-  useGlobalSetting,
   SettingInterface,
   Context as TBCContext,
   useAlert,
   CustomTheme,
-  useCustomTheme
+  useCustomTheme,
+  useExtensionGlobalSetting
 } from 'twitch-badge-collector-cc';
-import useTwitchTheme from "./hooks/useTwitchTheme";
+import useTwitchTheme from "../../hooks/useTwitchTheme";
 import { ThemeProvider } from '@mui/material/styles';
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Link from "@mui/material/Link";
-import { getRandomBooleanWithProbability, isFirefoxAddon } from "./utils";
+import overrideFetch from '../../overrideFetch?script&module'
 
 let streamPageObserver: MutationObserver | undefined;
 let position: SettingInterface.PositionOptionsType;
@@ -38,11 +33,25 @@ let pointBoxFound = false;
 let twitchDarkTheme = false;
 let observerStatus = false;
 
+twitchDarkTheme
+replayChatFound
+observerStatus
+
+// chrome.scripting.insertCSS(
+//   {
+//     files: [browser.runtime.getURL('src/contentScript/twitch/twitchContentScript.css')],
+//     target: undefined
+//   }
+// )
+
+console.log(overrideFetch);
+
 const injectMockFetch = () => {
-  var s = document.createElement("script");
-  s.src = browser.runtime.getURL("js/overrideFetch.js");
+  const s = document.createElement("script");
+  s.src = browser.runtime.getURL(overrideFetch);
+  s.type = 'module';
   s.onload = function () {
-    s.remove();
+    // s.remove();
   };
   (document.head || document.documentElement).appendChild(s);
 };
@@ -108,7 +117,7 @@ function initPage() {
   }
 }
 
-async function observerCallback(mutationRecord: MutationRecord[]) {
+async function observerCallback() {
   initPage();
 }
 
@@ -117,21 +126,21 @@ function pointBoxObserverCallback(mutationRecord: MutationRecord[]) {
 
   const point_summary_className = "community-points-summary";
 
-  for (let mr of Array.from(mutationRecord)) {
-    let addedNodes = mr.addedNodes;
+  for (const mr of Array.from(mutationRecord)) {
+    const addedNodes = mr.addedNodes;
     if (!addedNodes) return;
 
-    for (let node of addedNodes) {
-      let nodeElement = node as HTMLElement;
+    for (const node of addedNodes) {
+      const nodeElement = node as HTMLElement;
       if (!nodeElement || nodeElement.nodeType !== 1) return;
 
-      let point_summary = (nodeElement.getElementsByClassName(
+      const point_summary = (nodeElement.getElementsByClassName(
         point_summary_className
       )[0] ||
         nodeElement.closest("." + point_summary_className)) as HTMLDivElement;
 
       if (point_summary) {
-        let point_button =
+        const point_button =
           point_summary.children[1].getElementsByTagName("button")[0];
 
         if (point_button) {
@@ -143,7 +152,7 @@ function pointBoxObserverCallback(mutationRecord: MutationRecord[]) {
 }
 
 function App() {
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', true);
+  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(true);
   const { alerts, setAlerts, addAlert } = useAlert();
   const displayMethod = globalSetting.chatDisplayMethod;
   const isReplay = useRef(ReplayPageType());
@@ -164,8 +173,8 @@ function App() {
     browser.storage.onChanged.addListener((changed, areaName) => {
       if (areaName !== "local") return;
 
-      for (let key in changed) {
-        let newValue = changed[key].newValue;
+      for (const key in changed) {
+        const newValue = changed[key].newValue;
 
         if (key === "position") {
           position = newValue;
@@ -204,71 +213,71 @@ function App() {
   );
 }
 
-function PeriodicSupportPopup() {
-  const [displayPopup, setDisplayPopup] = useState(false);
-  const popupProbability = useRef(getRandomBooleanWithProbability(0.25));
-  const [rateLink, setRateLink] = useState('');
+// function PeriodicSupportPopup() {
+//   const [displayPopup, setDisplayPopup] = useState(false);
+//   const popupProbability = useRef(getRandomBooleanWithProbability(0.25));
+//   const [rateLink, setRateLink] = useState('');
 
-  const daysElapsedSince = useCallback((time: number): number => {
-    let daysElapsed: number = (new Date().getTime() - time) / (1000 * 60 * 60 * 24);
-    return daysElapsed;
-  }, []);
+//   const daysElapsedSince = useCallback((time: number): number => {
+//     let daysElapsed: number = (new Date().getTime() - time) / (1000 * 60 * 60 * 24);
+//     return daysElapsed;
+//   }, []);
 
-  const onCloseButtonClicked = useCallback(() => {
-    browser.storage.local.set({lastPopupTime: new Date().getTime()});
-    setDisplayPopup(false);
-  }, []);
+//   const onCloseButtonClicked = useCallback(() => {
+//     browser.storage.local.set({lastPopupTime: new Date().getTime()});
+//     setDisplayPopup(false);
+//   }, []);
 
-  useEffect(() => {
-    browser.storage.local.get('lastPopupTime').then(res => {
-      const lastPopupTime = res.lastPopupTime;
-      setDisplayPopup(!lastPopupTime || daysElapsedSince(Number(lastPopupTime)) >= 60);
-    });
-  }, []);
+//   useEffect(() => {
+//     browser.storage.local.get('lastPopupTime').then(res => {
+//       const lastPopupTime = res.lastPopupTime;
+//       setDisplayPopup(!lastPopupTime || daysElapsedSince(Number(lastPopupTime)) >= 60);
+//     });
+//   }, []);
 
-  useEffect(() => {
-    isFirefoxAddon().then(isf => {
-      setRateLink((isf ? process.env.FIREFOX_RATE_EXT_LINK : process.env.CHROMIUM_RATE_EXT_LINK) || '');
-    });
-  }, [])
+//   useEffect(() => {
+//     isFirefoxAddon().then(isf => {
+//       setRateLink((isf ? import.meta.env.VITE_FIREFOX_RATE_EXT_LINK : import.meta.env.VITE_CHROMIUM_RATE_EXT_LINK) || '');
+//     });
+//   }, [])
 
-  return popupProbability.current && displayPopup ? (
-    <PaperPopup variant="outlined">
-      <Stack sx={{ height: '100%' }} gap={1} justifyContent='space-between'>
-        <Typography sx={{ fontWeight: 'bold' }} variant="h5">{browser.runtime.getManifest().name}</Typography>
-        <Typography variant="h6">{browser.i18n.getMessage("supportMessage")}</Typography>
-        <Stack direction='row' gap={1}>
-          <Link href={process.env.DONATE_LINK || ''} rel="noopener" target='_blank'>
-            <Button variant='contained'>
-              <Typography variant="h6">
-              {browser.i18n.getMessage('donation')}
-              </Typography>
-            </Button>
-          </Link>
-          <Link href={rateLink} target='_blank' rel="noopener">
-            <Button variant='contained'>
-              <Typography variant="h6">
-                {browser.i18n.getMessage('review_2')}
-              </Typography>
-            </Button>
-          </Link>
-          <Button sx={{ marginLeft: 'auto' }}><Typography variant="h6" onClick={onCloseButtonClicked}>{browser.i18n.getMessage('close')}</Typography></Button>
-        </Stack>
-      </Stack>
-    </PaperPopup>
-  ) : null
-}
+//   return popupProbability.current && displayPopup ? (
+//     <PaperPopup variant="outlined">
+//       <Stack sx={{ height: '100%' }} gap={1} justifyContent='space-between'>
+//         <Typography sx={{ fontWeight: 'bold' }} variant="h5">{browser.runtime.getManifest().name}</Typography>
+//         <Typography variant="h6">{browser.i18n.getMessage("supportMessage")}</Typography>
+//         <Stack direction='row' gap={1}>
+//           <Link href={import.meta.env.VITE_DONATE_LINK || ''} rel="noopener" target='_blank'>
+//             <Button variant='contained'>
+//               <Typography variant="h6">
+//               {browser.i18n.getMessage('donation')}
+//               </Typography>
+//             </Button>
+//           </Link>
+//           <Link href={rateLink} target='_blank' rel="noopener">
+//             <Button variant='contained'>
+//               <Typography variant="h6">
+//                 {browser.i18n.getMessage('review_2')}
+//               </Typography>
+//             </Button>
+//           </Link>
+//           <Button sx={{ marginLeft: 'auto' }}><Typography variant="h6" onClick={onCloseButtonClicked}>{browser.i18n.getMessage('close')}</Typography></Button>
+//         </Stack>
+//       </Stack>
+//     </PaperPopup>
+//   ) : null
+// }
 
-const PaperPopup = styled(Paper)({
-  position: 'absolute',
-  width: '84%',
-  height: '180px',
-  padding: '16px',
-  zIndex: '44444444',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)'
-});
+// const PaperPopup = styled(Paper)({
+//   position: 'absolute',
+//   width: '84%',
+//   height: '180px',
+//   padding: '16px',
+//   zIndex: '44444444',
+//   top: '50%',
+//   left: '50%',
+//   transform: 'translate(-50%, -50%)'
+// });
 
 function updatePosition(position: SettingInterface.PositionOptionsType) {
   const tbcContainer = document.getElementById(
@@ -336,7 +345,7 @@ updateLocalSettingValues();
 
 let currentPath = "";
 
-browser.runtime.onMessage.addListener((message, sender) => {
+browser.runtime.onMessage.addListener((message) => {
   if (message.action === "onHistoryStateUpdated") {
     if (window.location.hostname !== "www.twitch.tv") return;
     if (currentPath === window.location.pathname) return;

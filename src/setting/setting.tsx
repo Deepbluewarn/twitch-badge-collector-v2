@@ -8,27 +8,26 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { ThemeProvider } from "@mui/material/styles";
-import { getQueryParams } from "./utils";
-import globalStyles from "./style/global";
-import i18n, { 
+import { getQueryParams } from "../utils";
+import globalStyles from "../style/global";
+import { 
   Context as TBCContext,
   useCustomTheme,
-  useArrayFilter,
-  useGlobalSetting,
+  useExtensionGlobalSetting,
   useAlert,
   useTwitchAPI,
   Filter, 
-  ChatSaver,
   DrawerTemplate,
   SettingPageDrawer,
   AlertContainer,
+  useArrayFilterExtension,
+  ChatSaverExtension,
 } from 'twitch-badge-collector-cc';
 
 function App() {
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSetting('Extension', false);
+  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(false);
   const { alerts, setAlerts, addAlert } = useAlert();
-  process.env.BASE_URL
-  const twitchAPI = useTwitchAPI(process.env.BUILD_ENV === 'DEV');
+  const twitchAPI = useTwitchAPI(import.meta.env.DEV);
   const { t, i18n } = useTranslation();
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -38,7 +37,7 @@ function App() {
       },
     },
     queryCache: new QueryCache({
-      onError: (error) =>
+      onError: () =>
         addAlert({ serverity: "error", message: t("alert.network_error") }),
     }),
   });
@@ -81,9 +80,9 @@ function App() {
 }
 
 function Router() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { arrayFilter, setArrayFilter, addArrayFilter, checkFilter } =
-    useArrayFilter('Extension', false);
+    useArrayFilterExtension(false);
 
   return (
     <TBCContext.ArrayFilterContext.Provider
@@ -111,7 +110,7 @@ function Router() {
                 name="chatsaver"
                 drawer={<SettingPageDrawer env="Extension" />}
               >
-                <ChatSaver env="Extension"/>
+                <ChatSaverExtension/>
               </DrawerTemplate>
             }
           />

@@ -13,7 +13,7 @@ export default function useTwitchTheme() {
   };
   const [theme, setTheme] = useState(getTheme());
 
-  const themeCallback = (mutationRecord: MutationRecord[]) => {
+  const themeCallback = () => {
     setTheme(getTheme());
   };
 

@@ -1,5 +1,4 @@
 import { FilterInterface } from "twitch-badge-collector-cc";
-import browser from "webextension-polyfill";
 
 export const getQueryParams = (queryName: string) => {
   const urlSearchParams = new URLSearchParams(window.location.search);
@@ -70,13 +69,13 @@ export function arrayFiltersEqual(
   );
 }
 
-export const objectsEqual = (o1: any, o2: any) =>
+export const objectsEqual = (o1: never, o2: never) =>
   Object.keys(o1).length === Object.keys(o2).length &&
   Object.keys(o1).every((p) => o1[p] === o2[p]);
 
-export const arraysEqual = (a1: any, a2: any) =>
+export const arraysEqual = (a1: never[], a2: never[]) =>
   a1.length === a2.length &&
-  a1.every((o: any, idx: any) => objectsEqual(o, a2[idx]));
+  a1.every((o: never, idx: number) => objectsEqual(o, a2[idx]));
 
 export function inIframe() {
   try {
@@ -89,10 +88,53 @@ export const getRandomBooleanWithProbability = (probability: number) => {
   return Math.random() < probability;
 }
 
-export const isFirefoxAddon = async () => {
-  if (typeof browser !== 'undefined' && typeof browser.runtime.getBrowserInfo !== 'undefined') {
-    const info = await browser.runtime.getBrowserInfo();
-    return info.name === 'Firefox';
+export function getChannelFromPath() {
+  const paths = window.location.pathname.split("/");
+  let channel = paths[1];
+
+  if (paths.length > 2) {
+    if (channel === "popout") {
+      channel = paths[2];
+    } else if (channel === "moderator") {
+      channel = paths[2];
+    } else if (channel === "embed") {
+      channel = paths[2];
+    }
+  }
+  return channel;
+}
+export function getVideoIdParam(replayType: "replay" | "clip" | boolean) {
+  const paths = window.location.pathname.split("/");
+
+  if (replayType === "clip") {
+    return paths[3];
+  } else if (replayType === "replay") {
+    return paths[2];
+  }
+}
+
+export function ReplayPageType() {
+  const replay_regex = /\/videos\/[0-9]*/g;
+  const url = new URL(location.href);
+
+  if (replay_regex.test(url.pathname)) {
+    return "replay";
+  } else if (url.pathname.split("/")[2] === "clip") {
+    return "clip";
   }
   return false;
+}
+
+export function observer(
+  obj: Element,
+  config: object,
+  callback: MutationCallback
+) {
+  if (!obj || obj.nodeType !== 1) return;
+
+  if (window.MutationObserver) {
+    const mutationObserver = new MutationObserver(callback);
+    mutationObserver.observe(obj, config);
+    return mutationObserver;
+  }
 }
