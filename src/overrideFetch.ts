@@ -110,8 +110,6 @@ const updateChannelData = (channel: string) => {
 window.fetch = async (...args) => {
   const response = await origFetch(...args);
 
-  console.log('[extension] overrideFetch response: ', response);
-
   if (response.url === "https://gql.twitch.tv/gql") {
     response
       .clone()
@@ -173,12 +171,10 @@ function clearPostInterval() {
 
 window.addEventListener('message', e=> {
   if (e.data.sender === "wtbc" && e.data.type === "REQUEST_CHAT_LIST") {
-    console.log('[tbc-extension] overrideFetch REQUEST_CHAT_LIST')
     setReplayFrameState(true);
     postBodyMessage();
   }
   if (e.data.sender === 'wtbc' && e.data.type === 'REQUEST_CHANNEL_ID') {
-    console.log('[tbc-extension] overrideFetch REQUEST_CHANNEL_ID')
     currentChannel.sent = false;
     setLiveFrameState(true);
     postChannelData();
@@ -190,7 +186,6 @@ window.addEventListener('message', e=> {
     }
   }
   if (e.data.sender === 'wtbc' && e.data.type === 'CHANNEL_DATA_RECEIVED') {
-    console.log('[tbc-extension] overrideFetch CHANNEL_DATA_RECEIVED')
     currentChannel.sent = true;
     clearPostInterval();
   }

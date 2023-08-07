@@ -37,21 +37,12 @@ twitchDarkTheme
 replayChatFound
 observerStatus
 
-// chrome.scripting.insertCSS(
-//   {
-//     files: [browser.runtime.getURL('src/contentScript/twitch/twitchContentScript.css')],
-//     target: undefined
-//   }
-// )
-
-console.log(overrideFetch);
-
 const injectMockFetch = () => {
   const s = document.createElement("script");
   s.src = browser.runtime.getURL(overrideFetch);
   s.type = 'module';
   s.onload = function () {
-    // s.remove();
+    s.remove();
   };
   (document.head || document.documentElement).appendChild(s);
 };

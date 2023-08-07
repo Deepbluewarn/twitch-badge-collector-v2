@@ -6,14 +6,12 @@ import useExtensionGlobalSetting from './hooks/useGlobalSettingExtension'
 
 function App() {
   const [count, setCount] = useState(0)
-  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(false);
+  const { dispatchGlobalSetting } = useExtensionGlobalSetting(false);
 
   useEffect(() => {
     dispatchGlobalSetting({type: 'darkTheme', value: 'on'});
   }, [])
-  useEffect(() => {
-    console.log('[extension] App globalSetting: ', globalSetting);
-  }, [globalSetting])
+
   return (
     <>
       <div>
