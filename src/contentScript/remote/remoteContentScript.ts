@@ -7,6 +7,12 @@ interface MessageList {
   [key: string]: ChatInterface.MessageInterface[];
 }
 
+window.postMessage({
+  sender: 'extension',
+  type: 'CONTENT_SCRIPT_READY',
+  value: null
+})
+
 window.addEventListener('message', event=> {
   if (event.source != window) return;
 
