@@ -3,16 +3,6 @@ import browser from "webextension-polyfill";
 
 console.log("[extension] Remote Content Script loaded.");
 
-interface MessageList {
-  [key: string]: ChatInterface.MessageInterface[];
-}
-
-window.postMessage({
-  sender: 'extension',
-  type: 'CONTENT_SCRIPT_READY',
-  value: null
-})
-
 window.addEventListener('message', event=> {
   if (event.source != window) return;
 
@@ -51,27 +41,26 @@ window.addEventListener('message', event=> {
       return;
     }
 
-    const key = 'SOC_' + channel.value;
+    browser.storage.local.get('SOC').then(res => {
+      const map = new Map<string, ChatInterface.MessageInterface[]>(res.SOC);
 
-    browser.storage.local.get(key).then(res => {
-      let list = res[key] as ChatInterface.MessageInterface[];
+      let chatList = map.get(channel.value);
 
       chat.soc = true;
-
-      if(typeof list === 'undefined') {
-        list = [chat];
+      
+      if(typeof chatList === 'undefined'){
+        chatList = [chat];
       }else{
-        list.push(chat);
+        chatList.push(chat);
       }
 
-      if(list.length > 100){
-        list.shift();
+      if(chatList.length > 100){
+        chatList.shift();
       }
 
-      const setObj = {} as MessageList;
-      setObj[key] = list;
+      map.set(channel.value, chatList);
 
-      browser.storage.local.set(setObj);
+      browser.storage.local.set({SOC: Array.from(map.entries())});
     })
 
     window.postMessage({
@@ -84,13 +73,18 @@ window.addEventListener('message', event=> {
     event.data.type === 'SOC_LIST_REQUEST'
   ) {
     const channel = event.data.value.channel;
-    const key = 'SOC_' + channel.value;
+
+    if(typeof channel === 'undefined' || channel.value === ''){
+      return;
+    }
     
-    browser.storage.local.get(key).then(res => {
+    browser.storage.local.get('SOC').then(res => {
+      const map = new Map<string, ChatInterface.MessageInterface[]>(res.SOC);
+
       window.postMessage({
         sender: 'extension',
         type: 'SOC_LIST_RESPONSE', // Save Old Chat (SOC)
-        value: res[key]
+        value: map.get(channel.value)
       })
     })
   }
@@ -124,3 +118,9 @@ browser.runtime.onMessage.addListener((message) => {
     );
   }
 });
+
+window.postMessage({
+  sender: 'extension',
+  type: 'CONTENT_SCRIPT_READY',
+  value: null
+})
