@@ -1,6 +1,10 @@
 import browser from "webextension-polyfill";
 import defaultFilter from "../defaultFilters";
 
+browser.storage.local.set({SOC: null}).then(() => {
+  console.debug('[tbc-extension] SOC 초기화.');
+});
+
 browser.runtime.onInstalled.addListener(function (details) {
   if (details.reason === "install") {
     browser.storage.local.set({ filter: defaultFilter });
