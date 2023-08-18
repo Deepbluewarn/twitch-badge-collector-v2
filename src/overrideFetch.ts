@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ReplayPageType } from "./utils";
 import MessageInterface from "./interfaces/message";
+import { BroadcastChannel, createLeaderElection } from 'broadcast-channel';
 
 const { fetch: origFetch } = window;
 const base_url = import.meta.env.VITE_BASE_URL || "";
@@ -188,5 +189,17 @@ window.addEventListener('message', e=> {
   if (e.data.sender === 'wtbc' && e.data.type === 'CHANNEL_DATA_RECEIVED') {
     currentChannel.sent = true;
     clearPostInterval();
+  }
+  if (e.data.sender === 'wtbc' && e.data.type === 'REQUEST_TBC_CROWN') {
+    const url = new URL(window.location.href);
+    const urlWithoutQuery = url.origin + url.pathname;
+
+    const leaderBroadcastChannel = new BroadcastChannel(`${urlWithoutQuery}-leaderBC`);
+
+    const elector = createLeaderElection(leaderBroadcastChannel);
+
+    elector.awaitLeadership().then(() => {
+      postFrameMessage("TBC_CROWN", true);
+    });
   }
 });

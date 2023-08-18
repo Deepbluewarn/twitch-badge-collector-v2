@@ -46,6 +46,12 @@ window.addEventListener('message', event=> {
 
       let chatList = map.get(channel.value);
 
+      // 채팅 중복 방지를 위해 직전 채팅의 time stamp 와 같으면 추가하지 않음.
+
+      if(typeof chatList !== 'undefined' && chat.userstate?.["tmi-sent-ts"] === chatList[0].userstate?.["tmi-sent-ts"]){
+        console.log('[extension] remoteContentScript: 같은 채널에서 중복된 채팅입니다. : ', chat);
+      }
+
       chat.soc = true;
       
       if(typeof chatList === 'undefined'){
