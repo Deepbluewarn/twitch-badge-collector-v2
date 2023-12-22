@@ -37,7 +37,19 @@
             ],
             "all_frames": true,
             "js": [
-                "src/contentScript/remote/remoteContentScript.ts"
+                "src/contentScript/twitch/remote/remoteContentScript.ts"
+            ]
+        },
+        {
+            "matches": [
+                "*://chzzk.naver.com/*"
+            ],
+            "all_frames" : true,
+            "js": [
+                "src/contentScript/chzzk/contentScript.tsx"
+            ],
+            "css": [
+                "chzzkContentScript.css"
             ]
         }
     ],
@@ -49,7 +61,8 @@
         "webNavigation"
     ],
     "host_permissions": [
-        "*://*.twitch.tv/*"
+        "*://*.twitch.tv/*",
+        "*://chzzk.naver.com/*"
     ],
     "web_accessible_resources": [
         {

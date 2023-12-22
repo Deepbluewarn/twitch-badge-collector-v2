@@ -1,0 +1,41 @@
+#tbc-chzzk-chat-list-container{
+    flex-direction: column;
+
+}
+#tbc-chzzk-chat-list-wrapper{
+    /* 기존의 채팅창에 적용되어 있는 margin 과 padding 을 제거.*/
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+#handle-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    order: 2;
+    height: 2rem;
+    cursor: row-resize;
+}
+
+#chzzk-container{
+    width: 100%;
+}
+#tbc-resize-handle {
+    display: flex;
+    border-top: 2px solid #3a3a3a;
+    height: 0.5rem;
+    margin: 0.5rem;
+}
+
+.tbcv2-highlight {
+    border-left: 4px solid #FFC107;
+}
+
+.flex_column {
+    display: flex;
+    flex-direction: column;
+}
+
+.freeze {
+    pointer-events: none;
+}
