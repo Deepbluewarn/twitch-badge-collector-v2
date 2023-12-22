@@ -1,9 +1,5 @@
 import browser from "webextension-polyfill";
-import { ChatRoom } from "./container";
-import { ReplayPageType } from "../utils";
 import { SettingInterface } from 'twitch-badge-collector-cc';
-
-const videoWrapperClassName = "video-chat__message-list-wrapper";
 
 export default function createContainerHandler() {
   const handle_container = document.createElement("div");
@@ -14,7 +10,6 @@ export default function createContainerHandler() {
   let containerRatio = 0;
   let position: string = "up";
   let tbcContainer: HTMLDivElement;
-  let isReplay: boolean | string = false;
 
   const getPosition = (container: HTMLDivElement) => {
     return container.style.order === "1" ? "up" : "down";
@@ -23,14 +18,13 @@ export default function createContainerHandler() {
   const startDrag = function (e: MouseEvent | TouchEvent) {
     e.preventDefault();
 
-    tbcContainer = <HTMLDivElement>document.getElementById("tbc-container");
+    tbcContainer = <HTMLDivElement>document.getElementById("chzzk-container");
 
     if (!tbcContainer) return;
 
     tbcContainer.classList.add("freeze");
 
     position = getPosition(tbcContainer);
-    isReplay = ReplayPageType();
 
     window.addEventListener("mousemove", doDrag);
     window.addEventListener("touchmove", doDrag);
@@ -39,22 +33,17 @@ export default function createContainerHandler() {
   };
 
   const doDrag = (e: MouseEvent | TouchEvent) => {
-    let chat_room;
-
-    if (isReplay) {
-      chat_room = document.getElementsByClassName(videoWrapperClassName)[0]
-        .parentElement;
-    } else {
-      chat_room = ChatRoom();
-    }
+    const chatListContainer = document.getElementById('tbc-chzzk-chat-list-container');
 
     const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
 
-    if (chat_room) {
-      const rect = chat_room.getBoundingClientRect();
-      containerRatio = (1 - (clientY - rect.y) / rect.height) * 100;
+    
+
+    if (chatListContainer) {
+      const rect = chatListContainer.getBoundingClientRect();
+      containerRatio = (1 - (clientY - rect.y) / (rect.height)) * 100;
       containerRatio = Math.max(0, Math.min(100, Math.round(containerRatio)));
-      updateContainerRatio(containerRatio, position, isReplay);
+      updateContainerRatio(containerRatio, position);
     }
   };
 
@@ -78,7 +67,6 @@ export default function createContainerHandler() {
 export function updateContainerRatio(
   ratio: number,
   position: SettingInterface.PositionOptionsType,
-  replay: boolean | string
 ) {
   if (ratio != 0) ratio = ratio ? ratio : 30;
 
@@ -90,18 +78,12 @@ export function updateContainerRatio(
     orig_size = parseFloat((1 - clone_size).toFixed(2));
   }
 
-  // let orig, clone;
-
   if (position === "up") {
     [orig_size, clone_size] = [clone_size, orig_size];
   }
 
-  const orig = <HTMLDivElement>(
-    document.getElementsByClassName(
-      replay ? videoWrapperClassName : "tbc-origin"
-    )[0]
-  );
-  const clone = <HTMLDivElement>document.getElementById("tbc-container");
+  const orig = <HTMLDivElement>document.getElementById("tbc-chzzk-chat-list-wrapper");
+  const clone = <HTMLDivElement>document.getElementById("chzzk-container");
 
   if (!orig || !clone) return;
 

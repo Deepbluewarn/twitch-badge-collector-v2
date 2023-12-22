@@ -8,15 +8,15 @@ import {
   getVideoIdParam,
   ReplayPageType,
   observer,
-} from "../utils";
+} from "../../utils";
 import ChatFromTwitchUi from "./twitchUiChat";
-import { ContainerType } from "../interfaces/container";
-import MessageInterface from "../interfaces/message";
+import { ContainerType } from "../../interfaces/container";
+import MessageInterface from "../../interfaces/message";
 import {
   Context as TBCContext,
 } from 'twitch-badge-collector-cc';
-import { TwitchTheme } from "../hooks/useTwitchTheme";
-import useArrayFilterExtension from "../hooks/useArrayFilterExtension";
+import { TwitchTheme } from "../../hooks/useTwitchTheme";
+import useArrayFilterExtension from "../../hooks/useArrayFilterExtension";
 
 export function ChatRoom() {
   const chatRoomDefault: Element | null = document.querySelector(

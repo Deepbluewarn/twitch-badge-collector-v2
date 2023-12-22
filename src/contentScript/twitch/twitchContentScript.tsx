@@ -7,9 +7,9 @@ import {
   RemoteChatContainer,
   LocalChatContainer,
   createReplayContainer,
-} from "../container";
+} from "./container";
 import { ReplayPageType, observer } from "../../utils";
-import { updateContainerRatio } from "../containerHandler";
+import { updateContainerRatio } from "./containerHandler";
 import {
   SettingInterface,
   Context as TBCContext,
