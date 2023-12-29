@@ -38,6 +38,7 @@ browser.runtime.onInstalled.addListener(function (details) {
         chatTime: res.chatTime ? res.chatTime : "off",
         maximumNumberChats: res.maximumNumberChats ? res.maximumNumberChats : (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
         advancedFilter: res.advancedFilter ? res.advancedFilter : "off",
+        platform: res.platform ? res.platform : "twitch",
         miniLanguage: res.miniLanguage ? res.miniLanguage : navigator.language,
         miniFontSize: res.miniFontSize ? res.miniFontSize : "default",
         miniChatTime: res.miniChatTime ? res.miniChatTime : "on",

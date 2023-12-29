@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import fs from 'fs'
 import path from 'path';
 import react from '@vitejs/plugin-react'
@@ -7,8 +7,10 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 import zipPack from "vite-plugin-zip-pack";
 import { resolve } from 'path';
 import manifest from './manifest.json'
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 
-export default defineConfig(() => {
+export default defineConfig((mode) => {
+  process.env = {...process.env, ...loadEnv(mode.mode, process.cwd())};
   const isWatch = process.argv.includes('--watch')
   const build_for = process.env.VITE_BUILD_FOR;
   const manifestJSON = JSON.parse(fs.readFileSync(path.join(__dirname, 'manifest.json'), 'utf-8'));
@@ -21,7 +23,8 @@ export default defineConfig(() => {
           welcome: resolve(__dirname, 'src', 'welcome', 'welcome.html'),
           setting: resolve(__dirname, 'src', 'setting', 'setting.html'),
         }
-      }
+      },
+      sourcemap: true, // Source map generation must be turned on
     },
     plugins: [
       react(),
@@ -42,6 +45,16 @@ export default defineConfig(() => {
         zipPack({
           outDir: './versions',
           outFileName: `tbc2-${manifestJSON.version}-${build_for}.zip`
+        })
+      ),
+      isWatch ? null : (
+        sentryVitePlugin({
+          authToken: process.env.VITE_SENTRY_AUTH_TOKEN,
+          org: "tbc-b1",
+          release: {
+            name: manifestJSON.version
+          },
+          project: "tbc-v2-extension",
         })
       )
     ],

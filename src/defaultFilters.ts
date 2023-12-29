@@ -11,6 +11,7 @@ const defaultFilter = [
                 badgeName: "Broadcaster",
             },
         ],
+        platform: "twitch",
     },
     {
         filterType: "include",
@@ -24,6 +25,7 @@ const defaultFilter = [
                 badgeName: "Verified",
             },
         ],
+        platform: "twitch",
     },
     {
         filterType: "include",
@@ -37,6 +39,7 @@ const defaultFilter = [
                 badgeName: "Moderator",
             },
         ],
+        platform: "twitch",
     },
     {
         filterType: "include",
@@ -50,6 +53,7 @@ const defaultFilter = [
                 badgeName: "VIP",
             },
         ],
+        platform: "twitch",
     },
     {
         filterType: "exclude",
@@ -62,6 +66,7 @@ const defaultFilter = [
                 value: "nightbot"
             },
         ],
+        platform: "twitch",
     },
     {
         filterType: "exclude",
@@ -74,6 +79,7 @@ const defaultFilter = [
                 value: "ssakdook"
             },
         ],
+        platform: "twitch",
     },
     {
         filterType: "exclude",
@@ -86,6 +92,7 @@ const defaultFilter = [
                 value: "bbangddeock"
             },
         ],
+        platform: "twitch",
     },
 ];
 

@@ -36,12 +36,14 @@ export default function createContainerHandler() {
     const chatListContainer = document.getElementById('tbc-chzzk-chat-list-container');
 
     const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-
-    
+    let rectHeigth = 0;
 
     if (chatListContainer) {
       const rect = chatListContainer.getBoundingClientRect();
-      containerRatio = (1 - (clientY - rect.y) / (rect.height)) * 100;
+
+      rectHeigth = rect.height - 77 - 62;
+
+      containerRatio = (1 - (clientY - rect.y - 77) / (rectHeigth)) * 100;
       containerRatio = Math.max(0, Math.min(100, Math.round(containerRatio)));
       updateContainerRatio(containerRatio, position);
     }

@@ -28,6 +28,10 @@ export default function ChatFromChzzkUi(node: Node) {
     nickName = <string>display_name.textContent;
   }
 
+  const badges = <HTMLCollectionOf<HTMLSpanElement>>(
+    chat_clone.getElementsByClassName("badge_container__a64XB")
+  );
+
   const textContents = <HTMLCollectionOf<HTMLSpanElement>>(
     chat_clone.getElementsByClassName("live_chatting_message_text__DyleH")
   );
@@ -36,11 +40,12 @@ export default function ChatFromChzzkUi(node: Node) {
     chat_clone.getElementsByClassName("live_chatting_donation_message_text__XbDKP")
   );
 
+  const badgeArr = Array.from(badges).map((badge) => badge.getElementsByTagName("img")[0].src);
   const textArr = Array.from(textContents).map((text) => text.textContent);
   const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
 
   return <ChatInterface.ChatInfo>{
-    badges: [],
+    badges: [...badgeArr],
     textContents: [...textArr, ...donationTextArr],
     loginName: loginName,
     nickName: nickName,
