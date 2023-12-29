@@ -20,6 +20,7 @@ import {
   DrawerTemplate,
   SettingPageDrawer,
   AlertContainer,
+  useChzzkAPI,
 } from 'twitch-badge-collector-cc';
 import ChatSaverExtension from "../components/chatsaver/ChatSaverExtension";
 import useExtensionGlobalSetting from "../hooks/useGlobalSettingExtension";
@@ -44,6 +45,7 @@ function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(false);
   const { alerts, setAlerts, addAlert } = useAlert();
   const twitchAPI = useTwitchAPI(import.meta.env.DEV);
+  const chzzkAPI = useChzzkAPI();
   const { t, i18n } = useTranslation();
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -84,9 +86,11 @@ function App() {
         <TBCContext.AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
           <QueryClientProvider client={queryClient}>
             <TBCContext.TwitchAPIContext.Provider value={twitchAPI}>
-              {globalStyles}
-              <AlertContainer />
-              <Router />
+              <TBCContext.ChzzkAPIContext.Provider value={chzzkAPI}>
+                {globalStyles}
+                <AlertContainer />
+                <Router />
+              </TBCContext.ChzzkAPIContext.Provider>
             </TBCContext.TwitchAPIContext.Provider>
           </QueryClientProvider>
         </TBCContext.AlertContext.Provider>
