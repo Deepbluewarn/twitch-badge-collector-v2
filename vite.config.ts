@@ -47,14 +47,16 @@ export default defineConfig((mode) => {
           outFileName: `tbc2-${manifestJSON.version}-${build_for}.zip`
         })
       ),
-      sentryVitePlugin({
-        authToken: process.env.VITE_SENTRY_AUTH_TOKEN,
-        org: "tbc-b1",
-        release: {
-          name: manifestJSON.version
-        },
-        project: "tbc-v2-extension",
-      }),
+      isWatch ? null : (
+        sentryVitePlugin({
+          authToken: process.env.VITE_SENTRY_AUTH_TOKEN,
+          org: "tbc-b1",
+          release: {
+            name: manifestJSON.version
+          },
+          project: "tbc-v2-extension",
+        })
+      )
     ],
   }
 })
