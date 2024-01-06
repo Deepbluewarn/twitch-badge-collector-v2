@@ -102,7 +102,7 @@ function App() {
 function Router() {
   const { t } = useTranslation();
   const { arrayFilter, setArrayFilter, addArrayFilter, checkFilter } =
-    useArrayFilterExtension(false);
+    useArrayFilterExtension('twitch', false);
 
   return (
     <TBCContext.ArrayFilterContext.Provider

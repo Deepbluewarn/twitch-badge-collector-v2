@@ -81,7 +81,7 @@ export function LocalChatContainer() {
   const [chatList, setChatList] = useState<Node[]>([]);
   const [chatIsBottom, setChatIsBottom] = useState(true);
   const [maxNumChats] = useState(globalSetting.maximumNumberChats || (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number);
-  const { setArrayFilter, checkFilter } = useArrayFilterExtension(true);
+  const { setArrayFilter, checkFilter } = useArrayFilterExtension('twitch', true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const container = document.getElementsByClassName("tbc-origin")[0];
