@@ -94,6 +94,36 @@ const defaultFilter = [
         ],
         platform: "twitch",
     },
+    {
+        "filterType": "include",
+        "id": "W8UGZEMJ9YZLjr0K7Mt23",
+        "filterNote": "",
+        "filters": [
+            {
+                "category": "badge",
+                "id": "v-Epvo6VlPk6jQD2gkzFx",
+                "type": "include",
+                "value": "https://ssl.pstatic.net/static/nng/glive/icon/streamer.png",
+                "badgeName": "Global: 스트리머"
+            }
+        ],
+        "platform": "chzzk"
+    },
+    {
+        "filterType": "include",
+        "id": "E2dw_LqUT8kR6bVWVPmL3",
+        "filterNote": "",
+        "filters": [
+            {
+                "category": "badge",
+                "id": "0se_daH9IWMnTCZuXXmmg",
+                "type": "include",
+                "value": "https://ssl.pstatic.net/static/nng/glive/icon/manager.png",
+                "badgeName": "Global: 매니저"
+            }
+        ],
+        "platform": "chzzk"
+    }
 ];
 
 export default defaultFilter;
