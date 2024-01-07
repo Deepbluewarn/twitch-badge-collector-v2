@@ -4,12 +4,12 @@ import convert from "react-from-dom";
 import { styled } from "@mui/material/styles";
 import {
   observer,
-} from "../../utils";
+} from "@utils/utils-common";
 import ChatFromChzzkUi from "./chzzkUiChat";
 import {
   Context as TBCContext,
 } from 'twitch-badge-collector-cc';
-import useArrayFilterExtension from "../../hooks/useArrayFilterExtension";
+import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
 
 const TwitchChatContainerStyle = styled("div")({
     height: "100%",

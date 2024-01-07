@@ -6,22 +6,22 @@ import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { styled, ThemeProvider } from "@mui/material/styles";
-import Selector from "../components/Selector";
+import Selector from "@components/Selector";
 import {
   SettingInterface,
   Context as TBCContext,
   useCustomTheme,
   SocialFooter,
 } from 'twitch-badge-collector-cc';
-import CustomTextField from "../components/CustomTextField";
+import CustomTextField from "@components/CustomTextField";
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
-import { isFirefoxAddon } from "../utils-brwoser";
+import { isFirefoxAddon } from "@utils/utils-browser";
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons";
 import Divider from "@mui/material/Divider";
-import useExtensionGlobalSetting from "../hooks/useGlobalSettingExtension";
+import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 
 import * as Sentry from "@sentry/browser";
 

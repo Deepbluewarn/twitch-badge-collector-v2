@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import browser from "webextension-polyfill";
 import { Trans, useTranslation } from "react-i18next";
 import { ThemeProvider } from "@mui/material/styles";
-import globalStyles from "../style/global";
+import globalStyles from "@style/global";
 import {
     Context as TBCContext,
     useCustomTheme,
@@ -14,7 +14,7 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Link from "@mui/material/Link";
 import Alert from "@mui/material/Alert";
-import useExtensionGlobalSetting from "../hooks/useGlobalSettingExtension";
+import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 
 import * as Sentry from "@sentry/browser";
 

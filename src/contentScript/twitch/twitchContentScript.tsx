@@ -8,7 +8,7 @@ import {
   LocalChatContainer,
   createReplayContainer,
 } from "./container";
-import { ReplayPageType, observer } from "../../utils";
+import { ReplayPageType, observer } from "@utils/utils-common";
 import { updateContainerRatio } from "./containerHandler";
 import {
   SettingInterface,
@@ -17,10 +17,10 @@ import {
   CustomTheme,
   useCustomTheme,
 } from 'twitch-badge-collector-cc';
-import useTwitchTheme from "../../hooks/useTwitchTheme";
+import useTwitchTheme from "@hooks/useTwitchTheme";
 import { ThemeProvider } from '@mui/material/styles';
 import overrideFetch from '../../overrideFetch?script&module'
-import useExtensionGlobalSetting from "../../hooks/useGlobalSettingExtension";
+import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 import * as Sentry from "@sentry/browser";
 
 Sentry.init({

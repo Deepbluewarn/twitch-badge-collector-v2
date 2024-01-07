@@ -1,9 +1,9 @@
 import { SettingInterface, useAlert, Context as TBCContext } from "twitch-badge-collector-cc";
 import browser from "webextension-polyfill";
-import { observer } from "../../utils";
+import { observer } from "@utils/utils-common";
 import createContainerHandler, { updateContainerRatio } from "./containerHandler";
 import { useEffect } from "react";
-import useExtensionGlobalSetting from "../../hooks/useGlobalSettingExtension";
+import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 import { createRoot } from "react-dom/client";
 import { LocalChatContainer } from "./container";
 import * as Sentry from "@sentry/browser";

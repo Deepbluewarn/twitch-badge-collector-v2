@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill";
 import { ChatRoom } from "./container";
-import { ReplayPageType } from "./utils";
+import { ReplayPageType } from "./utils-twitch";
 import { SettingInterface } from 'twitch-badge-collector-cc';
 
 const videoWrapperClassName = "video-chat__message-list-wrapper";
