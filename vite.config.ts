@@ -64,7 +64,7 @@ export default defineConfig((mode) => {
         '@components': '/src/components',
         '@interfaces': '/src/interfaces',
         '@hooks': '/src/hooks',
-        '@styles': '/src/styles',
+        '@style': '/src/style',
       },
     }
   }
