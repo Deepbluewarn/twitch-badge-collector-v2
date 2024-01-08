@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useArrayFilter } from "twitch-badge-collector-cc";
+import { SettingInterface, useArrayFilter } from "twitch-badge-collector-cc";
 import browser from 'webextension-polyfill';
 /**
  * 
@@ -10,8 +10,8 @@ import browser from 'webextension-polyfill';
  *                  @default true
  * @returns 
  */
-export default function useArrayFilterExtension(extStorageReadOnly: boolean = true) {
-    const { arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter, checkFilter } = useArrayFilter()
+export default function useArrayFilterExtension(_platform: SettingInterface.PlatformOptionsType, extStorageReadOnly: boolean = true) {
+    const { arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter, checkFilter } = useArrayFilter();
     const isFilterInitialized = useRef(false);
 
 
@@ -20,7 +20,7 @@ export default function useArrayFilterExtension(extStorageReadOnly: boolean = tr
             browser.storage.local.set({ filter: arrayFilter });
         }
 
-        arrayFilterRef.current = arrayFilter;
+        arrayFilterRef.current = arrayFilter.filter(af => af.platform === _platform);
     }, [arrayFilter]);
 
     useEffect(() => {

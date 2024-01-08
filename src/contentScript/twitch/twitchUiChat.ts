@@ -1,12 +1,12 @@
 import { ChatInterface } from 'twitch-badge-collector-cc';
 
 export default function ChatFromTwitchUi(node: Node) {
-  let nodeElement = <HTMLElement>node;
+  const nodeElement = <HTMLElement>node;
 
   if (!nodeElement || nodeElement.nodeType !== 1) return;
   if (!nodeElement.closest(".chat-scrollable-area__message-container")) return;
 
-  let room_clone_parent = <HTMLDivElement>(
+  const room_clone_parent = <HTMLDivElement>(
     nodeElement.closest(".scrollable-area.tbc-origin")?.parentNode
   );
 
@@ -14,10 +14,10 @@ export default function ChatFromTwitchUi(node: Node) {
 
   const chat_clone = <Element>nodeElement.cloneNode(true);
 
-  let display_name = chat_clone.getElementsByClassName(
+  const display_name = chat_clone.getElementsByClassName(
     "chat-author__display-name"
   )[0];
-  let chatter_name = chat_clone.getElementsByClassName("intl-login")[0];
+  const chatter_name = chat_clone.getElementsByClassName("intl-login")[0];
 
   if (!display_name && !chatter_name) return;
 

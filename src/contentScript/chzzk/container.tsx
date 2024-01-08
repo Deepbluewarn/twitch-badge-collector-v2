@@ -4,12 +4,12 @@ import convert from "react-from-dom";
 import { styled } from "@mui/material/styles";
 import {
   observer,
-} from "../../utils";
+} from "@utils/utils-common";
 import ChatFromChzzkUi from "./chzzkUiChat";
 import {
   Context as TBCContext,
 } from 'twitch-badge-collector-cc';
-import useArrayFilterExtension from "../../hooks/useArrayFilterExtension";
+import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
 
 const TwitchChatContainerStyle = styled("div")({
     height: "100%",
@@ -20,7 +20,7 @@ export function LocalChatContainer() {
     const [chatList, setChatList] = useState<Node[]>([]);
     const [chatIsBottom, setChatIsBottom] = useState(true);
     const [maxNumChats] = useState(globalSetting.maximumNumberChats || (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number);
-    const { setArrayFilter, checkFilter } = useArrayFilterExtension(true);
+    const { setArrayFilter, checkFilter } = useArrayFilterExtension('chzzk', true);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const container = document.getElementsByClassName("live_chatting_list_wrapper__a5XTV")[0];

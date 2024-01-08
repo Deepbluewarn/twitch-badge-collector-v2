@@ -58,6 +58,15 @@ export default defineConfig((mode) => {
         })
       )
     ],
+    resolve: {
+      alias: {
+        '@utils': '/src/utils',
+        '@components': '/src/components',
+        '@interfaces': '/src/interfaces',
+        '@hooks': '/src/hooks',
+        '@style': '/src/style',
+      },
+    }
   }
 })
 

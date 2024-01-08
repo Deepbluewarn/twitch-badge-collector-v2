@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ReplayPageType } from "./utils";
+import { ReplayPageType } from "@utils/utils-common";
 import MessageInterface from "./interfaces/message";
 import { BroadcastChannel, createLeaderElection } from 'broadcast-channel';
 

@@ -1,5 +1,6 @@
 import browser from "webextension-polyfill";
 import defaultFilter from "../defaultFilters";
+import { FilterInterface } from "twitch-badge-collector-cc";
 
 browser.storage.local.set({SOC: null}).then(() => {
   console.debug('[tbc-extension] SOC 초기화.');
@@ -13,6 +14,23 @@ browser.runtime.onInstalled.addListener(function (details) {
       url: browser.runtime.getURL(`src/welcome/welcome.html`),
     });
   }
+
+  browser.storage.local.get(["filter"]).then((res) => {
+    const filter: FilterInterface.ArrayFilterListInterface[] = res.filter;
+    
+    if (!filter) {
+      browser.storage.local.set({ filter: defaultFilter });
+      return;
+    }
+
+    const newTwitchFilter = filter.map((f) => {
+      if (!f.platform) {
+        f.platform = "twitch";
+      }
+      return f;
+    });
+    browser.storage.local.set({ filter: newTwitchFilter });
+  });
 
   browser.storage.local
     .get([

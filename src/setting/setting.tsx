@@ -9,8 +9,8 @@ import {
 } from "@tanstack/react-query";
 import browser from "webextension-polyfill";
 import { ThemeProvider } from "@mui/material/styles";
-import { getQueryParams } from "../utils";
-import globalStyles from "../style/global";
+import { getQueryParams } from "@utils/utils-common";
+import globalStyles from "@style/global";
 import { 
   Context as TBCContext,
   useCustomTheme,
@@ -22,9 +22,9 @@ import {
   AlertContainer,
   useChzzkAPI,
 } from 'twitch-badge-collector-cc';
-import ChatSaverExtension from "../components/chatsaver/ChatSaverExtension";
-import useExtensionGlobalSetting from "../hooks/useGlobalSettingExtension";
-import useArrayFilterExtension from "../hooks/useArrayFilterExtension";
+import ChatSaverExtension from "@components/chatsaver/ChatSaverExtension";
+import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
+import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
 import * as Sentry from "@sentry/browser";
 
 Sentry.init({
@@ -102,7 +102,7 @@ function App() {
 function Router() {
   const { t } = useTranslation();
   const { arrayFilter, setArrayFilter, addArrayFilter, checkFilter } =
-    useArrayFilterExtension(false);
+    useArrayFilterExtension('twitch', false);
 
   return (
     <TBCContext.ArrayFilterContext.Provider
