@@ -9,6 +9,7 @@ window.addEventListener('message', event=> {
     event.data.sender === "wtbc" &&
     event.data.type === "CHATSAVER_RESPONSE_CHANNEL_INFO"
   ) {
+    // ChatSaver 채널 목록 요청 4
     // Frame to Extension
     browser.runtime.sendMessage({
       from: "remoteContentScript",
@@ -33,6 +34,7 @@ browser.runtime.onMessage.addListener((message) => {
     message.from === "extension_setting" &&
     message.type === "CHATSAVER_REQUEST_CHANNEL_INFO"
   ) {
+    // ChatSaver 채널 목록 요청 2
     // Extension to Frame
     window.postMessage(
       {
