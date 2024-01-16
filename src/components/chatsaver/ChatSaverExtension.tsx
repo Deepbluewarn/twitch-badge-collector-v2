@@ -52,6 +52,7 @@ export default function ChatSaverExtension() {
     };
 
     const requestChannelList = () => {
+        // ChatSaver 채널 목록 요청 1
         sendMessageToFrame("extension_setting", "CHATSAVER_REQUEST_CHANNEL_INFO");
     };
 
@@ -65,6 +66,7 @@ export default function ChatSaverExtension() {
                 message.from === "remoteContentScript" &&
                 message.type === "CHATSAVER_RESPONSE_CHANNEL_INFO"
             ) {
+                // ChatSaver 채널 목록 도착
                 setChannelInfoList((list) => {
                     const cloneList = new Map(list);
                     const channelInfo = message.value;
