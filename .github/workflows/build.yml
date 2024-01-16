@@ -3,13 +3,12 @@ name: build
 on:
   push:
     tags:
-      - '*'
+      - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    environment: production
     strategy:
       matrix:
         node-version: [18.x]
@@ -22,11 +21,6 @@ jobs:
       run: |
         echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
 
-    - name: Generate Environment Variables File for Production
-      run: |
-        echo "VITE_SENTRY_AUTH_TOKEN=$VITE_SENTRY_AUTH_TOKEN" >> .env.production
-      env: 
-        VITE_SENTRY_AUTH_TOKEN: ${{ secrets.VITE_SENTRY_AUTH_TOKEN }}
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
