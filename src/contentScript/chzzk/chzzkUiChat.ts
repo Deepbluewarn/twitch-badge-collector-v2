@@ -44,10 +44,34 @@ export default function ChatFromChzzkUi(node: Node) {
   const textArr = Array.from(textContents).map((text) => text.textContent);
   const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
 
+  const verifiedBadge = checkVerifiedBadge(chat_clone);
+
+  if (verifiedBadge) {
+    badgeArr.push(verifiedBadge);
+  }
+
+
   return <ChatInterface.ChatInfo>{
     badges: [...badgeArr],
     textContents: [...textArr, ...donationTextArr],
     loginName: loginName,
     nickName: nickName,
   };
+}
+
+function checkVerifiedBadge(chat_clone: Element) {
+  const regex = /url\((['"])?(.*?)\1\)/g;
+  
+  const verifiedBadge = <HTMLElement>(
+    chat_clone.getElementsByClassName("name_icon__zdbVH")[0]
+  );
+  if(verifiedBadge === undefined) return null;
+
+  let computedStyle = window.getComputedStyle(verifiedBadge);
+  let background = computedStyle.getPropertyValue("background");
+
+  let match = regex.exec(background);
+  let url = match ? match[2] : null;
+
+  return url;
 }
