@@ -19,7 +19,7 @@ export function LocalChatContainer() {
     const { globalSetting } = TBCContext.useGlobalSettingContext();
     const [chatList, setChatList] = useState<Node[]>([]);
     const [chatIsBottom, setChatIsBottom] = useState(true);
-    const [maxNumChats] = useState(globalSetting.maximumNumberChats || (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number);
+    const [maxNumChats, setMaxNumChats] = useState(import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
     const { setArrayFilter, checkFilter } = useArrayFilterExtension('chzzk', true);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -94,7 +94,7 @@ export function LocalChatContainer() {
         chatList.forEach((chat) => {
             if (!chatListContainer) return;
 
-            if (chatListContainer.childElementCount >= (maxNumChats || (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number)) {
+            if (chatListContainer.childElementCount >= maxNumChats) {
                 const firstChild = chatListContainer.firstElementChild;
 
                 if (firstChild === null) return;
@@ -109,6 +109,12 @@ export function LocalChatContainer() {
         if (!scrollArea) return;
         if (chatIsBottom) scrollArea.scrollTop = scrollArea.scrollHeight;
     }, [chatList, maxNumChats]);
+
+    useEffect(() => {
+        if(typeof globalSetting.maximumNumberChats === 'undefined') return;
+
+        setMaxNumChats(globalSetting.maximumNumberChats);
+    }, [globalSetting.maximumNumberChats]);
 
     const getScrollArea = () => {
         if (!containerRef.current) return;
