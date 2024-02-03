@@ -7,6 +7,7 @@ import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 import { createRoot } from "react-dom/client";
 import { LocalChatContainer } from "./container";
 import * as Sentry from "@sentry/browser";
+import Logger from "@utils/logger";
 
 Sentry.init({
   dsn: "https://af1b53df8897a90d7c27e8f9347954af@o1197585.ingest.sentry.io/4506447984852992",
@@ -159,14 +160,23 @@ updateLocalSettingValues();
 let currentPath = window.location.pathname;
 
 browser.runtime.onMessage.addListener((message) => {
+  Logger("Chzzk ContentScript onHistoryStateUpdated message.url", message.url);
+  
   if (message.action === "onHistoryStateUpdated") {
-    if (window.location.hostname !== "chzzk.naver.com") return;
-    if (currentPath === window.location.pathname) return;
+    if (window.location.hostname !== "chzzk.naver.com") {
+      Logger("Chzzk ContentScript onHistoryStateUpdated", "Hostname 이 일치하지 않습니다.");
+      return;
+    }
+    if (currentPath === window.location.pathname) {
+      Logger("Chzzk ContentScript onHistoryStateUpdated", "Path 가 일치합니다.");
+      return;
+    }
 
     currentPath = window.location.pathname;
 
     chattingContainerFound = false;
 
     updateLocalSettingValues();
+    Logger("Chzzk ContentScript onHistoryStateUpdated", "ContentScript 를 재시작합니다.");
   }
 });
