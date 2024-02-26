@@ -47,7 +47,7 @@ export default function ChatFromChzzkUi(node: Node) {
   const verifiedBadge = checkVerifiedBadge(chat_clone);
 
   if (verifiedBadge) {
-    badgeArr.push(verifiedBadge);
+    badgeArr.push('https://ssl.pstatic.net/static/nng/glive/resource/p/static/media/icon_official.a53d1555f8f4796d7862.png');
   }
 
 
@@ -59,19 +59,14 @@ export default function ChatFromChzzkUi(node: Node) {
   };
 }
 
-function checkVerifiedBadge(chat_clone: Element) {
-  const regex = /url\((['"])?(.*?)\1\)/g;
-  
+function checkVerifiedBadge(chat_clone: Element): boolean {
   const verifiedBadge = <HTMLElement>(
     chat_clone.getElementsByClassName("name_icon__zdbVH")[0]
   );
-  if(verifiedBadge === undefined) return null;
 
-  let computedStyle = window.getComputedStyle(verifiedBadge);
-  let background = computedStyle.getPropertyValue("background");
+  if(verifiedBadge === undefined) return false;
 
-  let match = regex.exec(background);
-  let url = match ? match[2] : null;
+  const text = verifiedBadge.getElementsByClassName('blind')[0].textContent;
 
-  return url;
+  return text === '인증 마크';
 }
