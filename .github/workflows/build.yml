@@ -42,6 +42,10 @@ jobs:
         VITE_DONATE_LINK: ${{ vars.VITE_DONATE_LINK }}
         VITE_FIREFOX_RATE_EXT_LINK: ${{ vars.VITE_FIREFOX_RATE_EXT_LINK }}
         VITE_MAXNUMCHATS_DEFAULT: ${{ vars.VITE_MAXNUMCHATS_DEFAULT }}
+
+    - name: Print environment variable
+      run: |
+        cat ./.env.production
       
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
