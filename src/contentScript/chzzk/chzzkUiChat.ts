@@ -44,10 +44,29 @@ export default function ChatFromChzzkUi(node: Node) {
   const textArr = Array.from(textContents).map((text) => text.textContent);
   const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
 
+  const verifiedBadge = checkVerifiedBadge(chat_clone);
+
+  if (verifiedBadge) {
+    badgeArr.push('https://ssl.pstatic.net/static/nng/glive/resource/p/static/media/icon_official.a53d1555f8f4796d7862.png');
+  }
+
+
   return <ChatInterface.ChatInfo>{
     badges: [...badgeArr],
     textContents: [...textArr, ...donationTextArr],
     loginName: loginName,
     nickName: nickName,
   };
+}
+
+function checkVerifiedBadge(chat_clone: Element): boolean {
+  const verifiedBadge = <HTMLElement>(
+    chat_clone.getElementsByClassName("name_icon__zdbVH")[0]
+  );
+
+  if(verifiedBadge === undefined) return false;
+
+  const text = verifiedBadge.getElementsByClassName('blind')[0].textContent;
+
+  return text === '인증 마크';
 }

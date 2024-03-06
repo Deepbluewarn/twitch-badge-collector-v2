@@ -85,6 +85,7 @@ function modify(build_for: string, buffer: string) {
     delete manifest.host_permissions;
     manifest.permissions.push('*://*.badgecollector.dev/*');
     manifest.permissions.push('*://*.twitch.tv/*');
+    manifest.permissions.push('tabs');
     manifest.web_accessible_resources = [
       "src/assets/icon.png",
       "src/assets/bmc-button.svg"
