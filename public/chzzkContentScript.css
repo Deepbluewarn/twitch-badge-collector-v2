@@ -8,6 +8,11 @@
     padding-top: 0 !important;
 }
 
+.tbcv2-chat-time {
+    padding-right: 8px;
+    margin-bottom: 3px;
+}
+
 #handle-container {
     display: flex;
     flex-direction: column;
