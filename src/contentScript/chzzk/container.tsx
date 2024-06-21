@@ -142,6 +142,20 @@ export function LocalChatContainer() {
                     const clone = node.cloneNode(true);
 
                     (node as HTMLElement).classList.add('tbcv2-highlight');
+                    
+                    const username_elem = (clone as HTMLElement).getElementsByClassName(
+                        'live_chatting_username_container__m1-i5 live_chatting_username_is_message__jvTvP')[0] as HTMLElement;
+
+                    if (username_elem) {
+                        const chatTime = document.createElement("div");
+                        chatTime.classList.add("tbcv2-chat-time");
+                        chatTime.textContent = new Date().toLocaleTimeString(
+                            navigator.language, { hour: '2-digit', minute: '2-digit', hour12: false }
+                        );
+                        username_elem.classList.add('tbcv2-chat-username');
+                        username_elem.style.display = 'inline-flex';
+                        username_elem.prepend(chatTime);
+                    }
 
                     setChatList((n) => {
                         if (n.length > maxNumChats) {
