@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import browser from "webextension-polyfill";
-import convert from "react-from-dom";
+import { convertToJSX } from "@utils/converter";
 import { styled } from "@mui/material/styles";
 import {
-  observer,
+    observer,
 } from "@utils/utils-common";
 import ChatFromChzzkUi from "./chzzkUiChat";
 import {
-  Context as TBCContext,
+    Context as TBCContext,
 } from 'twitch-badge-collector-cc';
 import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
 
@@ -17,28 +17,12 @@ const TwitchChatContainerStyle = styled("div")({
 
 export function LocalChatContainer() {
     const { globalSetting } = TBCContext.useGlobalSettingContext();
-    const [chatList, setChatList] = useState<Node[]>([]);
+    const [chatSet, setChatSet] = useState<Set<React.ReactNode>>(new Set());
     const [chatIsBottom, setChatIsBottom] = useState(true);
     const [maxNumChats, setMaxNumChats] = useState(import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
     const { setArrayFilter, checkFilter } = useArrayFilterExtension('chzzk', true);
     const containerRef = useRef<HTMLDivElement>(null);
-
-    const container = document.getElementsByClassName("live_chatting_list_wrapper__a5XTV")[0];
-    let originalContainer = null;
-
-    if (container) {
-        originalContainer = container.cloneNode(true) as HTMLElement;
-
-        originalContainer.setAttribute("style", "");
-        originalContainer.id = "tbc-clone__chzzkui";
-
-        originalContainer.style.marginTop = '0';
-        originalContainer.style.paddingTop = '0';
-        originalContainer.style.height = "100%";
-
-        originalContainer.textContent = ""; //remove all chat lines.
-    }
-
+    
     useEffect(() => {
         browser.storage.onChanged.addListener((changed, areaName) => {
             if (areaName !== "local") return;
@@ -88,27 +72,11 @@ export function LocalChatContainer() {
     }, [maxNumChats]);
 
     useEffect(() => {
-        const chatListContainer = containerRef.current?.querySelector(
-            "#tbc-clone__chzzkui"
-        );
-        chatList.forEach((chat) => {
-            if (!chatListContainer) return;
-
-            if (chatListContainer.childElementCount >= maxNumChats) {
-                const firstChild = chatListContainer.firstElementChild;
-
-                if (firstChild === null) return;
-
-                chatListContainer.removeChild(firstChild);
-            }
-
-            chatListContainer.appendChild(chat);
-        });
         const scrollArea = getScrollArea();
 
         if (!scrollArea) return;
         if (chatIsBottom) scrollArea.scrollTop = scrollArea.scrollHeight;
-    }, [chatList, maxNumChats]);
+    }, [chatSet, maxNumChats]);
 
     useEffect(() => {
         if(typeof globalSetting.maximumNumberChats === 'undefined') return;
@@ -142,7 +110,7 @@ export function LocalChatContainer() {
                     const clone = node.cloneNode(true);
 
                     (node as HTMLElement).classList.add('tbcv2-highlight');
-                    
+
                     const username_elem = (clone as HTMLElement).getElementsByClassName(
                         'live_chatting_username_container__m1-i5 live_chatting_username_is_message__jvTvP')[0] as HTMLElement;
 
@@ -157,24 +125,34 @@ export function LocalChatContainer() {
                         username_elem.prepend(chatTime);
                     }
 
-                    setChatList((n) => {
-                        if (n.length > maxNumChats) {
-                            n = n.slice(-maxNumChats);
+                    setChatSet(prevChatSet => {
+                        if (prevChatSet.size >= 100) {
+                            const iterator = prevChatSet.values()
+                            const oldestElement = iterator.next().value
+                            prevChatSet.delete(oldestElement);
                         }
-                        return [...n, clone];
+                        const newSet = new Set(prevChatSet);
+                        newSet.add(React.createElement(Fragment, null, convertToJSX(clone as HTMLElement)));
+                        return newSet;
                     });
                 }
             });
         });
     };
 
-    if (!container || !originalContainer) return null;
-
-    const twitchClone = convert(originalContainer) as React.ReactNode;
-
     return (
         <TwitchChatContainerStyle ref={containerRef}>
-            {twitchClone}
+            <div
+                className="live_chatting_list_wrapper__a5XTV"
+                id="tbc-clone__chzzkui"
+                style={{
+                    marginTop: 0,
+                    paddingTop: 0,
+                    height: '100%'
+                }}
+            >
+                {chatSet}
+            </div>
         </TwitchChatContainerStyle>
     );
 }
