@@ -1,4 +1,3 @@
-import { SettingInterface, useAlert, Context as TBCContext } from "twitch-badge-collector-cc";
 import browser from "webextension-polyfill";
 import { observer } from "@utils/utils-common";
 import createContainerHandler, { updateContainerRatio } from "./containerHandler";
@@ -7,15 +6,15 @@ import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 import { createRoot } from "react-dom/client";
 import { LocalChatContainer } from "./container";
 import Logger from "@utils/logger";
+import useAlert from "@hooks/useAlert";
+import { GlobalSettingContext } from "../../context/GlobalSetting";
+import { AlertContext } from "../../context/Alert";
+import { SettingInterface } from "@interfaces/setting";
 let streamPageObserver: MutationObserver | undefined;
-let position: SettingInterface.PositionOptionsType;
+let position: SettingInterface['position'];
 let containerRatio = 30;
 let chattingContainerFound = false;
 let observerStatus = false;
-
-position
-containerRatio
-observerStatus
 
 const initPage = () => {
 
