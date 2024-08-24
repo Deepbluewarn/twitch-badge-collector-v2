@@ -19,7 +19,6 @@ import {
 } from 'twitch-badge-collector-cc';
 import useTwitchTheme from "@hooks/useTwitchTheme";
 import { ThemeProvider } from '@mui/material/styles';
-import overrideFetch from '../../overrideFetch?script&module'
 import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 
 let streamPageObserver: MutationObserver | undefined;
