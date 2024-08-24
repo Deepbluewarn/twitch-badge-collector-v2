@@ -153,7 +153,7 @@ export function LocalChatContainer() {
     };
 
     return (
-        <TwitchChatContainerStyle ref={containerRef}>
+        <TwitchChatContainerStyle ref={containerRef} className={globalSetting.chatTime === 'on' ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'}>
             <div
                 className="live_chatting_list_wrapper__a5XTV"
                 id="tbc-clone__chzzkui"
