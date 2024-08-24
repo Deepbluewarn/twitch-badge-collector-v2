@@ -18,7 +18,6 @@ export default function useExtensionGlobalSetting(extStorageReadOnly: boolean = 
     useEffect(() => {
         browser.storage.local
             .get([
-                "chatDisplayMethod",
                 "position",
                 "pointBoxAuto",
                 "darkTheme",
@@ -26,13 +25,9 @@ export default function useExtensionGlobalSetting(extStorageReadOnly: boolean = 
                 'maximumNumberChats',
                 'advancedFilter',
                 'platform',
-                "miniLanguage",
-                "miniFontSize",
-                "miniChatTime",
             ])
             .then((res) => {
                 updateSetting({
-                    chatDisplayMethod: res.chatDisplayMethod,
                     position: res.position,
                     pointBoxAuto: res.pointBoxAuto,
                     darkTheme: res.darkTheme,
@@ -40,9 +35,6 @@ export default function useExtensionGlobalSetting(extStorageReadOnly: boolean = 
                     maximumNumberChats: res.maximumNumberChats as number,
                     advancedFilter: res.advancedFilter,
                     platform: res.platform,
-                    miniChatTime: res.miniChatTime,
-                    miniLanguage: res.miniLanguage,
-                    miniFontSize: res.miniFontSize,
                 } as SettingInterface.Setting);
             });
     }, []);
@@ -53,7 +45,6 @@ export default function useExtensionGlobalSetting(extStorageReadOnly: boolean = 
         if (!globalSettingUpdated) return;
 
         browser.storage.local.set({
-            chatDisplayMethod: globalSetting.chatDisplayMethod,
             position: globalSetting.position,
             pointBoxAuto: globalSetting.pointBoxAuto,
             darkTheme: globalSetting.darkTheme,
@@ -61,10 +52,7 @@ export default function useExtensionGlobalSetting(extStorageReadOnly: boolean = 
             maximumNumberChats: globalSetting.maximumNumberChats,
             advancedFilter: globalSetting.advancedFilter,
             platform: globalSetting.platform,
-            miniLanguage: globalSetting.miniLanguage,
-            miniFontSize: globalSetting.miniFontSize,
-            miniChatTime: globalSetting.miniChatTime,
-        });
+        } as SettingInterface);
 
     }, [globalSetting]);
 

@@ -130,12 +130,6 @@ function PopupSetting() {
 
       <Stack sx={{ margin: '8px 0 8px 0' }}>
         <Selector
-          title={browser.i18n.getMessage("dispCopiedChatmethod")}
-          values={SettingInterface.ChatDisplayMethodOptions}
-          id="chatDisplayMethod"
-          key='chatDisplayMethod'
-        />
-        <Selector
           title={browser.i18n.getMessage("chatPosition")}
           values={SettingInterface.PositionOptions}
           id="position"
@@ -152,28 +146,6 @@ function PopupSetting() {
           key='pointBoxAuto'
         />
       </Stack>
-      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{browser.i18n.getMessage("chatClientSetting")}</Typography>
-      <Stack sx={{ margin: '8px 0 8px 0' }}>
-        <Selector
-          title={browser.i18n.getMessage("language_text")}
-          values={SettingInterface.LanguageOptions}
-          id="miniLanguage"
-          key='miniLanguage'
-        />
-
-        <Selector
-          title={browser.i18n.getMessage("fontSize")}
-          values={SettingInterface.FontSizeOptions}
-          id="miniFontSize"
-          key='miniFontSize'
-        />
-
-        <Selector
-          title={browser.i18n.getMessage("chatTime")}
-          values={SettingInterface.ToggleOptions}
-          id="miniChatTime"
-          key='miniChatTime'
-        />
       </Stack>
     </Stack>
   )

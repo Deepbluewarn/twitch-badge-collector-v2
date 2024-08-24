@@ -39,22 +39,15 @@ browser.runtime.onInstalled.addListener(function (details) {
 
   browser.storage.local
     .get([
-      "chatDisplayMethod",
       "position",
       "pointBoxAuto",
       "darkTheme",
       "chatTime",
       "maximumNumberChats",
       "advancedFilter",
-      "miniLanguage",
-      "miniFontSize",
-      "miniChatTime",
     ])
     .then((res) => {
       browser.storage.local.set({
-        chatDisplayMethod: res.chatDisplayMethod
-          ? res.chatDisplayMethod
-          : "local",
         position: res.position ? res.position : "up",
         pointBoxAuto: res.pointBoxAuto ? res.pointBoxAuto : "on",
         darkTheme: res.darkTheme ? res.darkTheme : "off",
@@ -62,9 +55,6 @@ browser.runtime.onInstalled.addListener(function (details) {
         maximumNumberChats: res.maximumNumberChats ? res.maximumNumberChats : (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
         advancedFilter: res.advancedFilter ? res.advancedFilter : "off",
         platform: res.platform ? res.platform : "twitch",
-        miniLanguage: res.miniLanguage ? res.miniLanguage : navigator.language,
-        miniFontSize: res.miniFontSize ? res.miniFontSize : "default",
-        miniChatTime: res.miniChatTime ? res.miniChatTime : "on",
       });
     });
 });

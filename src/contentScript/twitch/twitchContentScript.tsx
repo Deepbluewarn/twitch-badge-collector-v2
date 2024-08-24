@@ -170,8 +170,6 @@ function App() {
   } else {
     if (displayMethod === "local") {
       chat = <LocalChatContainer />;
-    } else if (displayMethod === "remote") {
-      chat = <RemoteChatContainer type="mini" twitchTheme={twitchTheme} />;
     }
   }
 
@@ -185,17 +183,9 @@ function App() {
         if (key === "position") {
           position = newValue;
           updatePosition(position);
-          dispatchGlobalSetting({ type: "position", value: newValue });
-        } else if (key === "chatDisplayMethod") {
-          dispatchGlobalSetting({ type: "chatDisplayMethod", value: newValue });
+          dispatchGlobalSetting({ type: 'SET_POSITION', payload: newValue });
         } else if (key === "pointBoxAuto") {
           pointBoxAuto = newValue;
-        } else if (key === "miniLanguage") {
-          dispatchGlobalSetting({ type: "miniLanguage", value: newValue });
-        } else if (key === "miniFontSize") {
-          dispatchGlobalSetting({ type: "miniFontSize", value: newValue });
-        } else if (key === "miniChatTime") {
-          dispatchGlobalSetting({ type: "miniChatTime", value: newValue });
         } else if (key === "containerRatio") {
           containerRatio = newValue;
         }
