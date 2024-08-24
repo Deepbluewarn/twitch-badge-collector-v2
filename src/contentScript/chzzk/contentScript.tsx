@@ -69,7 +69,7 @@ const initPage = () => {
 }
 
 function App() {
-  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(true);
+  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
   const chat = <LocalChatContainer />
 
@@ -91,17 +91,17 @@ function App() {
   }, []);
 
   return (
-    <TBCContext.GlobalSettingContext.Provider
+    <GlobalSettingContext.Provider
       value={{ globalSetting, dispatchGlobalSetting }}
     >
-      <TBCContext.AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
+      <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
         {chat}
-      </TBCContext.AlertContext.Provider>
-    </TBCContext.GlobalSettingContext.Provider>
+      </AlertContext.Provider>
+    </GlobalSettingContext.Provider>
   );
 }
 
-function updatePosition(position: SettingInterface.PositionOptionsType) {
+function updatePosition(position: SettingInterface['position']) {
   const tbcContainer = document.getElementById(
     "chzzk-container"
   ) as HTMLDivElement;

@@ -1,6 +1,7 @@
+import { SettingInterface } from "@interfaces/setting";
 import React, { useEffect, useRef } from "react";
-import { SettingInterface, useArrayFilter } from "twitch-badge-collector-cc";
 import browser from 'webextension-polyfill';
+import useArrayFilter from "./useArrayFilter";
 /**
  * 
  * @param env 
@@ -10,7 +11,7 @@ import browser from 'webextension-polyfill';
  *                  @default true
  * @returns 
  */
-export default function useArrayFilterExtension(_platform: SettingInterface.PlatformOptionsType, extStorageReadOnly: boolean = true) {
+export default function useArrayFilterExtension(_platform: SettingInterface['platform'], extStorageReadOnly: boolean = true) {
     const { arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter, checkFilter } = useArrayFilter();
     const isFilterInitialized = useRef(false);
 

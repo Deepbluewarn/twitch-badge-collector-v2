@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import browser from "webextension-polyfill";
@@ -10,19 +9,18 @@ import {
 } from "./container";
 import { ReplayPageType, observer } from "@utils/utils-common";
 import { updateContainerRatio } from "./containerHandler";
-import {
-  SettingInterface,
-  Context as TBCContext,
-  useAlert,
-  CustomTheme,
-  useCustomTheme,
-} from 'twitch-badge-collector-cc';
 import useTwitchTheme from "@hooks/useTwitchTheme";
 import { ThemeProvider } from '@mui/material/styles';
 import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
+import { SettingInterface } from "@interfaces/setting";
+import { GlobalSettingContext } from "../../context/GlobalSetting";
+import { CustomTheme } from "@interfaces/ThemeInterface";
+import { useCustomTheme } from "@hooks/useCustomTheme";
+import { AlertContext } from "../../context/Alert";
+import useAlert from "@hooks/useAlert";
 
 let streamPageObserver: MutationObserver | undefined;
-let position: SettingInterface.PositionOptionsType;
+let position: SettingInterface['position'];
 let containerRatio = 30;
 let pointBoxAuto = true;
 
@@ -31,22 +29,6 @@ let replayChatFound = false;
 let pointBoxFound = false;
 let twitchDarkTheme = false;
 let observerStatus = false;
-
-twitchDarkTheme
-replayChatFound
-observerStatus
-
-const injectMockFetch = () => {
-  const s = document.createElement("script");
-  s.src = browser.runtime.getURL(overrideFetch);
-  s.type = 'module';
-  s.onload = function () {
-    s.remove();
-  };
-  (document.head || document.documentElement).appendChild(s);
-};
-
-injectMockFetch();
 
 function initPage() {
   const body = document.body;
@@ -142,7 +124,7 @@ function pointBoxObserverCallback(mutationRecord: MutationRecord[]) {
 }
 
 function App() {
-  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(true);
+  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
   const displayMethod = globalSetting.chatDisplayMethod;
   const isReplay = useRef(ReplayPageType());
@@ -154,7 +136,7 @@ function App() {
   } else {
     if (displayMethod === "local") {
       chat = <LocalChatContainer />;
-    }
+    } 
   }
 
   useEffect(() => {
@@ -177,89 +159,23 @@ function App() {
     });
   }, []);
 
-  const customTheme = useCustomTheme(twitchTheme === 'dark' ? 'on' : 'off');
+  const customTheme = useCustomTheme(twitchTheme === 'dark');
 
   return (
     <ThemeProvider<CustomTheme> theme={customTheme}>
-      <TBCContext.GlobalSettingContext.Provider
+      <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
-        <TBCContext.AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
+        <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
           {/* <PeriodicSupportPopup /> */}
           {chat}
-        </TBCContext.AlertContext.Provider>
-      </TBCContext.GlobalSettingContext.Provider>
+        </AlertContext.Provider>
+      </GlobalSettingContext.Provider>
     </ThemeProvider>
   );
 }
 
-// function PeriodicSupportPopup() {
-//   const [displayPopup, setDisplayPopup] = useState(false);
-//   const popupProbability = useRef(getRandomBooleanWithProbability(0.25));
-//   const [rateLink, setRateLink] = useState('');
-
-//   const daysElapsedSince = useCallback((time: number): number => {
-//     let daysElapsed: number = (new Date().getTime() - time) / (1000 * 60 * 60 * 24);
-//     return daysElapsed;
-//   }, []);
-
-//   const onCloseButtonClicked = useCallback(() => {
-//     browser.storage.local.set({lastPopupTime: new Date().getTime()});
-//     setDisplayPopup(false);
-//   }, []);
-
-//   useEffect(() => {
-//     browser.storage.local.get('lastPopupTime').then(res => {
-//       const lastPopupTime = res.lastPopupTime;
-//       setDisplayPopup(!lastPopupTime || daysElapsedSince(Number(lastPopupTime)) >= 60);
-//     });
-//   }, []);
-
-//   useEffect(() => {
-//     isFirefoxAddon().then(isf => {
-//       setRateLink((isf ? import.meta.env.VITE_FIREFOX_RATE_EXT_LINK : import.meta.env.VITE_CHROMIUM_RATE_EXT_LINK) || '');
-//     });
-//   }, [])
-
-//   return popupProbability.current && displayPopup ? (
-//     <PaperPopup variant="outlined">
-//       <Stack sx={{ height: '100%' }} gap={1} justifyContent='space-between'>
-//         <Typography sx={{ fontWeight: 'bold' }} variant="h5">{browser.runtime.getManifest().name}</Typography>
-//         <Typography variant="h6">{browser.i18n.getMessage("supportMessage")}</Typography>
-//         <Stack direction='row' gap={1}>
-//           <Link href={import.meta.env.VITE_DONATE_LINK || ''} rel="noopener" target='_blank'>
-//             <Button variant='contained'>
-//               <Typography variant="h6">
-//               {browser.i18n.getMessage('donation')}
-//               </Typography>
-//             </Button>
-//           </Link>
-//           <Link href={rateLink} target='_blank' rel="noopener">
-//             <Button variant='contained'>
-//               <Typography variant="h6">
-//                 {browser.i18n.getMessage('review_2')}
-//               </Typography>
-//             </Button>
-//           </Link>
-//           <Button sx={{ marginLeft: 'auto' }}><Typography variant="h6" onClick={onCloseButtonClicked}>{browser.i18n.getMessage('close')}</Typography></Button>
-//         </Stack>
-//       </Stack>
-//     </PaperPopup>
-//   ) : null
-// }
-
-// const PaperPopup = styled(Paper)({
-//   position: 'absolute',
-//   width: '84%',
-//   height: '180px',
-//   padding: '16px',
-//   zIndex: '44444444',
-//   top: '50%',
-//   left: '50%',
-//   transform: 'translate(-50%, -50%)'
-// });
-
-function updatePosition(position: SettingInterface.PositionOptionsType) {
+function updatePosition(position: SettingInterface['position']) {
   const tbcContainer = document.getElementById(
     "tbc-container"
   ) as HTMLDivElement;

@@ -1,7 +1,7 @@
 import browser from "webextension-polyfill";
 import { ChatRoom } from "./container";
 import { ReplayPageType } from "./utils-twitch";
-import { SettingInterface } from 'twitch-badge-collector-cc';
+import { SettingInterface } from "@interfaces/setting";
 
 const videoWrapperClassName = "video-chat__message-list-wrapper";
 
@@ -12,7 +12,7 @@ export default function createContainerHandler() {
   resize_handle.id = "tbc-resize-handle";
 
   let containerRatio = 0;
-  let position: string = "up";
+  let position: SettingInterface['position'] = "up";
   let tbcContainer: HTMLDivElement;
   let isReplay: boolean | string = false;
 
@@ -77,7 +77,7 @@ export default function createContainerHandler() {
 
 export function updateContainerRatio(
   ratio: number,
-  position: SettingInterface.PositionOptionsType,
+  position: SettingInterface['position'],
   replay: boolean | string
 ) {
   if (ratio != 0) ratio = ratio ? ratio : 30;

@@ -1,11 +1,6 @@
 import browser from "webextension-polyfill";
 import defaultFilter from "../defaultFilters";
-import { FilterInterface } from "twitch-badge-collector-cc";
-import Logger from "@utils/logger";
-
-browser.storage.local.set({SOC: null}).then(() => {
-  console.debug('[tbc-extension] SOC 초기화.');
-});
+import { ArrayFilterListInterface } from "@interfaces/filter";
 
 browser.runtime.onInstalled.addListener(function (details) {
   if (details.reason === "install") {
@@ -21,7 +16,7 @@ browser.runtime.onInstalled.addListener(function (details) {
   })
 
   browser.storage.local.get(["filter"]).then((res) => {
-    const filter: FilterInterface.ArrayFilterListInterface[] = res.filter;
+    const filter: ArrayFilterListInterface[] = res.filter;
     
     if (!filter) {
       browser.storage.local.set({ filter: defaultFilter });
@@ -60,23 +55,14 @@ browser.runtime.onInstalled.addListener(function (details) {
 });
 
 browser.webNavigation.onHistoryStateUpdated.addListener(function () {
-  Logger("background onHistoryStateUpdated", 'onHistoryStateUpdated');
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-    Logger("background onHistoryStateUpdated tabs", JSON.stringify(tabs));
     
-    if (tabs.length === 0) {
-      Logger("background onHistoryStateUpdated", '열린 탭이 없습니다.');
-      return;
-    }
+    if (tabs.length === 0) return;
 
     const id = tabs[0].id;
     const url = tabs[0].url;
-    if (!(id && url)) {
-      Logger("background onHistoryStateUpdated", 'id 또는 url이 없습니다.');
-      return;
-    }
-    browser.tabs.sendMessage(id, { action: "onHistoryStateUpdated", url: url });
+    if (!(id && url)) return;
 
-    Logger("background onHistoryStateUpdated", url);
+    browser.tabs.sendMessage(id, { action: "onHistoryStateUpdated", url: url });
   });
 });

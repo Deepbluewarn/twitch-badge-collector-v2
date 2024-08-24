@@ -6,9 +6,6 @@ import {
     observer,
 } from "@utils/utils-common";
 import ChatFromChzzkUi from "./chzzkUiChat";
-import {
-    Context as TBCContext,
-} from 'twitch-badge-collector-cc';
 import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
 
 const TwitchChatContainerStyle = styled("div")({
@@ -16,8 +13,8 @@ const TwitchChatContainerStyle = styled("div")({
 });
 
 export function LocalChatContainer() {
-    const { globalSetting } = TBCContext.useGlobalSettingContext();
-    const [chatSet, setChatSet] = useState<Set<React.ReactNode>>(new Set());
+    const { globalSetting } = useGlobalSettingContext();
+    const [chatSet, setChatSet] = useState<React.ReactNode[]>([]);
     const [chatIsBottom, setChatIsBottom] = useState(true);
     const [maxNumChats, setMaxNumChats] = useState(import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
     const { setArrayFilter, checkFilter } = useArrayFilterExtension('chzzk', true);

@@ -12,11 +12,10 @@ import {
 import ChatFromTwitchUi from "./twitchUiChat";
 import { ContainerType } from "@interfaces/container";
 import MessageInterface from "@interfaces/message";
-import {
-  Context as TBCContext,
-} from 'twitch-badge-collector-cc';
 import { TwitchTheme } from "@hooks/useTwitchTheme";
 import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
+import { useGlobalSettingContext } from "../../context/GlobalSetting";
+import { setDarkTheme } from "../../reducer/setting";
 
 export function ChatRoom() {
   const chatRoomDefault: Element | null = document.querySelector(
@@ -77,7 +76,7 @@ const TwitchChatContainerStyle = styled("div")({
 });
 
 export function LocalChatContainer() {
-  const { globalSetting } = TBCContext.useGlobalSettingContext();
+  const { globalSetting } = useGlobalSettingContext();
   const [chatList, setChatList] = useState<Node[]>([]);
   const [chatIsBottom, setChatIsBottom] = useState(true);
   const [maxNumChats] = useState(globalSetting.maximumNumberChats || (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number);
@@ -241,14 +240,14 @@ export function RemoteChatContainer(props: { type: ContainerType, twitchTheme: T
 
   params.set("ext_version", browser.runtime.getManifest().version);
 
-  const { globalSetting, dispatchGlobalSetting } = TBCContext.useGlobalSettingContext();
+  const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
   const frameRef = useRef<HTMLIFrameElement>(null);
   const frameLoaded = useRef(false);
 
   const src = `${baseUrl}/${props.type}?${params}`;
 
   const isDarkTheme = useCallback(() => {
-    return props.twitchTheme === 'dark' ? 'on' : 'off'
+    return props.twitchTheme === 'dark'
   }, [props.twitchTheme])
 
   const postSetting = (type: string, value: any) => {
@@ -325,7 +324,7 @@ export function RemoteChatContainer(props: { type: ContainerType, twitchTheme: T
 
   useEffect(() => {
     postSetting("TWITCH_DARKMODE", isDarkTheme());
-    dispatchGlobalSetting({type: 'darkTheme', value: isDarkTheme()});
+    dispatchGlobalSetting(setDarkTheme(isDarkTheme() ? 'on' : 'off'));
   }, [props.twitchTheme]);
 
   return (

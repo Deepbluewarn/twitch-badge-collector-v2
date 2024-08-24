@@ -1,4 +1,4 @@
-import { ChatInterface } from 'twitch-badge-collector-cc';
+import { ChatInfo } from "../../interfaces/chat";
 
 export default function ChatFromChzzkUi(node: Node) {
   const nodeElement = <HTMLElement>node;
@@ -44,7 +44,7 @@ export default function ChatFromChzzkUi(node: Node) {
   const textArr = Array.from(textContents).map((text) => text.textContent);
   const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
 
-  return <ChatInterface.ChatInfo>{
+  return <ChatInfo>{
     badges: [...badgeArr],
     textContents: [...textArr, ...donationTextArr],
     loginName: loginName,

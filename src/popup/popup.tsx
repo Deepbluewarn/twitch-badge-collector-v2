@@ -7,12 +7,6 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { styled, ThemeProvider } from "@mui/material/styles";
 import Selector from "@components/Selector";
-import {
-  SettingInterface,
-  Context as TBCContext,
-  useCustomTheme,
-  SocialFooter,
-} from 'twitch-badge-collector-cc';
 import CustomTextField from "@components/CustomTextField";
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
@@ -22,6 +16,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons";
 import Divider from "@mui/material/Divider";
 import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
+import { GlobalSettingContext, useGlobalSettingContext } from "../context/GlobalSetting";
+import { useCustomTheme } from "@hooks/useCustomTheme";
+import { MenuItem } from "@mui/material";
+import SocialFooter from "@components/SocialFooter";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -103,6 +101,7 @@ const router = createMemoryRouter(routes, {
 });
 
 function PopupSetting() {
+  const { globalSetting } = useGlobalSettingContext();
   return (
     <Stack spacing={1} sx={{ padding: '8px' }}>
       <Stack direction='row' alignItems='center' gap={2}>
@@ -115,21 +114,35 @@ function PopupSetting() {
       <Stack sx={{ margin: '8px 0 8px 0' }}>
         <Selector
           title={browser.i18n.getMessage("chatPosition")}
-          values={SettingInterface.PositionOptions}
-          id="position"
-          key='position'
-        />
+          value={globalSetting.position}
+          action="SET_POSITION"
+        >
+          <MenuItem value={'up'} key={'up'}>{browser.i18n.getMessage('up')}</MenuItem>
+          <MenuItem value={'down'} key={'down'}>{browser.i18n.getMessage('down')}</MenuItem>
+        </Selector>
+
         <CustomTextField
           title={`${browser.i18n.getMessage('maximumNumberChats')} (${browser.i18n.getMessage('needRefresh')})`}
           id='maximumNumberChats'
+          action='SET_MAXIMUM_NUMBER_CHATS'
         />
         <Selector
           title={browser.i18n.getMessage("pointBoxAutoClick")}
-          values={SettingInterface.ToggleOptions}
-          id="pointBoxAuto"
-          key='pointBoxAuto'
-        />
-      </Stack>
+          value={globalSetting.pointBoxAuto}
+          action="SET_POINT_BOX_AUTO"
+        >
+          <MenuItem value={'on'} key={'true'}>{browser.i18n.getMessage('on')}</MenuItem>
+          <MenuItem value={'off'} key={'false'}>{browser.i18n.getMessage('off')}</MenuItem>
+        </Selector>
+
+        <Selector
+          title={browser.i18n.getMessage("chatTime")}
+          value={globalSetting.chatTime}
+          action="SET_CHAT_TIME"
+        >
+          <MenuItem value={'on'} key={'true'}>{browser.i18n.getMessage('on')}</MenuItem>
+          <MenuItem value={'off'} key={'false'}>{browser.i18n.getMessage('off')}</MenuItem>
+        </Selector>
       </Stack>
     </Stack>
   )
@@ -252,15 +265,15 @@ function Popup() {
 }
 
 const ContextRouter = () => {
-  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(false);
+  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
 
   return (
-    <ThemeProvider theme={useCustomTheme('off')}>
-      <TBCContext.GlobalSettingContext.Provider
+    <ThemeProvider theme={useCustomTheme(false)}>
+      <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
         <RouterProvider router={router} />
-      </TBCContext.GlobalSettingContext.Provider>
+      </GlobalSettingContext.Provider>
     </ThemeProvider>
   )
 }

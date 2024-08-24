@@ -1,4 +1,4 @@
-import { ChatInterface } from 'twitch-badge-collector-cc';
+import { ChatInfo } from "../../interfaces/chat";
 
 export default function ChatFromTwitchUi(node: Node) {
   const nodeElement = <HTMLElement>node;
@@ -48,7 +48,7 @@ export default function ChatFromTwitchUi(node: Node) {
 
   Array.from(textContents).map((text) => text.textContent);
 
-  return <ChatInterface.ChatInfo>{
+  return <ChatInfo>{
     textContents: Array.from(textContents).map((text) => text.textContent),
     badges: Array.from(badges).map(
       (badge) => new URL(badge.src).pathname.split("/")[3]

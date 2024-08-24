@@ -1,37 +1,37 @@
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import { useTranslation } from "react-i18next";
 import { MemoryRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   QueryCache,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import browser from "webextension-polyfill";
 import { ThemeProvider } from "@mui/material/styles";
 import { getQueryParams } from "@utils/utils-common";
 import globalStyles from "@style/global";
-import { 
-  Context as TBCContext,
-  useCustomTheme,
-  useAlert,
-  useTwitchAPI,
-  Filter, 
-  DrawerTemplate,
-  SettingPageDrawer,
-  AlertContainer,
-  useChzzkAPI,
-} from 'twitch-badge-collector-cc';
-import ChatSaverExtension from "@components/chatsaver/ChatSaverExtension";
 import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
+import useAlert from "@hooks/useAlert";
+import useChzzkAPI from "@hooks/useChzzkAPI";
+import { GlobalSettingContext } from "../context/GlobalSetting";
+import { AlertContext } from "../context/Alert";
+import { useCustomTheme } from "@hooks/useCustomTheme";
+import { TwitchAPIContext } from "../context/TwitchAPIContext";
+import useTwitchAPI from "@hooks/useTwitchAPI";
+import { ChzzkAPIContext } from "../context/ChzzkAPIContext";
+import AlertContainer from "@components/AlertContainer";
+import { ArrayFilterContext } from "../context/ArrayFilter";
+import DrawerTemplate from "@components/DrawerTemplate";
+import SettingPageDrawer from "@components/drawer/SettingPageDrawer";
+import Filter from "@components/Filter";
+import Browser from "webextension-polyfill";
+import '../../src/translate/i18n';
 
 function App() {
-  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(false);
+  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
-  const twitchAPI = useTwitchAPI(import.meta.env.DEV);
+  const twitchAPI = useTwitchAPI();
   const chzzkAPI = useChzzkAPI();
-  const { t, i18n } = useTranslation();
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -41,56 +41,37 @@ function App() {
     },
     queryCache: new QueryCache({
       onError: () =>
-        addAlert({ serverity: "error", message: t("alert.network_error") }),
+        addAlert({ serverity: "error", message: '요청 실패' }),
     }),
   });
 
-  const getClientLocale = () => {
-    if (typeof Intl !== "undefined") {
-      try {
-        return Intl.NumberFormat().resolvedOptions().locale;
-      } catch (err) {
-        console.error("Cannot get locale from Intl");
-
-        return window.navigator.languages
-          ? window.navigator.languages[0]
-          : window.navigator.language;
-      }
-    }
-  };
-
-  useEffect(() => {
-    i18n.changeLanguage(getClientLocale());
-  }, []);
-
   return (
-    <ThemeProvider theme={useCustomTheme(globalSetting.darkTheme)}>
-      <TBCContext.GlobalSettingContext.Provider
+    <ThemeProvider theme={useCustomTheme(globalSetting.darkTheme === 'on')}>
+      <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
-        <TBCContext.AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
+        <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
           <QueryClientProvider client={queryClient}>
-            <TBCContext.TwitchAPIContext.Provider value={twitchAPI}>
-              <TBCContext.ChzzkAPIContext.Provider value={chzzkAPI}>
+            <TwitchAPIContext.Provider value={twitchAPI}>
+              <ChzzkAPIContext.Provider value={chzzkAPI}>
                 {globalStyles}
                 <AlertContainer />
                 <Router />
-              </TBCContext.ChzzkAPIContext.Provider>
-            </TBCContext.TwitchAPIContext.Provider>
+              </ChzzkAPIContext.Provider>
+            </TwitchAPIContext.Provider>
           </QueryClientProvider>
-        </TBCContext.AlertContext.Provider>
-      </TBCContext.GlobalSettingContext.Provider>
+        </AlertContext.Provider>
+      </GlobalSettingContext.Provider>
     </ThemeProvider>
   );
 }
 
 function Router() {
-  const { t } = useTranslation();
   const { arrayFilter, setArrayFilter, addArrayFilter, checkFilter } =
     useArrayFilterExtension('twitch', false);
 
   return (
-    <TBCContext.ArrayFilterContext.Provider
+    <ArrayFilterContext.Provider
       value={{ arrayFilter, setArrayFilter, addArrayFilter, checkFilter }}
     >
       <MemoryRouter initialEntries={[`/${getQueryParams("initialPath")}`]}>
@@ -99,9 +80,9 @@ function Router() {
             path="/filter"
             element={
               <DrawerTemplate
-                title={t("setting.filter_setting")}
+                title={Browser.i18n.getMessage("setting.filter")}
                 name="filter"
-                drawer={<SettingPageDrawer env="Extension"/>}
+                drawer={<SettingPageDrawer />}
               >
                 <Filter />
               </DrawerTemplate>
@@ -111,11 +92,12 @@ function Router() {
             path="/chatsaver"
             element={
               <DrawerTemplate
-                title={t("setting.save_chat")}
+                title={Browser.i18n.getMessage("setting.chatsaver")}
                 name="chatsaver"
-                drawer={<SettingPageDrawer env="Extension" />}
+                drawer={<SettingPageDrawer />}
               >
-                <ChatSaverExtension/>
+                {/* <ChatSaverExtension/> */}
+                <span>준비중입니다.</span>
               </DrawerTemplate>
             }
           />
@@ -125,7 +107,7 @@ function Router() {
           />
         </Routes>
       </MemoryRouter>
-    </TBCContext.ArrayFilterContext.Provider>
+    </ArrayFilterContext.Provider>
   );
 }
 ReactDOM.createRoot(document.getElementById("root") as Element).render(
