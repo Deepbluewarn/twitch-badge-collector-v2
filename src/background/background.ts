@@ -15,6 +15,10 @@ browser.runtime.onInstalled.addListener(function (details) {
       url: browser.runtime.getURL(`src/welcome/welcome.html`),
     });
   }
+  
+  browser.storage.local.get(['miniChatTime']).then(res => {
+    browser.storage.local.set({'chatTime': res.miniChatTime ?? 'off'});
+  })
 
   browser.storage.local.get(["filter"]).then((res) => {
     const filter: FilterInterface.ArrayFilterListInterface[] = res.filter;

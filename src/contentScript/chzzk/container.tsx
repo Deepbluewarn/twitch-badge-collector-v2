@@ -84,6 +84,21 @@ export function LocalChatContainer() {
         setMaxNumChats(globalSetting.maximumNumberChats);
     }, [globalSetting.maximumNumberChats]);
 
+    useEffect(() => {
+        browser.storage.local.onChanged.addListener(changes => {
+            if (!containerRef.current) return;
+
+            console.log(changes)
+            if (changes['chatTime'].newValue === 'on') {
+                containerRef.current.classList.remove('tbcv2_chatTime_off')
+                containerRef.current.classList.add('tbcv2_chatTime_on')
+            } else {
+                containerRef.current.classList.remove('tbcv2_chatTime_on')
+                containerRef.current.classList.add('tbcv2_chatTime_off')
+            }
+        })
+    }, [])
+
     const getScrollArea = () => {
         if (!containerRef.current) return;
 

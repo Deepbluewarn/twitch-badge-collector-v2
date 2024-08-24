@@ -13,6 +13,14 @@
     margin-bottom: 3px;
 }
 
+.tbcv2_chatTime_on .tbcv2-chat-time {
+    display: block;
+}
+
+.tbcv2_chatTime_off .tbcv2-chat-time {
+    display: none;
+}
+
 #handle-container {
     display: flex;
     flex-direction: column;
