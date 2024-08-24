@@ -7,7 +7,9 @@ import {
 } from "@utils/utils-common";
 import ChatFromChzzkUi from "./chzzkUiChat";
 import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
+import { useGlobalSettingContext } from "../../context/GlobalSetting";
 
+// 자동 스크롤이 정상적으로 동작하기 위해 필요한 wrapper 요소
 const TwitchChatContainerStyle = styled("div")({
     height: "100%",
 });
@@ -19,7 +21,7 @@ export function LocalChatContainer() {
     const [maxNumChats, setMaxNumChats] = useState(import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
     const { setArrayFilter, checkFilter } = useArrayFilterExtension('chzzk', true);
     const containerRef = useRef<HTMLDivElement>(null);
-    
+
     useEffect(() => {
         browser.storage.onChanged.addListener((changed, areaName) => {
             if (areaName !== "local") return;
@@ -138,14 +140,18 @@ export function LocalChatContainer() {
                     }
 
                     setChatSet(prevChatSet => {
-                        if (prevChatSet.size >= 100) {
+                        // Set으로 변환해서 중복 제거
+                        const tempChatSet = new Set(prevChatSet);
+
+                        if (tempChatSet.size >= 100) {
                             const iterator = prevChatSet.values()
                             const oldestElement = iterator.next().value
-                            prevChatSet.delete(oldestElement);
+                            tempChatSet.delete(oldestElement);
                         }
-                        const newSet = new Set(prevChatSet);
-                        newSet.add(React.createElement(Fragment, null, convertToJSX(clone as HTMLElement)));
-                        return newSet;
+                        tempChatSet.add(React.createElement(Fragment, {
+
+                        }, convertToJSX(clone as HTMLElement)));
+                        return [...tempChatSet];
                     });
                 }
             });
