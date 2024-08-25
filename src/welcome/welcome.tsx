@@ -13,6 +13,7 @@ import Alert from "@mui/material/Alert";
 import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 import { useCustomTheme } from "@hooks/useCustomTheme";
 import { GlobalSettingContext } from "../context/GlobalSetting";
+import '../../src/translate/i18n';
 
 function DocumentLink(props: { children: React.ReactNode }) {
     return (

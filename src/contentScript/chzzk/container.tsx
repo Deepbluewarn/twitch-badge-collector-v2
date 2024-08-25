@@ -9,6 +9,7 @@ import {
 import ChatFromChzzkUi from "./chzzkUiChat";
 import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
 import { useGlobalSettingContext } from "../../context/GlobalSetting";
+import '../../../src/translate/i18n';
 
 // 자동 스크롤이 정상적으로 동작하기 위해 필요한 wrapper 요소
 const TwitchChatContainerStyle = styled("div")({
