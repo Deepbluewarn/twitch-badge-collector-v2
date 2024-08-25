@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import browser from "webextension-polyfill";
 import {
   createCloneContainer,
-  RemoteChatContainer,
   LocalChatContainer,
   createReplayContainer,
 } from "./container";
@@ -25,7 +24,6 @@ let containerRatio = 30;
 let pointBoxAuto = true;
 
 let streamChatFound = false;
-let replayChatFound = false;
 let pointBoxFound = false;
 let twitchDarkTheme = false;
 let observerStatus = false;
@@ -126,18 +124,7 @@ function pointBoxObserverCallback(mutationRecord: MutationRecord[]) {
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
-  const displayMethod = globalSetting.chatDisplayMethod;
-  const isReplay = useRef(ReplayPageType());
   const { theme: twitchTheme } = useTwitchTheme();
-  let chat = null;
-
-  if (isReplay.current) {
-    chat = <RemoteChatContainer type="replay" twitchTheme={twitchTheme} />;
-  } else {
-    if (displayMethod === "local") {
-      chat = <LocalChatContainer />;
-    } 
-  }
 
   useEffect(() => {
     browser.storage.onChanged.addListener((changed, areaName) => {
@@ -167,8 +154,7 @@ function App() {
         value={{ globalSetting, dispatchGlobalSetting }}
       >
         <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
-          {/* <PeriodicSupportPopup /> */}
-          {chat}
+          <LocalChatContainer />
         </AlertContext.Provider>
       </GlobalSettingContext.Provider>
     </ThemeProvider>
@@ -249,7 +235,6 @@ browser.runtime.onMessage.addListener((message) => {
     currentPath = window.location.pathname;
 
     streamChatFound = false;
-    replayChatFound = false;
     pointBoxFound = false;
 
     updateLocalSettingValues();
