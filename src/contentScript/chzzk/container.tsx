@@ -3,6 +3,7 @@ import browser from "webextension-polyfill";
 import { convertToJSX } from "@utils/converter";
 import { styled } from "@mui/material/styles";
 import {
+    generateRandomString,
     observer,
 } from "@utils/utils-common";
 import ChatFromChzzkUi from "./chzzkUiChat";
@@ -87,7 +88,6 @@ export function LocalChatContainer() {
         browser.storage.local.onChanged.addListener(changes => {
             if (!containerRef.current) return;
 
-            console.log(changes)
             if (changes['chatTime'].newValue === 'on') {
                 containerRef.current.classList.remove('tbcv2_chatTime_off')
                 containerRef.current.classList.add('tbcv2_chatTime_on')
@@ -149,7 +149,7 @@ export function LocalChatContainer() {
                             tempChatSet.delete(oldestElement);
                         }
                         tempChatSet.add(React.createElement(Fragment, {
-
+                            key: `${new Date().getTime()}${generateRandomString(8)}`
                         }, convertToJSX(clone as HTMLElement)));
                         return [...tempChatSet];
                     });
