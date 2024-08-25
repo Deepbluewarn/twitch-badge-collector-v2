@@ -217,15 +217,6 @@ function Popup() {
         >
           {browser.i18n.getMessage("p_filter_btn")}
         </Button>
-        <Button
-          variant="outlined"
-          sx={{ 'width': '100%' }}
-          onClick={() => {
-            onPageButtonClicked("chatsaver");
-          }}
-        >
-          {browser.i18n.getMessage("p_save_chat_btn")}
-        </Button>
       </Stack>
 
       <Link href={rateLink} underline="none" target='_blank'>

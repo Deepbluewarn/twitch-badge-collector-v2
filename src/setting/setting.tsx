@@ -89,19 +89,6 @@ function Router() {
             }
           />
           <Route
-            path="/chatsaver"
-            element={
-              <DrawerTemplate
-                title={Browser.i18n.getMessage("setting.chatsaver")}
-                name="chatsaver"
-                drawer={<SettingPageDrawer />}
-              >
-                {/* <ChatSaverExtension/> */}
-                <span>준비중입니다.</span>
-              </DrawerTemplate>
-            }
-          />
-          <Route
             path="*"
             element={<Navigate to="/filter" replace />}
           />

@@ -29,17 +29,6 @@ export default function SettingPageDrawer() {
         </>
     );
 
-    const chatSaverListItem = (
-        <>
-            <ListItemIcon>
-                <ImageIcon />
-            </ListItemIcon>
-            <ListItemText
-                primary={t('setting.save_chat')}
-            />
-        </>
-    );
-
     return (
         <>
             <Toolbar />
@@ -48,10 +37,6 @@ export default function SettingPageDrawer() {
                 <List dense={false}>
                     <ListItemButton onClick={() => navigate(`/filter`)}>
                         {filterListItem}
-                    </ListItemButton>
-
-                    <ListItemButton onClick={() => navigate(`/chatsaver`)}>
-                        {chatSaverListItem}
                     </ListItemButton>
                 </List>
                 <Divider />
