@@ -88,12 +88,17 @@ export function LocalChatContainer() {
         browser.storage.local.onChanged.addListener(changes => {
             if (!containerRef.current) return;
 
-            if (changes['chatTime'].newValue === 'on') {
-                containerRef.current.classList.remove('tbcv2_chatTime_off')
-                containerRef.current.classList.add('tbcv2_chatTime_on')
-            } else {
-                containerRef.current.classList.remove('tbcv2_chatTime_on')
-                containerRef.current.classList.add('tbcv2_chatTime_off')
+            if (changes['chatTime']) {
+                switch (changes['chatTime'].newValue) {
+                    case 'on':
+                        containerRef.current.classList.remove('tbcv2_chatTime_off');
+                        containerRef.current.classList.add('tbcv2_chatTime_on');
+                        break;
+                    case 'off':
+                        containerRef.current.classList.remove('tbcv2_chatTime_on');
+                        containerRef.current.classList.add('tbcv2_chatTime_off');
+                        break;
+                }
             }
         })
     }, [])
