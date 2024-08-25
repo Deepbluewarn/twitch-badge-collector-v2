@@ -149,7 +149,7 @@ export function LocalChatContainer() {
                         // Set으로 변환해서 중복 제거
                         const tempChatSet = new Set(prevChatSet);
 
-                        if (tempChatSet.size >= 100) {
+                        if (tempChatSet.size >= maxNumChats) {
                             const iterator = prevChatSet.values()
                             const oldestElement = iterator.next().value
                             tempChatSet.delete(oldestElement);
