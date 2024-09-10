@@ -1,4 +1,4 @@
-import { ChatInterface } from 'twitch-badge-collector-cc';
+import { ChatInfo } from "../../interfaces/chat";
 
 export default function ChatFromChzzkUi(node: Node) {
   const nodeElement = <HTMLElement>node;
@@ -44,14 +44,7 @@ export default function ChatFromChzzkUi(node: Node) {
   const textArr = Array.from(textContents).map((text) => text.textContent);
   const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
 
-  const verifiedBadge = checkVerifiedBadge(chat_clone);
-
-  if (verifiedBadge) {
-    badgeArr.push('https://ssl.pstatic.net/static/nng/glive/resource/p/static/media/icon_official.a53d1555f8f4796d7862.png');
-  }
-
-
-  return <ChatInterface.ChatInfo>{
+  return <ChatInfo>{
     badges: [...badgeArr],
     textContents: [...textArr, ...donationTextArr],
     loginName: loginName,

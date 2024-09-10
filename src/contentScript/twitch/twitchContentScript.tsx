@@ -1,68 +1,32 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import browser from "webextension-polyfill";
 import {
   createCloneContainer,
-  RemoteChatContainer,
   LocalChatContainer,
   createReplayContainer,
 } from "./container";
 import { ReplayPageType, observer } from "@utils/utils-common";
 import { updateContainerRatio } from "./containerHandler";
-import {
-  SettingInterface,
-  Context as TBCContext,
-  useAlert,
-  CustomTheme,
-  useCustomTheme,
-} from 'twitch-badge-collector-cc';
 import useTwitchTheme from "@hooks/useTwitchTheme";
 import { ThemeProvider } from '@mui/material/styles';
-import overrideFetch from '../../overrideFetch?script&module'
 import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
-import * as Sentry from "@sentry/browser";
-
-Sentry.init({
-  dsn: "https://af1b53df8897a90d7c27e8f9347954af@o1197585.ingest.sentry.io/4506447984852992",
-  integrations: [
-    new Sentry.Replay({
-      maskAllText: false,
-      blockAllMedia: false,
-    }),
-  ],
-  release: browser.runtime.getManifest().version,
-  // Session Replay
-  replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
-  replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
-});
+import { SettingInterface } from "@interfaces/setting";
+import { GlobalSettingContext } from "../../context/GlobalSetting";
+import { CustomTheme } from "@interfaces/ThemeInterface";
+import { useCustomTheme } from "@hooks/useCustomTheme";
+import { AlertContext } from "../../context/Alert";
+import useAlert from "@hooks/useAlert";
 
 let streamPageObserver: MutationObserver | undefined;
-let position: SettingInterface.PositionOptionsType;
+let position: SettingInterface['position'];
 let containerRatio = 30;
 let pointBoxAuto = true;
 
 let streamChatFound = false;
-let replayChatFound = false;
 let pointBoxFound = false;
 let twitchDarkTheme = false;
 let observerStatus = false;
-
-twitchDarkTheme
-replayChatFound
-observerStatus
-
-const injectMockFetch = () => {
-  const s = document.createElement("script");
-  s.src = browser.runtime.getURL(overrideFetch);
-  s.type = 'module';
-  s.onload = function () {
-    s.remove();
-  };
-  (document.head || document.documentElement).appendChild(s);
-};
-
-injectMockFetch();
 
 function initPage() {
   const body = document.body;
@@ -158,22 +122,9 @@ function pointBoxObserverCallback(mutationRecord: MutationRecord[]) {
 }
 
 function App() {
-  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(true);
+  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
-  const displayMethod = globalSetting.chatDisplayMethod;
-  const isReplay = useRef(ReplayPageType());
   const { theme: twitchTheme } = useTwitchTheme();
-  let chat = null;
-
-  if (isReplay.current) {
-    chat = <RemoteChatContainer type="replay" twitchTheme={twitchTheme} />;
-  } else {
-    if (displayMethod === "local") {
-      chat = <LocalChatContainer />;
-    } else if (displayMethod === "remote") {
-      chat = <RemoteChatContainer type="mini" twitchTheme={twitchTheme} />;
-    }
-  }
 
   useEffect(() => {
     browser.storage.onChanged.addListener((changed, areaName) => {
@@ -185,17 +136,9 @@ function App() {
         if (key === "position") {
           position = newValue;
           updatePosition(position);
-          dispatchGlobalSetting({ type: "position", value: newValue });
-        } else if (key === "chatDisplayMethod") {
-          dispatchGlobalSetting({ type: "chatDisplayMethod", value: newValue });
+          dispatchGlobalSetting({ type: 'SET_POSITION', payload: newValue });
         } else if (key === "pointBoxAuto") {
           pointBoxAuto = newValue;
-        } else if (key === "miniLanguage") {
-          dispatchGlobalSetting({ type: "miniLanguage", value: newValue });
-        } else if (key === "miniFontSize") {
-          dispatchGlobalSetting({ type: "miniFontSize", value: newValue });
-        } else if (key === "miniChatTime") {
-          dispatchGlobalSetting({ type: "miniChatTime", value: newValue });
         } else if (key === "containerRatio") {
           containerRatio = newValue;
         }
@@ -203,89 +146,22 @@ function App() {
     });
   }, []);
 
-  const customTheme = useCustomTheme(twitchTheme === 'dark' ? 'on' : 'off');
+  const customTheme = useCustomTheme(twitchTheme === 'dark');
 
   return (
     <ThemeProvider<CustomTheme> theme={customTheme}>
-      <TBCContext.GlobalSettingContext.Provider
+      <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
-        <TBCContext.AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
-          {/* <PeriodicSupportPopup /> */}
-          {chat}
-        </TBCContext.AlertContext.Provider>
-      </TBCContext.GlobalSettingContext.Provider>
+        <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
+          <LocalChatContainer />
+        </AlertContext.Provider>
+      </GlobalSettingContext.Provider>
     </ThemeProvider>
   );
 }
 
-// function PeriodicSupportPopup() {
-//   const [displayPopup, setDisplayPopup] = useState(false);
-//   const popupProbability = useRef(getRandomBooleanWithProbability(0.25));
-//   const [rateLink, setRateLink] = useState('');
-
-//   const daysElapsedSince = useCallback((time: number): number => {
-//     let daysElapsed: number = (new Date().getTime() - time) / (1000 * 60 * 60 * 24);
-//     return daysElapsed;
-//   }, []);
-
-//   const onCloseButtonClicked = useCallback(() => {
-//     browser.storage.local.set({lastPopupTime: new Date().getTime()});
-//     setDisplayPopup(false);
-//   }, []);
-
-//   useEffect(() => {
-//     browser.storage.local.get('lastPopupTime').then(res => {
-//       const lastPopupTime = res.lastPopupTime;
-//       setDisplayPopup(!lastPopupTime || daysElapsedSince(Number(lastPopupTime)) >= 60);
-//     });
-//   }, []);
-
-//   useEffect(() => {
-//     isFirefoxAddon().then(isf => {
-//       setRateLink((isf ? import.meta.env.VITE_FIREFOX_RATE_EXT_LINK : import.meta.env.VITE_CHROMIUM_RATE_EXT_LINK) || '');
-//     });
-//   }, [])
-
-//   return popupProbability.current && displayPopup ? (
-//     <PaperPopup variant="outlined">
-//       <Stack sx={{ height: '100%' }} gap={1} justifyContent='space-between'>
-//         <Typography sx={{ fontWeight: 'bold' }} variant="h5">{browser.runtime.getManifest().name}</Typography>
-//         <Typography variant="h6">{browser.i18n.getMessage("supportMessage")}</Typography>
-//         <Stack direction='row' gap={1}>
-//           <Link href={import.meta.env.VITE_DONATE_LINK || ''} rel="noopener" target='_blank'>
-//             <Button variant='contained'>
-//               <Typography variant="h6">
-//               {browser.i18n.getMessage('donation')}
-//               </Typography>
-//             </Button>
-//           </Link>
-//           <Link href={rateLink} target='_blank' rel="noopener">
-//             <Button variant='contained'>
-//               <Typography variant="h6">
-//                 {browser.i18n.getMessage('review_2')}
-//               </Typography>
-//             </Button>
-//           </Link>
-//           <Button sx={{ marginLeft: 'auto' }}><Typography variant="h6" onClick={onCloseButtonClicked}>{browser.i18n.getMessage('close')}</Typography></Button>
-//         </Stack>
-//       </Stack>
-//     </PaperPopup>
-//   ) : null
-// }
-
-// const PaperPopup = styled(Paper)({
-//   position: 'absolute',
-//   width: '84%',
-//   height: '180px',
-//   padding: '16px',
-//   zIndex: '44444444',
-//   top: '50%',
-//   left: '50%',
-//   transform: 'translate(-50%, -50%)'
-// });
-
-function updatePosition(position: SettingInterface.PositionOptionsType) {
+function updatePosition(position: SettingInterface['position']) {
   const tbcContainer = document.getElementById(
     "tbc-container"
   ) as HTMLDivElement;
@@ -359,7 +235,6 @@ browser.runtime.onMessage.addListener((message) => {
     currentPath = window.location.pathname;
 
     streamChatFound = false;
-    replayChatFound = false;
     pointBoxFound = false;
 
     updateLocalSettingValues();

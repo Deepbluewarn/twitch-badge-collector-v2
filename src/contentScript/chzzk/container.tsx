@@ -1,43 +1,28 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import browser from "webextension-polyfill";
-import convert from "react-from-dom";
+import { convertToJSX } from "@utils/converter";
 import { styled } from "@mui/material/styles";
 import {
-  observer,
+    generateRandomString,
+    observer,
 } from "@utils/utils-common";
 import ChatFromChzzkUi from "./chzzkUiChat";
-import {
-  Context as TBCContext,
-} from 'twitch-badge-collector-cc';
 import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
+import { useGlobalSettingContext } from "../../context/GlobalSetting";
+import '../../../src/translate/i18n';
 
+// 자동 스크롤이 정상적으로 동작하기 위해 필요한 wrapper 요소
 const TwitchChatContainerStyle = styled("div")({
     height: "100%",
 });
 
 export function LocalChatContainer() {
-    const { globalSetting } = TBCContext.useGlobalSettingContext();
-    const [chatList, setChatList] = useState<Node[]>([]);
+    const { globalSetting } = useGlobalSettingContext();
+    const [chatSet, setChatSet] = useState<React.ReactNode[]>([]);
     const [chatIsBottom, setChatIsBottom] = useState(true);
     const [maxNumChats, setMaxNumChats] = useState(import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
     const { setArrayFilter, checkFilter } = useArrayFilterExtension('chzzk', true);
     const containerRef = useRef<HTMLDivElement>(null);
-
-    const container = document.getElementsByClassName("live_chatting_list_wrapper__a5XTV")[0];
-    let originalContainer = null;
-
-    if (container) {
-        originalContainer = container.cloneNode(true) as HTMLElement;
-
-        originalContainer.setAttribute("style", "");
-        originalContainer.id = "tbc-clone__chzzkui";
-
-        originalContainer.style.marginTop = '0';
-        originalContainer.style.paddingTop = '0';
-        originalContainer.style.height = "100%";
-
-        originalContainer.textContent = ""; //remove all chat lines.
-    }
 
     useEffect(() => {
         browser.storage.onChanged.addListener((changed, areaName) => {
@@ -88,33 +73,36 @@ export function LocalChatContainer() {
     }, [maxNumChats]);
 
     useEffect(() => {
-        const chatListContainer = containerRef.current?.querySelector(
-            "#tbc-clone__chzzkui"
-        );
-        chatList.forEach((chat) => {
-            if (!chatListContainer) return;
-
-            if (chatListContainer.childElementCount >= maxNumChats) {
-                const firstChild = chatListContainer.firstElementChild;
-
-                if (firstChild === null) return;
-
-                chatListContainer.removeChild(firstChild);
-            }
-
-            chatListContainer.appendChild(chat);
-        });
         const scrollArea = getScrollArea();
 
         if (!scrollArea) return;
         if (chatIsBottom) scrollArea.scrollTop = scrollArea.scrollHeight;
-    }, [chatList, maxNumChats]);
+    }, [chatSet, maxNumChats]);
 
     useEffect(() => {
         if(typeof globalSetting.maximumNumberChats === 'undefined') return;
 
         setMaxNumChats(globalSetting.maximumNumberChats);
     }, [globalSetting.maximumNumberChats]);
+
+    useEffect(() => {
+        browser.storage.local.onChanged.addListener(changes => {
+            if (!containerRef.current) return;
+
+            if (changes['chatTime']) {
+                switch (changes['chatTime'].newValue) {
+                    case 'on':
+                        containerRef.current.classList.remove('tbcv2_chatTime_off');
+                        containerRef.current.classList.add('tbcv2_chatTime_on');
+                        break;
+                    case 'off':
+                        containerRef.current.classList.remove('tbcv2_chatTime_on');
+                        containerRef.current.classList.add('tbcv2_chatTime_off');
+                        break;
+                }
+            }
+        })
+    }, [])
 
     const getScrollArea = () => {
         if (!containerRef.current) return;
@@ -142,7 +130,7 @@ export function LocalChatContainer() {
                     const clone = node.cloneNode(true);
 
                     (node as HTMLElement).classList.add('tbcv2-highlight');
-                    
+
                     const username_elem = (clone as HTMLElement).getElementsByClassName(
                         'live_chatting_username_container__m1-i5 live_chatting_username_is_message__jvTvP')[0] as HTMLElement;
 
@@ -157,24 +145,38 @@ export function LocalChatContainer() {
                         username_elem.prepend(chatTime);
                     }
 
-                    setChatList((n) => {
-                        if (n.length > maxNumChats) {
-                            n = n.slice(-maxNumChats);
+                    setChatSet(prevChatSet => {
+                        // Set으로 변환해서 중복 제거
+                        const tempChatSet = new Set(prevChatSet);
+
+                        if (tempChatSet.size >= maxNumChats) {
+                            const iterator = prevChatSet.values()
+                            const oldestElement = iterator.next().value
+                            tempChatSet.delete(oldestElement);
                         }
-                        return [...n, clone];
+                        tempChatSet.add(React.createElement(Fragment, {
+                            key: `${new Date().getTime()}${generateRandomString(8)}`
+                        }, convertToJSX(clone as HTMLElement)));
+                        return [...tempChatSet];
                     });
                 }
             });
         });
     };
 
-    if (!container || !originalContainer) return null;
-
-    const twitchClone = convert(originalContainer) as React.ReactNode;
-
     return (
-        <TwitchChatContainerStyle ref={containerRef}>
-            {twitchClone}
+        <TwitchChatContainerStyle ref={containerRef} className={globalSetting.chatTime === 'on' ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'}>
+            <div
+                className="live_chatting_list_wrapper__a5XTV"
+                id="tbc-clone__chzzkui"
+                style={{
+                    marginTop: 0,
+                    paddingTop: 0,
+                    height: '100%'
+                }}
+            >
+                {chatSet}
+            </div>
         </TwitchChatContainerStyle>
     );
 }

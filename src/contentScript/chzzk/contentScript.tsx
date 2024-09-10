@@ -1,4 +1,3 @@
-import { SettingInterface, useAlert, Context as TBCContext } from "twitch-badge-collector-cc";
 import browser from "webextension-polyfill";
 import { observer } from "@utils/utils-common";
 import createContainerHandler, { updateContainerRatio } from "./containerHandler";
@@ -6,32 +5,16 @@ import { useEffect } from "react";
 import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 import { createRoot } from "react-dom/client";
 import { LocalChatContainer } from "./container";
-import * as Sentry from "@sentry/browser";
 import Logger from "@utils/logger";
-
-Sentry.init({
-  dsn: "https://af1b53df8897a90d7c27e8f9347954af@o1197585.ingest.sentry.io/4506447984852992",
-  integrations: [
-    new Sentry.Replay({
-      maskAllText: false,
-      blockAllMedia: false,
-    }),
-  ],
-  release: browser.runtime.getManifest().version,
-  // Session Replay
-  replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
-  replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
-});
-
+import useAlert from "@hooks/useAlert";
+import { GlobalSettingContext } from "../../context/GlobalSetting";
+import { AlertContext } from "../../context/Alert";
+import { SettingInterface } from "@interfaces/setting";
 let streamPageObserver: MutationObserver | undefined;
-let position: SettingInterface.PositionOptionsType;
+let position: SettingInterface['position'];
 let containerRatio = 30;
 let chattingContainerFound = false;
 let observerStatus = false;
-
-position
-containerRatio
-observerStatus
 
 const initPage = () => {
 
@@ -69,7 +52,7 @@ const initPage = () => {
 }
 
 function App() {
-  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(true);
+  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
   const chat = <LocalChatContainer />
 
@@ -91,17 +74,17 @@ function App() {
   }, []);
 
   return (
-    <TBCContext.GlobalSettingContext.Provider
+    <GlobalSettingContext.Provider
       value={{ globalSetting, dispatchGlobalSetting }}
     >
-      <TBCContext.AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
+      <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
         {chat}
-      </TBCContext.AlertContext.Provider>
-    </TBCContext.GlobalSettingContext.Provider>
+      </AlertContext.Provider>
+    </GlobalSettingContext.Provider>
   );
 }
 
-function updatePosition(position: SettingInterface.PositionOptionsType) {
+function updatePosition(position: SettingInterface['position']) {
   const tbcContainer = document.getElementById(
     "chzzk-container"
   ) as HTMLDivElement;

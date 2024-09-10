@@ -7,7 +7,6 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 import zipPack from "vite-plugin-zip-pack";
 import { resolve } from 'path';
 import manifest from './manifest.json'
-import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 export default defineConfig((mode) => {
   process.env = {...process.env, ...loadEnv(mode.mode, process.cwd())};
@@ -47,16 +46,6 @@ export default defineConfig((mode) => {
           outFileName: `tbc2-${manifestJSON.version}-${build_for}.zip`
         })
       ),
-      isWatch ? null : (
-        sentryVitePlugin({
-          authToken: process.env.VITE_SENTRY_AUTH_TOKEN,
-          org: "tbc-b1",
-          release: {
-            name: manifestJSON.version
-          },
-          project: "tbc-v2-extension",
-        })
-      )
     ],
     resolve: {
       alias: {

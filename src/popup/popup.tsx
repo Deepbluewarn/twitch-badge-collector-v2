@@ -7,12 +7,6 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { styled, ThemeProvider } from "@mui/material/styles";
 import Selector from "@components/Selector";
-import {
-  SettingInterface,
-  Context as TBCContext,
-  useCustomTheme,
-  SocialFooter,
-} from 'twitch-badge-collector-cc';
 import CustomTextField from "@components/CustomTextField";
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
@@ -22,22 +16,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons";
 import Divider from "@mui/material/Divider";
 import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
-
-import * as Sentry from "@sentry/browser";
-
-Sentry.init({
-  dsn: "https://af1b53df8897a90d7c27e8f9347954af@o1197585.ingest.sentry.io/4506447984852992",
-  integrations: [
-    new Sentry.Replay({
-      maskAllText: false,
-      blockAllMedia: false,
-    }),
-  ],
-  release: browser.runtime.getManifest().version,
-  // Session Replay
-  replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
-  replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
-});
+import { GlobalSettingContext, useGlobalSettingContext } from "../context/GlobalSetting";
+import { useCustomTheme } from "@hooks/useCustomTheme";
+import { MenuItem } from "@mui/material";
+import SocialFooter from "@components/SocialFooter";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -119,6 +101,7 @@ const router = createMemoryRouter(routes, {
 });
 
 function PopupSetting() {
+  const { globalSetting } = useGlobalSettingContext();
   return (
     <Stack spacing={1} sx={{ padding: '8px' }}>
       <Stack direction='row' alignItems='center' gap={2}>
@@ -130,50 +113,36 @@ function PopupSetting() {
 
       <Stack sx={{ margin: '8px 0 8px 0' }}>
         <Selector
-          title={browser.i18n.getMessage("dispCopiedChatmethod")}
-          values={SettingInterface.ChatDisplayMethodOptions}
-          id="chatDisplayMethod"
-          key='chatDisplayMethod'
-        />
-        <Selector
           title={browser.i18n.getMessage("chatPosition")}
-          values={SettingInterface.PositionOptions}
-          id="position"
-          key='position'
-        />
+          value={globalSetting.position}
+          action="SET_POSITION"
+        >
+          <MenuItem value={'up'} key={'up'}>{browser.i18n.getMessage('up')}</MenuItem>
+          <MenuItem value={'down'} key={'down'}>{browser.i18n.getMessage('down')}</MenuItem>
+        </Selector>
+
         <CustomTextField
           title={`${browser.i18n.getMessage('maximumNumberChats')} (${browser.i18n.getMessage('needRefresh')})`}
           id='maximumNumberChats'
+          action='SET_MAXIMUM_NUMBER_CHATS'
         />
         <Selector
           title={browser.i18n.getMessage("pointBoxAutoClick")}
-          values={SettingInterface.ToggleOptions}
-          id="pointBoxAuto"
-          key='pointBoxAuto'
-        />
-      </Stack>
-      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{browser.i18n.getMessage("chatClientSetting")}</Typography>
-      <Stack sx={{ margin: '8px 0 8px 0' }}>
-        <Selector
-          title={browser.i18n.getMessage("language_text")}
-          values={SettingInterface.LanguageOptions}
-          id="miniLanguage"
-          key='miniLanguage'
-        />
-
-        <Selector
-          title={browser.i18n.getMessage("fontSize")}
-          values={SettingInterface.FontSizeOptions}
-          id="miniFontSize"
-          key='miniFontSize'
-        />
+          value={globalSetting.pointBoxAuto}
+          action="SET_POINT_BOX_AUTO"
+        >
+          <MenuItem value={'on'} key={'true'}>{browser.i18n.getMessage('on')}</MenuItem>
+          <MenuItem value={'off'} key={'false'}>{browser.i18n.getMessage('off')}</MenuItem>
+        </Selector>
 
         <Selector
           title={browser.i18n.getMessage("chatTime")}
-          values={SettingInterface.ToggleOptions}
-          id="miniChatTime"
-          key='miniChatTime'
-        />
+          value={globalSetting.chatTime}
+          action="SET_CHAT_TIME"
+        >
+          <MenuItem value={'on'} key={'true'}>{browser.i18n.getMessage('on')}</MenuItem>
+          <MenuItem value={'off'} key={'false'}>{browser.i18n.getMessage('off')}</MenuItem>
+        </Selector>
       </Stack>
     </Stack>
   )
@@ -248,15 +217,6 @@ function Popup() {
         >
           {browser.i18n.getMessage("p_filter_btn")}
         </Button>
-        <Button
-          variant="outlined"
-          sx={{ 'width': '100%' }}
-          onClick={() => {
-            onPageButtonClicked("chatsaver");
-          }}
-        >
-          {browser.i18n.getMessage("p_save_chat_btn")}
-        </Button>
       </Stack>
 
       <Link href={rateLink} underline="none" target='_blank'>
@@ -296,15 +256,15 @@ function Popup() {
 }
 
 const ContextRouter = () => {
-  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting(false);
+  const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
 
   return (
-    <ThemeProvider theme={useCustomTheme('off')}>
-      <TBCContext.GlobalSettingContext.Provider
+    <ThemeProvider theme={useCustomTheme(false)}>
+      <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
         <RouterProvider router={router} />
-      </TBCContext.GlobalSettingContext.Provider>
+      </GlobalSettingContext.Provider>
     </ThemeProvider>
   )
 }

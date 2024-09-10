@@ -1,20 +1,19 @@
 import React from "react";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import {
-  Context as TBCContext,
-  SettingInterface,
-} from 'twitch-badge-collector-cc';
 import TextField from "@mui/material/TextField";
+import { useGlobalSettingContext } from "../context/GlobalSetting";
+import { SettingInterface, SettingReducerActionTypes } from "@interfaces/setting";
 
 export default function CustomTextField(props: {
   title: string;
-  id: string;
+  id: keyof SettingInterface;
+  action: keyof SettingReducerActionTypes;
 }) {
-  const { globalSetting, dispatchGlobalSetting } = TBCContext.useGlobalSettingContext();
+  const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
 
   const onTextFieldChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatchGlobalSetting({ type: props.id as SettingInterface.SettingCategory, value: event.target.value });
+    dispatchGlobalSetting({ type: props.action, payload: event.target.value });
   };
 
   return (

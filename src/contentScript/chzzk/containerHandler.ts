@@ -1,5 +1,5 @@
+import { SettingInterface } from "@interfaces/setting";
 import browser from "webextension-polyfill";
-import { SettingInterface } from 'twitch-badge-collector-cc';
 
 export default function createContainerHandler() {
   const handle_container = document.createElement("div");
@@ -8,7 +8,7 @@ export default function createContainerHandler() {
   resize_handle.id = "tbc-resize-handle";
 
   let containerRatio = 0;
-  let position: string = "up";
+  let position: SettingInterface['position'] = "up";
   let tbcContainer: HTMLDivElement;
 
   const getPosition = (container: HTMLDivElement) => {
@@ -68,7 +68,7 @@ export default function createContainerHandler() {
 
 export function updateContainerRatio(
   ratio: number,
-  position: SettingInterface.PositionOptionsType,
+  position: SettingInterface["position"],
 ) {
   if (ratio != 0) ratio = ratio ? ratio : 30;
 

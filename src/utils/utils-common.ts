@@ -1,4 +1,15 @@
-import { FilterInterface } from "twitch-badge-collector-cc";
+import { nanoid } from "nanoid";
+import { ArrayFilterInterface } from "../interfaces/filter"
+
+export const generateRandomString = (length: number): string => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
 
 export const getQueryParams = (queryName: string) => {
   const urlSearchParams = new URLSearchParams(window.location.search);
@@ -12,6 +23,14 @@ export function trim_hash(str: string) {
     c1 = str[0] === "#" ? str.substring(1) : str;
   }
   return c1;
+}
+export function getDefaultArrayFilter() {
+  return {
+      category: 'name',
+      id: nanoid(),
+      type: 'include',
+      value: ''
+  } as ArrayFilterInterface;
 }
 export function badgeUuidFromURL(url: string) {
   let badge_uuid: string = "";
@@ -45,8 +64,8 @@ export function getErrorMessage(error: unknown) {
 }
 
 export function arrayFilterEqual(
-  a: FilterInterface.ArrayFilterInterface,
-  b: FilterInterface.ArrayFilterInterface
+  a: ArrayFilterInterface,
+  b: ArrayFilterInterface
 ) {
   return (
     Object.keys(a).length === Object.keys(b).length &&
@@ -61,8 +80,8 @@ export function arrayFilterEqual(
 }
 
 export function arrayFiltersEqual(
-  a: FilterInterface.ArrayFilterInterface[],
-  b: FilterInterface.ArrayFilterInterface[]
+  a: ArrayFilterInterface[],
+  b: ArrayFilterInterface[]
 ) {
   return (
     a.length === b.length && a.every((o, idx) => arrayFilterEqual(o, b[idx]))
