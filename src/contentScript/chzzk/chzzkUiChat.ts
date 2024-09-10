@@ -44,6 +44,12 @@ export default function ChatFromChzzkUi(node: Node) {
   const textArr = Array.from(textContents).map((text) => text.textContent);
   const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
 
+  const verifiedBadge = checkVerifiedBadge(chat_clone);
+
+  if (verifiedBadge) {
+    badgeArr.push("https://static-cdn.jtvnw.net/jtv_user_pictures/verified.png");
+  }
+  
   return <ChatInfo>{
     badges: [...badgeArr],
     textContents: [...textArr, ...donationTextArr],
