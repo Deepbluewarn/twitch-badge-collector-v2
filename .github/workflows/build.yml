@@ -20,7 +20,33 @@ jobs:
       id: get_version
       run: |
         echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-        
+    
+    - name: Generate Environment Variables File for Production
+      run: |
+        echo "VITE_SENTRY_AUTH_TOKEN=$VITE_SENTRY_AUTH_TOKEN" >> .env.production
+        echo "VITE_BASE_HOSTNAME=$VITE_BASE_HOSTNAME" >> .env.production
+        echo "VITE_BASE_URL=$VITE_BASE_URL" >> .env.production
+        echo "VITE_BUILD_ENV=$VITE_BUILD_ENV" >> .env.production
+        echo "VITE_CHROMIUM_RATE_EXT_LINK=$VITE_CHROMIUM_RATE_EXT_LINK" >> .env.production
+        echo "VITE_DOCUMENTATION=$VITE_DOCUMENTATION" >> .env.production
+        echo "VITE_DONATE_LINK=$VITE_DONATE_LINK" >> .env.production
+        echo "VITE_FIREFOX_RATE_EXT_LINK=$VITE_FIREFOX_RATE_EXT_LINK" >> .env.production
+        echo "VITE_MAXNUMCHATS_DEFAULT=$VITE_MAXNUMCHATS_DEFAULT" >> .env.production
+      env: 
+        VITE_SENTRY_AUTH_TOKEN: ${{ secrets.VITE_SENTRY_AUTH_TOKEN }}
+        VITE_BASE_HOSTNAME: ${{ vars.VITE_BASE_HOSTNAME }}
+        VITE_BASE_URL: ${{ vars.VITE_BASE_URL }}
+        VITE_BUILD_ENV: ${{ vars.VITE_BUILD_ENV }}
+        VITE_CHROMIUM_RATE_EXT_LINK: ${{ vars.VITE_CHROMIUM_RATE_EXT_LINK }}
+        VITE_DOCUMENTATION: ${{ vars.VITE_DOCUMENTATION }}
+        VITE_DONATE_LINK: ${{ vars.VITE_DONATE_LINK }}
+        VITE_FIREFOX_RATE_EXT_LINK: ${{ vars.VITE_FIREFOX_RATE_EXT_LINK }}
+        VITE_MAXNUMCHATS_DEFAULT: ${{ vars.VITE_MAXNUMCHATS_DEFAULT }}
+
+    - name: Print environment variable
+      run: |
+        cat ./.env.production
+      
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
