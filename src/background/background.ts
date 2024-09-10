@@ -12,7 +12,7 @@ browser.runtime.onInstalled.addListener(function (details) {
   }
   
   browser.storage.local.get(['miniChatTime']).then(res => {
-    browser.storage.local.set({'chatTime': res.miniChatTime === true ? 'on' : 'off'});
+    browser.storage.local.set({'chatTime': res.miniChatTime === 'on' ? 'on' : 'off'});
   })
 
   browser.storage.local.get(["filter"]).then((res) => {
