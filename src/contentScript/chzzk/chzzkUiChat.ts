@@ -3,6 +3,9 @@ import { ChatInfo } from "../../interfaces/chat";
 export default function ChatFromChzzkUi(node: Node) {
   const nodeElement = <HTMLElement>node;
 
+  // 채팅 클릭 시 유저 프로필이 MutationObserver의 이벤트에 잡히는 것을 방지
+  if (nodeElement.classList.contains('live_chatting_popup_profile_header__OWnnU')) return;
+
   if (!nodeElement || nodeElement.nodeType !== 1) return;
   if (!nodeElement.closest("#tbc-chzzk-chat-list-wrapper")) return;
 
