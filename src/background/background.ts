@@ -5,7 +5,7 @@ import { ArrayFilterListInterface } from "@interfaces/filter";
 const OLD_CHZZK_VERIFIED = 'https://static-cdn.jtvnw.net/jtv_user_pictures/verified.png';
 const NEW_CHZZK_VERIFIED = 'https://ssl.pstatic.net/static/nng/glive/resource/p/static/media/icon_official.a53d1555f8f4796d7862.png';
 
-browser.runtime.onInstalled.addListener(function (details) {
+browser.runtime.onInstalled.addListener(async function (details) {
   if (details.reason === "install") {
     browser.storage.local.set({ filter: defaultFilter });
 
@@ -14,20 +14,21 @@ browser.runtime.onInstalled.addListener(function (details) {
     });
   }
 
-  if (details.reason === 'update' && details.previousVersion === '2.12.1') {
-    browser.storage.local.get(["filter"]).then((res) => {
-      const filter: ArrayFilterListInterface[] = res.filter;
-  
-      const updateForChzzkVerifiedBadgeURL = filter.map((f) => {
-        f.filters = f.filters.map(filter => {
-          filter.value = filter.value === OLD_CHZZK_VERIFIED ? NEW_CHZZK_VERIFIED : filter.value
-          return filter;
-        })
-        return f;
-      });
-      browser.storage.local.set({ filter: updateForChzzkVerifiedBadgeURL });
-    });
-  }
+  // 치지직 인증 배지 URL 수정
+  const storageFilter = await browser.storage.local.get(["filter"]);
+
+  const filter: ArrayFilterListInterface[] = storageFilter.filter;
+
+  const updateForChzzkVerifiedBadgeURL = filter.map((f) => {
+    f.filters = f.filters.map(filter => {
+      filter.value = filter.value === OLD_CHZZK_VERIFIED ? NEW_CHZZK_VERIFIED : filter.value
+      return filter;
+    })
+    return f;
+  });
+  await browser.storage.local.set({ filter: updateForChzzkVerifiedBadgeURL });
+
+  // ===================================================================== //
   
   browser.storage.local.get(['miniChatTime']).then(res => {
     browser.storage.local.set({'chatTime': res.miniChatTime === 'on' ? 'on' : 'off'});
