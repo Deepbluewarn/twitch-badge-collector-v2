@@ -50,7 +50,7 @@ export default function ChatFromChzzkUi(node: Node) {
   const verifiedBadge = checkVerifiedBadge(chat_clone);
 
   if (verifiedBadge) {
-    badgeArr.push("https://static-cdn.jtvnw.net/jtv_user_pictures/verified.png");
+    badgeArr.push("https://ssl.pstatic.net/static/nng/glive/resource/p/static/media/icon_official.a53d1555f8f4796d7862.png");
   }
   
   return <ChatInfo>{
