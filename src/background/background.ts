@@ -2,12 +2,30 @@ import browser from "webextension-polyfill";
 import defaultFilter from "../defaultFilters";
 import { ArrayFilterListInterface } from "@interfaces/filter";
 
+const OLD_CHZZK_VERIFIED = 'https://static-cdn.jtvnw.net/jtv_user_pictures/verified.png';
+const NEW_CHZZK_VERIFIED = 'https://ssl.pstatic.net/static/nng/glive/resource/p/static/media/icon_official.a53d1555f8f4796d7862.png';
+
 browser.runtime.onInstalled.addListener(function (details) {
   if (details.reason === "install") {
     browser.storage.local.set({ filter: defaultFilter });
 
     browser.tabs.create({
       url: browser.runtime.getURL(`src/welcome/welcome.html`),
+    });
+  }
+
+  if (details.reason === 'update' && details.previousVersion === '2.12.1') {
+    browser.storage.local.get(["filter"]).then((res) => {
+      const filter: ArrayFilterListInterface[] = res.filter;
+  
+      const updateForChzzkVerifiedBadgeURL = filter.map((f) => {
+        f.filters = f.filters.map(filter => {
+          filter.value = filter.value === OLD_CHZZK_VERIFIED ? NEW_CHZZK_VERIFIED : filter.value
+          return filter;
+        })
+        return f;
+      });
+      browser.storage.local.set({ filter: updateForChzzkVerifiedBadgeURL });
     });
   }
   
