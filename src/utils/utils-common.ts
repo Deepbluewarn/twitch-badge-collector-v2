@@ -6,7 +6,7 @@ export const generateRandomString = (length: number): string => {
   let result = '';
   const charactersLength = characters.length;
   for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
 }
@@ -26,10 +26,10 @@ export function trim_hash(str: string) {
 }
 export function getDefaultArrayFilter() {
   return {
-      category: 'name',
-      id: nanoid(),
-      type: 'include',
-      value: ''
+    category: 'name',
+    id: nanoid(),
+    type: 'include',
+    value: ''
   } as ArrayFilterInterface;
 }
 export function badgeUuidFromURL(url: string) {
@@ -155,5 +155,77 @@ export function observer(
     const mutationObserver = new MutationObserver(callback);
     mutationObserver.observe(obj, config);
     return mutationObserver;
+  }
+}
+
+export function observe(
+  selector: string,
+  cb: (element: Element | null, mr?: MutationRecord[]) => Promise<void>,
+  temporal: boolean = true
+) {
+  Logger('observe', `started with selector: ${selector}`)
+  const mutationObserver = new MutationObserver((mr) => {
+    cb(selectElement(selector), mr);
+    if (temporal) mutationObserver.disconnect();
+  });
+
+  findElement(selector, (elem) => {
+    if (!elem) return;
+
+    cb(elem);
+
+    mutationObserver.observe(elem, {
+      childList: true,
+      subtree: true,
+    });
+  })
+
+  return mutationObserver;
+}
+
+export function findElement(selector: string, cb: (elem: Element | null) => void) {
+  let tryCount = 0;
+  const loop = setInterval(() => {
+    const targetNode = selectElement(selector);
+
+    if (tryCount > 400) {
+      Logger('observe', `Cannot found elements for selector: ${selector}, exit.`)
+      clearInterval(loop);
+      return;
+    }
+
+    if (!targetNode) {
+      tryCount++;
+      return;
+    }
+
+    console.debug(`TBC observe 요소 찾음 selector: ${selector}, node: `, targetNode)
+    Logger('observe', `Elements found! selector: ${selector}`)
+
+    cb(targetNode)
+
+    clearInterval(loop);
+  }, 100);
+}
+
+export function selectElement(selector: string): Element | null {
+  if (!selector || selector === '') {
+    return null;
+  }
+  // 공백이 포함된 선택자
+  if (selector.includes(' ')) {
+    return document.querySelector(selector);
+  }
+  // 클래스 선택자
+  else if (selector.startsWith('.')) {
+    return document.getElementsByClassName(selector.slice(1))[0] || null;
+  }
+  // ID 선택자
+  else if (selector.startsWith('#')) {
+    return document.getElementById(selector.slice(1));
+  }
+  // 태그 이름 선택자
+  else {
+    return document.querySelector(selector);
   }
 }
