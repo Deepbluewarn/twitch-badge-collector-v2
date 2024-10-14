@@ -29,7 +29,7 @@ export default function App({
                     BaseContainer.updatePosition(type, newValue)
                     break;
                 case 'containerRatio':
-                    Handle.updateContainerRatio(type, newValue, globalSetting.position)
+                    Handle.updateContainerRatio(type, newValue, Handle.getPosition(type))
                     break;
             }
         })
