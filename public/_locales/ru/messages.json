@@ -29,6 +29,9 @@
   "documentation" : {
     "message" : "Documentation"
   },
+  "reset_chat_ratio": {
+    "message": "Reset Chat Layout"
+  },
   "support" : {
     "message" : "Support"
   },

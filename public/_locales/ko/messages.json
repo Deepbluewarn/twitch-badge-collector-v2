@@ -29,6 +29,9 @@
   "documentation" : {
     "message" : "설명서"
   },
+  "reset_chat_ratio": {
+    "message": "채팅창 비율 초기화"
+  },
   "support" : {
     "message" : "지원"
   },
