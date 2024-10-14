@@ -8,7 +8,7 @@ import { styled } from "@mui/material/styles";
 import { addStorageUpdateListener } from "@utils/utils-browser";
 import { SettingInterface } from "@interfaces/setting";
 import { ChatExtractor } from "../../contentScript/base/chatExtractor";
-
+import { Logger } from "@utils/logger";
 
 const Wrapper = styled('div')({
     height: '100%',
@@ -53,6 +53,7 @@ export default function Local({
                     const clone = node.cloneNode(true);
 
                     (node as HTMLElement).classList.add('tbcv2-highlight');
+                    (clone as HTMLElement).classList.remove('tbcv2-highlight')
 
                     if (type === 'chzzk') {
                         const username_elem = (clone as HTMLElement).getElementsByClassName(
