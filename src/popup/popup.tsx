@@ -162,6 +162,10 @@ function Popup() {
     });
   };
 
+  const onRatioResetButtonClicked = () => {
+    browser.storage.local.set({containerRatio: 30});
+  }
+
   useEffect(() => {
     browser.storage.onChanged.addListener((changed, areaName) => {
       if (areaName !== "local") return;
@@ -188,12 +192,15 @@ function Popup() {
         <Typography variant="body2" sx={{ fontWeight: '600', color: '#A7A7A7' }}>{browser.runtime.getManifest().version}</Typography>
       </Stack>
 
-      <Stack>
+      <Stack sx={{ 'gap': '8px' }}>
         <Link href={import.meta.env.VITE_DOCUMENTATION} underline="none" target='_blank'>
           <Button variant="outlined" sx={{ width: '100%' }}>
             {browser.i18n.getMessage('documentation')}
           </Button>
         </Link>
+        <Button variant='contained' sx={{ width: '100%' }} onClick={() => onRatioResetButtonClicked()}>
+            {browser.i18n.getMessage('reset_chat_ratio')}
+        </Button>
       </Stack>
 
       <Stack direction='row' sx={{ width: '100%', 'gap': '8px' }}>
