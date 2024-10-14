@@ -7,9 +7,24 @@
     cursor: row-resize;
 }
 
-#tbc-container{
+#twitch-container{
     position: relative;
 }
+#tbc-clone__twitchui {
+    overflow: auto;
+    margin-right: -17px;
+    list-style: none;
+}
+
+#tbc-twitch-chat-list-container {
+    display: flex;
+    flex-direction: column;
+}
+
+li.InjectLayout-sc-1i43xsx-0.gZQijS {
+    padding-bottom: 0 !important;
+}
+
 #tbc-resize-handle {
     display: flex;
     border-top: 2px solid var(--color-background-alt-2);
@@ -18,7 +33,17 @@
 }
 
 .tbcv2-highlight {
-    border-left: 4px solid #FFC107;
+    position: relative;
+}
+
+.tbcv2-highlight > :first-child:before {
+    position: absolute;
+    content: '';
+    width: 4px;
+    height: 100%;
+    background-color: #FFC107;
+    left: 0;
+    top: 0;
 }
 
 .chat-paused-footer {
