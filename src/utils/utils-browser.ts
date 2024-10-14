@@ -1,4 +1,5 @@
 import browser from 'webextension-polyfill';
+import { Logger } from './logger';
 
 export const isFirefoxAddon = async () => {
     if (typeof browser !== 'undefined' && typeof browser.runtime.getBrowserInfo !== 'undefined') {

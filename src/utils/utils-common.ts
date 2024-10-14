@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { ArrayFilterInterface } from "../interfaces/filter"
+import { Logger } from "./logger";
 
 export const generateRandomString = (length: number): string => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -198,8 +199,6 @@ export function findElement(selector: string, cb: (elem: Element | null) => void
       tryCount++;
       return;
     }
-
-    console.debug(`TBC observe 요소 찾음 selector: ${selector}, node: `, targetNode)
     Logger('observe', `Elements found! selector: ${selector}`)
 
     cb(targetNode)
