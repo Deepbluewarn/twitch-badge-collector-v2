@@ -54,7 +54,7 @@ export class Handle {
 
         this.tbcContainer.classList.add("freeze");
 
-        this.position = this.getPosition(this.tbcContainer);
+        this.position = Handle.getPosition(this.type);
 
         window.addEventListener("mousemove", this.boundDoDrag);
         window.addEventListener("touchmove", this.boundDoDrag);
@@ -95,7 +95,11 @@ export class Handle {
         window.removeEventListener("touchend", this.boundEndDrag );
     };
 
-    getPosition(container: HTMLElement) {
+    static getPosition(type: SettingInterface['platform']) {
+        const container = document.getElementById(`${type}-container`);
+
+        if(!container) return 'up';
+
         return container.style.order === "1" ? "up" : "down";
     }
 
