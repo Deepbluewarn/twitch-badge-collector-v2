@@ -24,7 +24,7 @@
             ],
             "all_frames" : true,
             "js": [
-                "src/contentScript/twitch/twitchContentScript.tsx"
+                "src/contentScript/twitch/content-script.tsx"
             ],
             "css": [
                 "twitchContentScript.css"
@@ -36,7 +36,7 @@
             ],
             "all_frames" : true,
             "js": [
-                "src/contentScript/chzzk/contentScript.tsx"
+                "src/contentScript/chzzk/content-script.tsx"
             ],
             "css": [
                 "chzzkContentScript.css"
