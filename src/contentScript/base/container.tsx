@@ -4,7 +4,8 @@ import { createRoot } from "react-dom/client";
 import { Handle } from "./handler";
 import { ChatExtractor } from "./chatExtractor";
 import App from "@components/Extension/App";
-import { observe } from "@utils/utils-common";
+import { observe, selectElement } from "@utils/utils-common";
+import { Logger } from "@utils/logger";
 
 export class BaseContainer {
   theme: 'dark' | 'light';
@@ -43,6 +44,8 @@ export class BaseContainer {
 
   // DOM API로 "#tbc_container" 요소를 생성하고 반환하는 메소드
   async create() {
+    Logger('BaseContainer create', '실행')
+    
     const container = document.createElement('div');
     container.id = `${this.type}-container`;
 
@@ -51,6 +54,11 @@ export class BaseContainer {
       const parent = element?.parentElement;
 
       if (!parent) {
+        return;
+      }
+
+      if (selectElement(`#${this.type}-container`)) {
+        Logger('BaseContainer create', 'container already exists.')
         return;
       }
 
