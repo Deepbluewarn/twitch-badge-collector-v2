@@ -24,7 +24,7 @@ export default function Local({
     const { globalSetting } = useGlobalSettingContext();
     const [chatSet, setChatSet] = useState<React.ReactNode[]>([]);
     const [chatIsBottom, setChatIsBottom] = useState(true);
-    const [maxNumChats, setMaxNumChats] = useState(import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
+    const maxNumChatsRef = useRef(import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
     const currentTimeRef = useRef<number>(0);
     const { setArrayFilter, checkFilter } = useArrayFilterExtension(type, true);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -50,13 +50,16 @@ export default function Local({
                 const filterRes = checkFilter(chat);
 
                 if (typeof filterRes !== "undefined" && filterRes) {
-                    const clone = node.cloneNode(true);
+                    const clone = node.cloneNode(true) as HTMLElement;
+
+                    if (clone.classList.contains('tbcv2-highlight')) {
+                        return;
+                    }
 
                     (node as HTMLElement).classList.add('tbcv2-highlight');
-                    (clone as HTMLElement).classList.remove('tbcv2-highlight')
 
                     if (type === 'chzzk') {
-                        const username_elem = (clone as HTMLElement).getElementsByClassName(
+                        const username_elem = clone.getElementsByClassName(
                             'live_chatting_username_container__m1-i5 live_chatting_username_is_message__jvTvP')[0] as HTMLElement;
     
                         if (username_elem) {
@@ -72,18 +75,14 @@ export default function Local({
                     }
 
                     setChatSet(prevChatSet => {
-                        // Set으로 변환해서 중복 제거
-                        const tempChatSet = new Set(prevChatSet);
-
-                        if (tempChatSet.size >= maxNumChats) {
-                            const iterator = prevChatSet.values()
-                            const oldestElement = iterator.next().value
-                            tempChatSet.delete(oldestElement);
-                        }
-                        tempChatSet.add(React.createElement(Fragment, {
+                        prevChatSet.push(React.createElement(Fragment, {
                             key: `${new Date().getTime()}${generateRandomString(8)}`
-                        }, convertToJSX(clone as HTMLElement)));
-                        return [...tempChatSet];
+                        }, convertToJSX(clone)))
+
+                        if (prevChatSet.length >= maxNumChatsRef.current) {
+                            prevChatSet.splice(0, prevChatSet.length - maxNumChatsRef.current)
+                        }
+                        return [...prevChatSet];
                     });
                 }
             });
@@ -122,13 +121,13 @@ export default function Local({
 
         if (!scrollArea) return;
         if (chatIsBottom) scrollArea.scrollTop = scrollArea.scrollHeight;
-    }, [chatSet, maxNumChats]);
+    }, [chatSet]);
 
     useEffect(() => {
         if (typeof globalSetting.maximumNumberChats === 'undefined') return;
-
-        setMaxNumChats(globalSetting.maximumNumberChats);
-    }, [globalSetting.maximumNumberChats]);
+        
+        maxNumChatsRef.current = globalSetting.maximumNumberChats;
+    }, [globalSetting]);
 
     useEffect(() => {
         addStorageUpdateListener((key, newValue) => {

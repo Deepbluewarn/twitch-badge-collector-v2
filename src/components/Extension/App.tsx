@@ -31,6 +31,8 @@ export default function App({
                 case 'containerRatio':
                     Handle.updateContainerRatio(type, newValue, Handle.getPosition(type))
                     break;
+                case 'maximumNumberChats':
+                    dispatchGlobalSetting({ type: 'SET_MAXIMUM_NUMBER_CHATS', payload: newValue });
             }
         })
     }, []);
