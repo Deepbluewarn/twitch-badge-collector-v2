@@ -5,6 +5,7 @@ import { BaseContainer } from "../base/container";
 import { Handle } from "../base/handler";
 import { addHistoryStateListener } from "../base/historyStateListener";
 import { observe } from "@utils/utils-common";
+import { Logger } from "@utils/logger";
 
 class TwitchChatExtractor extends ChatExtractor {
   extract(node: Node): ChatInfo | undefined {
@@ -93,5 +94,12 @@ observe('.community-points-summary', async (elem) => {
 
   const boxBtn = elem.querySelector('button.bCfhNy') as HTMLButtonElement;
 
-  if (boxBtn) boxBtn.click();
+  if (boxBtn) {
+    const isPointAutoOn = (await browser.storage.local.get('pointBoxAuto')).pointBoxAuto;
+
+    if (isPointAutoOn === 'off') return;
+
+    boxBtn.click();
+    Logger('observe .community-points-summary callback: ', '포인트 박스를 클릭했어요!')
+  }
 }, false)
