@@ -4,8 +4,9 @@ import { createRoot } from "react-dom/client";
 import { Handle } from "./handler";
 import { ChatExtractor } from "./chatExtractor";
 import App from "@components/Extension/App";
-import { observe, selectElement } from "@utils/utils-common";
+import { selectElement } from "@utils/utils-common";
 import { Logger } from "@utils/logger";
+import { Observer } from "./observer";
 
 export class BaseContainer {
   theme: 'dark' | 'light';
@@ -19,8 +20,8 @@ export class BaseContainer {
   cloneChatWrapperSelector?: string;
   currentPath: string;
 
-  // observer를 등록하는 기능?
-  // mutationObserver는 css selector를 받은 다음 타겟을 찾았을 때 
+  observer: Observer;
+
   constructor(
     type: SettingInterface["platform"],
     extractor: ChatExtractor,
@@ -40,6 +41,7 @@ export class BaseContainer {
     this.cloneChatWrapperSelector = cloneChatWrapperSelector;
     this.position = 'up';
     this.currentPath = window.location.pathname;
+    this.observer = new Observer(origChatContainerSelector);
   }
 
   // DOM API로 "#tbc_container" 요소를 생성하고 반환하는 메소드
@@ -50,7 +52,8 @@ export class BaseContainer {
     container.id = `${this.type}-container`;
 
     // 채팅 목록의 최근접 부모 요소(원본 채팅창)를 찾는다.
-    observe(this.origChatContainerSelector, async (element) => {
+
+    this.observer.observe(async (element, mr) => {
       const parent = element?.parentElement;
 
       if (!parent) {

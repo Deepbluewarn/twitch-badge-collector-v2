@@ -4,8 +4,8 @@ import { ChatExtractor } from "../base/chatExtractor";
 import { BaseContainer } from "../base/container";
 import { Handle } from "../base/handler";
 import { addHistoryStateListener } from "../base/historyStateListener";
-import { observe } from "@utils/utils-common";
 import { Logger } from "@utils/logger";
+import { Observer } from "../base/observer";
 
 class TwitchChatExtractor extends ChatExtractor {
   extract(node: Node): ChatInfo | undefined {
@@ -89,8 +89,9 @@ init()
 addHistoryStateListener('www.twitch.tv', init);
 
 // 포인트 상자 자동 클릭
-observe('.community-points-summary', async (elem) => {
-  if(!elem) return;
+
+new Observer('.community-points-summary', false).observe(async (elem) => {
+  if (!elem) return;
 
   const boxBtn = elem.querySelector('button.bCfhNy') as HTMLButtonElement;
 
@@ -102,4 +103,4 @@ observe('.community-points-summary', async (elem) => {
     boxBtn.click();
     Logger('observe .community-points-summary callback: ', '포인트 박스를 클릭했어요!')
   }
-}, false)
+})

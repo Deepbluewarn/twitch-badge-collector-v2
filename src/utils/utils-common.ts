@@ -145,45 +145,6 @@ export function ReplayPageType() {
   return false;
 }
 
-export function observer(
-  obj: Element,
-  config: object,
-  callback: MutationCallback
-) {
-  if (!obj || obj.nodeType !== 1) return;
-
-  if (window.MutationObserver) {
-    const mutationObserver = new MutationObserver(callback);
-    mutationObserver.observe(obj, config);
-    return mutationObserver;
-  }
-}
-
-export function observe(
-  selector: string,
-  cb: (element: Element | null, mr?: MutationRecord[]) => Promise<void>,
-  temporal: boolean = true
-) {
-  Logger('observe', `started with selector: ${selector}`)
-  const mutationObserver = new MutationObserver((mr) => {
-    cb(selectElement(selector), mr);
-    if (temporal) mutationObserver.disconnect();
-  });
-
-  findElement(selector, (elem) => {
-    if (!elem) return;
-
-    cb(elem);
-
-    mutationObserver.observe(elem, {
-      childList: true,
-      subtree: true,
-    });
-  })
-
-  return mutationObserver;
-}
-
 export function findElement(selector: string, cb: (elem: Element | null) => void) {
   let tryCount = 0;
   const loop = setInterval(() => {

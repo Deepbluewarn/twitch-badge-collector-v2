@@ -2,13 +2,14 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { useGlobalSettingContext } from "../../context/GlobalSetting";
 import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
 import React from "react";
-import { findElement, generateRandomString, observe } from "@utils/utils-common";
+import { findElement, generateRandomString } from "@utils/utils-common";
 import { convertToJSX } from "@utils/converter";
 import { styled } from "@mui/material/styles";
 import { addStorageUpdateListener } from "@utils/utils-browser";
 import { SettingInterface } from "@interfaces/setting";
 import { ChatExtractor } from "../../contentScript/base/chatExtractor";
 import { Logger } from "@utils/logger";
+import { Observer } from "../../contentScript/base/observer";
 
 const Wrapper = styled('div')({
     height: '100%',
@@ -110,10 +111,12 @@ export default function Local({
     }, []);
 
     useEffect(() => {
-        observe(`#tbc-${type}-chat-list-wrapper`, async (elem, mr) => {
+        const observer = new Observer(`#tbc-${type}-chat-list-wrapper`, false);
+
+        observer.observe((elem, mr) => {
             if (!mr) return;
             newChatCallback(mr);
-        }, false);
+        })
     }, [])
 
     useEffect(() => {
