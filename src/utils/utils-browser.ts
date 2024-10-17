@@ -10,13 +10,15 @@ export const isFirefoxAddon = async () => {
 }
 
 export const addStorageUpdateListener = (cb: (key: string, newValue: any) => void) => {
-    browser.storage.onChanged.addListener((changed, areaName) => {
-        if (areaName !== "local") return;
-        
-        for (const key in changed) {
-            const newValue = changed[key].newValue;
-            Logger('Storage Updated', `${key}: ${newValue}`);
-            cb(key, newValue);
+    browser.storage.local.onChanged.addListener(changes => {
+        for (const key in changes) {
+            const oldValue = changes[key].oldValue;
+            const newValue = changes[key].newValue;
+            
+            if (oldValue !== newValue) {
+                Logger('Storage Updated', `${key}: ${newValue}`);
+                cb(key, newValue);
+            }
         }
     });
 }
