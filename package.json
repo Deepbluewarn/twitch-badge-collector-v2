@@ -11,7 +11,8 @@
     "watch:chromium": "tsc && cross-env VITE_BUILD_FOR=chromium vite build --watch --mode dev",
     "watch:firefox": "tsc && cross-env VITE_BUILD_FOR=firefox vite build --watch --mode dev",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postbuild": "node ./scripts/set-dynamic-url.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
