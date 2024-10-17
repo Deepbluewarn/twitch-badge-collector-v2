@@ -10,7 +10,7 @@ import Selector from "@components/Selector";
 import CustomTextField from "@components/CustomTextField";
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
-import { isFirefoxAddon } from "@utils/utils-browser";
+import { addStorageUpdateListener, isFirefoxAddon } from "@utils/utils-browser";
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleLeft } from "@fortawesome/free-solid-svg-icons";
@@ -20,6 +20,7 @@ import { GlobalSettingContext, useGlobalSettingContext } from "../context/Global
 import { useCustomTheme } from "@hooks/useCustomTheme";
 import { MenuItem } from "@mui/material";
 import SocialFooter from "@components/SocialFooter";
+import { Logger } from "@utils/logger";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -167,19 +168,15 @@ function Popup() {
   }
 
   useEffect(() => {
-    browser.storage.onChanged.addListener((changed, areaName) => {
-      if (areaName !== "local") return;
-
-      for (const key in changed) {
-        if (key === "position") {
-          browser.storage.local.get("containerRatio").then((res) => {
-            let cr = res.containerRatio;
-            cr = 100 - cr;
-            browser.storage.local.set({ containerRatio: cr });
-          });
-        }
+    addStorageUpdateListener((key, newValue) => {
+      if (key === "position") {
+        browser.storage.local.get("containerRatio").then((res) => {
+          let cr = res.containerRatio;
+          cr = 100 - cr;
+          browser.storage.local.set({ containerRatio: cr });
+        });
       }
-    });
+    })
   }, []);
 
   return (
