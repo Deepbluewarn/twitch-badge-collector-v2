@@ -69,6 +69,7 @@ browser.runtime.onInstalled.addListener(async function (details) {
         maximumNumberChats: res.maximumNumberChats ? res.maximumNumberChats : (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
         advancedFilter: res.advancedFilter ? res.advancedFilter : "off",
         platform: res.platform ? res.platform : "twitch",
+        containerRatio: res.containerRatio ? res.containerRatio : 30,
       });
     });
 });
