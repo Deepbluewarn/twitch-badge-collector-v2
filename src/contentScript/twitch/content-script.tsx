@@ -59,12 +59,12 @@ class TwitchChatExtractor extends ChatExtractor {
 }
 
 function init() {
-  switch (window.location.pathname.split('/')[1]) {
-    case 'videos':
-      vodContainer.create();
-      break;
-    default:
-      liveContainer.create();
+  const pathSegment = window.location.pathname.split('/')[1];
+
+  if (pathSegment === 'videos') {
+    vodContainer.create();
+  } else {
+    liveContainer.create();
   }
 }
 

@@ -56,16 +56,12 @@ class ChzzkChatExtractor extends ChatExtractor {
     }
 }
 function init() {
-    switch(window.location.pathname.split('/')[1]) {
-        case 'live':
-            liveContainer.create();
-            break;
-        case 'video':
-            vodContainer.create();
-            break;
-        default:
-            liveContainer.create();
-            break;
+    const pathSegment = window.location.pathname.split('/')[1];
+    
+    if (pathSegment === 'video') {
+        vodContainer.create();
+    } else if (pathSegment === 'live') {
+        liveContainer.create();
     }
 }
 const liveContainer = new BaseContainer(
