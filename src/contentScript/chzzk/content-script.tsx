@@ -1,11 +1,17 @@
-import browser from "webextension-polyfill";
 import { ChatInfo } from "@interfaces/chat";
 import { ChatExtractor, checkVerifiedBadge } from "../base/chatExtractor";
 import { BaseContainer } from "../base/container";
 import { Handle } from "../base/handler";
 import { addHistoryStateListener } from "../base/historyStateListener";
 
-class ChzzkChatExtractor extends ChatExtractor {
+import mainWorld from './inject?script&module'
+
+const script = document.createElement('script')
+script.src = chrome.runtime.getURL(mainWorld)
+script.type = 'module'
+document.head.prepend(script)
+
+export class ChzzkChatExtractor extends ChatExtractor {
     extract(node: Node): ChatInfo | undefined {
         if (!this.prep(node)) return;
 
