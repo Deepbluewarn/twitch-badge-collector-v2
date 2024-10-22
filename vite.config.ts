@@ -86,5 +86,11 @@ function modify(build_for: string, buffer: string) {
     }
   }
 
+  const war = manifest.web_accessible_resources
+
+  manifest.web_accessible_resources = war.map(v => {
+    return { ...v, use_dynamic_url: false }
+  })
+
   return JSON.stringify(manifest, null, 2);
 }
