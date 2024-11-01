@@ -25,7 +25,8 @@ export function convertToJSX(element: Node, customAttributes: CustomAttributes =
     for (const attr of element.attributes) {
         if (attr.name === "style") {
             const styleProps = attr.value.split(";").reduce((result: EmptyObject, prop) => {
-                const [property, value] = prop.split(":");
+                const [property, ...rest] = prop.split(':');
+                const value = rest.join(':');
                 if (property && value) {
                     result[camelCase(property.trim())] = value.trim();
                 }
