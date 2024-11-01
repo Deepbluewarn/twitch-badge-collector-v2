@@ -74,10 +74,11 @@ export default function Local({
                             username_elem.prepend(chatTime);
                         }
                     }
+                    const KEY = clone.getAttribute('data-tbc-chat-key') ?? `${new Date().getTime()}${generateRandomString(8)}`;
 
                     setChatSet(prevChatSet => {
                         prevChatSet.push(React.createElement(Fragment, {
-                            key: `${new Date().getTime()}${generateRandomString(8)}`
+                            key: KEY
                         }, convertToJSX(clone)))
 
                         if (prevChatSet.length >= maxNumChatsRef.current) {

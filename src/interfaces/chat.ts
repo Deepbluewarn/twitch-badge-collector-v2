@@ -26,6 +26,8 @@ export interface ChatInfo {
     textContents: string[];
     loginName: string;
     nickName: string;
+    channelLogin?: string;
+    channelId?: string;
 }
 export interface BorderColors {
     [index : string] : string,
@@ -42,6 +44,9 @@ export interface BadgeInterface {
     note: string;
     badgeName: string;
     filterType: FilterType;
+    badgeSetId: string; // for Twitch
+    channelLogin?: string;
+    channelId?: string;
 }
 export interface BadgeUrls {
     badge_img_url_1x: string;

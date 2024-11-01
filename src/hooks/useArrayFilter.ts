@@ -69,9 +69,21 @@ export default function useArrayFilter() {
 
                 if (filter.category === "badge") {
                     if(typeof chatInfoObject === 'undefined'){
-                        filterMatchedRes = chat.badges.some(badge_uuid => {
-                            return badge_uuid === filter.value;
-                        });
+                        const channelMisMatch = 
+                            (chat.channelLogin && filter.channelLogin) && 
+                            (chat.channelLogin !== filter.channelLogin);
+                        const channelIdMisMatch = 
+                            (chat.channelId && filter.channelId) &&
+                            (chat.channelId !== filter.channelId);
+                        
+                        if (channelMisMatch || channelIdMisMatch) {
+                            // 트위치 전용. 구독이나 비트 뱃지가 해당 채널에서만 동작하도록..
+                            filterMatchedRes = false
+                        } else {
+                            filterMatchedRes = chat.badges.some(badge => {
+                                return badge === filter.value || badge === filter.badgeSetId;
+                            });
+                        }
                     }else{
                         filterMatchedRes = chat.badges.some(badge_str => {
                             const badge = chatInfoObject.channelBadges.get(badge_str) || chatInfoObject.globalBadges.get(badge_str);

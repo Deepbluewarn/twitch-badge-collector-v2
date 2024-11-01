@@ -7,6 +7,14 @@ import { addHistoryStateListener } from "../base/historyStateListener";
 import { Logger } from "@utils/logger";
 import { Observer } from "../base/observer";
 
+import mainWorld from './inject?script&module'
+
+const script = document.createElement('script')
+script.src = chrome.runtime.getURL(mainWorld)
+script.type = 'module'
+document.head.prepend(script)
+script.remove();
+
 class TwitchChatExtractor extends ChatExtractor {
   extract(node: Node): ChatInfo | undefined {
     if (!this.prep(node)) return;
@@ -41,19 +49,24 @@ class TwitchChatExtractor extends ChatExtractor {
     const textContents = (
       chat_clone.getElementsByClassName("text-fragment")
     ) as HTMLCollectionOf<HTMLSpanElement>;
-    const badges = (
-      chat_clone.getElementsByClassName("chat-badge")
-    ) as HTMLCollectionOf<HTMLImageElement>;
+
+    const badgeElements = chat_clone.getElementsByClassName("chat-badge") as HTMLCollectionOf<HTMLImageElement>;
+    const dataBadges: string[] = JSON.parse(chat_clone.getAttribute('data-tbc-chat-badges') || '[]');
+    const fallbackBadges = Array.from(badgeElements)
+        .map((badge) => new URL(badge.src).pathname.split("/")[3]);
+
+    const channel = chat_clone.getAttribute('data-tbc-chat-channel');
+    const channelId = chat_clone.getAttribute('data-tbc-chat-channel-id');
 
     Array.from(textContents).map((text) => text.textContent);
 
     return {
       textContents: Array.from(textContents).map((text) => text.textContent),
-      badges: Array.from(badges).map(
-        (badge) => new URL(badge.src).pathname.split("/")[3]
-      ),
+      badges: [...dataBadges, ...fallbackBadges],
       loginName: loginName,
       nickName: nickName,
+      channelLogin: channel,
+      channelId: channelId,
     } as ChatInfo;
   }
 }
@@ -87,6 +100,11 @@ const vodContainer = new BaseContainer(
 init()
 
 addHistoryStateListener('www.twitch.tv', init);
+addHistoryStateListener('www.twitch.tv', () => {
+  window.postMessage({
+    action: 'tbc-historyUpdated'
+  });
+});
 
 // 포인트 상자 자동 클릭
 

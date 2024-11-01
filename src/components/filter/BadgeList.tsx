@@ -163,7 +163,10 @@ export default function BadgeList(props: {
             id: nanoid(),
             type: badge.filterType,
             value: badgeUUID,
-            badgeName: `${badge.channel}: ${badge.badgeName}`
+            badgeName: `${badge.channel}: ${badge.badgeName}`,
+            badgeSetId: badge.badgeSetId,
+            channelLogin: badge.channelLogin,
+            channelId: badge.channelId,
         });
     }
 
@@ -183,7 +186,8 @@ export default function BadgeList(props: {
                 channel: 'Global',
                 note: badge.description,
                 badgeName: badge.title,
-                filterType: 'include'
+                filterType: 'include',
+                badgeSetId: badge.set_id,
             } as BadgeInterface;
         });
         setLoading(false);
@@ -201,6 +205,8 @@ export default function BadgeList(props: {
 
         const badgesArray = badgesToArray(ChannelChatBadges);
         const channelName = User.data[0].display_name;
+        const channelLogin = User.data[0].login;
+        const channelId = User.data[0].id;
 
         const badgesRow: BadgeInterface[] = badgesArray.map(badge => {
             return {
@@ -213,7 +219,10 @@ export default function BadgeList(props: {
                 channel: channelName,
                 note: badge.description,
                 badgeName: badge.title,
-                filterType: 'include'
+                filterType: 'include',
+                badgeSetId: badge.set_id,
+                channelLogin: channelLogin,
+                channelId: channelId,
             } as BadgeInterface;
         });
         setBadgesRows(badgesRow);
@@ -317,7 +326,10 @@ function AddSelectedBadges(
                 id: nanoid(),
                 type: badge.filterType,
                 value: badgeUUID,
-                badgeName: `${badge.channel}: ${badge.badgeName}`
+                badgeName: `${badge.channel}: ${badge.badgeName}`,
+                badgeSetId: badge.badgeSetId,
+                channelLogin: badge.channelLogin,
+                channelId: badge.channelId,
             } as ArrayFilterInterface;
         }).filter(r => typeof r !== 'undefined') as ArrayFilterInterface[];
 
