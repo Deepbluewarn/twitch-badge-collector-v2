@@ -10,6 +10,7 @@ const script = document.createElement('script')
 script.src = chrome.runtime.getURL(mainWorld)
 script.type = 'module'
 document.head.prepend(script)
+script.remove();
 
 export class ChzzkChatExtractor extends ChatExtractor {
     extract(node: Node): ChatInfo | undefined {
