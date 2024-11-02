@@ -125,6 +125,7 @@
         "chat_time": "Chat Time",
         "show_player": "Show Player",
         "filter": {
+            "select_platform": "Select Platform",
             "filter_list": "Filter List",
             "filter_add": "Add New Filter",
             "filter_add_subtitle": "Filters chats that satisfy all the conditions of the added filter element.",

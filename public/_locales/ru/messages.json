@@ -1,15 +1,15 @@
 {
   "ExtensionName": {
-    "message": "Twitch Badge Collector V2 - Фильтр чата Twitch"
+    "message": "Badge Collector"
   },
   "language": {
     "message": "ru"
   },
   "ExtensionDesc": {
-    "message": "Собирерите в чате Twitch тех, кто вам нужен!"
+    "message": "Собирерите в чате тех, кто вам нужен!"
   },
   "popup_title": {
-    "message": "Twitch Badge Collector"
+    "message": "Badge Collector"
   },
   "generalSetting": {
     "message": "General Settings"

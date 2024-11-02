@@ -84,6 +84,10 @@ export default function Filter() {
                             flex: '1 1 auto',
                         }}
                     >
+                        <Typography variant="h6">
+                            {t('setting.filter.select_platform')}
+                        </Typography>
+
                         <Paper sx={{ p: 1, m: 0 }}>
                             <Stack direction='row' gap={1}>
                                 <Chip label='트위치' color={globalSetting.platform === 'twitch' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('twitch')}} clickable />

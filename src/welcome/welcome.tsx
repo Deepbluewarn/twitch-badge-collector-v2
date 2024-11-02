@@ -95,12 +95,6 @@ function App() {
                                 <Typography variant="subtitle1">
                                     {t('common.welcome_1')}
                                 </Typography>
-
-                                <Typography variant="subtitle1">
-                                    <Trans i18nKey='common.welcome_2'>
-                                        Please read the <DocumentLink>Documentation</DocumentLink> before using the extension.
-                                    </Trans>
-                                </Typography>
                             </Box>
 
                             <Alert variant="outlined" severity="info">

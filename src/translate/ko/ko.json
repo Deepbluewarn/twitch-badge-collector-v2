@@ -123,6 +123,7 @@
         "chat_time": "채팅 시간",
         "show_player": "플레이어 보이기",
         "filter": {
+            "select_platform": "플랫폼 선택",
             "filter_list": "필터 목록",
             "filter_add": "새 필터 추가",
             "filter_add_subtitle": "추가된 필터 요소의 조건을 모두 만족하는 채팅을 필터링합니다.",

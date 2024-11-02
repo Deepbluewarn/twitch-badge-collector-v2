@@ -1,15 +1,15 @@
 {
   "ExtensionName" : {
-    "message" : "Twitch Badge Collector V2 - Collect Chats"
+    "message" : "Badge Collector"
   },
   "language" : {
     "message" : "en"
   },
   "ExtensionDesc" : {
-    "message" : "Collect only the chats you want in Twitch Chat!"
+    "message" : "Collect only the chats you want!"
   },
   "popup_title": {
-    "message": "Twitch Badge Collector"
+    "message": "Badge Collector"
   },
   "generalSetting" : {
     "message" : "General Settings"

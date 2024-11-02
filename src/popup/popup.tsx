@@ -184,7 +184,7 @@ function Popup() {
       <Stack direction='row' spacing={4} justifyContent='space-between'>
         <Stack direction='row' alignItems='center' spacing={1}>
           <Icon src={browser.runtime.getURL('src/assets/icon.png')} alt="" />
-          <Typography variant="body2" sx={{ fontWeight: '600' }}>Twitch Badge Collector V2</Typography>
+          <Typography variant="body2" sx={{ fontWeight: '600' }}>Badge Collector V2</Typography>
         </Stack>
         <Typography variant="body2" sx={{ fontWeight: '600', color: '#A7A7A7' }}>{browser.runtime.getManifest().version}</Typography>
       </Stack>
