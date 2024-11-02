@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill";
 import { SettingInterface } from "@interfaces/setting";
-import { createRoot } from "react-dom/client";
+import { createRoot, Root } from "react-dom/client";
 import { Handle } from "./handler";
 import { ChatExtractor } from "./chatExtractor";
 import App from "@components/Extension/App";
@@ -21,6 +21,7 @@ export class BaseContainer {
   currentPath: string;
 
   observer: Observer;
+  root: Root | null;
 
   constructor(
     type: SettingInterface["platform"],
@@ -42,6 +43,7 @@ export class BaseContainer {
     this.position = 'up';
     this.currentPath = window.location.pathname;
     this.observer = new Observer(origChatContainerSelector);
+    this.root = null;
   }
 
   // DOM API로 "#tbc_container" 요소를 생성하고 반환하는 메소드
@@ -75,13 +77,18 @@ export class BaseContainer {
       Handle.updateContainerRatio(this.type, storageSetting['containerRatio'], storageSetting['position'])
       BaseContainer.updatePosition(this.type, storageSetting['position']);
 
-      createRoot(container).render(
-        <App 
+      if (!this.root) {
+        this.root = createRoot(container);
+      }
+      const uniqueKey = `app-${Date.now()}`;
+      this.root.render(
+        <App
+          key={uniqueKey}
           type={this.type}
           videoSelector={this.videoSelector}
           extractor={this.chatExtractor}
         />
-      );
+      )
     })
   }
 
