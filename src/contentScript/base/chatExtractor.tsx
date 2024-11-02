@@ -12,7 +12,7 @@ export class ChatExtractor {
     prep(node: Node) {
         const nodeElement = node as HTMLElement;
 
-        if (nodeElement.parentElement?.id !== `tbc-${this.type}-chat-list-wrapper`) {
+        if (this.type === 'chzzk' && nodeElement.parentElement?.id !== `tbc-${this.type}-chat-list-wrapper`) {
             return false;
         }
 
