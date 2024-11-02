@@ -84,13 +84,13 @@ function modify(build_for: string, buffer: string) {
         id: 'tbcextension@gmail.com'
       }
     }
+  } else {
+    const war = manifest.web_accessible_resources
+
+    manifest.web_accessible_resources = war.map(v => {
+      return { ...v, use_dynamic_url: false }
+    })
   }
-
-  const war = manifest.web_accessible_resources
-
-  manifest.web_accessible_resources = war.map(v => {
-    return { ...v, use_dynamic_url: false }
-  })
 
   return JSON.stringify(manifest, null, 2);
 }
