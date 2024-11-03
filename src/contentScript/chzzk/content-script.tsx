@@ -74,14 +74,14 @@ function init() {
 const liveContainer = new BaseContainer(
     'chzzk', 
     new ChzzkChatExtractor('chzzk'), 
-    new Handle('chzzk', '#tbc-chzzk-chat-list-container'), 
+    new Handle('chzzk'), 
     '.live_chatting_list_wrapper__a5XTV',
 );
 
 const vodContainer = new BaseContainer(
     'chzzk',
     new ChzzkChatExtractor('chzzk'),
-    new Handle('chzzk', '#tbc-chzzk-chat-list-container'),
+    new Handle('chzzk'),
     '.vod_chatting_list__+LZHw',
     '.pzp-pc__video video.webplayer-internal-video',
     '#tbc-clone__chzzkui',

@@ -5,7 +5,7 @@ export interface SettingInterface {
     chatTime: 'on' | 'off';
     maximumNumberChats: number;
     advancedFilter: 'on' | 'off';
-    platform: 'twitch' | 'chzzk';
+    platform: 'twitch' | 'chzzk' | 'soop';
 }
 
 export interface SettingReducerActionTypes {

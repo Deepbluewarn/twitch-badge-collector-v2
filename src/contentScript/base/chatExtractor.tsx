@@ -2,7 +2,7 @@ import { ChatInfo } from "@interfaces/chat";
 import { SettingInterface } from "@interfaces/setting";
 
 export class ChatExtractor {
-    type: SettingInterface['platform'] = 'chzzk';
+    type: SettingInterface['platform'];
 
     constructor(type: SettingInterface['platform']) {
         this.type = type;

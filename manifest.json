@@ -41,6 +41,18 @@
             "css": [
                 "chzzkContentScript.css"
             ]
+        },
+        {
+            "matches": [
+                "*://*.sooplive.co.kr/*"
+            ],
+            "all_frames" : true,
+            "js": [
+                "src/contentScript/soop/content-script.tsx"
+            ],
+            "css": [
+                "soopContentScript.css"
+            ]
         }
     ],
     "background": {

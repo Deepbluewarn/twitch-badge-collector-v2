@@ -84,14 +84,14 @@ function init() {
 const liveContainer = new BaseContainer(
   'twitch',
   new TwitchChatExtractor('twitch'),
-  new Handle('twitch', '#tbc-twitch-chat-list-container'),
+  new Handle('twitch'),
   '.chat-room__content [class*="chat-list--"] .scrollable-area'
 );
 
 const vodContainer = new BaseContainer(
   'twitch',
   new TwitchChatExtractor('twitch'),
-  new Handle('twitch', '#tbc-twitch-chat-list-container'),
+  new Handle('twitch'),
   '.video-chat__message-list-wrapper',
   '.Layout-sc-1xcs6mc-0.video-ref video',
   '#tbc-clone__twitchui',

@@ -100,7 +100,7 @@ export class BaseContainer {
       `${type}-container`
     ) as HTMLDivElement;
     const handleConainer = document.getElementById(
-      "handle-container"
+      "tbc-handle-container"
     ) as HTMLDivElement;
     const originContainer = document.getElementById(
       `tbc-${type}-chat-list-wrapper`

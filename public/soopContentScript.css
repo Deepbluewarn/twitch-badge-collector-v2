@@ -1,13 +1,13 @@
-#tbc-chzzk-chat-list-container{
+#tbc-soop-chat-list-container{
     flex-direction: column;
-
+    padding-bottom: 20px;
 }
-#tbc-chzzk-chat-list-wrapper{
+#tbc-soop-chat-list-wrapper{
     /* 기존의 채팅창에 적용되어 있는 margin 과 padding 을 제거.*/
     margin-top: 0 !important;
     padding-top: 0 !important;
 }
-#tbc-clone__chzzkui {
+#tbc-clone__soopui {
     -ms-overflow-style: none;
     display: -ms-flexbox;
     display: flex;
@@ -42,7 +42,7 @@
     z-index: 4444;
 }
 
-#chzzk-container{
+#soop-container{
     width: 100%;
 }
 #tbc-resize-handle {

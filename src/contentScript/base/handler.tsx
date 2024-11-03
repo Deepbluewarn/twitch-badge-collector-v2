@@ -20,14 +20,14 @@ export class Handle {
     boundDoDrag: (e: MouseEvent | TouchEvent) => void;
     boundEndDrag: (e: MouseEvent | TouchEvent) => void;
 
-    constructor(type: SettingInterface['platform'], chatRoomSelector: string) {
+    constructor(type: SettingInterface['platform']) {
         this.type = type;
         this.tbcContainer = document.getElementById(`${type}-container`);
-        this.chatRoomSelector = chatRoomSelector;
+        this.chatRoomSelector = `#tbc-${type}-chat-list-container`;
 
         this.handleContainer = document.createElement('div');
         this.handle = document.createElement('div');
-        this.handleContainer.id = "handle-container";
+        this.handleContainer.id = "tbc-handle-container";
         this.handle.id = "tbc-resize-handle";
 
         // 메소드 바인딩
@@ -77,6 +77,9 @@ export class Handle {
                 this.ratio = (1 - (clientY - rect.y - 77) / (rectHeigth)) * 100;
                 this.ratio = Math.max(0, Math.min(100, Math.round(this.ratio)));
             } else if (this.type === 'twitch') {
+                this.ratio = (1 - (clientY - rect.y) / rect.height) * 100;
+                this.ratio = Math.max(0, Math.min(100, Math.round(this.ratio)));
+            } else if (this.type === 'soop') {
                 this.ratio = (1 - (clientY - rect.y) / rect.height) * 100;
                 this.ratio = Math.max(0, Math.min(100, Math.round(this.ratio)));
             }
