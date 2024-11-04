@@ -1,27 +1,19 @@
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import browser from "webextension-polyfill";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { ThemeProvider } from "@mui/material/styles";
 import globalStyles from "@style/global";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
-import Link from "@mui/material/Link";
-import Alert from "@mui/material/Alert";
 import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
 import { useCustomTheme } from "@hooks/useCustomTheme";
 import { GlobalSettingContext } from "../context/GlobalSetting";
 import '../../src/translate/i18n';
+import DonationAlert from "@components/DonationAlert";
 
-function DocumentLink(props: { children: React.ReactNode }) {
-    return (
-        <Link href={import.meta.env.VITE_DOCUMENTATION} color="inherit" target="_blank">
-            {props.children}
-        </Link>
-    )
-}
 function ExtensionTitle() {
     return (
         <Stack
@@ -70,7 +62,7 @@ function App() {
     }, []);
 
     return (
-        <ThemeProvider theme={useCustomTheme(globalSetting.darkTheme)}>
+        <ThemeProvider theme={useCustomTheme(globalSetting.darkTheme === 'on')}>
             <GlobalSettingContext.Provider
                 value={{ globalSetting, dispatchGlobalSetting }}
             >
@@ -97,9 +89,7 @@ function App() {
                                 </Typography>
                             </Box>
 
-                            <Alert variant="outlined" severity="info">
-                                {t('common.nofityAdsense')}
-                            </Alert>
+                            <DonationAlert />
                         </Paper>
                     </Stack>
                 </Box>
