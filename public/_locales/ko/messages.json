@@ -1,15 +1,15 @@
 {
   "ExtensionName" : {
-    "message" : "Twitch Badge Collector V2 - 트위치 채팅 수집"
+    "message" : "Badge Collector"
   },
   "language" : {
     "message" : "ko"
   },
   "ExtensionDesc" : {
-    "message" : "트위치 채팅에서 원하는 채팅만 모아 볼 수 있는 확장 프로그램입니다!"
+    "message" : "인터넷 방송에서 원하는 채팅만 모아 볼 수 있습니다."
   },
   "popup_title" : {
-    "message" : "Twitch Badge Collector"
+    "message" : "Badge Collector"
   },
   "generalSetting" : {
     "message" : "일반 설정"

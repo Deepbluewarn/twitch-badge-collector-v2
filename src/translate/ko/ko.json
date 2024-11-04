@@ -88,7 +88,8 @@
         "document": "설명서",
         "welcome_1": "확장 프로그램을 설치해주셔서 감사합니다.",
         "welcome_2": "사용 전에는 반드시 <1>설명서</1>를 읽어보시기 바랍니다.",
-        "nofityAdsense": "설명서 페이지 하단에 Google Adsense 광고가 표시됩니다. 이 광고는 프로그램의 수익 창출을 위해 제공됩니다."
+        "nofityAdsense": "설명서 페이지 하단에 Google Adsense 광고가 표시됩니다. 이 광고는 프로그램의 수익 창출을 위해 제공됩니다.",
+        "encourage_donation": "확장 프로그램이 유용하다면 아래 후원 링크를 통해 프로젝트를 지원해주세요!"
     },
     "filter": {
         "category": {
@@ -123,6 +124,7 @@
         "chat_time": "채팅 시간",
         "show_player": "플레이어 보이기",
         "filter": {
+            "select_platform": "플랫폼 선택",
             "filter_list": "필터 목록",
             "filter_add": "새 필터 추가",
             "filter_add_subtitle": "추가된 필터 요소의 조건을 모두 만족하는 채팅을 필터링합니다.",
