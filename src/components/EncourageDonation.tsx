@@ -3,6 +3,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DonationAlert from "./DonationAlert";
 import { DialogContent, IconButton } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
+import { ExtensionTitle } from "./ExtensionTitle";
 
 export interface SimpleDialogProps {
     open: boolean;
@@ -13,7 +14,9 @@ export function EncorageDonationDialog(props: SimpleDialogProps) {
 
     return (
         <Dialog open={open} onClose={onClose}>
-            <DialogTitle>Badge Collector</DialogTitle>
+            <DialogTitle>
+                <ExtensionTitle />
+            </DialogTitle>
 
             <IconButton
                 aria-label="close"

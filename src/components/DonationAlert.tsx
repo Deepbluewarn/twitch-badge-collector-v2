@@ -12,14 +12,7 @@ const Donation = () => {
             <Typography>{t('common.encourage_donation')}</Typography>
 
             <Stack direction={'row'} alignItems={'center'} gap={2} sx={{ marginTop: '8px' }}>
-                <Link href={import.meta.env.VITE_DONATE_LINK} target='_blank'>
-                    <Box
-                        component='img'
-                        sx={{ width: '10rem', borderRadius: '8px' }}
-                        src={`https://cdn.jsdelivr.net/npm/twitch-badge-collector-cc@0.0.70/dist/donation/toonation_b14.gif`}
-                    />
-                </Link>
-                <Link href="https://www.buymeacoffee.com/bluewarndev" target="_blank">
+                <Link href="https://bit.ly/3An2B2l" target="_blank">
                     <Box
                         component='img'
                         sx={{ width: '10rem', borderRadius: '8px' }}
