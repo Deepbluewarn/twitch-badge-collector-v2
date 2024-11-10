@@ -88,7 +88,10 @@
         "document": "설명서",
         "welcome_1": "확장 프로그램을 설치해주셔서 감사합니다.",
         "welcome_2": "사용 전에는 반드시 <1>설명서</1>를 읽어보시기 바랍니다.",
-        "nofityAdsense": "설명서 페이지 하단에 Google Adsense 광고가 표시됩니다. 이 광고는 프로그램의 수익 창출을 위해 제공됩니다."
+        "nofityAdsense": "설명서 페이지 하단에 Google Adsense 광고가 표시됩니다. 이 광고는 프로그램의 수익 창출을 위해 제공됩니다.",
+        "twitch": "트위치",
+        "chzzk": "치지직",
+        "soop": "숲"
     },
     "filter": {
         "category": {

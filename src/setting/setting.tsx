@@ -26,12 +26,15 @@ import SettingPageDrawer from "@components/drawer/SettingPageDrawer";
 import Filter from "@components/Filter";
 import Browser from "webextension-polyfill";
 import '../../src/translate/i18n';
+import useSoopAPI from "@hooks/useSoopAPI";
+import { SoopAPIContext } from "../context/SoopAPIContext";
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
   const twitchAPI = useTwitchAPI();
   const chzzkAPI = useChzzkAPI();
+  const soopAPI = useSoopAPI();
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -54,9 +57,11 @@ function App() {
           <QueryClientProvider client={queryClient}>
             <TwitchAPIContext.Provider value={twitchAPI}>
               <ChzzkAPIContext.Provider value={chzzkAPI}>
-                {globalStyles}
-                <AlertContainer />
-                <Router />
+                <SoopAPIContext.Provider value={soopAPI}>
+                  {globalStyles}
+                  <AlertContainer />
+                  <Router />
+                </SoopAPIContext.Provider>
               </ChzzkAPIContext.Provider>
             </TwitchAPIContext.Provider>
           </QueryClientProvider>

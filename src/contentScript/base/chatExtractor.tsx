@@ -18,7 +18,7 @@ export class ChatExtractor {
 
         // 채팅 클릭 시 유저 프로필이 MutationObserver의 이벤트에 잡히는 것을 방지
         // 치지직 플랫폼에만 적용.
-        if (nodeElement.classList.contains('live_chatting_popup_profile_header__OWnnU')) {
+        if (nodeElement.classList?.contains('live_chatting_popup_profile_header__OWnnU')) {
             return false;
         };
 

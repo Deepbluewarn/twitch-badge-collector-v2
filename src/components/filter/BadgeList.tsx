@@ -26,6 +26,7 @@ import { useGlobalSettingContext } from "../../context/GlobalSetting";
 import RelaxedChip from "../chip/RelaxedChip";
 import { useChzzkAPIContext } from "../../context/ChzzkAPIContext";
 import { SettingInterface } from "@interfaces/setting";
+import { useSoopAPIContext } from "../../context/SoopAPIContext";
 
 function CustomToolbar(props: {
     setAfInputRow: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>,
@@ -83,6 +84,7 @@ export default function BadgeList(props: {
     const { t } = useTranslation();
     const twitchAPI = useTwitchAPIContext();
     const chzzkAPI = useChzzkAPIContext();
+    const soopAPI = useSoopAPIContext();
 
     const columns: GridColDef[] = [
         {
@@ -144,6 +146,14 @@ export default function BadgeList(props: {
         async () => chzzkAPI.fetchBadges(),
         {
             enabled: globalSetting.platform === 'chzzk'
+        }
+    )
+
+    const {data: SoopBadges, isSuccess: isSoopSuccess, fetchStatus: SoopFetchStatus} = useQuery(
+        ['SoopBadges', globalSetting.platform],
+        async () => soopAPI.fetchBadges(),
+        {
+            enabled: globalSetting.platform === 'soop'
         }
     )
 
@@ -229,12 +239,16 @@ export default function BadgeList(props: {
     }, [ChannelChatBadges, User]);
 
     React.useEffect(() => {
-        if(GBFetchStatus === 'fetching' || CBFetchStatus === 'fetching' || ChzzkFetchStatus === 'fetching') {
+        if(GBFetchStatus === 'fetching' || CBFetchStatus === 'fetching' || 
+            ChzzkFetchStatus === 'fetching' || SoopFetchStatus === 'fetching'
+        ) {
             setLoading(true);
-        }else if(GBFetchStatus === 'idle' || CBFetchStatus === 'idle' || ChzzkFetchStatus === 'idle') {
+        }else if(GBFetchStatus === 'idle' || CBFetchStatus === 'idle' || 
+            ChzzkFetchStatus === 'idle' || SoopFetchStatus === 'idle'
+        ) {
             setLoading(false);
         }
-    }, [GBFetchStatus, CBFetchStatus, ChzzkFetchStatus]);
+    }, [GBFetchStatus, CBFetchStatus, ChzzkFetchStatus, SoopFetchStatus]);
 
     useEffect(() => {
         if(!ChzzkBadges) return;
@@ -255,6 +269,26 @@ export default function BadgeList(props: {
         });
         setBadgesRows(badgesRow);
     }, [ChzzkBadges]);
+
+    useEffect(() => {
+        if(!SoopBadges) return;
+
+        const badgesRow: BadgeInterface[] = SoopBadges.map(badge => {
+            return {
+                id: badge.id,
+                badgeImage: {
+                    badge_img_url_1x: badge.image,
+                    badge_img_url_2x: badge.image,
+                    badge_img_url_4x: badge.image,
+                },
+                channel: 'Global',
+                note: badge.name,
+                badgeName: badge.name,
+                filterType: 'include'
+            } as BadgeInterface;
+        });
+        setBadgesRows(badgesRow);
+    }, [SoopBadges]);
 
     useEffect(() => {
         setAdvancedFilter(globalSetting.advancedFilter);

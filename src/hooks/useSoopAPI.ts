@@ -1,15 +1,14 @@
 import axios from "axios";
 import React from "react";
-import { Badges } from "../interfaces/api/chzzkAPI";
+import { Badges } from "../interfaces/api/soopAPI";
 
-export default function useChzzkAPI() {
-
+export default function useSoopAPI() {
     const instance = axios.create({
         baseURL: `https://api.badgecollector.dev`,
     });
 
     const fetchBadges = React.useCallback(async () => {
-        const { data } = await instance.get(`/chzzk/badges`)
+        const { data } = await instance.get(`/soop/badges`)
         return data as Badges;
     }, []);
 
@@ -18,6 +17,6 @@ export default function useChzzkAPI() {
     };
 }
 
-export interface ChzzkAPIHooks {
+export interface SoopAPIHooks {
     fetchBadges: () => Promise<Badges>,
 }

@@ -58,6 +58,8 @@ export default function Filter() {
         setAdvancedFilter(() => globalSetting.advancedFilter);
     }, [globalSetting]);
 
+    const platform = globalSetting.platform;
+
     return (
         <ChannelInfoContext.Provider value={{ channelInfoObject, dispatchChannelInfo, channel, setChannel, User }}>
             <Stack spacing={2} sx={{ 
@@ -73,7 +75,8 @@ export default function Filter() {
                         flexDirection: 'column',
                         overflow: 'auto',
                         border: '4px solid',
-                        borderColor: globalSetting.platform === 'twitch' ? '#9147ff' : '#00ffa3e6',
+                        borderColor: 
+                            platform === 'twitch' ? '#9147ff' : platform === 'chzzk' ? '#00ffa3e6' : '#0489FF',
                     }}
                     className="card"
                     variant='outlined'
@@ -90,8 +93,9 @@ export default function Filter() {
 
                         <Paper sx={{ p: 1, m: 0 }}>
                             <Stack direction='row' gap={1}>
-                                <Chip label='트위치' color={globalSetting.platform === 'twitch' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('twitch')}} clickable />
-                                <Chip label='치지직' color={globalSetting.platform === 'chzzk' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('chzzk')}} clickable />
+                                <Chip label={t('common.twitch')} color={globalSetting.platform === 'twitch' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('twitch')}} clickable />
+                                <Chip label={t('common.chzzk')} color={globalSetting.platform === 'chzzk' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('chzzk')}} clickable />
+                                <Chip label={t('common.soop')} color={globalSetting.platform === 'soop' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('soop')}} clickable />
                             </Stack>
                         </Paper>
                         

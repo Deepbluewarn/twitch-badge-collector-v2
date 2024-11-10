@@ -2,11 +2,6 @@
     flex-direction: column;
     padding-bottom: 20px;
 }
-#tbc-soop-chat-list-wrapper{
-    /* 기존의 채팅창에 적용되어 있는 margin 과 padding 을 제거.*/
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
 #tbc-clone__soopui {
     -ms-overflow-style: none;
     display: -ms-flexbox;
@@ -14,7 +9,7 @@
     -ms-flex-direction: column;
     flex-direction: column;
     overflow-y: auto;
-    padding: 0 12px;
+    padding: 0 20px;
     scrollbar-width: none;
     width: 100%;
 }
@@ -62,7 +57,7 @@
     width: 4px;
     height: 100%;
     background-color: #FFC107;
-    left: 0;
+    left: -6px;
     top: 0;
 }
 

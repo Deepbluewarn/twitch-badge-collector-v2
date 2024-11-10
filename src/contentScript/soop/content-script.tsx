@@ -1,16 +1,8 @@
 import { ChatInfo } from "@interfaces/chat";
-import { ChatExtractor, checkVerifiedBadge } from "../base/chatExtractor";
+import { ChatExtractor } from "../base/chatExtractor";
 import { BaseContainer } from "../base/container";
 import { Handle } from "../base/handler";
 import { addHistoryStateListener } from "../base/historyStateListener";
-
-import mainWorld from './inject?script&module'
-
-const script = document.createElement('script')
-script.src = chrome.runtime.getURL(mainWorld)
-script.type = 'module'
-document.head.prepend(script)
-script.remove();
 
 export class SoopChatExtractor extends ChatExtractor {
     extract(node: Node): ChatInfo | undefined {
@@ -18,22 +10,27 @@ export class SoopChatExtractor extends ChatExtractor {
 
         const chat_clone = node.cloneNode(true) as Element;
 
-        console.log(chat_clone);
+        const badgeArr = Array.from(chat_clone.querySelectorAll('[class*=grade-badge-]')).map(e => {
+            const c = Array.from(e.classList).filter(c => c.includes('grade-badge-'))[0];
+            return c.replace('grade-badge-', '');
+        })
 
-        // return {
-        //     badges: [...badgeArr],
-        //     textContents: [...textArr, ...donationTextArr],
-        //     loginName: loginName,
-        //     nickName: nickName,
-        // } as ChatInfo;
+        const text = chat_clone.getElementsByClassName('msg')[0]?.textContent;
+        const name = chat_clone.getElementsByClassName('author')[0]?.textContent;
+
+        return {
+            badges: badgeArr,
+            textContents: [text ?? ''],
+            loginName: name,
+            nickName: name,
+        } as ChatInfo;
     }
 }
 function init() {
-    // const pathSegment = window.location.pathname.split('/')[1];
     const subDomain = location.hostname.split('.')[0]
     
     if (subDomain === 'vod') {
-        // vodContainer.create();
+        vodContainer.create();
     } else if (subDomain === 'play') {
         liveContainer.create();
     }
@@ -45,14 +42,14 @@ const liveContainer = new BaseContainer(
     '#chat_area',
 );
 
-// const vodContainer = new BaseContainer(
-//     'chzzk',
-//     new SoopChatExtractor('chzzk'),
-//     new Handle('chzzk', '#tbc-chzzk-chat-list-container'),
-//     '.vod_chatting_list__+LZHw',
-//     '.pzp-pc__video video.webplayer-internal-video',
-//     '#tbc-clone__chzzkui',
-// )
+const vodContainer = new BaseContainer(
+    'soop',
+    new SoopChatExtractor('soop'), 
+    new Handle('soop'), 
+    '.chatting-viewer',
+    '#videoLayer .af_video',
+    '#tbc-clone__soopui',
+)
 
 init()
 
