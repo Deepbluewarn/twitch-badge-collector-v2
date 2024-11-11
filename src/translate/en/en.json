@@ -91,7 +91,8 @@
         "nofityAdsense": "Google Adsense advertisements will be displayed at the bottom of the instruction page, provided to generate revenue for the program.",
         "twitch": "Twitch",
         "chzzk": "Chzzk",
-        "soop": "Soop"
+        "soop": "Soop",
+        "encourage_donation": "Badge Collector is provided for free. Please consider supporting the project through the donation link below!"
     },
     "filter": {
         "category": {

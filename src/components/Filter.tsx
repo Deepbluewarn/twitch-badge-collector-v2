@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactGA from "react-ga4";
 import { BroadcastChannel } from 'broadcast-channel';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +19,8 @@ import { SettingInterface } from '@interfaces/setting';
 import { ChannelInfoContext } from '../context/ChannelInfoContext';
 import SocialFooter from './SocialFooter';
 import { getDefaultArrayFilter } from '@utils/utils-common';
+import { EncorageDonationDialog } from './EncourageDonation';
+import { useMonthlyRandom } from '@hooks/useMonthlyRandom';
 
 export default function Filter() {
     const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
@@ -31,10 +33,16 @@ export default function Filter() {
     const filterBroadcastChannel = React.useRef<BroadcastChannel<ArrayFilterMessageInterface>>(new BroadcastChannel('ArrayFilter'));
     const messageId = React.useRef(''); // id 는 extension 에서 생성.
     const { t } = useTranslation();
+    const [ dialogOpen, setDialogOpen ] = useState(false);
+    const { isDday } = useMonthlyRandom();
 
     const onPlatformChipClick = (platform: SettingInterface['platform']) => {
         dispatchGlobalSetting({ type: 'SET_PLATFORM', payload: platform });
     }
+
+    React.useEffect(() => {
+        setDialogOpen(isDday)
+    }, [isDday])
 
     React.useEffect(() => {
         ReactGA.send({ hitType: "pageview", page: "/setting/filter" });
@@ -143,6 +151,7 @@ export default function Filter() {
                 </Card>
                 <SocialFooter />
             </Stack>
+            <EncorageDonationDialog open={dialogOpen} onClose={() => {setDialogOpen(false)}}/>
         </ChannelInfoContext.Provider>
     )
 }
