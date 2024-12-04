@@ -53,4 +53,4 @@ const vodContainer = new BaseContainer(
 
 init()
 
-addHistoryStateListener('chzzk.naver.com', init);
+addHistoryStateListener('www.sooplive.co.kr', init);

@@ -1,4 +1,4 @@
-const defaultFilter = [
+const twitchDefaultFilter = [
     {
         filterType: "include",
         id: "D3vnlEqK-CNmYHe8zkvIJ",
@@ -98,6 +98,9 @@ const defaultFilter = [
         ],
         platform: "twitch",
     },
+]
+
+const chzzkDefaultFilter = [
     {
         "filterType": "include",
         "id": "W8UGZEMJ9YZLjr0K7Mt23",
@@ -128,6 +131,39 @@ const defaultFilter = [
         ],
         "platform": "chzzk"
     }
-];
+]
 
-export default defaultFilter;
+const soopDefaultFilter = [
+    {
+        "filterType": "include",
+        "id": "5V5mJ7EITBmPW8mW0ykGM",
+        "filterNote": "",
+        "filters": [
+            {
+                "category": "badge",
+                "id": "AUzQE8y_1SKxxBegCy13C",
+                "type": "include",
+                "value": "streamer",
+                "badgeName": "Global: 스트리머"
+            }
+        ],
+        "platform": "soop"
+    },
+    {
+        "filterType": "include",
+        "id": "UDXjKjIzn9EMbnCBaNKLG",
+        "filterNote": "",
+        "filters": [
+            {
+                "category": "badge",
+                "id": "YUIdbfLBq7LHVj655GnXz",
+                "type": "include",
+                "value": "manager",
+                "badgeName": "Global: 매니저"
+            }
+        ],
+        "platform": "soop"
+    },
+]
+
+export default [...twitchDefaultFilter, ...chzzkDefaultFilter, ...soopDefaultFilter];
