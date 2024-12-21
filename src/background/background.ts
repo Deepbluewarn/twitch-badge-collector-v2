@@ -9,8 +9,6 @@ browser.runtime.onInstalled.addListener(async function (details) {
     browser.tabs.create({
       url: browser.runtime.getURL(`src/welcome/welcome.html`),
     });
-
-    return;
   }
 
   let updatedFilter: ArrayFilterListInterface[] = [];
@@ -53,7 +51,7 @@ browser.runtime.onInstalled.addListener(async function (details) {
   ]
 
   const settings = await browser.storage.local.get(SETTING_LIST);
-  browser.storage.local.set({
+  await browser.storage.local.set({
     position: settings.position ? settings.position : "up",
     pointBoxAuto: settings.pointBoxAuto ? settings.pointBoxAuto : "on",
     darkTheme: settings.darkTheme ? settings.darkTheme : "off",
