@@ -39,7 +39,6 @@
     order: 2;
     height: 2rem;
     cursor: row-resize;
-    z-index: 4444;
 }
 
 #chzzk-container{
@@ -73,4 +72,10 @@
 
 .freeze {
     pointer-events: none;
+}
+
+.name_icon__zdbVH {
+    width: 14px !important;
+    height: 14px !important;
+    margin-top: 2px !important;
 }

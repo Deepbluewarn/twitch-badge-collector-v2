@@ -1,4 +1,6 @@
-const defaultFilter = [
+import { ArrayFilterListInterface } from "@interfaces/filter";
+
+const defaultFilter: ArrayFilterListInterface[] = [
     {
         filterType: "include",
         id: "D3vnlEqK-CNmYHe8zkvIJ",
@@ -13,6 +15,7 @@ const defaultFilter = [
             },
         ],
         platform: "twitch",
+        filterNote: '',
     },
     {
         filterType: "include",
@@ -28,6 +31,7 @@ const defaultFilter = [
             },
         ],
         platform: "twitch",
+        filterNote: '',
     },
     {
         filterType: "include",
@@ -43,6 +47,7 @@ const defaultFilter = [
             },
         ],
         platform: "twitch",
+        filterNote: '',
     },
     {
         filterType: "include",
@@ -58,6 +63,7 @@ const defaultFilter = [
             },
         ],
         platform: "twitch",
+        filterNote: '',
     },
     {
         filterType: "exclude",
@@ -71,6 +77,7 @@ const defaultFilter = [
             },
         ],
         platform: "twitch",
+        filterNote: '',
     },
     {
         filterType: "exclude",
@@ -84,6 +91,7 @@ const defaultFilter = [
             },
         ],
         platform: "twitch",
+        filterNote: '',
     },
     {
         filterType: "exclude",
@@ -97,6 +105,7 @@ const defaultFilter = [
             },
         ],
         platform: "twitch",
+        filterNote: '',
     },
     {
         "filterType": "include",

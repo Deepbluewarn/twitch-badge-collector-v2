@@ -50,12 +50,7 @@ export function useMonthlyRandom() {
                 setFlag(false);
             } else {
                 const storedDateObj = new Date(storedDate);
-                if (
-                    today.getDate() === storedDateObj.getDate() && 
-                    today.getMonth() === storedDateObj.getMonth() && 
-                    today.getFullYear() === storedDateObj.getFullYear() && 
-                    !flag
-                ) {
+                if (today.getTime() >= storedDateObj.getTime() && !flag) {
                     setIsDday(true);
                     setFlag(true);
                     setStoredDate(0);

@@ -2,76 +2,67 @@ import browser from "webextension-polyfill";
 import defaultFilter from "../defaultFilters";
 import { ArrayFilterListInterface } from "@interfaces/filter";
 
-const OLD_CHZZK_VERIFIED = 'https://static-cdn.jtvnw.net/jtv_user_pictures/verified.png';
-const NEW_CHZZK_VERIFIED = 'https://ssl.pstatic.net/static/nng/glive/resource/p/static/media/icon_official.a53d1555f8f4796d7862.png';
-
 browser.runtime.onInstalled.addListener(async function (details) {
   if (details.reason === "install") {
-    browser.storage.local.set({ filter: defaultFilter });
+    await browser.storage.local.set({ filter: defaultFilter });
 
     browser.tabs.create({
       url: browser.runtime.getURL(`src/welcome/welcome.html`),
     });
+
+    return;
   }
 
-  // 치지직 인증 배지 URL 수정
-  const storageFilter = await browser.storage.local.get(["filter"]);
-
-  const filter: ArrayFilterListInterface[] = storageFilter.filter;
-
-  const updateForChzzkVerifiedBadgeURL = filter.map((f) => {
-    f.filters = f.filters.map(filter => {
-      filter.value = filter.value === OLD_CHZZK_VERIFIED ? NEW_CHZZK_VERIFIED : filter.value
-      return filter;
-    })
-    return f;
-  });
-  await browser.storage.local.set({ filter: updateForChzzkVerifiedBadgeURL });
-
-  // ===================================================================== //
-  
-  browser.storage.local.get(['miniChatTime']).then(res => {
-    browser.storage.local.set({'chatTime': res.miniChatTime === 'on' ? 'on' : 'off'});
+  let updatedFilter: ArrayFilterListInterface[] = [];
+  const filter: ArrayFilterListInterface[] = (await browser.storage.local.get('filter')).filter;
+  const chzzkBadgeList = await fetch('https://api.badgecollector.dev/chzzk/badges', { method: 'GET' }).then(res => res.json());
+  const chzzkBadgeMap = new Map();
+  chzzkBadgeList.forEach((b: any) => {
+    chzzkBadgeMap.set(b.name, b.image);
   })
 
-  browser.storage.local.get(["filter"]).then((res) => {
-    const filter: ArrayFilterListInterface[] = res.filter;
-    
-    if (!filter) {
-      browser.storage.local.set({ filter: defaultFilter });
-      return;
-    }
-
-    const newTwitchFilter = filter.map((f) => {
-      if (!f.platform) {
-        f.platform = "twitch";
-      }
+  updatedFilter = filter ? (
+    filter.map((f) => {
+      f.platform = !f.platform ? 'twitch' : f.platform;
       return f;
-    });
-    browser.storage.local.set({ filter: newTwitchFilter });
-  });
+    })
+  ) : (
+    defaultFilter
+  )
+  
+  updatedFilter = updatedFilter.map(filterObj => {
+    if (filterObj.platform !== 'chzzk') {
+      return filterObj;
+    }
+    filterObj.filters = filterObj.filters.map(f => {
+      const name = f.badgeName?.split(':')[1].trim();
+      f.value = chzzkBadgeMap.get(name);
+      return f;
+    })
+    return filterObj;
+  })
 
-  browser.storage.local
-    .get([
-      "position",
-      "pointBoxAuto",
-      "darkTheme",
-      "chatTime",
-      "maximumNumberChats",
-      "advancedFilter",
-    ])
-    .then((res) => {
-      browser.storage.local.set({
-        position: res.position ? res.position : "up",
-        pointBoxAuto: res.pointBoxAuto ? res.pointBoxAuto : "on",
-        darkTheme: res.darkTheme ? res.darkTheme : "off",
-        chatTime: res.chatTime ? res.chatTime : "off",
-        maximumNumberChats: res.maximumNumberChats ? res.maximumNumberChats : (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
-        advancedFilter: res.advancedFilter ? res.advancedFilter : "off",
-        platform: res.platform ? res.platform : "twitch",
-        containerRatio: res.containerRatio ? res.containerRatio : 30,
-      });
-    });
+  await browser.storage.local.set({ filter: updatedFilter });
+  
+  const miniChatTime = (await browser.storage.local.get('miniChatTime')).miniChatTime;
+  await browser.storage.local.set({ 'chatTime': miniChatTime === 'on' ? 'on' : 'off' });
+
+  const SETTING_LIST = [
+    "position", "pointBoxAuto", "darkTheme",
+    "chatTime", "maximumNumberChats", "advancedFilter"
+  ]
+
+  const settings = await browser.storage.local.get(SETTING_LIST);
+  browser.storage.local.set({
+    position: settings.position ? settings.position : "up",
+    pointBoxAuto: settings.pointBoxAuto ? settings.pointBoxAuto : "on",
+    darkTheme: settings.darkTheme ? settings.darkTheme : "off",
+    chatTime: settings.chatTime ? settings.chatTime : "off",
+    maximumNumberChats: settings.maximumNumberChats ? settings.maximumNumberChats : (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
+    advancedFilter: settings.advancedFilter ? settings.advancedFilter : "off",
+    platform: settings.platform ? settings.platform : "twitch",
+    containerRatio: settings.containerRatio ? settings.containerRatio : 30,
+  });
 });
 
 browser.webNavigation.onHistoryStateUpdated.addListener(function () {

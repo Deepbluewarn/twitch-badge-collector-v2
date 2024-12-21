@@ -22,6 +22,7 @@ export class BaseContainer {
 
   observer: Observer;
   root: Root | null;
+  container: HTMLDivElement;
 
   constructor(
     type: SettingInterface["platform"],
@@ -44,15 +45,14 @@ export class BaseContainer {
     this.currentPath = window.location.pathname;
     this.observer = new Observer(origChatContainerSelector);
     this.root = null;
+    this.container = document.createElement('div');
+    this.container.id = `${this.type}-container`;
   }
 
   // DOM API로 "#tbc_container" 요소를 생성하고 반환하는 메소드
   async create() {
     Logger('BaseContainer create', '실행')
     
-    const container = document.createElement('div');
-    container.id = `${this.type}-container`;
-
     // 채팅 목록의 최근접 부모 요소(원본 채팅창)를 찾는다.
 
     this.observer.observe(async (element, mr) => {
@@ -72,13 +72,13 @@ export class BaseContainer {
       
       parent.id = `tbc-${this.type}-chat-list-container`;
       parent.prepend(this.handle.getHandle())
-      parent.prepend(container)
+      parent.prepend(this.container)
 
       Handle.updateContainerRatio(this.type, storageSetting['containerRatio'], storageSetting['position'])
       BaseContainer.updatePosition(this.type, storageSetting['position']);
 
       if (!this.root) {
-        this.root = createRoot(container);
+        this.root = createRoot(this.container);
       }
       const uniqueKey = `app-${Date.now()}`;
       this.root.render(
