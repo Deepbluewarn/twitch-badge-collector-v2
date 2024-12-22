@@ -35,7 +35,7 @@ browser.runtime.onInstalled.addListener(async function (details) {
     filterObj.filters = filterObj.filters.map(f => {
       const name = f.badgeName?.split(':')[1]?.trim();
 
-      if (chzzkBadgeMap.has(name)) {
+      if (chzzkBadgeMap.has(name) && f.category === 'badge') {
         f.value = chzzkBadgeMap.get(name);
       }
       
