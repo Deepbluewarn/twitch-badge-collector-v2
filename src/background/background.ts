@@ -33,8 +33,12 @@ browser.runtime.onInstalled.addListener(async function (details) {
       return filterObj;
     }
     filterObj.filters = filterObj.filters.map(f => {
-      const name = f.badgeName?.split(':')[1].trim();
-      f.value = chzzkBadgeMap.get(name);
+      const name = f.badgeName?.split(':')[1]?.trim();
+
+      if (chzzkBadgeMap.has(name)) {
+        f.value = chzzkBadgeMap.get(name);
+      }
+      
       return f;
     })
     return filterObj;
