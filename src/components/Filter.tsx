@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import ReactGA from "react-ga4";
 import { BroadcastChannel } from 'broadcast-channel';
 import { useTranslation } from 'react-i18next';
 import Typography from '@mui/material/Typography';
@@ -43,10 +42,6 @@ export default function Filter() {
     React.useEffect(() => {
         setDialogOpen(isDday)
     }, [isDday])
-
-    React.useEffect(() => {
-        ReactGA.send({ hitType: "pageview", page: "/setting/filter" });
-    }, []);
 
     React.useEffect(() => {
         document.title = `${t('setting.filter_setting')}- TBC`;
