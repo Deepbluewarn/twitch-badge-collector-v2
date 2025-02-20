@@ -2,9 +2,6 @@ import { getReactProps } from "@utils/react";
 import { Observer } from "../base/observer"
 import { ChatInfo } from "@interfaces/chat";
 
-const liveObserver = new Observer('.live_chatting_list_wrapper__a5XTV', false);
-const vodObserver = new Observer('.vod_chatting_list__+LZHw', false)
-
 const callback = (elem: Element | null, mr?: MutationRecord[]) => {
     if (!mr) return;
 
@@ -38,5 +35,18 @@ const callback = (elem: Element | null, mr?: MutationRecord[]) => {
         })
     })
 }
-liveObserver.observe(callback);
-vodObserver.observe(callback);
+
+function init() {
+    const liveObserver = new Observer('.live_chatting_list_wrapper__a5XTV', false);
+    const vodObserver = new Observer('.vod_chatting_list__+LZHw', false)
+
+    liveObserver.observe(callback);
+    vodObserver.observe(callback);
+}
+
+init();
+
+window.addEventListener("popstate", () => {
+    init();
+});
+
