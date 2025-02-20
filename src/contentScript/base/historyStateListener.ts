@@ -11,6 +11,10 @@ export function addHistoryStateListener(hostname: string, cb: () => void) {
             currentPath = window.location.pathname;
     
             cb();
+
+            window.postMessage({
+                type: 'TBC_ON_HISTORY_STATE_UPDATED'
+            }, '*')
         }
     });
 }

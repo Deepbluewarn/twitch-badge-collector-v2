@@ -46,7 +46,15 @@ function init() {
 
 init();
 
-window.addEventListener("popstate", () => {
+window.addEventListener('message', (e)=> {
+    if (e.source !== window) {
+        return;
+    }
+
+    if (e.data.type !== 'TBC_ON_HISTORY_STATE_UPDATED') {
+        return;
+    }
+
     init();
 });
 
