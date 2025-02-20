@@ -23,6 +23,7 @@ const callback = (elem: Element | null, mr?: MutationRecord[]) => {
 
             (node as Element).setAttribute('data-tbc-chat-key', chatMessage?.key);
             (node as Element).setAttribute('data-tbc-chat-time', time);
+            (node as Element).setAttribute('data-tbc-chat-replay-chat', props?.isReplayChat);
             (node as Element).setAttribute('data-tbc-chat-verified', verified);
             (node as Element).setAttribute('data-tbc-chat-badges', JSON.stringify(badges?.map((e: any) => e.imageSource)));
 
@@ -46,7 +47,15 @@ function init() {
 
 init();
 
-window.addEventListener("popstate", () => {
+window.addEventListener('message', (e)=> {
+    if (e.source !== window) {
+        return;
+    }
+
+    if (e.data.type !== 'TBC_ON_HISTORY_STATE_UPDATED') {
+        return;
+    }
+
     init();
 });
 
