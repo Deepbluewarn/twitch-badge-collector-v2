@@ -19,6 +19,13 @@
     width: 100%;
 }
 
+#tbc-clone__chzzkui > :last-child::before {
+    margin-top: 0px;
+    content: "";
+    display: block;
+    height: 0px;
+}
+
 .tbcv2-chat-time {
     padding-right: 8px;
     margin-bottom: 3px;

@@ -14,6 +14,10 @@ import { Observer } from "../../contentScript/base/observer";
 const Wrapper = styled('div')({
     height: '100%',
 })
+
+function ChatWrapper(props: { time: number, children?: React.ReactNode }) {
+    return <>{props.children}</>
+}
 // 채팅 요소를 그대로 복제하는 방식
 export default function Local({
     type, videoSelector, extractor, 
@@ -23,7 +27,7 @@ export default function Local({
     extractor: ChatExtractor,
 }) {
     const { globalSetting } = useGlobalSettingContext();
-    const [chatSet, setChatSet] = useState<React.ReactNode[]>([]);
+    const [chatSet, setChatSet] = useState<React.ReactElement[]>([]);
     const [chatIsBottom, setChatIsBottom] = useState(true);
     const maxNumChatsRef = useRef(import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
     const currentTimeRef = useRef<number>(0);
@@ -65,8 +69,9 @@ export default function Local({
     
                         if (username_elem) {
                             const chatTime = document.createElement("div");
+                            const time = parseInt(clone.getAttribute('data-tbc-chat-time') ?? '0', 10);
                             chatTime.classList.add("tbcv2-chat-time");
-                            chatTime.textContent = new Date().toLocaleTimeString(
+                            chatTime.textContent = new Date(time).toLocaleTimeString(
                                 navigator.language, { hour: '2-digit', minute: '2-digit', hour12: false }
                             );
                             username_elem.classList.add('tbcv2-chat-username');
@@ -75,11 +80,23 @@ export default function Local({
                         }
                     }
                     const KEY = clone.getAttribute('data-tbc-chat-key') ?? `${new Date().getTime()}${generateRandomString(8)}`;
+                    const TIME = parseInt(clone.getAttribute('data-tbc-chat-time') ?? '0', 10);
 
                     setChatSet(prevChatSet => {
-                        prevChatSet.push(React.createElement(Fragment, {
-                            key: KEY
+                        if (prevChatSet.some(e => e.key === KEY)) {
+                            return prevChatSet;
+                        }
+                        prevChatSet.push(React.createElement(ChatWrapper, {
+                            key: KEY,
+                            time: TIME,
                         }, convertToJSX(clone)))
+
+                        prevChatSet.sort((a, b) => {
+                            if (!a || !b) {
+                                return 0;
+                            }
+                            return a.props.time - b.props.time;
+                        });
 
                         if (prevChatSet.length >= maxNumChatsRef.current) {
                             prevChatSet.splice(0, prevChatSet.length - maxNumChatsRef.current)
