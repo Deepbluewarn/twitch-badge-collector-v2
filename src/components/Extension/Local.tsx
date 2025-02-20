@@ -69,8 +69,9 @@ export default function Local({
     
                         if (username_elem) {
                             const chatTime = document.createElement("div");
+                            const time = parseInt(clone.getAttribute('data-tbc-chat-time') ?? '0', 10);
                             chatTime.classList.add("tbcv2-chat-time");
-                            chatTime.textContent = new Date().toLocaleTimeString(
+                            chatTime.textContent = new Date(time).toLocaleTimeString(
                                 navigator.language, { hour: '2-digit', minute: '2-digit', hour12: false }
                             );
                             username_elem.classList.add('tbcv2-chat-username');
