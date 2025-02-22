@@ -95,11 +95,20 @@ export default function Local({
                             if (!a || !b) {
                                 return 0;
                             }
-                            return a.props.time - b.props.time;
+
+                            if (type === 'chzzk') {
+                                return b.props.time - a.props.time;
+                            } else {
+                                return a.props.time - b.props.time;
+                            }
                         });
 
                         if (prevChatSet.length >= maxNumChatsRef.current) {
-                            prevChatSet.splice(0, prevChatSet.length - maxNumChatsRef.current)
+                            if (type === 'chzzk') {
+                                prevChatSet.splice(prevChatSet.length - 1, prevChatSet.length - maxNumChatsRef.current)
+                            } else {
+                                prevChatSet.splice(0, prevChatSet.length - maxNumChatsRef.current)
+                            }
                         }
                         return [...prevChatSet];
                     });
