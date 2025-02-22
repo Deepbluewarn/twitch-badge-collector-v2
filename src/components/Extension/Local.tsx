@@ -1,8 +1,8 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGlobalSettingContext } from "../../context/GlobalSetting";
 import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
 import React from "react";
-import { findElement, generateRandomString } from "@utils/utils-common";
+import { findElement, generateRandomString, msToTime } from "@utils/utils-common";
 import { convertToJSX } from "@utils/converter";
 import { styled } from "@mui/material/styles";
 import { addStorageUpdateListener } from "@utils/utils-browser";
@@ -70,10 +70,12 @@ export default function Local({
                         if (username_elem) {
                             const chatTime = document.createElement("div");
                             const time = parseInt(clone.getAttribute('data-tbc-chat-time') ?? '0', 10);
-                            chatTime.classList.add("tbcv2-chat-time");
-                            chatTime.textContent = new Date(time).toLocaleTimeString(
+                            const isReplay = clone.getAttribute('data-tbc-chat-replay-chat');
+                            const chatTimeStr = isReplay ? msToTime(time) : new Date(time).toLocaleTimeString(
                                 navigator.language, { hour: '2-digit', minute: '2-digit', hour12: false }
                             );
+                            chatTime.classList.add("tbcv2-chat-time");
+                            chatTime.textContent = chatTimeStr;
                             username_elem.classList.add('tbcv2-chat-username');
                             username_elem.style.display = 'inline-flex';
                             username_elem.prepend(chatTime);
@@ -95,11 +97,20 @@ export default function Local({
                             if (!a || !b) {
                                 return 0;
                             }
-                            return a.props.time - b.props.time;
+
+                            if (type === 'chzzk') {
+                                return b.props.time - a.props.time;
+                            } else {
+                                return a.props.time - b.props.time;
+                            }
                         });
 
                         if (prevChatSet.length >= maxNumChatsRef.current) {
-                            prevChatSet.splice(0, prevChatSet.length - maxNumChatsRef.current)
+                            if (type === 'chzzk') {
+                                prevChatSet.splice(prevChatSet.length - 1, prevChatSet.length - maxNumChatsRef.current)
+                            } else {
+                                prevChatSet.splice(0, prevChatSet.length - maxNumChatsRef.current)
+                            }
                         }
                         return [...prevChatSet];
                     });
@@ -193,6 +204,7 @@ export default function Local({
         <Wrapper ref={containerRef} className={globalSetting.chatTime === 'on' ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'}>
             <div
                 id={`tbc-clone__${type}ui`}
+                // className={type === 'chzzk' ? 'live_chatting_list_wrapper__a5XTV' : ''}
                 style={{
                     marginTop: 0,
                     paddingTop: 0,

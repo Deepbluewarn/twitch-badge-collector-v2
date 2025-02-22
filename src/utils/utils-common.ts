@@ -189,3 +189,24 @@ export function selectElement(selector: string): Element | null {
     return document.querySelector(selector);
   }
 }
+
+export function msToTime(duration: number) {
+  const seconds = Math.floor((duration / 1000) % 60);
+  const minutes = Math.floor((duration / (1000 * 60)) % 60);
+  const hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+  const res = [];
+
+  if (hours > 0) {
+    res.push(hours);
+  }
+
+  if (minutes > 0) {
+    res.push(minutes < 10 ? "0" + minutes : minutes);
+  }
+
+  if (seconds > 0) {
+    res.push(seconds < 10 ? "0" + seconds : seconds);
+  }
+
+  return res.join(':')
+}

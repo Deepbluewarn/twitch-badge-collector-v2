@@ -16,16 +16,20 @@ const callback = (elem: Element | null, mr?: MutationRecord[]) => {
             const chatMessage = _props?.children?.props?.chatMessage;
             const props = _props?.children?.props;
 
-            const time = props?.isReplayChat ? chatMessage?.playerMessageTime : chatMessage?.time;
+            const isReplayChat = props?.isReplayChat;
+            const time = isReplayChat ? chatMessage?.playerMessageTime : chatMessage?.time;
             const verified = chatMessage?.profile?.verifiedMark;
             const badges = chatMessage?.displayBadgeList;
             const content = chatMessage?.content;
 
             (node as Element).setAttribute('data-tbc-chat-key', chatMessage?.key);
             (node as Element).setAttribute('data-tbc-chat-time', time);
-            (node as Element).setAttribute('data-tbc-chat-replay-chat', props?.isReplayChat);
             (node as Element).setAttribute('data-tbc-chat-verified', verified);
             (node as Element).setAttribute('data-tbc-chat-badges', JSON.stringify(badges?.map((e: any) => e.imageSource)));
+
+            if (isReplayChat) {
+                (node as Element).setAttribute('data-tbc-chat-replay-chat', isReplayChat);
+            }
 
             const chatInfo: ChatInfo = {
                 badges: [],
