@@ -125,11 +125,7 @@ export default function Local({
         if (!scrollArea) return;
 
         const scrollCallback = () => {
-            const res = scrollArea.scrollTop + scrollArea.clientHeight >=
-            scrollArea.scrollHeight - 40;
-            setChatIsBottom(
-                res
-            );
+            setChatIsBottom(scrollArea.scrollTop >= 0);
         };
 
         scrollArea.addEventListener("scroll", scrollCallback, false);
