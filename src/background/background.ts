@@ -45,13 +45,10 @@ browser.runtime.onInstalled.addListener(async function (details) {
   })
 
   await browser.storage.local.set({ filter: updatedFilter });
-  
-  const miniChatTime = (await browser.storage.local.get('miniChatTime')).miniChatTime;
-  await browser.storage.local.set({ 'chatTime': miniChatTime === 'on' ? 'on' : 'off' });
-
   const SETTING_LIST = [
     "position", "pointBoxAuto", "darkTheme",
-    "chatTime", "maximumNumberChats", "advancedFilter"
+    "chatTime", "maximumNumberChats", "advancedFilter",
+    "platform", "containerRatio", 
   ]
 
   const settings = await browser.storage.local.get(SETTING_LIST);
