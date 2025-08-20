@@ -36,7 +36,9 @@ export default function FilterInputForm(
     const { globalSetting } = useGlobalSettingContext();
     const { addArrayFilter } = useArrayFilterContext();
     const [arrayFilterNote, setArrayFilterNote] = useState('');
-    const inputValue = useRef<TextFieldProps>(null);
+    const filterContentValue = useRef<TextFieldProps>(null);
+    const channelValue = useRef<TextFieldProps>(null);
+    const channelName = useRef<TextFieldProps>(null);
 
     const onArrayFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setArrayFilterNote(event.target.value);
@@ -44,15 +46,22 @@ export default function FilterInputForm(
 
     const addFilter = useCallback(() => {
         if(typeof props.filterInput === 'undefined') return;
-        if(inputValue.current === null) return;
+        if(filterContentValue.current === null) return;
+        if(channelValue.current === null || channelName.current === null) return;
 
-        const inputRef = inputValue.current;
-        const value = inputRef?.value as string;
+        const contentValueRef = filterContentValue.current;
+        const _contentValue = contentValueRef?.value as string;
+
+        const channelValueRef = channelValue.current;
+        const _channelValue = channelValueRef?.value as string;
+
+        const channelNameRef = channelName.current;
+        const _channelName = channelNameRef?.value as string;
 
         if(props.filterInput.category === 'badge'){
-            props.filterInput.badgeName = value;
+            props.filterInput.badgeName = _contentValue;
         }else{
-            props.filterInput.value = value;
+            props.filterInput.value = _contentValue;
         }
 
         // 기본 모드에서 필터 요소의 타입은 include로 고정되어 있습니다.
@@ -64,12 +73,14 @@ export default function FilterInputForm(
             id: nanoid(),
             filterNote: arrayFilterNote,
             filters: [props.filterInput],
-            platform: globalSetting.platform
+            platform: globalSetting.platform,
+            filterChannelId: _channelValue,
+            filterChannelName: _channelName,
         }]);
         if (added) {
             setArrayFilterNote('');
             props.setFilterInput(getDefaultArrayFilter());
-            inputRef.value = '';
+            contentValueRef.value = '';
         }
     }, [props.filterInput, arrayFilterNote])
 
@@ -79,7 +90,9 @@ export default function FilterInputForm(
                 <BasicFilterInputForm 
                     filterInput={props.filterInput}
                     setFilterInput={props.setFilterInput}
-                    inputValue={inputValue}
+                    filterContentValue={filterContentValue}
+                    channelValue={channelValue}
+                    channelName={channelName}
                 />
             </CardContent>
             <CardActions sx={{ padding: '16px' }}>
@@ -111,7 +124,9 @@ function BasicFilterInputForm(
     props: {
     filterInput: ArrayFilterInterface,
     setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface>>,
-    inputValue: React.MutableRefObject<TextFieldProps | null>
+    filterContentValue: React.MutableRefObject<TextFieldProps | null>,
+    channelValue: React.MutableRefObject<TextFieldProps | null>,
+    channelName: React.MutableRefObject<TextFieldProps | null>,
 }
 ){
     const {globalSetting} = useGlobalSettingContext();
@@ -134,17 +149,25 @@ function BasicFilterInputForm(
     const resetFilterInput = useCallback(() => {
         props.setFilterInput(getDefaultArrayFilter());
 
-        const inputRef = props.inputValue.current;
-        
-        if(inputRef !== null) {
-            inputRef.value = '';
+        const filterContentRef = props.filterContentValue.current;
+        const channelValueRef = props.channelValue.current;
+        const channelNameRef = props.channelName.current;
+
+        if(filterContentRef !== null) {
+            filterContentRef.value = '';
+        };
+        if(channelValueRef !== null) {
+            channelValueRef.value = '';
+        };
+        if(channelNameRef !== null) {
+            channelNameRef.value = '';
         };
     }, []);
 
     useEffect(() => {
         // 선택한 배지의 이름을 TextInput 에 자동으로 입력.
         if(props.filterInput.category === 'badge'){
-            props.inputValue.current!.value = props.filterInput.badgeName;
+            props.filterContentValue.current!.value = props.filterInput.badgeName;
         }
     }, [props.filterInput]);
 
@@ -189,7 +212,7 @@ function BasicFilterInputForm(
                         <CustomTextField
                             label={t('common.badge_name')}
                             defaultValue={props.filterInput.badgeName}
-                            inputRef={props.inputValue}
+                            inputRef={props.filterContentValue}
                         />
                     </>
                 ) : (
@@ -202,11 +225,23 @@ function BasicFilterInputForm(
                         <CustomTextField
                             label={t('common.value')}
                             defaultValue={props.filterInput.value}
-                            inputRef={props.inputValue}
+                            inputRef={props.filterContentValue}
                         />
                     </>
                 )
             }
+
+            <CustomTextField
+                label={'채널 ID'}
+                defaultValue={props.filterInput.filterChannelId}
+                inputRef={props.channelValue}
+            />
+
+            <CustomTextField
+                label={'채널 이름'}
+                defaultValue={props.filterInput.filterChannelName}
+                inputRef={props.channelName}
+            />
 
             <ArrayFilterTypeSelector
                 labelId="filter-type-label"

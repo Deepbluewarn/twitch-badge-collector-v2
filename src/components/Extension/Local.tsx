@@ -40,6 +40,9 @@ export default function Local({
             `#tbc-clone__${type}ui`
         );
     };
+
+    const channelId = type === 'chzzk' ? window.location.pathname.split('/')[2] : null;
+
     const newChatCallback = (mutationRecord: MutationRecord[]) => {
         const records = Array.from(mutationRecord);
 
@@ -52,7 +55,7 @@ export default function Local({
 
                 if (!chat || chat === null) return;
 
-                const filterRes = checkFilter(chat);
+                const filterRes = checkFilter(chat, null, channelId);
 
                 if (typeof filterRes !== "undefined" && filterRes) {
                     const clone = node.cloneNode(true) as HTMLElement;

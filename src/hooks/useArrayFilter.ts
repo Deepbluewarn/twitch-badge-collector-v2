@@ -54,12 +54,23 @@ export default function useArrayFilter() {
         return true;
     }
 
-    const checkFilter = (chat: ChatInfo, chatInfoObject?: ChatInfoObjects) => {
+    /**
+     * 
+     * @param chat 채팅 정보 객체
+     * @param chatInfoObject (트위치 전용) 채팅 배지, 이모티콘 정보
+     * @param channelId (치지직 전용, 트위치는 예정) 현재 채널 ID
+     * @returns 
+     */
+    const checkFilter = (chat: ChatInfo, chatInfoObject?: ChatInfoObjects | null, channelId?: string | null) => {
         if (typeof arrayFilterRef.current === 'undefined' || arrayFilterRef.current.length === 0) return false;
 
         let res = false; // true 이면 해당 chat 을 포함, false 이면 제외.
 
         for(let arrayFilter of arrayFilterRef.current){
+            if (arrayFilter.filterChannelId && arrayFilter.filterChannelId !== channelId) {
+                // 채널 전용 필터는 채널 ID 값이 일치해야 함.
+                continue;
+            }
             const filterMatched = arrayFilter.filters.every((filter) => {
                 let filterMatchedRes = false;
 
@@ -68,7 +79,7 @@ export default function useArrayFilter() {
                 }
 
                 if (filter.category === "badge") {
-                    if(typeof chatInfoObject === 'undefined'){
+                    if(typeof chatInfoObject === 'undefined' || !chatInfoObject){
                         const channelMisMatch = 
                             (chat.channelLogin && filter.channelLogin) && 
                             (chat.channelLogin !== filter.channelLogin);

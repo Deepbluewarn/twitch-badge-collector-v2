@@ -71,7 +71,7 @@ export function ArrayFilterList() {
                             )
                         }
                         return (
-                            <Tooltip key={`${title}-${af.id}`} title={title}>
+                            <Tooltip key={`${title}-${af.id}`} title={title} placement="top">
                                 <RelaxedChip
                                     label={title}
                                     avatar={badgeAvatar}
@@ -90,12 +90,27 @@ export function ArrayFilterList() {
                 }
             },
             {
+                field: 'filterChannelName', headerName: "채널", flex: 0.2,
+                renderCell: (params: GridRenderCellParams<any, string>) => {
+                    if(!params.value) return null;
+
+                    return (
+                        <Tooltip key={params.row.filterChannelId} title={params.row.filterChannelId} placement="top">
+                            <RelaxedChip
+                                label={params.value}
+                                color='secondary'
+                            />
+                        </Tooltip >
+                    )
+                }
+            },
+            {
                 field: 'filterNote', headerName: "비고", flex: 0.2,
                 renderCell: (params: GridRenderCellParams<any, string>) => {
                     if(!params.value) return null;
     
                     return (
-                        <Tooltip key={params.value} title={params.value}>
+                        <Tooltip key={params.value} title={params.value} placement="top">
                             <RelaxedChip
                                 label={params.value}
                                 color='secondary'
@@ -122,6 +137,7 @@ export function ArrayFilterList() {
     }, [globalSetting.platform, platformArrayFilter]);
 
     useEffect(() => {
+        console.log('ArrayFilterList arrayFilter: ', arrayFilter)
         localStorage.setItem('tbc-filter', JSON.stringify(arrayFilter));
     }, [arrayFilter]);
 

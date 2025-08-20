@@ -32,6 +32,7 @@ export function CustomDataGrid(props: DataGridProps) {
                 }}
                 pageSizeOptions={[6]}
                 checkboxSelection={true}
+                disableColumnFilter
                 {...props}
             />
         </Box>

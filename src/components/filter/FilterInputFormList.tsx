@@ -37,6 +37,9 @@ export default function FilterInputFormList(
     const [arrayFilterType, setArrayFilterType] = React.useState<FilterType>('include');
     const [arrayFilterNote, setArrayFilterNote] = useState('');
     const [nameFilterAvail, setNameFilterAvail] = React.useState(false);
+    const [channelId, setChannelId] = useState('');
+    const [channelName, setChannelName] = useState('');
+
     const { t } = useTranslation();
 
     const addFilterInputForm = () => {
@@ -61,7 +64,9 @@ export default function FilterInputFormList(
             id: nanoid(),
             filterNote: arrayFilterNote,
             filters: [...props.filterInputListRef.current],
-            platform: globalSetting.platform
+            platform: globalSetting.platform,
+            filterChannelId: channelId,
+            filterChannelName: channelName,
         }]);
         if (added) {
             resetArrayFilterInputList();
@@ -137,6 +142,18 @@ export default function FilterInputFormList(
                             value={arrayFilterType} 
                             onChange={onArrayFilterTypeChanged}
                         />
+
+                        <CustomTextField
+                            value={channelId}
+                            label={'채널 ID'}
+                            onChange={(e) => setChannelId(e.target.value)}
+                        />
+                        <CustomTextField
+                            value={channelName}
+                            label={'채널 이름'}
+                            onChange={(e) => setChannelName(e.target.value)}
+                        />
+
                         <Button
                             disabled={props.afInputRow.length === 0}
                             onClick={addFilter}
