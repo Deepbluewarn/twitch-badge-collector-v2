@@ -7,9 +7,10 @@ import Button from '@mui/material/Button';
 import CustomTextField from '@components/TextField/CustomTextField';
 import { useTranslation } from 'react-i18next';
 import { ArrayFilterCategory, ArrayFilterInterface, ArrayFilterListInterface, FilterType } from '@interfaces/filter';
-import { FormControl, InputLabel, MenuItem, Paper, Select, Stack } from '@mui/material';
+import { FormControl, InputLabel, MenuItem, Paper, Select, Stack, Typography } from '@mui/material';
 import BadgeList from './BadgeList';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
+import { getDefaultArrayFilter } from '@utils/utils-common';
 
 // 모달 타입 정의
 export type EditDialogType = 'filter' | 'channel' | 'note' | null;
@@ -113,16 +114,61 @@ export default function FilterEditDialog({
     const renderFilterContent = () => {
         if (!arrayFilter) return;
 
+        const BadgeImage = () => {
+            if (!arrayFilter.value && arrayFilter.category === 'badge') {
+                return <Typography>배지 선택</Typography>
+            }
+
+            return arrayFilter.category === 'badge' ? (
+                <Paper
+                    variant="outlined"
+                    sx={{
+                        minWidth: 120,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}
+                >
+
+                    {
+                        globalSetting.platform === 'twitch' ? (
+                            <img
+                                style={{ width: '18px', height: '18px' }}
+                                src={`https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/1`}
+                                srcSet={
+                                    `https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/1 1x, 
+                            https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/2 2x, 
+                            https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/3 4x`}
+                            />
+                        ) : (
+                            <img
+                                style={{ width: '18px', height: '18px' }}
+                                src={arrayFilter.value}
+                            />
+                        )
+                    }
+
+                </Paper>
+            ) : null
+        }
+
         return (
             <Stack spacing={2}>
-                <FormControl fullWidth>
+                <FormControl>
                     <InputLabel id="filter-category-label">{'카테고리'}</InputLabel>
                     <Select
                         labelId="filter-category-label"
                         value={arrayFilter.category || ''}
                         label={'카테고리'}
                         onChange={(e) => {
-                            handleObjectChange({ category: e.target.value as ArrayFilterCategory })
+                            setArrayFilter(filter => {
+                                if (!filter) return filter;
+
+                                return {
+                                    ...getDefaultArrayFilter(filter.id, filter.category, filter.type),
+                                }
+                            });
+                            handleObjectChange({ category: e.target.value as ArrayFilterCategory }, filterId);
                         }}
                     >
                         <MenuItem value="name">{'닉네임'}</MenuItem>
@@ -130,66 +176,47 @@ export default function FilterEditDialog({
                         <MenuItem value="badge">{'배지'}</MenuItem>
                     </Select>
                 </FormControl>
+                <Stack spacing={2} direction={'row'}>
+                    <BadgeImage />
+                    {
+                        arrayFilter.category === 'badge' ? (
+                            <CustomTextField
+                                label={'배지 이름'}
+                                value={arrayFilter.badgeName || ''}
+                                onChange={e => {
+                                    handleObjectChange({ badgeName: e.target.value }, filterId)
+                                }}
+                                fullWidth
+                            />
+                        ) : (
+                            <CustomTextField
+                                label={'내용'}
+                                value={arrayFilter.value || ''}
+                                onChange={e => {
+                                    handleObjectChange({ value: e.target.value }, filterId)
+                                }}
+                                fullWidth
+                            />
+                        )
+                    }
 
-                {
-                    arrayFilter.category === 'badge' ? (
-                        <Paper
-                            variant="outlined"
-                            sx={{
-                                minWidth: 120,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center'
+                    {/* 필터 조건 선택 추가 */}
+                    <FormControl>
+                        <InputLabel id="filter-type-label">{'조건'}</InputLabel>
+                        <Select
+                            labelId="filter-type-label"
+                            value={arrayFilter.type || 'include'}
+                            label={'조건'}
+                            onChange={(e) => {
+                                handleObjectChange({ type: e.target.value as FilterType }, filterId);
                             }}
                         >
-                            {
-                                globalSetting.platform === 'twitch' ? (
-                                    <img
-                                        style={{ width: '18px', height: '18px' }}
-                                        src={`https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/1`}
-                                        srcSet={
-                                            `https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/1 1x, 
-                            https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/2 2x, 
-                            https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/3 4x`}
-                                    />
-                                ) : (
-                                    <img
-                                        style={{ width: '18px', height: '18px' }}
-                                        src={arrayFilter.value}
-                                    />
-                                )
-                            }
-
-                        </Paper>
-                    ) : (
-                        <CustomTextField
-                            label={'내용'}
-                            value={arrayFilter.value || ''}
-                            onChange={e => {
-                                handleObjectChange({ value: e.target.value }, filterId)
-                            }}
-                            fullWidth
-                        />
-                    )
-                }
-                
-
-                {/* 필터 조건 선택 추가 */}
-                <FormControl fullWidth>
-                    <InputLabel id="filter-type-label">{'조건'}</InputLabel>
-                    <Select
-                        labelId="filter-type-label"
-                        value={arrayFilter.type || 'include'}
-                        label={'조건'}
-                        onChange={(e) => {
-                            handleObjectChange({ type: e.target.value as FilterType }, filterId);
-                        }}
-                    >
-                        <MenuItem value="include">{'포함'}</MenuItem>
-                        <MenuItem value="exclude">{'제외'}</MenuItem>
-                        <MenuItem value="sleep">{'꺼짐'}</MenuItem>
-                    </Select>
-                </FormControl>
+                            <MenuItem value="include">{'포함'}</MenuItem>
+                            <MenuItem value="exclude">{'제외'}</MenuItem>
+                            <MenuItem value="sleep">{'꺼짐'}</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Stack>
 
                 {arrayFilter.category === 'badge' && (
                     <BadgeList
