@@ -190,11 +190,6 @@ function Popup() {
       </Stack>
 
       <Stack sx={{ 'gap': '8px' }}>
-        <Link href={import.meta.env.VITE_DOCUMENTATION} underline="none" target='_blank'>
-          <Button variant="outlined" sx={{ width: '100%' }}>
-            {browser.i18n.getMessage('documentation')}
-          </Button>
-        </Link>
         <Button variant='contained' sx={{ width: '100%' }} onClick={() => onRatioResetButtonClicked()}>
             {browser.i18n.getMessage('reset_chat_ratio')}
         </Button>
@@ -228,23 +223,6 @@ function Popup() {
           {browser.i18n.getMessage('review')}
         </Button>
       </Link>
-      <Stack direction='row'>
-        <CustomAnchor href={import.meta.env.VITE_DONATE_LINK} target='_blank'>
-          <Box
-            component='img'
-            sx={{ width: 'inherit', borderRadius: '8px' }}
-            src={`https://cdn.jsdelivr.net/npm/twitch-badge-collector-cc@0.0.70/dist/donation/toonation_b14.gif`}
-          />
-        </CustomAnchor>
-        <Divider sx={{m: 1}} orientation="vertical" flexItem />
-        <CustomAnchor href="https://www.buymeacoffee.com/bluewarndev" target="_blank">
-          <Box
-            component='img'
-            sx={{ width: 'inherit', borderRadius: '8px' }}
-            src={browser.runtime.getURL('src/assets/bmc-button.svg')}
-          />
-        </CustomAnchor>
-      </Stack>
       <Stack
         direction='row'
         alignItems='center'
