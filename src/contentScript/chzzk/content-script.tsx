@@ -1,3 +1,4 @@
+import browser from "webextension-polyfill";
 import { ChatInfo } from "@interfaces/chat";
 import { ChatExtractor, checkVerifiedBadge } from "../base/chatExtractor";
 import { BaseContainer } from "../base/container";
@@ -5,6 +6,8 @@ import { Handle } from "../base/handler";
 import { addHistoryStateListener } from "../base/historyStateListener";
 
 import mainWorld from './inject?script&module'
+import { Observer } from "../base/observer";
+import { Logger } from "@utils/logger";
 
 const script = document.createElement('script')
 script.src = chrome.runtime.getURL(mainWorld)
@@ -90,3 +93,16 @@ const vodContainer = new BaseContainer(
 init()
 
 addHistoryStateListener('chzzk.naver.com', init);
+
+new Observer('.live_chatting_power_button__Ov3eJ', false).observe(async (elem) => {
+    if (!elem) return;
+
+    if (elem) {
+        const isPointAutoOn = (await browser.storage.local.get('pointBoxAuto')).pointBoxAuto;
+
+        if (isPointAutoOn === 'off') return;
+
+        (elem as HTMLButtonElement).click();
+        Logger('observe .live_chatting_power_button__Ov3eJ callback: ', '포인트 박스를 클릭했어요!')
+    }
+})
