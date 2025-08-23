@@ -81,6 +81,8 @@ export default function FilterInputForm(
             setArrayFilterNote('');
             props.setFilterInput(getDefaultArrayFilter());
             contentValueRef.value = '';
+            channelValue.current.value = '';
+            channelName.current.value = '';
         }
     }, [props.filterInput, arrayFilterNote])
 

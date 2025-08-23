@@ -39,7 +39,11 @@ export default function useArrayFilter() {
     
             setArrayFilter(afLists => {
                 for (let af of afLists) {
-                    if(arrayFiltersEqual(af.filters, newFilter.filters) && af.platform === newFilter.platform){
+                    if(
+                        arrayFiltersEqual(af.filters, newFilter.filters) && 
+                        af.platform === newFilter.platform &&
+                        af.filterChannelId === newFilter.filterChannelId
+                    ){
                         addAlert({
                             message: t('alert.filter_already_exist'),
                             serverity: 'warning'

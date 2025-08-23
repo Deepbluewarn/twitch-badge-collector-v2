@@ -71,6 +71,8 @@ export default function FilterInputFormList(
         if (added) {
             resetArrayFilterInputList();
             setArrayFilterNote('');
+            setChannelId('');
+            setChannelName('');
         }
     }, [arrayFilterType, arrayFilterNote, globalSetting.platform]);
 
