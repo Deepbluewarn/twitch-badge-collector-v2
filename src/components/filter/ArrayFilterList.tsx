@@ -13,6 +13,7 @@ import { useArrayFilterContext } from "../../context/ArrayFilter";
 import { ArrayFilterInterface, ArrayFilterListInterface } from "../../interfaces/filter";
 import RelaxedChip from "../chip/RelaxedChip";
 import { useGlobalSettingContext } from "../../context/GlobalSetting";
+import FilterEditDialog, { EditDialogType } from "./FilterEditDialog";
 
 const ChipListStyle = styled(Stack)({
     display: 'flex',
@@ -38,6 +39,22 @@ export function ArrayFilterList() {
     const [selectionModel, setSelectionModel] = React.useState<GridRowId[]>([]);
     const [showDeleteButton, setShowDeleteButton] = React.useState(false);
     const { t } = useTranslation();
+
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogType, setDialogType] = useState<EditDialogType>(null);
+    const [selectedFilterList, setSelectedFilterList] = useState<ArrayFilterListInterface>();
+    const [selectedFilterId, setSelectedFilterId] = useState<string | undefined>('');
+    
+    // 필터 수정 모달 열기 함수
+    const openEditDialog = (
+        type: EditDialogType, filterList: ArrayFilterListInterface,
+        selectedFilterId?: string,
+    ) => {
+        setDialogType(type);
+        setSelectedFilterList(filterList);
+        setSelectedFilterId(selectedFilterId);
+        setDialogOpen(true);
+    };
 
     const getColumns = useCallback(() => {
         return [
@@ -76,6 +93,10 @@ export function ArrayFilterList() {
                                     label={title}
                                     avatar={badgeAvatar}
                                     color={chipColor(af.type)}
+                                    onClick={(e) => { 
+                                        e.stopPropagation();
+                                        openEditDialog('filter', params.row, af.id);
+                                     }}
                                 />
                             </Tooltip >
                             
@@ -99,6 +120,10 @@ export function ArrayFilterList() {
                             <RelaxedChip
                                 label={params.value}
                                 color='secondary'
+                                onClick={(e) => { 
+                                    e.stopPropagation();
+                                    openEditDialog('channel', params.row);
+                                 }}
                             />
                         </Tooltip >
                     )
@@ -114,6 +139,10 @@ export function ArrayFilterList() {
                             <RelaxedChip
                                 label={params.value}
                                 color='secondary'
+                                onClick={(e) => { 
+                                    e.stopPropagation();
+                                    openEditDialog('note', params.row);
+                                }}
                             />
                         </Tooltip >
                     )
@@ -128,7 +157,10 @@ export function ArrayFilterList() {
                         <RelaxedChip
                             label={t(`filter.category.${params.value}`)}
                             color={chipColor(params.value)}
-                            onClick={() => onArrayFilterTypeChipClick(params, setArrayFilter)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onArrayFilterTypeChipClick(params, setArrayFilter);
+                            }}
                         />
                     )
                 }
@@ -146,22 +178,45 @@ export function ArrayFilterList() {
     }, [arrayFilter, globalSetting.platform]);
 
     return (
-        <CustomDataGrid 
-            rows={platformArrayFilter}
-            columns={getColumns()}
-            components={{ Toolbar: CustomToolbar }}
-            componentsProps={{ 
-                toolbar: {
-                    selectionModel: selectionModel, 
-                    showDeleteButton: showDeleteButton,
-                }
-            }}
-            onRowSelectionModelChange={(ids) => {
-                setShowDeleteButton(ids.length > 0);
-                setSelectionModel(ids);
-            }}
-            rowSelectionModel={selectionModel}
-        />
+        <>
+            <CustomDataGrid
+                rows={platformArrayFilter}
+                columns={getColumns()}
+                components={{ Toolbar: CustomToolbar }}
+                componentsProps={{
+                    toolbar: {
+                        selectionModel: selectionModel,
+                        showDeleteButton: showDeleteButton,
+                    }
+                }}
+                onRowSelectionModelChange={(ids) => {
+                    setShowDeleteButton(ids.length > 0);
+                    setSelectionModel(ids);
+                }}
+                rowSelectionModel={selectionModel}
+            />
+            <FilterEditDialog
+                open={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                type={dialogType}
+                selectedFilterList={selectedFilterList}
+                filterId={selectedFilterId}
+                onSave={(type, updatedData) => {
+                    if (!updatedData) return;
+                    
+                    setArrayFilter(filterList => {
+                        const newFilterList = filterList.map(list => {
+                            if (list.id === updatedData.id) {
+                                return updatedData;
+                            }
+                            return list;
+                        });
+
+                        return newFilterList;
+                    });
+                }}
+            />
+        </>
     )
 }
 

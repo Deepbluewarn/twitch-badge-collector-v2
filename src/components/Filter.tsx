@@ -20,13 +20,14 @@ import SocialFooter from './SocialFooter';
 import { getDefaultArrayFilter } from '@utils/utils-common';
 import { EncorageDonationDialog } from './EncourageDonation';
 import { useMonthlyRandom } from '@hooks/useMonthlyRandom';
+import { setBadgeInSimpleFilter, setMultipleBadgesInFilterArray } from './filter/utils/badge-utils';
 
 export default function Filter() {
     const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
     const [advancedFilter, setAdvancedFilter] = React.useState(globalSetting.advancedFilter);
     const { arrayFilter } = useArrayFilterContext();
     const { channelInfoObject, dispatchChannelInfo, channel, setChannel, User } = useChatInfoObjects();
-    const [filterInput, setFilterInput] = React.useState<ArrayFilterInterface>(getDefaultArrayFilter());
+    const [filterInput, setFilterInput] = React.useState<ArrayFilterInterface | undefined>(getDefaultArrayFilter());
     const [filterInputList, setFilterInputList] = React.useState<ArrayFilterInterface[]>([]);
     const filterInputListRef = React.useRef<ArrayFilterInterface[]>([]);
     const filterBroadcastChannel = React.useRef<BroadcastChannel<ArrayFilterMessageInterface>>(new BroadcastChannel('ArrayFilter'));
@@ -135,8 +136,13 @@ export default function Filter() {
                         </Typography>
 
                         <BadgeList
-                            setAfInputRow={setFilterInputList}
-                            setFilterInput={setFilterInput}
+                            multiple={globalSetting.advancedFilter === 'on'}
+                            onBadgeSelect={(badge) => {
+                                setBadgeInSimpleFilter(badge, globalSetting.platform, setFilterInput);
+                            }}
+                            onMultiBadgesSelect={(badges) => {
+                                setMultipleBadgesInFilterArray(badges, globalSetting.platform, setFilterInputList);
+                            }}
                         />
                     </Stack>
                 </Card>

@@ -28,16 +28,15 @@ import { useChzzkAPIContext } from "../../context/ChzzkAPIContext";
 import { SettingInterface } from "@interfaces/setting";
 
 function CustomToolbar(props: {
-    setAfInputRow: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>,
-    badgesRow: BadgeInterface[],
-    selectionModel: GridRowId[],
-    setSelectionModel: React.Dispatch<React.SetStateAction<GridRowId[]>>,
-    setShowAddButton: React.Dispatch<React.SetStateAction<boolean>>,
-    showAddButton: boolean
-    badgeListChannel: BadgeChannelType,
-    setBadgeListChannel: React.Dispatch<React.SetStateAction<BadgeChannelType>>,
-    badgeChannelName: string,
-    setBadgeChannelName: React.Dispatch<React.SetStateAction<string>>,
+    onMultiBadgesSelect: () => void;
+    selectionModel: GridRowId[];
+    setSelectionModel: React.Dispatch<React.SetStateAction<GridRowId[]>>;
+    setShowAddButton: React.Dispatch<React.SetStateAction<boolean>>;
+    showAddButton: boolean;
+    badgeListChannel: BadgeChannelType;
+    setBadgeListChannel: React.Dispatch<React.SetStateAction<BadgeChannelType>>;
+    badgeChannelName: string;
+    setBadgeChannelName: React.Dispatch<React.SetStateAction<string>>;
 }) {
     const { globalSetting } = useGlobalSettingContext();
     const customToolbarContainer = globalSetting.platform === 'twitch' ? (<CustomToolbarContainer />) : null
@@ -54,8 +53,7 @@ function CustomToolbar(props: {
                 <GridToolbarContainer>
                     <GridToolbarFilterButton />
                     <AddBadgeFilterButton
-                        badgesRow={props.badgesRow}
-                        setAfInputRow={props.setAfInputRow}
+                        onMultiBadgesSelect={props.onMultiBadgesSelect}
                         selectionModel={props.selectionModel}
                         setSelectionModel={props.setSelectionModel}
                         setShowAddButton={props.setShowAddButton}
@@ -67,12 +65,20 @@ function CustomToolbar(props: {
     );
 }
 
-export default function BadgeList(props: {
-    setAfInputRow: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>
-    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface>>
-}) {
+export interface SelectedBadgeCallbacks {
+    // 단일 배지 선택 시 호출
+    onBadgeSelect?: (badge: BadgeInterface) => void;
+    // 다중 배지 선택 후 추가 버튼 클릭 시 호출
+    onMultiBadgesSelect?: (badges: BadgeInterface[]) => void;
+    multiple?: boolean;
+}
+
+export default function BadgeList({
+    onBadgeSelect,
+    onMultiBadgesSelect,
+    multiple = false // 기본값 설정
+}: SelectedBadgeCallbacks) {
     const { globalSetting } = useGlobalSettingContext();
-    const [advancedFilter, setAdvancedFilter] = useState(globalSetting.advancedFilter);
     const [badgesRow, setBadgesRows] = React.useState<BadgeInterface[]>([]);
     const [selectionModel, setSelectionModel] = React.useState<GridRowId[]>([]);
     const [showAddButton, setShowAddButton] = React.useState(false);
@@ -147,34 +153,34 @@ export default function BadgeList(props: {
         }
     )
 
-    const updateFilterInput = (id: GridRowId) => {
-        if(typeof id === 'undefined') return;
-        
+    const handleBadgeSelect = (id: GridRowId) => {
+        if (typeof id === 'undefined' || !onBadgeSelect) return;
+
         const badge = badgesRow.find(badge => badge.id === id.toString());
         if (!badge) return;
 
-        const badgeUUID = 
-            globalSetting.platform === 'twitch' ? 
-                badgeUuidFromURL(badge.badgeImage.badge_img_url_1x) : 
-                badge.badgeImage.badge_img_url_1x;
+        onBadgeSelect(badge);
+    }
 
-        props.setFilterInput({
-            category: 'badge',
-            id: nanoid(),
-            type: badge.filterType,
-            value: badgeUUID,
-            badgeName: `${badge.channel}: ${badge.badgeName}`,
-            badgeSetId: badge.badgeSetId,
-            channelLogin: badge.channelLogin,
-            channelId: badge.channelId,
-        });
+    // 다중 배지 선택 처리 함수
+    const handleMultiBadgesSelect = () => {
+        if (!onMultiBadgesSelect) return;
+
+        const selectedBadges = badgesRow.filter(badge =>
+            selectionModel.includes(badge.id)
+        );
+
+        onMultiBadgesSelect(selectedBadges);
+
+        setShowAddButton(false);
+        setSelectionModel([]);
     }
 
     React.useEffect(() => {
-        if(!GlobalBadges) return;
-    
+        if (!GlobalBadges) return;
+
         const badgesArray = badgesToArray(GlobalBadges);
-    
+
         const badgesRow: BadgeInterface[] = badgesArray.map(badge => {
             return {
                 id: `${badge.image_url_1x}-${badge.description}-${badge.key}`,
@@ -192,16 +198,16 @@ export default function BadgeList(props: {
         });
         setLoading(false);
         setBadgesRows(badgesRow);
-    }, [GlobalBadges]);    
+    }, [GlobalBadges]);
 
     React.useEffect(() => {
-        if(!User || User.data.length === 0) return;
+        if (!User || User.data.length === 0) return;
 
         setUserId(User.data[0].id);
     }, [User]);
 
     React.useEffect(() => {
-        if(!ChannelChatBadges || (!User || User.data.length === 0)) return;
+        if (!ChannelChatBadges || (!User || User.data.length === 0)) return;
 
         const badgesArray = badgesToArray(ChannelChatBadges);
         const channelName = User.data[0].display_name;
@@ -256,10 +262,6 @@ export default function BadgeList(props: {
         setBadgesRows(badgesRow);
     }, [ChzzkBadges]);
 
-    useEffect(() => {
-        setAdvancedFilter(globalSetting.advancedFilter);
-    }, [globalSetting])
-
     return (
         <CustomDataGrid rows={badgesRow} columns={columns}
             components={{ Toolbar: CustomToolbar }}
@@ -267,7 +269,7 @@ export default function BadgeList(props: {
             componentsProps={{
                 toolbar: {
                     badgesRow,
-                    setAfInputRow: props.setAfInputRow,
+                    onMultiBadgesSelect: handleMultiBadgesSelect,
                     selectionModel, setSelectionModel,
                     showAddButton, setShowAddButton,
                     badgeListChannel, setBadgeListChannel,
@@ -276,12 +278,15 @@ export default function BadgeList(props: {
                 }
             }}
             onRowSelectionModelChange={(ids) => {
-                setShowAddButton(advancedFilter === 'on' && ids.length > 0);
+                setShowAddButton(multiple && ids.length > 0);
                 setSelectionModel(ids);
-                updateFilterInput(ids[0]);
+                // 단일 선택 시 콜백 호출
+                if (ids.length === 1) {
+                    handleBadgeSelect(ids[0]);
+                }
             }}
             rowSelectionModel={selectionModel}
-            checkboxSelection={advancedFilter === 'on'}
+            checkboxSelection={multiple}
         />
     )
 }
@@ -403,32 +408,20 @@ function CustomToolbarContainer() {
 }
 
 function AddBadgeFilterButton(props: {
-    badgesRow: BadgeInterface[],
-    setAfInputRow: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>,
-    selectionModel: GridRowId[],
-    setSelectionModel: React.Dispatch<React.SetStateAction<GridRowId[]>>,
-    setShowAddButton: React.Dispatch<React.SetStateAction<boolean>>,
-    showAddButton: boolean
+    showAddButton: boolean;
+    onMultiBadgesSelect: () => void;
+    selectionModel: GridRowId[];
+    setSelectionModel: React.Dispatch<React.SetStateAction<GridRowId[]>>;
+    setShowAddButton: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-
     if (!props.showAddButton) return null;
 
     const { t } = useTranslation();
-    const { globalSetting } = useGlobalSettingContext();
 
     return (
         <Stack
             direction='row'
-            onClick={() => {
-                AddSelectedBadges(
-                    props.badgesRow,
-                    props.setAfInputRow,
-                    props.selectionModel,
-                    props.setSelectionModel,
-                    props.setShowAddButton,
-                    globalSetting.platform,
-                )
-            }}
+            onClick={props.onMultiBadgesSelect}
             sx={{
                 alignItems: 'center',
                 padding: '4px',

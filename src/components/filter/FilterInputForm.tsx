@@ -26,8 +26,8 @@ import CustomTextField from '@components/TextField/CustomTextField';
 
 export default function FilterInputForm(
     props: {
-    filterInput: ArrayFilterInterface,
-    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface>>,
+    filterInput: ArrayFilterInterface | undefined,
+    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface | undefined>>,
 }
 ) {
 
@@ -124,8 +124,8 @@ export default function FilterInputForm(
 
 function BasicFilterInputForm(
     props: {
-    filterInput: ArrayFilterInterface,
-    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface>>,
+    filterInput: ArrayFilterInterface | undefined,
+    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface | undefined>>,
     filterContentValue: React.MutableRefObject<TextFieldProps | null>,
     channelValue: React.MutableRefObject<TextFieldProps | null>,
     channelName: React.MutableRefObject<TextFieldProps | null>,
@@ -138,6 +138,8 @@ function BasicFilterInputForm(
         const newValue = event.target.value;
 
         props.setFilterInput(l => {
+            if (!l) return l;
+
             const newL = { ...l };
             if (selectorType === 'category') {
                 newL.category = newValue as ArrayFilterCategory;
@@ -168,6 +170,8 @@ function BasicFilterInputForm(
 
     useEffect(() => {
         // 선택한 배지의 이름을 TextInput 에 자동으로 입력.
+        if (!props.filterInput) return;
+
         if(props.filterInput.category === 'badge'){
             props.filterContentValue.current!.value = props.filterInput.badgeName;
         }
@@ -180,7 +184,7 @@ function BasicFilterInputForm(
     return (
         <Stack direction='row' spacing={1}>
             {
-                props.filterInput.category === 'badge' ? (
+                props.filterInput && props.filterInput.category === 'badge' ? (
                     <>
                         <Paper 
                             variant="outlined" 
@@ -220,13 +224,13 @@ function BasicFilterInputForm(
                 ) : (
                     <>
                         <FilterCategorySelector 
-                            value={props.filterInput.category}
+                            value={props.filterInput?.category}
                             onChange={(e) => selectorChanged(e, 'category')}
                         />
 
                         <CustomTextField
                             label={t('common.value')}
-                            defaultValue={props.filterInput.value}
+                            defaultValue={props.filterInput?.value}
                             inputRef={props.filterContentValue}
                         />
                     </>
@@ -235,19 +239,19 @@ function BasicFilterInputForm(
 
             <CustomTextField
                 label={'채널 ID'}
-                defaultValue={props.filterInput.filterChannelId}
+                defaultValue={props.filterInput?.filterChannelId}
                 inputRef={props.channelValue}
             />
 
             <CustomTextField
                 label={'채널 이름'}
-                defaultValue={props.filterInput.filterChannelName}
+                defaultValue={props.filterInput?.filterChannelName}
                 inputRef={props.channelName}
             />
 
             <ArrayFilterTypeSelector
                 labelId="filter-type-label"
-                value={props.filterInput.type}
+                value={props.filterInput?.type}
                 onChange={(e) => selectorChanged(e, 'type')}
             />
 
