@@ -414,9 +414,9 @@ function AddBadgeFilterButton(props: {
     setSelectionModel: React.Dispatch<React.SetStateAction<GridRowId[]>>;
     setShowAddButton: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-    if (!props.showAddButton) return null;
-
     const { t } = useTranslation();
+
+    if (!props.showAddButton) return null;
 
     return (
         <Stack
