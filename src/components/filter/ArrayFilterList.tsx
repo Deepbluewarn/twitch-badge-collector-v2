@@ -13,7 +13,7 @@ import { useArrayFilterContext } from "../../context/ArrayFilter";
 import { ArrayFilterInterface, ArrayFilterListInterface } from "../../interfaces/filter";
 import RelaxedChip from "../chip/RelaxedChip";
 import { useGlobalSettingContext } from "../../context/GlobalSetting";
-import FilterEditDialog, { EditDialogType } from "./FilterEditDialog";
+import FilterDialog, { DialogMode, DialogType } from "./FilterDialog";
 
 const ChipListStyle = styled(Stack)({
     display: 'flex',
@@ -41,19 +41,28 @@ export function ArrayFilterList() {
     const { t } = useTranslation();
 
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [dialogType, setDialogType] = useState<EditDialogType>(null);
+    const [dialogType, setDialogType] = useState<DialogType>(null);
+    const [dialogMode, setDialogMode] = useState<DialogMode>(null);
     const [selectedFilterList, setSelectedFilterList] = useState<ArrayFilterListInterface>();
     const [selectedFilterId, setSelectedFilterId] = useState<string | undefined>('');
     
     // 필터 수정 모달 열기 함수
-    const openEditDialog = (
-        type: EditDialogType, filterList: ArrayFilterListInterface,
+    const openFilterDialog = ({
+        type,
+        filterList,
+        selectedFilterId,
+        mode = 'edit'
+    }: {
+        type: DialogType,
+        filterList?: ArrayFilterListInterface,
         selectedFilterId?: string,
-    ) => {
+        mode?: DialogMode
+    }) => {
         setDialogType(type);
         setSelectedFilterList(filterList);
         setSelectedFilterId(selectedFilterId);
         setDialogOpen(true);
+        setDialogMode(mode);
     };
 
     const getColumns = useCallback(() => {
@@ -68,7 +77,6 @@ export function ArrayFilterList() {
                     const chips = params.value.map(af => {
                         let title = `${t(`filter.type.${af.category || ''}`)}: ${af.value}`;
                         let badgeAvatar;
-    
                         if(af.category === 'badge'){
                             const badgeUUID = af.value;
                             title = af.badgeName || '';
@@ -95,17 +103,34 @@ export function ArrayFilterList() {
                                     color={chipColor(af.type)}
                                     onClick={(e) => { 
                                         e.stopPropagation();
-                                        openEditDialog('filter', params.row, af.id);
+                                        openFilterDialog({
+                                            type: 'filter',
+                                            filterList: params.row,
+                                            selectedFilterId: af.id,
+                                            mode: 'edit'
+                                        });
                                      }}
                                 />
                             </Tooltip >
-                            
                         )
                     });
     
                     return (
                         <ChipListStyle direction='row'>
                             {chips}
+                            <RelaxedChip
+                                label={"+"}
+                                color="default"
+                                clickable
+                                sx={{ fontWeight: 'bold', fontSize: '1.2rem', minWidth: 32, minHeight: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                onClick={() => {
+                                    openFilterDialog({
+                                        type: 'filter',
+                                        mode: 'add',
+                                        filterList: params.row,
+                                    });
+                                }}
+                            />
                         </ChipListStyle>
                     )
                 }
@@ -122,7 +147,11 @@ export function ArrayFilterList() {
                                 color='secondary'
                                 onClick={(e) => { 
                                     e.stopPropagation();
-                                    openEditDialog('channel', params.row);
+                                    openFilterDialog({
+                                        type: 'channel',
+                                        filterList: params.row,
+                                        mode: 'edit'
+                                    });
                                  }}
                             />
                         </Tooltip >
@@ -141,7 +170,11 @@ export function ArrayFilterList() {
                                 color='secondary'
                                 onClick={(e) => { 
                                     e.stopPropagation();
-                                    openEditDialog('note', params.row);
+                                    openFilterDialog({
+                                        type: 'note',
+                                        filterList: params.row,
+                                        mode: 'edit'
+                                    });
                                 }}
                             />
                         </Tooltip >
@@ -195,10 +228,11 @@ export function ArrayFilterList() {
                 }}
                 rowSelectionModel={selectionModel}
             />
-            <FilterEditDialog
+            <FilterDialog
                 open={dialogOpen}
                 onClose={() => setDialogOpen(false)}
                 type={dialogType}
+                mode={dialogMode}
                 selectedFilterList={selectedFilterList}
                 filterId={selectedFilterId}
                 onSave={(type, updatedData) => {
@@ -211,7 +245,6 @@ export function ArrayFilterList() {
                             }
                             return list;
                         });
-
                         return newFilterList;
                     });
                 }}

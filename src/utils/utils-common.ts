@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { ArrayFilterCategory, ArrayFilterInterface, FilterType } from "../interfaces/filter"
+import { ArrayFilterCategory, ArrayFilterInterface, ArrayFilterListInterface, FilterType } from "../interfaces/filter"
 import { Logger } from "./logger";
 
 export const generateRandomString = (length: number): string => {
@@ -26,12 +26,13 @@ export function trim_hash(str: string) {
   return c1;
 }
 export function getDefaultArrayFilter(id?: string, category?: ArrayFilterCategory, type?: FilterType) {
-  return {
+  const _: ArrayFilterInterface = {
     category: category || 'name',
     id: id || nanoid(),
     type: type || 'include',
     value: ''
-  } as ArrayFilterInterface;
+  }
+  return _;
 }
 export function badgeUuidFromURL(url: string) {
   let badge_uuid: string = "";

@@ -14,40 +14,61 @@ import { getDefaultArrayFilter } from '@utils/utils-common';
 import SubFilter from './SubFilter';
 
 // 모달 타입 정의
-export type EditDialogType = 'filter' | 'channel' | 'note' | null;
+export type DialogType = 'filter' | 'channel' | 'note' | null;
+export type DialogMode = 'edit' | 'add' | null;
 
-interface FilterEditDialogProps {
+interface FilterDialogProps {
     open: boolean;
     onClose: () => void;
-    type: EditDialogType;
+    type: DialogType;
     selectedFilterList?: ArrayFilterListInterface;
-    filterId? : string; // type === 'filter' 일때 ArrayFilter 내 Filter 특정하기 위함. 
-    onSave: (type: EditDialogType, updatedData: ArrayFilterListInterface | undefined) => void;
+    filterId?: string; // type === 'filter' 일때 ArrayFilter 내 Filter 특정하기 위함. 
+    mode?: DialogMode;
+    onSave: (type: DialogType, updatedData: ArrayFilterListInterface | undefined) => void;
 }
 
-export default function FilterEditDialog({
-    open,
-    onClose,
-    type,
-    selectedFilterList,
-    filterId,
-    onSave
-}: FilterEditDialogProps) {
+export default function FilterEditDialog(props: FilterDialogProps) {
+    const {
+        open,
+        onClose,
+        type,
+        selectedFilterList,
+        filterId,
+        mode = 'edit',
+        onSave
+    } = props;
     const { globalSetting } = useGlobalSettingContext();
     const { t } = useTranslation();
+
+    // 새 필터 추가를 위한 기본 필터 객체 생성
+    const _defaultArrayFilter = getDefaultArrayFilter();
     // 편집 중인 데이터 상태
     const [arrayFilterList, setArrayFilterList] = React.useState<ArrayFilterListInterface | undefined>(selectedFilterList);
     const [arrayFilter, setArrayFilter] = React.useState<ArrayFilterInterface | undefined>();
 
     // 모달이 열릴 때마다 편집 데이터 초기화
     React.useEffect(() => {
-        setArrayFilterList(selectedFilterList);
-        setArrayFilter(selectedFilterList?.filters.find(f => f.id === filterId));
-    }, [selectedFilterList, open]);
+        if (mode === 'edit') {
+            setArrayFilterList(selectedFilterList);
+            setArrayFilter(selectedFilterList?.filters.find(f => f.id === filterId));
+        } else if (mode === 'add') {
+            setArrayFilterList(selectedFilterList);
+            setArrayFilter(_defaultArrayFilter);
+        }
+        
+    }, [selectedFilterList, filterId]);
 
     // 저장 핸들러
     const handleSave = (_arrayFilterList?: ArrayFilterListInterface) => {
-        onSave(type, _arrayFilterList ?? arrayFilterList);
+        if (mode === 'add' && arrayFilter && arrayFilterList) {
+            const _afList: ArrayFilterListInterface = { ...arrayFilterList };
+
+            _afList.filters = [..._afList.filters, arrayFilter];
+            onSave(type, _afList);
+        } else {
+            onSave(type, _arrayFilterList ?? arrayFilterList);
+        }
+        
         onClose();
     };
 
@@ -83,7 +104,7 @@ export default function FilterEditDialog({
             if (!afList) return afList;
 
             // 최상위 속성 변경인 경우
-            if (!filterId) {
+            if (!filterId && mode === 'edit') {
                 return {
                     ...afList,
                     ...updates
@@ -102,15 +123,16 @@ export default function FilterEditDialog({
         });
 
         // 현재 선택된 필터 상태도 업데이트 (UI 즉시 반영)
-        if (filterId) {
-            setArrayFilter(current =>
-                current ? { ...current, ...updates } : current
-            );
-        }
+        setArrayFilter(current =>
+            current ? { ...current, ...updates } : current
+        );
     };
 
     // 타입에 따른 다이얼로그 타이틀
     const getDialogTitle = () => {
+        if (mode === 'add') {
+            return t('하위 필터 추가');
+        }
         switch (type) {
             case 'filter': return t('필터 수정');
             case 'channel': return t('채널 수정');
@@ -121,6 +143,9 @@ export default function FilterEditDialog({
 
     // 각 타입별 컨텐츠 렌더링
     const renderContent = () => {
+        // if (mode === 'add') {
+        //     return renderAddSubFilter();
+        // }
         switch (type) {
             case 'filter':
                 return renderFilterContent();
@@ -133,9 +158,18 @@ export default function FilterEditDialog({
         }
     };
 
-    // 필터 수정 폼
+    // 하위 필터 추가 폼
+    const renderAddSubFilter = () => {
+        return (
+            <>
+
+            </>
+        )
+    }
+
+    // 필터 수정/추가 폼
     const renderFilterContent = () => {
-        if (!arrayFilter) return;
+        if (!arrayFilter) return null;
 
         const BadgeImage = () => {
             if (!arrayFilter.value && arrayFilter.category === 'badge') {
@@ -207,7 +241,7 @@ export default function FilterEditDialog({
                                 label={'배지 이름'}
                                 value={arrayFilter.badgeName || ''}
                                 onChange={e => {
-                                    handleObjectChange({ badgeName: e.target.value }, filterId)
+                                    handleObjectChange({ badgeName: e.target.value }, filterId);
                                 }}
                                 fullWidth
                             />
@@ -216,7 +250,7 @@ export default function FilterEditDialog({
                                 label={'내용'}
                                 value={arrayFilter.value || ''}
                                 onChange={e => {
-                                    handleObjectChange({ value: e.target.value }, filterId)
+                                    handleObjectChange({ value: e.target.value }, filterId);
                                 }}
                                 fullWidth
                             />
@@ -317,9 +351,18 @@ export default function FilterEditDialog({
                     {renderContent()}
                 </DialogContent>
                 <DialogActions>
-                    <Button color={'warning'} onClick={handleDeleteClick}>필터 삭제</Button>
+                    {
+                        mode === 'edit' ? (
+                            <Button color={'warning'} onClick={handleDeleteClick}>필터 삭제</Button>
+                        ) : null
+                    }
+
                     <Button onClick={onClose}>{t('common.cancel')}</Button>
-                    <Button onClick={() => handleSave()} color="primary">{t('common.save')}</Button>
+                    <Button onClick={() => handleSave()} color="primary">
+                        {
+                            mode === 'edit' ? t('common.save') : t('추가')
+                        }
+                    </Button>
                 </DialogActions>
             </Dialog>
             {/* 삭제 확인 다이얼로그 */}
@@ -330,7 +373,7 @@ export default function FilterEditDialog({
             >
                 <DialogTitle>
                     필터를 정말 삭제할까요?
-                    <SubFilter filter={selectedFilterList?.filters.find(f => f.id === filterId)}/>
+                    <SubFilter filter={selectedFilterList?.filters.find(f => f.id === filterId)} />
                 </DialogTitle>
                 <DialogActions>
                     <Button onClick={handleDeleteCancel}>취소</Button>
