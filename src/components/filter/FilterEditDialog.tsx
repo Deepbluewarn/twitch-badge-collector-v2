@@ -11,6 +11,7 @@ import { FormControl, InputLabel, MenuItem, Paper, Select, Stack, Typography } f
 import BadgeList from './BadgeList';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { getDefaultArrayFilter } from '@utils/utils-common';
+import SubFilter from './SubFilter';
 
 // 모달 타입 정의
 export type EditDialogType = 'filter' | 'channel' | 'note' | null;
@@ -45,9 +46,31 @@ export default function FilterEditDialog({
     }, [selectedFilterList, open]);
 
     // 저장 핸들러
-    const handleSave = () => {
-        onSave(type, arrayFilterList);
+    const handleSave = (_arrayFilterList?: ArrayFilterListInterface) => {
+        onSave(type, _arrayFilterList ?? arrayFilterList);
         onClose();
+    };
+
+    const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+
+    const handleDeleteClick = () => {
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (!arrayFilterList) return;
+
+        const _filters = arrayFilterList.filters.filter(f => f.id !== filterId);
+
+        arrayFilterList.filters = _filters;
+
+        setDeleteDialogOpen(false);
+        handleSave(arrayFilterList);
+    };
+
+    // 삭제 취소
+    const handleDeleteCancel = () => {
+        setDeleteDialogOpen(false);
     };
 
     /**
@@ -282,20 +305,38 @@ export default function FilterEditDialog({
     };
 
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            fullWidth
-            maxWidth="lg"
-        >
-            <DialogTitle>{getDialogTitle()}</DialogTitle>
-            <DialogContent>
-                {renderContent()}
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose}>{t('common.cancel')}</Button>
-                <Button onClick={handleSave} color="primary">{t('common.save')}</Button>
-            </DialogActions>
-        </Dialog>
+        <>
+            <Dialog
+                open={open}
+                onClose={onClose}
+                fullWidth
+                maxWidth="lg"
+            >
+                <DialogTitle>{getDialogTitle()}</DialogTitle>
+                <DialogContent>
+                    {renderContent()}
+                </DialogContent>
+                <DialogActions>
+                    <Button color={'warning'} onClick={handleDeleteClick}>필터 삭제</Button>
+                    <Button onClick={onClose}>{t('common.cancel')}</Button>
+                    <Button onClick={() => handleSave()} color="primary">{t('common.save')}</Button>
+                </DialogActions>
+            </Dialog>
+            {/* 삭제 확인 다이얼로그 */}
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={handleDeleteCancel}
+                fullWidth
+            >
+                <DialogTitle>
+                    필터를 정말 삭제할까요?
+                    <SubFilter filter={selectedFilterList?.filters.find(f => f.id === filterId)}/>
+                </DialogTitle>
+                <DialogActions>
+                    <Button onClick={handleDeleteCancel}>취소</Button>
+                    <Button color="error" onClick={handleDeleteConfirm}>확인</Button>
+                </DialogActions>
+            </Dialog>
+        </>
     );
 }
