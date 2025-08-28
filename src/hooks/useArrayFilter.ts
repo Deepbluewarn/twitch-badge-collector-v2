@@ -58,6 +58,77 @@ export default function useArrayFilter() {
         return true;
     }
 
+    const upsertArrayFilter = (newFilter: ArrayFilterListInterface) => {
+        // validation 추가.
+        const _validate = validateArrayFilterList(newFilter);
+
+        if (!_validate.valid) {
+            addAlert({
+                message: _validate.message || '필터를 추가할 수 없습니다.',
+                serverity: 'warning'
+            });
+
+            return _validate.valid;
+        }
+        setArrayFilter(afLists => {
+            const exists = afLists.some(af => af.id === newFilter.id);
+            if (exists) {
+                // id가 같은 필터가 있으면 업데이트
+                return afLists.map(af => af.id === newFilter.id ? newFilter : af);
+            } else {
+                // 없으면 추가
+                return [...afLists, newFilter];
+            }
+        });
+
+        return true;
+    }
+
+    /**
+     * ArrayFilterListInterface 유효성 검사 함수
+     * - 필수 필드 존재 여부, filters 배열 값 체크
+     */
+    const validateArrayFilterList = (filterList: ArrayFilterListInterface): { valid: boolean, message?: string } => {
+        if (!filterList) return { valid: false, message: '필터 객체가 없습니다.' };
+        if (!filterList.id) return { valid: false, message: '필터 id가 없습니다.' };
+        if (!filterList.filterType) return { valid: false, message: '필터 타입이 없습니다.' };
+        if (!Array.isArray(filterList.filters) || filterList.filters.length === 0) return { valid: false, message: '하위 필터가 없습니다.' };
+        for (const filter of filterList.filters) {
+            if (!filter.value || filter.value === '') {
+                return { valid: false, message: '하위 필터 값이 비어 있습니다.' };
+            }
+        }
+        return { valid: true };
+    };
+
+    /**
+     * ArrayFilterListInterface의 특정 하위 필터(id) 삭제
+     */
+    const removeSubFilter = (filterListId: string, subFilterId: string) => {
+        setArrayFilter(afLists =>
+            afLists.map(list =>
+                list.id === filterListId
+                    ? { ...list, filters: list.filters.filter(f => f.id !== subFilterId) }
+                    : list
+            )
+        );
+    };
+
+    /**
+     * ArrayFilterListInterface의 특정 필드 값 제거
+     * @param filterListId 필터 리스트 id
+     * @param fieldName 제거할 필드 이름 (예: 'filterChannelName', 'filterChannelId', 'filterNote')
+     */
+    const removeFilterField = (filterListId: string, fieldName: keyof ArrayFilterListInterface) => {
+        setArrayFilter(afLists =>
+            afLists.map(list =>
+                list.id === filterListId
+                    ? { ...list, [fieldName]: undefined }
+                    : list
+            )
+        );
+    };
+
     /**
      * 
      * @param chat 채팅 정보 객체
@@ -144,5 +215,9 @@ export default function useArrayFilter() {
         return res;
     };
 
-    return { arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter, checkFilter };
+    return { 
+        arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter, 
+        upsertArrayFilter, checkFilter, validateArrayFilterList, 
+        removeSubFilter, removeFilterField, 
+    };
 }

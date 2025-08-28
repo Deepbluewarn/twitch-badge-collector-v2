@@ -67,13 +67,10 @@ function App() {
 }
 
 function Router() {
-  const { arrayFilter, setArrayFilter, addArrayFilter, checkFilter } =
-    useArrayFilterExtension('twitch', false);
+  const _arrayFilterHooks = useArrayFilterExtension('twitch', false);
 
   return (
-    <ArrayFilterContext.Provider
-      value={{ arrayFilter, setArrayFilter, addArrayFilter, checkFilter }}
-    >
+    <ArrayFilterContext.Provider value={_arrayFilterHooks}>
       <MemoryRouter initialEntries={[`/${getQueryParams("initialPath")}`]}>
         <Routes>
           <Route

@@ -14,6 +14,8 @@ import { ArrayFilterInterface, ArrayFilterListInterface } from "../../interfaces
 import RelaxedChip from "../chip/RelaxedChip";
 import { useGlobalSettingContext } from "../../context/GlobalSetting";
 import FilterDialog, { DialogMode, DialogType } from "./FilterDialog";
+import { Button, IconButton } from "@mui/material";
+import AddIcon from '@mui/icons-material/Add';
 
 const ChipListStyle = styled(Stack)({
     display: 'flex',
@@ -34,7 +36,7 @@ const ChipListStyle = styled(Stack)({
 
 export function ArrayFilterList() {
     const { globalSetting } = useGlobalSettingContext();
-    const { arrayFilter, setArrayFilter } = useArrayFilterContext();
+    const { arrayFilter, setArrayFilter, upsertArrayFilter, removeSubFilter, removeFilterField } = useArrayFilterContext();
     const [platformArrayFilter, setPlatformArrayFilter] = useState<ArrayFilterListInterface[]>(arrayFilter);
     const [selectionModel, setSelectionModel] = React.useState<GridRowId[]>([]);
     const [showDeleteButton, setShowDeleteButton] = React.useState(false);
@@ -69,7 +71,7 @@ export function ArrayFilterList() {
         return [
             { 
                 field: 'filters', headerName: t('common.filter'), flex: 0.6, 
-                renderCell: (params: GridRenderCellParams<any, ArrayFilterInterface[]>) => {
+                renderCell: (params: GridRenderCellParams<ArrayFilterListInterface, ArrayFilterInterface[]>) => {
                     if(!params.value) return null;
 
                     if(platformArrayFilter.length > 0 && platformArrayFilter[0].platform !== globalSetting.platform) return null;
@@ -110,6 +112,9 @@ export function ArrayFilterList() {
                                             mode: 'edit'
                                         });
                                      }}
+                                     onDelete={() => {
+                                        removeSubFilter(params.row.id, af.id);
+                                     }}
                                 />
                             </Tooltip >
                         )
@@ -118,11 +123,7 @@ export function ArrayFilterList() {
                     return (
                         <ChipListStyle direction='row'>
                             {chips}
-                            <RelaxedChip
-                                label={"+"}
-                                color="default"
-                                clickable
-                                sx={{ fontWeight: 'bold', fontSize: '1.2rem', minWidth: 32, minHeight: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            <IconButton
                                 onClick={() => {
                                     openFilterDialog({
                                         type: 'filter',
@@ -130,7 +131,27 @@ export function ArrayFilterList() {
                                         filterList: params.row,
                                     });
                                 }}
-                            />
+                                sx={{
+                                    fontWeight: 'bold',
+                                    fontSize: '1.1rem',
+                                    minWidth: 48,
+                                    minHeight: 32,
+                                    borderRadius: '12px',
+                                    paddingX: 2,
+                                    backgroundColor: '#f7f7f7', // 아주 옅은 회색
+                                    color: '#c6c6c6ff',           // 아주 옅은 글씨색
+                                    opacity: 0.4,
+                                    boxShadow: 'none',
+                                    transition: 'all 0.2s',
+                                    '&:hover': {
+                                        backgroundColor: '#e0e0e0', // hover 시 진한 회색
+                                        color: '#333',              // hover 시 진한 글씨색
+                                        opacity: 1,
+                                    },
+                                }}
+                            >
+                                <AddIcon />
+                            </IconButton>
                         </ChipListStyle>
                     )
                 }
@@ -138,7 +159,42 @@ export function ArrayFilterList() {
             {
                 field: 'filterChannelName', headerName: "채널", flex: 0.2,
                 renderCell: (params: GridRenderCellParams<any, string>) => {
-                    if(!params.value) return null;
+
+                    if(!params.value) {
+                        // Subtle chip for adding channel name
+                        return (
+                            <IconButton
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openFilterDialog({
+                                        type: 'channel',
+                                        filterList: params.row,
+                                        mode: 'add'
+                                    });
+                                }}
+                                sx={{
+                                    fontWeight: 'bold',
+                                    fontSize: '1.1rem',
+                                    minWidth: 48,
+                                    minHeight: 32,
+                                    borderRadius: '12px',
+                                    paddingX: 2,
+                                    backgroundColor: '#f7f7f7', // 아주 옅은 회색
+                                    color: '#c6c6c6ff',           // 아주 옅은 글씨색
+                                    opacity: 0.4,
+                                    boxShadow: 'none',
+                                    transition: 'all 0.2s',
+                                    '&:hover': {
+                                        backgroundColor: '#e0e0e0', // hover 시 진한 회색
+                                        color: '#333',              // hover 시 진한 글씨색
+                                        opacity: 1,
+                                    },
+                                }}
+                            >
+                                <AddIcon />
+                            </IconButton>
+                        )
+                    }
 
                     return (
                         <Tooltip key={params.row.filterChannelId} title={params.row.filterChannelId} placement="top">
@@ -153,6 +209,10 @@ export function ArrayFilterList() {
                                         mode: 'edit'
                                     });
                                  }}
+                                 onDelete={() => {
+                                    removeFilterField(params.row.id, 'filterChannelId')
+                                    removeFilterField(params.row.id, 'filterChannelName')
+                                 }}
                             />
                         </Tooltip >
                     )
@@ -161,8 +221,41 @@ export function ArrayFilterList() {
             {
                 field: 'filterNote', headerName: "비고", flex: 0.2,
                 renderCell: (params: GridRenderCellParams<any, string>) => {
-                    if(!params.value) return null;
-    
+                    if(!params.value) {
+                        return (
+                            <Button
+                                size='small'
+                                sx={{
+                                    minWidth: 24,
+                                    minHeight: 24,
+                                    width: 24,
+                                    height: 24,
+                                    border: '1px solid #dddddd', 
+                                    borderRadius: '8px',
+                                    backgroundColor: '#eeeeee',
+                                    color: '#888888',
+                                    fontWeight: 'bold',
+                                    boxShadow: 'none',
+                                    p: 0,
+                                    '&:hover': {
+                                        backgroundColor: '#bdbdbd',
+                                        color: '#757575ff',
+                                    },
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openFilterDialog({
+                                        type: 'note',
+                                        filterList: params.row,
+                                        mode: 'add'
+                                    });
+                                }}
+                            >
+                                <AddIcon />
+                            </Button>
+                        )
+                    }
+
                     return (
                         <Tooltip key={params.value} title={params.value} placement="top">
                             <RelaxedChip
@@ -175,6 +268,9 @@ export function ArrayFilterList() {
                                         filterList: params.row,
                                         mode: 'edit'
                                     });
+                                }}
+                                onDelete={() => {
+                                    removeFilterField(params.row.id, 'filterNote');
                                 }}
                             />
                         </Tooltip >
@@ -237,16 +333,8 @@ export function ArrayFilterList() {
                 filterId={selectedFilterId}
                 onSave={(type, updatedData) => {
                     if (!updatedData) return;
-                    
-                    setArrayFilter(filterList => {
-                        const newFilterList = filterList.map(list => {
-                            if (list.id === updatedData.id) {
-                                return updatedData;
-                            }
-                            return list;
-                        });
-                        return newFilterList;
-                    });
+
+                    upsertArrayFilter(updatedData);
                 }}
             />
         </>

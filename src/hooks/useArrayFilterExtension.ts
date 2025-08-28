@@ -12,24 +12,24 @@ import useArrayFilter from "./useArrayFilter";
  * @returns 
  */
 export default function useArrayFilterExtension(_platform: SettingInterface['platform'], extStorageReadOnly: boolean = true) {
-    const { arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter, checkFilter } = useArrayFilter();
+    const _arrayFilterHooks = useArrayFilter();
     const isFilterInitialized = useRef(false);
 
 
     React.useEffect(() => {
         if (isFilterInitialized.current && !extStorageReadOnly) {
-            browser.storage.local.set({ filter: arrayFilter });
+            browser.storage.local.set({ filter: _arrayFilterHooks.arrayFilter });
         }
 
-        arrayFilterRef.current = arrayFilter.filter(af => af.platform === _platform);
-    }, [arrayFilter]);
+        _arrayFilterHooks.arrayFilterRef.current = _arrayFilterHooks.arrayFilter.filter(af => af.platform === _platform);
+    }, [_arrayFilterHooks.arrayFilter]);
 
     useEffect(() => {
         browser.storage.local.get("filter").then((res) => {
-            setArrayFilter(res.filter);
+            _arrayFilterHooks.setArrayFilter(res.filter);
             isFilterInitialized.current = true;
         });
     }, []);
 
-    return { arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter, checkFilter };
+    return _arrayFilterHooks;
 }
