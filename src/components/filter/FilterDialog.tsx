@@ -261,7 +261,7 @@ export default function FilterDialog(props: FilterDialogProps) {
         return (
             <Stack spacing={2}>
                 <CustomTextField
-                    label={t('channel.name')}
+                    label={'채널명'}
                     value={arrayFilterList.filterChannelName || ''}
                     onChange={e => {
                         handleListObjectChange({ filterChannelName: e.target.value });
@@ -269,7 +269,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                     fullWidth
                 />
                 <CustomTextField
-                    label={t('channel.id')}
+                    label={'채널 ID'}
                     value={arrayFilterList.filterChannelId || ''}
                     onChange={e => {
                         handleListObjectChange({ filterChannelId: e.target.value });

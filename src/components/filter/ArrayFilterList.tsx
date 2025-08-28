@@ -14,8 +14,7 @@ import { ArrayFilterInterface, ArrayFilterListInterface } from "../../interfaces
 import RelaxedChip from "../chip/RelaxedChip";
 import { useGlobalSettingContext } from "../../context/GlobalSetting";
 import FilterDialog, { DialogMode, DialogType } from "./FilterDialog";
-import { Button, IconButton } from "@mui/material";
-import AddIcon from '@mui/icons-material/Add';
+import RoundAddButton from '../common/RoundAddButton';
 
 const ChipListStyle = styled(Stack)({
     display: 'flex',
@@ -24,6 +23,7 @@ const ChipListStyle = styled(Stack)({
     width: '100%',
     overflow: 'auto',
     lineHeight: '1.5',
+    alignItems: 'center',
 
     '.chip-label-filterBadgeImage': {
         display: 'inline-block',
@@ -123,35 +123,16 @@ export function ArrayFilterList() {
                     return (
                         <ChipListStyle direction='row'>
                             {chips}
-                            <IconButton
-                                onClick={() => {
+                            <RoundAddButton
+                                onClick={(e) => {
+                                    e.stopPropagation();
                                     openFilterDialog({
                                         type: 'filter',
                                         mode: 'add',
                                         filterList: params.row,
                                     });
                                 }}
-                                sx={{
-                                    fontWeight: 'bold',
-                                    fontSize: '1.1rem',
-                                    minWidth: 48,
-                                    minHeight: 32,
-                                    borderRadius: '12px',
-                                    paddingX: 2,
-                                    backgroundColor: '#f7f7f7', // 아주 옅은 회색
-                                    color: '#c6c6c6ff',           // 아주 옅은 글씨색
-                                    opacity: 0.4,
-                                    boxShadow: 'none',
-                                    transition: 'all 0.2s',
-                                    '&:hover': {
-                                        backgroundColor: '#e0e0e0', // hover 시 진한 회색
-                                        color: '#333',              // hover 시 진한 글씨색
-                                        opacity: 1,
-                                    },
-                                }}
-                            >
-                                <AddIcon />
-                            </IconButton>
+                            />
                         </ChipListStyle>
                     )
                 }
@@ -163,7 +144,7 @@ export function ArrayFilterList() {
                     if(!params.value) {
                         // Subtle chip for adding channel name
                         return (
-                            <IconButton
+                            <RoundAddButton
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     openFilterDialog({
@@ -172,27 +153,7 @@ export function ArrayFilterList() {
                                         mode: 'add'
                                     });
                                 }}
-                                sx={{
-                                    fontWeight: 'bold',
-                                    fontSize: '1.1rem',
-                                    minWidth: 48,
-                                    minHeight: 32,
-                                    borderRadius: '12px',
-                                    paddingX: 2,
-                                    backgroundColor: '#f7f7f7', // 아주 옅은 회색
-                                    color: '#c6c6c6ff',           // 아주 옅은 글씨색
-                                    opacity: 0.4,
-                                    boxShadow: 'none',
-                                    transition: 'all 0.2s',
-                                    '&:hover': {
-                                        backgroundColor: '#e0e0e0', // hover 시 진한 회색
-                                        color: '#333',              // hover 시 진한 글씨색
-                                        opacity: 1,
-                                    },
-                                }}
-                            >
-                                <AddIcon />
-                            </IconButton>
+                            />
                         )
                     }
 
@@ -223,25 +184,7 @@ export function ArrayFilterList() {
                 renderCell: (params: GridRenderCellParams<any, string>) => {
                     if(!params.value) {
                         return (
-                            <Button
-                                size='small'
-                                sx={{
-                                    minWidth: 24,
-                                    minHeight: 24,
-                                    width: 24,
-                                    height: 24,
-                                    border: '1px solid #dddddd', 
-                                    borderRadius: '8px',
-                                    backgroundColor: '#eeeeee',
-                                    color: '#888888',
-                                    fontWeight: 'bold',
-                                    boxShadow: 'none',
-                                    p: 0,
-                                    '&:hover': {
-                                        backgroundColor: '#bdbdbd',
-                                        color: '#757575ff',
-                                    },
-                                }}
+                            <RoundAddButton
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     openFilterDialog({
@@ -250,9 +193,7 @@ export function ArrayFilterList() {
                                         mode: 'add'
                                     });
                                 }}
-                            >
-                                <AddIcon />
-                            </Button>
+                            />
                         )
                     }
 
