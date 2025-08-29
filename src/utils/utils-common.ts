@@ -70,9 +70,9 @@ export function arrayFilterEqual(
   b: ArrayFilterInterface
 ) {
   return (
-    Object.keys(a).length === Object.keys(b).length &&
+    // Object.keys(a).length === Object.keys(b).length &&
     Object.keys(a).every((p) => {
-      if (p === "id") {
+      if (p === "id" || typeof a[p] === "undefined" || typeof b[p] === "undefined") {
         return true;
       } else {
         return a[p] === b[p];
