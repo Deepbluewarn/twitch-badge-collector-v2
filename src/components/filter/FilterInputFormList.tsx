@@ -31,7 +31,6 @@ export default function FilterInputFormList(
         filterInputListRef: React.MutableRefObject<ArrayFilterInterface[]>
     }
 ) {
-    const matches = useMediaQuery('(min-width:600px)');
     const { globalSetting } = useGlobalSettingContext();
     const { addArrayFilter } = useArrayFilterContext();
     const [arrayFilterType, setArrayFilterType] = React.useState<FilterType>('include');
@@ -133,29 +132,35 @@ export default function FilterInputFormList(
                     <Button onClick={addFilterInputForm}>
                         {t('common.add_filter_element')}
                     </Button>
-                    <Stack direction={matches ? 'row' : 'column'} gap={1} flex='0.7'>
-                        <CustomTextField
-                            value={arrayFilterNote}
-                            label={t('필터 설명을 추가하세요')}
-                            onChange={onArrayFilterNoteChanged}
-                        />
-                        <ArrayFilterTypeSelector
-                            labelId="arrayFilterType"
-                            value={arrayFilterType} 
-                            onChange={onArrayFilterTypeChanged}
-                        />
+                    <Stack direction={'row'} gap={1}>
+                        <Stack gap={1}>
+                            <Stack direction={'row'} gap={1}>
+                                <CustomTextField
+                                    value={arrayFilterNote}
+                                    label={t('필터 설명을 추가하세요')}
+                                    onChange={onArrayFilterNoteChanged}
+                                />
+                                <ArrayFilterTypeSelector
+                                    labelId="arrayFilterType"
+                                    value={arrayFilterType}
+                                    onChange={onArrayFilterTypeChanged}
+                                />
+                            </Stack>
 
-                        <CustomTextField
-                            value={channelId}
-                            label={'채널 ID'}
-                            onChange={(e) => setChannelId(e.target.value)}
-                        />
-                        <CustomTextField
-                            value={channelName}
-                            label={'채널 이름'}
-                            onChange={(e) => setChannelName(e.target.value)}
-                        />
+                            <Stack direction={'row'} gap={1}>
+                                <CustomTextField
 
+                                    value={channelId}
+                                    label={'채널 ID'}
+                                    onChange={(e) => setChannelId(e.target.value)}
+                                />
+                                <CustomTextField
+                                    value={channelName}
+                                    label={'채널 이름'}
+                                    onChange={(e) => setChannelName(e.target.value)}
+                                />
+                            </Stack>
+                        </Stack>
                         <Button
                             disabled={props.afInputRow.length === 0}
                             onClick={addFilter}

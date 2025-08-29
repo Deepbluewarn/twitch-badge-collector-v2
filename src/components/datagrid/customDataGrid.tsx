@@ -22,7 +22,7 @@ export function CustomDataGrid(props: DataGridProps) {
             <DataGrid 
                 componentsProps={props.componentsProps}
                 localeText={locale.components.MuiDataGrid.defaultProps.localeText}
-                sx={{ "height": '27rem' }}
+                sx={{ "height": '27rem', minWidth: '40rem' }}
                 getRowHeight={() => 'auto'}
                 onCellClick={onTypeCellClick}
                 initialState={{

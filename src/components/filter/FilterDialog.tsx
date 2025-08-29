@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import CustomTextField from '@components/TextField/CustomTextField';
 import { useTranslation } from 'react-i18next';
 import { ArrayFilterCategory, ArrayFilterInterface, ArrayFilterListInterface, FilterType } from '@interfaces/filter';
-import { FormControl, InputLabel, MenuItem, Paper, Select, Stack, Typography } from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Stack, Typography } from '@mui/material';
 import BadgeList from './BadgeList';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { getDefaultArrayFilter } from '@utils/utils-common';
@@ -108,7 +108,7 @@ export default function FilterDialog(props: FilterDialogProps) {
         const modeTitle = mode === 'add' ? '추가' : '수정';
 
         switch (type) {
-            case 'filter': return t(`필터 ${modeTitle}`);
+            case 'filter': return t(`하위 필터 ${modeTitle}`);
             case 'channel': return t(`채널 ${modeTitle}`);
             case 'note': return t(`비고 ${modeTitle}`);
             default: return t('수정');
@@ -135,7 +135,20 @@ export default function FilterDialog(props: FilterDialogProps) {
 
         const BadgeImage = () => {
             if (!arrayFilter.value && arrayFilter.category === 'badge') {
-                return <Typography>배지 선택</Typography>
+                return (
+                    <Paper
+                        variant="outlined"
+                        sx={{
+                            minWidth: 120,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            bgcolor: 'grey.100',
+                        }}
+                    >
+
+                    </Paper>
+                );
             }
 
             return arrayFilter.category === 'badge' ? (
@@ -179,6 +192,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                         labelId="filter-category-label"
                         value={arrayFilter.category || ''}
                         label={'카테고리'}
+                        size='small'
                         onChange={(e) => {
                             setArrayFilter(filter => {
                                 if (!filter) return filter;
@@ -225,6 +239,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                             labelId="filter-type-label"
                             value={arrayFilter.type || 'include'}
                             label={'조건'}
+                            size="small"
                             onChange={(e) => {
                                 handleFilterObjectChange({ type: e.target.value as FilterType }, filterId!);
                             }}
@@ -303,12 +318,14 @@ export default function FilterDialog(props: FilterDialogProps) {
             <Dialog
                 open={open}
                 onClose={onClose}
-                fullWidth
+                fullWidth={false}
                 maxWidth="lg"
             >
                 <DialogTitle>{getDialogTitle()}</DialogTitle>
                 <DialogContent>
-                    {renderContent()}
+                    <Box sx={{ p: 1 }}>
+                        {renderContent()}
+                    </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={onClose}>{t('common.cancel')}</Button>
