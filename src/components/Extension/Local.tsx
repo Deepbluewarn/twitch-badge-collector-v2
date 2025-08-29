@@ -41,7 +41,12 @@ export default function Local({
         );
     };
 
-    const channelId = type === 'chzzk' ? window.location.pathname.split('/')[2] : null;
+    const channelId =
+        type === 'chzzk'
+            ? window.location.pathname.split('/')[2]
+            : type === 'twitch'
+                ? window.location.pathname.split('/')[1]
+                : null;
 
     const newChatCallback = (mutationRecord: MutationRecord[]) => {
         const records = Array.from(mutationRecord);
