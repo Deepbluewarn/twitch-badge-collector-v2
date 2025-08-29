@@ -73,7 +73,7 @@ export default function FilterInputFormList(
             setChannelId('');
             setChannelName('');
         }
-    }, [arrayFilterType, arrayFilterNote, globalSetting.platform]);
+    }, [arrayFilterType, arrayFilterNote, globalSetting.platform, channelId, channelName]);
 
     const resetArrayFilterInputList = () => {
         props.setAfInputRow([]);
@@ -149,7 +149,6 @@ export default function FilterInputFormList(
 
                             <Stack direction={'row'} gap={1}>
                                 <CustomTextField
-
                                     value={channelId}
                                     label={'채널 ID'}
                                     onChange={(e) => setChannelId(e.target.value)}
