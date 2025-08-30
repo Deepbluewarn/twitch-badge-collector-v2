@@ -11,7 +11,7 @@ jobs:
     environment: production
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [22.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -77,10 +77,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./versions/tbc2-${{ env.VERSION }}-chromium.zip
-        asset_name: tbc2-${{ env.VERSION }}-chromium.zip
-        asset_content_type: application/zip
+    upload_url: ${{ steps.create_release.outputs.upload_url }}
+    asset_path: ./.output/twitch-badge-collector-extension-${{ env.VERSION }}-chrome.zip
+    asset_name: twitch-badge-collector-extension-${{ env.VERSION }}-chrome.zip
+    asset_content_type: application/zip
 
     - name: Upload Firefox Files
       id: upload_firefox_files
@@ -88,7 +88,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./versions/tbc2-${{ env.VERSION }}-firefox.zip
-        asset_name: tbc2-${{ env.VERSION }}-firefox.zip
-        asset_content_type: application/zip
+    upload_url: ${{ steps.create_release.outputs.upload_url }}
+    asset_path: ./.output/twitch-badge-collector-extension-${{ env.VERSION }}-firefox.zip
+    asset_name: twitch-badge-collector-extension-${{ env.VERSION }}-firefox.zip
+    asset_content_type: application/zip
