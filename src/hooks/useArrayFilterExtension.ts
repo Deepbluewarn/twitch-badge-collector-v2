@@ -1,6 +1,5 @@
-import { SettingInterface } from "@interfaces/setting";
+import { SettingInterface } from "@/interfaces/setting";
 import React, { useEffect, useRef } from "react";
-import browser from 'webextension-polyfill';
 import useArrayFilter from "./useArrayFilter";
 /**
  * 

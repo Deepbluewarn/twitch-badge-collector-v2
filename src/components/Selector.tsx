@@ -3,7 +3,7 @@ import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
 import FormControl from "@mui/material/FormControl";
 import { useGlobalSettingContext } from "../context/GlobalSetting";
-import { SettingReducerActionTypes } from "@interfaces/setting";
+import { SettingReducerActionTypes } from "@/interfaces/setting";
 
 export default function Selector(props: {
   title: string;
@@ -22,7 +22,7 @@ export default function Selector(props: {
   };
 
   return (
-    <Stack sx={{ margin: '0 0 12px 0' }}>
+    <Stack sx={{ margin: '0 0 12px 0', p: '1' }}>
       <Typography variant="subtitle2">{props.title}</Typography>
       <FormControl>
         <Select

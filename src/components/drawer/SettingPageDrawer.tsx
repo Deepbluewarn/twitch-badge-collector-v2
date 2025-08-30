@@ -7,12 +7,8 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from '@mui/material/ListItemIcon';
 import List from "@mui/material/List";
 import ListItemText from "@mui/material/ListItemText";
-import Alert from '@mui/material/Alert';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import ImageIcon from '@mui/icons-material/Image';
 import Setting from "../setting/Setting";
-
 
 export default function SettingPageDrawer() {
     const { t } = useTranslation();

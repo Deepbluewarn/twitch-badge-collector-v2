@@ -21,8 +21,8 @@ import { useArrayFilterContext } from '../../context/ArrayFilter';
 import { nanoid } from 'nanoid';
 import { ArrayFilterSelectorType, ArrayFilterTypeSelector, FilterCategorySelector } from './ArrayFilterComponents';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
-import { getDefaultArrayFilter } from '@utils/utils-common';
-import CustomTextField from '@components/TextField/CustomTextField';
+import { getDefaultArrayFilter } from '@/utils/utils-common';
+import CustomTextField from '@/components/TextField/CustomTextField';
 
 export default function FilterInputForm(
     props: {

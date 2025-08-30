@@ -24,34 +24,28 @@ export default function useChannelInfo() {
     const [ isChannelInfoObjSuccess, setIsChannelInfoObjSuccess ] = React.useState(false);
 
 
-    const {data: GlobalBadges, isSuccess: isGlobalBadgesSuccess} = useQuery(
-        ['GlobalBadges'],
-        () => twitchAPI.fetchGlobalChatBadges(),
-    )
+    const {data: GlobalBadges, isSuccess: isGlobalBadgesSuccess} = useQuery({
+        queryKey: ['GlobalBadges'],
+        queryFn: () => twitchAPI.fetchGlobalChatBadges(),
+    })
 
-    const {data: ChannelChatBadges, isSuccess: isChannelChatBadgesSuccess} = useQuery(
-        ['ChannelChatBadges', userId],
-        () => twitchAPI.fetchChannelChatBadges(userId),
-        {
-            enabled: userId !== ''
-        }
-    )
+    const {data: ChannelChatBadges, isSuccess: isChannelChatBadgesSuccess} = useQuery({
+        queryKey: ['ChannelChatBadges', userId],
+        queryFn: () => twitchAPI.fetchChannelChatBadges(userId),
+        enabled: userId !== ''
+    })
 
-    const {data: Cheermotes, isSuccess: isCheermotesSuccess} = useQuery(
-        ['Cheermotes', userId],
-        () => twitchAPI.fetchCheermotes(userId),
-        {
-            enabled: userId !== ''
-        }
-    )
+    const {data: Cheermotes, isSuccess: isCheermotesSuccess} = useQuery({
+        queryKey: ['Cheermotes', userId],
+        queryFn: () => twitchAPI.fetchCheermotes(userId),
+        enabled: userId !== ''
+    })
 
-    const {data: User} = useQuery(
-        ['User', channel],
-        () => twitchAPI.fetchUser(channel!.type, channel!.value),
-        {
-            enabled: typeof channel !== 'undefined' && channel.value !== ''
-        }
-    )
+    const {data: User} = useQuery({
+        queryKey: ['User', channel],
+        queryFn: () => twitchAPI.fetchUser(channel!.type, channel!.value),
+        enabled: typeof channel !== 'undefined' && channel.value !== ''
+    })
 
     React.useEffect(() => {
         if(!GlobalBadges) return;

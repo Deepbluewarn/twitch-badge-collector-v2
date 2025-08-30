@@ -4,7 +4,6 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { t } from "i18next";
-import browser from "webextension-polyfill";
 
 const Donation = () => {
     return (
@@ -16,7 +15,7 @@ const Donation = () => {
                     <Box
                         component='img'
                         sx={{ width: '10rem', borderRadius: '8px' }}
-                        src={browser.runtime.getURL('src/assets/bmc-button.svg')}
+                        src={browser.runtime.getURL('/assets/bmc-button.svg')}
                     />
                 </Link>
             </Stack>

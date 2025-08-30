@@ -1,14 +1,14 @@
-import useAlert from "@hooks/useAlert";
-import useExtensionGlobalSetting from "@hooks/useGlobalSettingExtension";
-import { SettingInterface } from "@interfaces/setting";
-import { addStorageUpdateListener } from "@utils/utils-browser";
+import useAlert from "@/hooks/useAlert";
+import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
+import { SettingInterface } from "@/interfaces/setting";
+import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { useEffect } from "react";
-import { BaseContainer } from "../../contentScript/base/container";
-import { Handle } from "../../contentScript/base/handler";
-import { GlobalSettingContext } from "../../context/GlobalSetting";
-import { AlertContext } from "../../context/Alert";
+import { BaseContainer } from "@/content-scripts/base/container";
+import { Handle } from "@/content-scripts/base/handler";
+import { GlobalSettingContext } from "@/context/GlobalSetting";
+import { AlertContext } from "@/context/Alert";
 import Local from "./Local";
-import { ChatExtractor } from "../../contentScript/base/chatExtractor";
+import { ChatExtractor } from "@/content-scripts/base/chatExtractor";
 
 export default function App({
     type,

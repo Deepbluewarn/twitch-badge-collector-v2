@@ -4,7 +4,7 @@ import { useAlertContext } from "../context/Alert";
 import { ChatInfo } from "../interfaces/chat";
 import { ChatInfoObjects } from "../interfaces/chatInfoObjects";
 import { ArrayFilterListInterface } from "../interfaces/filter";
-import { arrayFiltersEqual } from "@utils/utils-common";
+import { arrayFiltersEqual } from "@/utils/utils-common";
 
 /**
  * 

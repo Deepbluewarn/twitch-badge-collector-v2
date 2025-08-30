@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrayFilterInterface } from '@interfaces/filter';
+import { ArrayFilterInterface } from '@/interfaces/filter';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { Paper, Typography, Box } from '@mui/material';
 import { useTranslation } from 'react-i18next';

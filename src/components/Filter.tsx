@@ -14,12 +14,10 @@ import { ArrayFilterList } from './filter/ArrayFilterList';
 import { useGlobalSettingContext } from '../context/GlobalSetting';
 import Chip from '@mui/material/Chip';
 import { Button, Paper } from '@mui/material';
-import { SettingInterface } from '@interfaces/setting';
-import { ChannelInfoContext } from '../context/ChannelInfoContext';
+import { SettingInterface } from '@/interfaces/setting';
+import { ChannelInfoContext } from '@/context/ChannelInfoContext';
 import SocialFooter from './SocialFooter';
-import { getDefaultArrayFilter } from '@utils/utils-common';
-import { EncorageDonationDialog } from './EncourageDonation';
-import { useMonthlyRandom } from '@hooks/useMonthlyRandom';
+import { getDefaultArrayFilter } from '@/utils/utils-common';
 import { setBadgeInSimpleFilter, setMultipleBadgesInFilterArray } from './filter/utils/badge-utils';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ChannelIdGuideDialog from './filter/dialog/ChannelIdGuideDialog';
@@ -35,17 +33,11 @@ export default function Filter() {
     const filterBroadcastChannel = React.useRef<BroadcastChannel<ArrayFilterMessageInterface>>(new BroadcastChannel('ArrayFilter'));
     const messageId = React.useRef(''); // id 는 extension 에서 생성.
     const { t } = useTranslation();
-    const [ dialogOpen, setDialogOpen ] = useState(false);
-    const { isDday } = useMonthlyRandom();
     const [guideOpen, setGuideOpen] = useState(false);
 
     const onPlatformChipClick = (platform: SettingInterface['platform']) => {
         dispatchGlobalSetting({ type: 'SET_PLATFORM', payload: platform });
     }
-
-    React.useEffect(() => {
-        setDialogOpen(isDday)
-    }, [isDday])
 
     React.useEffect(() => {
         document.title = `${t('setting.filter_setting')}- TBC`;
@@ -165,7 +157,7 @@ export default function Filter() {
                 </Card>
                 <SocialFooter />
             </Stack>
-            <EncorageDonationDialog open={dialogOpen} onClose={() => {setDialogOpen(false)}}/>
+            {/* <EncorageDonationDialog open={dialogOpen} onClose={() => {setDialogOpen(false)}}/> */}
             <ChannelIdGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
         </ChannelInfoContext.Provider>
     )

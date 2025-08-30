@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import browser from "webextension-polyfill";
 
 function getRandomDayOfMonth(baseDate?: Date): Date {
     const today = baseDate ?? new Date();

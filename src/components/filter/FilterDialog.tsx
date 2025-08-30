@@ -4,13 +4,13 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
-import CustomTextField from '@components/TextField/CustomTextField';
+import CustomTextField from '@/components/TextField/CustomTextField';
 import { useTranslation } from 'react-i18next';
-import { ArrayFilterCategory, ArrayFilterInterface, ArrayFilterListInterface, FilterType } from '@interfaces/filter';
+import { ArrayFilterCategory, ArrayFilterInterface, ArrayFilterListInterface, FilterType } from '@/interfaces/filter';
 import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Stack, Typography } from '@mui/material';
 import BadgeList from './BadgeList';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
-import { getDefaultArrayFilter } from '@utils/utils-common';
+import { getDefaultArrayFilter } from '@/utils/utils-common';
 
 // 모달 타입 정의
 export type DialogType = 'filter' | 'channel' | 'note' | null;

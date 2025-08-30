@@ -1,8 +1,8 @@
 import { nanoid } from 'nanoid';
-import { SettingInterface } from "@interfaces/setting";
-import { BadgeInterface } from '@interfaces/chat';
-import { badgeUuidFromURL } from '@utils/utils-common';
-import { ArrayFilterInterface } from '@interfaces/filter';
+import { SettingInterface } from "../../../interfaces/setting";
+import { BadgeInterface } from '../../../interfaces/chat';
+import { badgeUuidFromURL } from '../../../utils/utils-common';
+import { ArrayFilterInterface } from '../../../interfaces/filter';
 
 /**
  * 배지 객체를 필터 객체로 변환

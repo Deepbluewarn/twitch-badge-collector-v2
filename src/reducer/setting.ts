@@ -1,4 +1,4 @@
-import { SettingInterface, SettingReducerAction, SettingReducerActionTypes } from "@interfaces/setting";
+import { SettingInterface, SettingReducerAction, SettingReducerActionTypes } from "@/interfaces/setting";
 
 // 초기 상태 정의
 export const initialState: SettingInterface = {
@@ -24,7 +24,7 @@ const actionTypes: SettingReducerActionTypes = {
 };
 
 // 리듀서 함수 정의
-function settingsReducer(state = initialState, action: SettingReducerAction) {
+function settingsReducer(state: SettingInterface = initialState, action: SettingReducerAction): SettingInterface {
     switch (action.type) {
         case actionTypes.SET_POSITION:
             return { ...state, position: action.payload || "up" };

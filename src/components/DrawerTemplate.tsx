@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { JSX } from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import AppBar from '@mui/material/AppBar';
@@ -7,16 +7,20 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
+import { CustomTheme } from '@/interfaces/ThemeInterface';
 
 const drawerWidth = 310;
 
-const MainBox = styled(Box)(({theme}) => ({
-    flexGrow: '1',
-    width: `calc(100% - ${drawerWidth}px)`, 
-    display: 'flex',
-    'flexDirection': 'column',
-    backgroundColor: theme.palette.background.default
-}))
+const MainBox = styled(Box)(({theme}) => {
+    const _theme = theme as CustomTheme;
+    return {
+        flexGrow: '1',
+        width: `calc(100% - ${drawerWidth}px)`,
+        display: 'flex',
+        'flexDirection': 'column',
+        backgroundColor: _theme.palette.background.default,
+    }
+})
 
 export default function DrawerTemplate(props: { title: string, name: string, drawer: JSX.Element, children: React.ReactNode }) {
     const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -79,7 +83,7 @@ export default function DrawerTemplate(props: { title: string, name: string, dra
                     {props.drawer}
                 </Drawer>
             </Box>
-            <MainBox component="main">
+            <MainBox>
                 <Toolbar />
                 {props.children}
             </MainBox>

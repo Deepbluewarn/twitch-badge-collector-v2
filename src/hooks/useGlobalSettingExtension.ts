@@ -1,7 +1,6 @@
 import { useEffect, useReducer, useState } from "react";
-import browser from 'webextension-polyfill';
 import { initialState, settingsReducer } from "../reducer/setting";
-import { SettingInterface } from "@interfaces/setting";
+import { SettingInterface } from "@/interfaces/setting";
 
 export default function useExtensionGlobalSetting() {
     const [globalSetting, dispatchGlobalSetting] = useReducer(settingsReducer, initialState);
@@ -25,15 +24,17 @@ export default function useExtensionGlobalSetting() {
                 'advancedFilter',
                 'platform',
             ])
-            .then((res: Record<keyof SettingInterface, SettingInterface[keyof SettingInterface]>) => {
+            .then((res) => {
+                const _res = res as Record<keyof SettingInterface, SettingInterface[keyof SettingInterface]>;
+                
                 updateSetting({
-                    position: res.position,
-                    pointBoxAuto: res.pointBoxAuto,
-                    darkTheme: res.darkTheme,
-                    chatTime: res.chatTime,
-                    maximumNumberChats: res.maximumNumberChats as number,
-                    advancedFilter: res.advancedFilter,
-                    platform: res.platform,
+                    position: _res.position,
+                    pointBoxAuto: _res.pointBoxAuto,
+                    darkTheme: _res.darkTheme,
+                    chatTime: _res.chatTime,
+                    maximumNumberChats: _res.maximumNumberChats as number,
+                    advancedFilter: _res.advancedFilter,
+                    platform: _res.platform,
                 } as SettingInterface);
 
                 setGlobalSettingUpdated(true)
