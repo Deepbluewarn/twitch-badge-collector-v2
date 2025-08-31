@@ -3,7 +3,6 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import useMediaQuery from '@mui/material/useMediaQuery';
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
@@ -31,12 +30,14 @@ export default function FilterInputFormList(
         filterInputListRef: React.MutableRefObject<ArrayFilterInterface[]>
     }
 ) {
-    const matches = useMediaQuery('(min-width:600px)');
     const { globalSetting } = useGlobalSettingContext();
     const { addArrayFilter } = useArrayFilterContext();
     const [arrayFilterType, setArrayFilterType] = React.useState<FilterType>('include');
     const [arrayFilterNote, setArrayFilterNote] = useState('');
     const [nameFilterAvail, setNameFilterAvail] = React.useState(false);
+    const [channelId, setChannelId] = useState('');
+    const [channelName, setChannelName] = useState('');
+
     const { t } = useTranslation();
 
     const addFilterInputForm = () => {
@@ -61,13 +62,17 @@ export default function FilterInputFormList(
             id: nanoid(),
             filterNote: arrayFilterNote,
             filters: [...props.filterInputListRef.current],
-            platform: globalSetting.platform
+            platform: globalSetting.platform,
+            filterChannelId: channelId,
+            filterChannelName: channelName,
         }]);
         if (added) {
             resetArrayFilterInputList();
             setArrayFilterNote('');
+            setChannelId('');
+            setChannelName('');
         }
-    }, [arrayFilterType, arrayFilterNote, globalSetting.platform]);
+    }, [arrayFilterType, arrayFilterNote, globalSetting.platform, channelId, channelName]);
 
     const resetArrayFilterInputList = () => {
         props.setAfInputRow([]);
@@ -126,17 +131,34 @@ export default function FilterInputFormList(
                     <Button onClick={addFilterInputForm}>
                         {t('common.add_filter_element')}
                     </Button>
-                    <Stack direction={matches ? 'row' : 'column'} gap={1} flex='0.7'>
-                        <CustomTextField
-                            value={arrayFilterNote}
-                            label={t('필터 설명을 추가하세요')}
-                            onChange={onArrayFilterNoteChanged}
-                        />
-                        <ArrayFilterTypeSelector
-                            labelId="arrayFilterType"
-                            value={arrayFilterType} 
-                            onChange={onArrayFilterTypeChanged}
-                        />
+                    <Stack direction={'row'} gap={1}>
+                        <Stack gap={1}>
+                            <Stack direction={'row'} gap={1}>
+                                <CustomTextField
+                                    value={arrayFilterNote}
+                                    label={t('필터 설명을 추가하세요')}
+                                    onChange={onArrayFilterNoteChanged}
+                                />
+                                <ArrayFilterTypeSelector
+                                    labelId="arrayFilterType"
+                                    value={arrayFilterType}
+                                    onChange={onArrayFilterTypeChanged}
+                                />
+                            </Stack>
+
+                            <Stack direction={'row'} gap={1}>
+                                <CustomTextField
+                                    value={channelId}
+                                    label={'채널 ID'}
+                                    onChange={(e) => setChannelId(e.target.value)}
+                                />
+                                <CustomTextField
+                                    value={channelName}
+                                    label={'채널 이름'}
+                                    onChange={(e) => setChannelName(e.target.value)}
+                                />
+                            </Stack>
+                        </Stack>
                         <Button
                             disabled={props.afInputRow.length === 0}
                             onClick={addFilter}

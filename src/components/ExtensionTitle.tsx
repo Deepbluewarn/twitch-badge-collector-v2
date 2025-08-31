@@ -1,7 +1,6 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import browser from "webextension-polyfill";
 
 export function ExtensionTitle() {
     return (
@@ -18,7 +17,7 @@ export function ExtensionTitle() {
                     height: '3rem'
                 }}
                 alt={browser.runtime.getManifest().name}
-                src={browser.runtime.getURL(`src/assets/icon.png`)}
+                src={browser.runtime.getURL(`/assets/icon.png`)}
             >
             </Box>
             <Typography variant="h6" sx={{ fontWeight: '500' }}>

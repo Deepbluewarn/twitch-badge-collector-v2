@@ -52,6 +52,8 @@ export interface ArrayFilterListInterface {
     filterType: FilterType;
     id: string;
     filterNote: string;
+    filterChannelId?: string; // 채널별 필터 적용 기능
+    filterChannelName?: string;
     filters: ArrayFilterInterface[];
     platform: SettingInterface['platform'];
 }

@@ -1,21 +1,26 @@
 import { useEffect, useRef, useState } from "react";
-import { useGlobalSettingContext } from "../../context/GlobalSetting";
-import useArrayFilterExtension from "@hooks/useArrayFilterExtension";
+import { useGlobalSettingContext } from "@/context/GlobalSetting";
+import useArrayFilterExtension from "@/hooks/useArrayFilterExtension";
 import React from "react";
-import { findElement, generateRandomString, msToTime } from "@utils/utils-common";
-import { convertToJSX } from "@utils/converter";
+import { findElement, generateRandomString, msToTime } from "@/utils/utils-common";
+import { convertToJSX } from "@/utils/converter";
 import { styled } from "@mui/material/styles";
-import { addStorageUpdateListener } from "@utils/utils-browser";
-import { SettingInterface } from "@interfaces/setting";
-import { ChatExtractor } from "../../contentScript/base/chatExtractor";
-import { Logger } from "@utils/logger";
-import { Observer } from "../../contentScript/base/observer";
+import { addStorageUpdateListener } from "@/utils/utils-browser";
+import { SettingInterface } from "@/interfaces/setting";
+import { ChatExtractor } from "@/content-scripts/base/chatExtractor";
+import { Logger } from "@/utils/logger";
+import { Observer } from "@/content-scripts/base/observer";
 
 const Wrapper = styled('div')({
     height: '100%',
 })
 
-function ChatWrapper(props: { time: number, children?: React.ReactNode }) {
+interface ChatWrapperProps {
+    time: number;
+    children?: React.ReactNode;
+}
+
+function ChatWrapper(props: ChatWrapperProps) {
     return <>{props.children}</>
 }
 // 채팅 요소를 그대로 복제하는 방식
@@ -27,7 +32,7 @@ export default function Local({
     extractor: ChatExtractor,
 }) {
     const { globalSetting } = useGlobalSettingContext();
-    const [chatSet, setChatSet] = useState<React.ReactElement[]>([]);
+    const [chatSet, setChatSet] = useState<React.ReactElement<ChatWrapperProps>[]>([]);
     const [chatIsBottom, setChatIsBottom] = useState(true);
     const maxNumChatsRef = useRef(import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
     const currentTimeRef = useRef<number>(0);
@@ -40,6 +45,14 @@ export default function Local({
             `#tbc-clone__${type}ui`
         );
     };
+
+    const channelId =
+        type === 'chzzk'
+            ? window.location.pathname.split('/')[2]
+            : type === 'twitch'
+                ? window.location.pathname.split('/')[1]
+                : null;
+
     const newChatCallback = (mutationRecord: MutationRecord[]) => {
         const records = Array.from(mutationRecord);
 
@@ -52,7 +65,7 @@ export default function Local({
 
                 if (!chat || chat === null) return;
 
-                const filterRes = checkFilter(chat);
+                const filterRes = checkFilter(chat, null, channelId);
 
                 if (typeof filterRes !== "undefined" && filterRes) {
                     const clone = node.cloneNode(true) as HTMLElement;

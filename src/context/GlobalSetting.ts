@@ -1,4 +1,4 @@
-import { SettingInterface, SettingReducerAction } from "@interfaces/setting";
+import { SettingInterface, SettingReducerAction } from "@/interfaces/setting";
 import React, { useContext } from "react";
 
 export const GlobalSettingContext = React.createContext<{globalSetting: SettingInterface, dispatchGlobalSetting: React.Dispatch<SettingReducerAction>} | undefined>(undefined);

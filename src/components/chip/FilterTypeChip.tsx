@@ -1,5 +1,5 @@
 import { Chip, ChipProps } from "@mui/material";
-import { GridCellParams } from "@mui/x-data-grid/models/params/gridCellParams";
+import { GridCellParams } from "@mui/x-data-grid";
 import { BadgeInterface } from "../../interfaces/chat";
 import { ArrayFilterListInterface, FilterType, TypeArr } from "../../interfaces/filter";
 

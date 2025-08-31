@@ -3,11 +3,11 @@ import { nanoid } from 'nanoid';
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import {
+    DataGrid,
     GridColDef,
     GridRenderCellParams,
     GridRowId,
-    GridToolbarContainer,
-    GridToolbarFilterButton,
+    Toolbar,
 } from "@mui/x-data-grid";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
@@ -15,7 +15,7 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import { badgeUuidFromURL } from "../../utils/utils-common";
 import { chipColor, onBadgeTypeChipClick } from "../chip/FilterTypeChip";
-import { CustomDataGrid } from "../datagrid/customDataGrid";
+// import { CustomDataGrid } from "@/components/datagrid/customDataGrid";
 import { BadgeInterface, BadgeUrls } from "../../interfaces/chat";
 import { ArrayFilterInterface, FilterType } from "../../interfaces/filter";
 import { BadgeChannelType } from "../../interfaces/channel";
@@ -25,19 +25,19 @@ import { Version } from "../../interfaces/api/twitchAPI";
 import { useGlobalSettingContext } from "../../context/GlobalSetting";
 import RelaxedChip from "../chip/RelaxedChip";
 import { useChzzkAPIContext } from "../../context/ChzzkAPIContext";
-import { SettingInterface } from "@interfaces/setting";
+import { SettingInterface } from "@/interfaces/setting";
+import { CustomDataGrid } from "../datagrid/customDataGrid";
 
 function CustomToolbar(props: {
-    setAfInputRow: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>,
-    badgesRow: BadgeInterface[],
-    selectionModel: GridRowId[],
-    setSelectionModel: React.Dispatch<React.SetStateAction<GridRowId[]>>,
-    setShowAddButton: React.Dispatch<React.SetStateAction<boolean>>,
-    showAddButton: boolean
-    badgeListChannel: BadgeChannelType,
-    setBadgeListChannel: React.Dispatch<React.SetStateAction<BadgeChannelType>>,
-    badgeChannelName: string,
-    setBadgeChannelName: React.Dispatch<React.SetStateAction<string>>,
+    onMultiBadgesSelect: () => void;
+    selectionModel: Set<GridRowId>;
+    setSelectionModel: React.Dispatch<React.SetStateAction<Set<GridRowId>>>;
+    setShowAddButton: React.Dispatch<React.SetStateAction<boolean>>;
+    showAddButton: boolean;
+    badgeListChannel: BadgeChannelType;
+    setBadgeListChannel: React.Dispatch<React.SetStateAction<BadgeChannelType>>;
+    badgeChannelName: string;
+    setBadgeChannelName: React.Dispatch<React.SetStateAction<string>>;
 }) {
     const { globalSetting } = useGlobalSettingContext();
     const customToolbarContainer = globalSetting.platform === 'twitch' ? (<CustomToolbarContainer />) : null
@@ -51,30 +51,36 @@ function CustomToolbar(props: {
                 badgeChannelName: props.badgeChannelName,
                 setBadgeChannelName: props.setBadgeChannelName
             }}>
-                <GridToolbarContainer>
-                    <GridToolbarFilterButton />
+                <Box sx={{ p: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
                     <AddBadgeFilterButton
-                        badgesRow={props.badgesRow}
-                        setAfInputRow={props.setAfInputRow}
+                        onMultiBadgesSelect={props.onMultiBadgesSelect}
                         selectionModel={props.selectionModel}
                         setSelectionModel={props.setSelectionModel}
                         setShowAddButton={props.setShowAddButton}
                         showAddButton={props.showAddButton} />
                     {customToolbarContainer}
-                </GridToolbarContainer>
+                </Box>
             </BadgeChannelNameContext.Provider>
         </BadgeListChannelContext.Provider>
     );
 }
 
-export default function BadgeList(props: {
-    setAfInputRow: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>
-    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface>>
-}) {
+export interface SelectedBadgeCallbacks {
+    // 단일 배지 선택 시 호출
+    onBadgeSelect?: (badge: BadgeInterface) => void;
+    // 다중 배지 선택 후 추가 버튼 클릭 시 호출
+    onMultiBadgesSelect?: (badges: BadgeInterface[]) => void;
+    multiple?: boolean;
+}
+
+export default function BadgeList({
+    onBadgeSelect,
+    onMultiBadgesSelect,
+    multiple = false // 기본값 설정
+}: SelectedBadgeCallbacks) {
     const { globalSetting } = useGlobalSettingContext();
-    const [advancedFilter, setAdvancedFilter] = useState(globalSetting.advancedFilter);
     const [badgesRow, setBadgesRows] = React.useState<BadgeInterface[]>([]);
-    const [selectionModel, setSelectionModel] = React.useState<GridRowId[]>([]);
+    const [selectionModel, setSelectionModel] = React.useState<Set<GridRowId>>(new Set());
     const [showAddButton, setShowAddButton] = React.useState(false);
     const [badgeListChannel, setBadgeListChannel] = React.useState<BadgeChannelType>('global');
     const [badgeChannelName, setBadgeChannelName] = React.useState('');
@@ -86,7 +92,8 @@ export default function BadgeList(props: {
 
     const columns: GridColDef[] = [
         {
-            field: 'badgeImage', headerName: t('common.badge'), flex: 0.1, renderCell: (params: GridRenderCellParams<BadgeUrls>) => (
+            field: 'badgeImage', headerName: t('common.badge'), flex: 0.1, display: 'flex',
+            renderCell: (params: GridRenderCellParams<BadgeUrls>) => (
                 <img
                     style={{width: '18px', height: '18px'}}
                     src={params.value?.badge_img_url_1x}
@@ -96,11 +103,11 @@ export default function BadgeList(props: {
                 />
             )
         },
-        { field: 'channel', headerName: t('common.channel'), flex: 0.2 },
-        { field: 'note', headerName: t('common.note'), flex: 0.6 },
-        { field: 'badgeName', headerName: t('common.badge_name'), flex: 0.6 },
+        { field: 'channel', headerName: t('common.channel'), flex: 0.2, display: 'flex', },
+        { field: 'note', headerName: t('common.note'), flex: 0.6, display: 'flex', },
+        { field: 'badgeName', headerName: t('common.badge_name'), flex: 0.6, display: 'flex', },
         {
-            field: 'filterType', headerName: t('common.condition'), flex: 0.2,
+            field: 'filterType', headerName: t('common.condition'), flex: 0.2, display: 'flex',
             renderCell: (params: GridRenderCellParams<any, FilterType>) => {
                 if (!params.value) return null;
 
@@ -115,66 +122,59 @@ export default function BadgeList(props: {
         },
     ];
 
-    const {data: User} = useQuery(
-        ['User', badgeChannelName, globalSetting.platform],
-        () => twitchAPI.fetchUser('login', badgeChannelName),
-        {
-            enabled: badgeChannelName !== '' && globalSetting.platform === 'twitch'
-        }
-    );
+    const {data: User} = useQuery({
+        queryKey: ['User', badgeChannelName, globalSetting.platform],
+        queryFn: () => twitchAPI.fetchUser('login', badgeChannelName),
+        enabled: badgeChannelName !== '' && globalSetting.platform === 'twitch'
+    });
 
-    const {data: GlobalBadges, isSuccess: isGBSuccess, fetchStatus: GBFetchStatus} = useQuery(
-        ['GlobalBadges', badgeListChannel, globalSetting.platform],
-        () => twitchAPI.fetchGlobalChatBadges(),
-        {
-            enabled: badgeListChannel === 'global' && globalSetting.platform === 'twitch'
-        }
-    )
+    const {data: GlobalBadges, isSuccess: isGBSuccess, fetchStatus: GBFetchStatus} = useQuery({
+        queryKey: ['GlobalBadges', badgeListChannel, globalSetting.platform],
+        queryFn: () => twitchAPI.fetchGlobalChatBadges(),
+        enabled: badgeListChannel === 'global' && globalSetting.platform === 'twitch'
+    })
 
-    const {data: ChannelChatBadges, isSuccess: isCBSuccess, fetchStatus: CBFetchStatus} = useQuery(
-        ['ChannelChatBadges', badgeListChannel, userId, globalSetting.platform],
-        () => twitchAPI.fetchChannelChatBadges(userId),
-        {
-            enabled: badgeListChannel === 'channel' && userId !== '' && globalSetting.platform === 'twitch'
-        }
-    )
+    const {data: ChannelChatBadges, isSuccess: isCBSuccess, fetchStatus: CBFetchStatus} = useQuery({
+        queryKey: ['ChannelChatBadges', badgeListChannel, userId, globalSetting.platform],
+        queryFn: () => twitchAPI.fetchChannelChatBadges(userId),
+        enabled: badgeListChannel === 'channel' && userId !== '' && globalSetting.platform === 'twitch'
+    })
 
-    const {data: ChzzkBadges, isSuccess: isChzzkSuccess, fetchStatus: ChzzkFetchStatus} = useQuery(
-        ['ChzzkBadges', globalSetting.platform],
-        async () => chzzkAPI.fetchBadges(),
-        {
-            enabled: globalSetting.platform === 'chzzk'
-        }
-    )
+    const {data: ChzzkBadges, isSuccess: isChzzkSuccess, fetchStatus: ChzzkFetchStatus} = useQuery({
+        queryKey: ['ChzzkBadges', globalSetting.platform],
+        queryFn: async () => chzzkAPI.fetchBadges(),
+        enabled: globalSetting.platform === 'chzzk'
+    })
 
-    const updateFilterInput = (id: GridRowId) => {
-        if(typeof id === 'undefined') return;
-        
+    const handleBadgeSelect = (id: GridRowId) => {
+        if (typeof id === 'undefined' || !onBadgeSelect) return;
+
         const badge = badgesRow.find(badge => badge.id === id.toString());
         if (!badge) return;
 
-        const badgeUUID = 
-            globalSetting.platform === 'twitch' ? 
-                badgeUuidFromURL(badge.badgeImage.badge_img_url_1x) : 
-                badge.badgeImage.badge_img_url_1x;
+        onBadgeSelect(badge);
+    }
 
-        props.setFilterInput({
-            category: 'badge',
-            id: nanoid(),
-            type: badge.filterType,
-            value: badgeUUID,
-            badgeName: `${badge.channel}: ${badge.badgeName}`,
-            badgeSetId: badge.badgeSetId,
-            channelLogin: badge.channelLogin,
-            channelId: badge.channelId,
-        });
+    // 다중 배지 선택 처리 함수
+    const handleMultiBadgesSelect = () => {
+        if (!onMultiBadgesSelect) return;
+
+        // 현재 저장된 selectionModel을 사용하여 실제 선택된 배지 계산
+        const selectedBadges = Array.from(selectionModel).map(id => 
+            badgesRow.find(badge => badge.id === id)
+        ).filter(badge => badge !== undefined) as BadgeInterface[];
+
+        onMultiBadgesSelect(selectedBadges);
+
+        setShowAddButton(false);
+        setSelectionModel(new Set());
     }
 
     React.useEffect(() => {
-        if(!GlobalBadges) return;
-    
+        if (!GlobalBadges) return;
+
         const badgesArray = badgesToArray(GlobalBadges);
-    
+
         const badgesRow: BadgeInterface[] = badgesArray.map(badge => {
             return {
                 id: `${badge.image_url_1x}-${badge.description}-${badge.key}`,
@@ -192,16 +192,16 @@ export default function BadgeList(props: {
         });
         setLoading(false);
         setBadgesRows(badgesRow);
-    }, [GlobalBadges]);    
+    }, [GlobalBadges]);
 
     React.useEffect(() => {
-        if(!User || User.data.length === 0) return;
+        if (!User || User.data.length === 0) return;
 
         setUserId(User.data[0].id);
     }, [User]);
 
     React.useEffect(() => {
-        if(!ChannelChatBadges || (!User || User.data.length === 0)) return;
+        if (!ChannelChatBadges || (!User || User.data.length === 0)) return;
 
         const badgesArray = badgesToArray(ChannelChatBadges);
         const channelName = User.data[0].display_name;
@@ -256,32 +256,61 @@ export default function BadgeList(props: {
         setBadgesRows(badgesRow);
     }, [ChzzkBadges]);
 
-    useEffect(() => {
-        setAdvancedFilter(globalSetting.advancedFilter);
-    }, [globalSetting])
+    // CustomToolbar를 래핑하는 컴포넌트
+    const WrappedCustomToolbar = () => (
+        <CustomToolbar
+            onMultiBadgesSelect={handleMultiBadgesSelect}
+            selectionModel={selectionModel}
+            setSelectionModel={setSelectionModel}
+            setShowAddButton={setShowAddButton}
+            showAddButton={showAddButton}
+            badgeListChannel={badgeListChannel}
+            setBadgeListChannel={setBadgeListChannel}
+            badgeChannelName={badgeChannelName}
+            setBadgeChannelName={setBadgeChannelName}
+        />
+    );
 
     return (
-        <CustomDataGrid rows={badgesRow} columns={columns}
-            components={{ Toolbar: CustomToolbar }}
+        <CustomDataGrid
+            rows={badgesRow} 
+            columns={columns}
+            slots={{ toolbar: WrappedCustomToolbar }}
+            showToolbar={multiple}
             loading={loading}
-            componentsProps={{
-                toolbar: {
-                    badgesRow,
-                    setAfInputRow: props.setAfInputRow,
-                    selectionModel, setSelectionModel,
-                    showAddButton, setShowAddButton,
-                    badgeListChannel, setBadgeListChannel,
-                    badgeChannelName, setBadgeChannelName,
-                    platform: globalSetting.platform
+            onRowSelectionModelChange={(selectionModel, details) => {
+                console.log('selectionModel" ', selectionModel)
+                console.log('details" ', details)
+                
+                // v7의 새로운 selection model 처리
+                let actualSelectedCount = 0;
+                let actualSelectedIds = new Set<GridRowId>();
+
+                if (selectionModel.type === 'include') {
+                    // include 타입: ids에 포함된 항목들의 개수
+                    actualSelectedCount = selectionModel.ids.size;
+                    actualSelectedIds = selectionModel.ids;
+                } else {
+                    // exclude 타입: 전체에서 ids에 제외된 항목들을 뺀 개수
+                    actualSelectedCount = badgesRow.length - selectionModel.ids.size;
+                    // exclude 타입에서는 선택된 항목들을 계산
+                    actualSelectedIds = new Set(
+                        badgesRow
+                            .filter(badge => !selectionModel.ids.has(badge.id))
+                            .map(badge => badge.id)
+                    );
+                }
+
+                setShowAddButton(multiple && actualSelectedCount > 0);
+                setSelectionModel(actualSelectedIds);
+                
+                // 단일 선택 시 콜백 호출
+                if (actualSelectedCount === 1) {
+                    const selectedId = Array.from(actualSelectedIds)[0];
+                    handleBadgeSelect(selectedId);
                 }
             }}
-            onRowSelectionModelChange={(ids) => {
-                setShowAddButton(advancedFilter === 'on' && ids.length > 0);
-                setSelectionModel(ids);
-                updateFilterInput(ids[0]);
-            }}
-            rowSelectionModel={selectionModel}
-            checkboxSelection={advancedFilter === 'on'}
+            checkboxSelection={multiple}
         />
     )
 }
@@ -403,32 +432,20 @@ function CustomToolbarContainer() {
 }
 
 function AddBadgeFilterButton(props: {
-    badgesRow: BadgeInterface[],
-    setAfInputRow: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>,
-    selectionModel: GridRowId[],
-    setSelectionModel: React.Dispatch<React.SetStateAction<GridRowId[]>>,
-    setShowAddButton: React.Dispatch<React.SetStateAction<boolean>>,
-    showAddButton: boolean
+    showAddButton: boolean;
+    onMultiBadgesSelect: () => void;
+    selectionModel: Set<GridRowId>;
+    setSelectionModel: React.Dispatch<React.SetStateAction<Set<GridRowId>>>;
+    setShowAddButton: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+    const { t } = useTranslation();
 
     if (!props.showAddButton) return null;
-
-    const { t } = useTranslation();
-    const { globalSetting } = useGlobalSettingContext();
 
     return (
         <Stack
             direction='row'
-            onClick={() => {
-                AddSelectedBadges(
-                    props.badgesRow,
-                    props.setAfInputRow,
-                    props.selectionModel,
-                    props.setSelectionModel,
-                    props.setShowAddButton,
-                    globalSetting.platform,
-                )
-            }}
+            onClick={props.onMultiBadgesSelect}
             sx={{
                 alignItems: 'center',
                 padding: '4px',

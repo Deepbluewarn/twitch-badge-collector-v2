@@ -7,6 +7,9 @@ export const ArrayFilterContext = createContext<{
     arrayFilter: ArrayFilterListInterface[],
     setArrayFilter: React.Dispatch<React.SetStateAction<ArrayFilterListInterface[]>>
     addArrayFilter: (filters: ArrayFilterListInterface[]) => boolean,
+    upsertArrayFilter: (filter: ArrayFilterListInterface) => boolean,
+    removeSubFilter: (filterListId: string, subFilterId: string) => void,
+    removeFilterField: (filterListId: string, fieldName: keyof ArrayFilterListInterface) => void,
     checkFilter: (chat: ChatInfo, chatInfoObject: ChatInfoObjects) => boolean
   } | undefined>(undefined);
 

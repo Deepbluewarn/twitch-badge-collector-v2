@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { useArrayFilterContext } from "../../context/ArrayFilter";
+import { useArrayFilterContext } from "@/context/ArrayFilter";
 import { 
     ArrayFilterListInterface, 
-} from "../../interfaces/filter";
+} from "@/interfaces/filter";
 import { CustomToolbarItemStyle } from "../datagrid/toolbar";
-import { useGlobalSettingContext } from "../../context/GlobalSetting";
+import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import { useCallback, useRef } from "react";
-import { useAlertContext } from "../../context/Alert";
+import { useAlertContext } from "@/context/Alert";
 
 export function ImportFilter() {
     const {globalSetting} = useGlobalSettingContext();

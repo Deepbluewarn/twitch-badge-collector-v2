@@ -1,4 +1,4 @@
-import { ArrayFilterListInterface } from "@interfaces/filter";
+import { ArrayFilterListInterface } from "./interfaces/filter";
 
 const defaultFilter: ArrayFilterListInterface[] = [
     {

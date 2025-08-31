@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { ArrayFilterInterface } from "../interfaces/filter"
+import { ArrayFilterCategory, ArrayFilterInterface, ArrayFilterListInterface, FilterType } from "../interfaces/filter"
 import { Logger } from "./logger";
 
 export const generateRandomString = (length: number): string => {
@@ -25,13 +25,14 @@ export function trim_hash(str: string) {
   }
   return c1;
 }
-export function getDefaultArrayFilter() {
-  return {
-    category: 'name',
-    id: nanoid(),
-    type: 'include',
+export function getDefaultArrayFilter(id?: string, category?: ArrayFilterCategory, type?: FilterType) {
+  const _: ArrayFilterInterface = {
+    category: category || 'name',
+    id: id || nanoid(),
+    type: type || 'include',
     value: ''
-  } as ArrayFilterInterface;
+  }
+  return _;
 }
 export function badgeUuidFromURL(url: string) {
   let badge_uuid: string = "";
@@ -69,9 +70,9 @@ export function arrayFilterEqual(
   b: ArrayFilterInterface
 ) {
   return (
-    Object.keys(a).length === Object.keys(b).length &&
+    // Object.keys(a).length === Object.keys(b).length &&
     Object.keys(a).every((p) => {
-      if (p === "id") {
+      if (p === "id" || typeof a[p] === "undefined" || typeof b[p] === "undefined") {
         return true;
       } else {
         return a[p] === b[p];

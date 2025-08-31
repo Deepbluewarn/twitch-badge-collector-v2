@@ -7,6 +7,9 @@ export function useCustomTheme(theme: boolean): CustomTheme {
     const baseTheme = createTheme({
         palette: {
             mode: theme ? 'dark' : 'light',
+            background: theme
+                ? { default: '#2e3440', paper: '#3b4252' } // 다크 모드 색상
+                : { default: '#ffffff', paper: '#ffffff' } // 라이트 모드 색상
         },
         typography: {
             fontFamily: [

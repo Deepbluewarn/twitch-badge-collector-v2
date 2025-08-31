@@ -4,7 +4,7 @@ import { useAlertContext } from "../context/Alert";
 import { ChatInfo } from "../interfaces/chat";
 import { ChatInfoObjects } from "../interfaces/chatInfoObjects";
 import { ArrayFilterListInterface } from "../interfaces/filter";
-import { arrayFiltersEqual } from "@utils/utils-common";
+import { arrayFiltersEqual } from "@/utils/utils-common";
 
 /**
  * 
@@ -39,7 +39,11 @@ export default function useArrayFilter() {
     
             setArrayFilter(afLists => {
                 for (let af of afLists) {
-                    if(arrayFiltersEqual(af.filters, newFilter.filters) && af.platform === newFilter.platform){
+                    if(
+                        arrayFiltersEqual(af.filters, newFilter.filters) && 
+                        af.platform === newFilter.platform &&
+                        (af.filterChannelId ?? "") === (newFilter.filterChannelId ?? "")
+                    ){
                         addAlert({
                             message: t('alert.filter_already_exist'),
                             serverity: 'warning'
@@ -54,12 +58,94 @@ export default function useArrayFilter() {
         return true;
     }
 
-    const checkFilter = (chat: ChatInfo, chatInfoObject?: ChatInfoObjects) => {
+    const upsertArrayFilter = (newFilter: ArrayFilterListInterface) => {
+        // validation 추가.
+        const _validate = validateArrayFilterList(newFilter);
+
+        if (!_validate.valid) {
+            addAlert({
+                message: _validate.message || '필터를 추가할 수 없습니다.',
+                serverity: 'warning'
+            });
+
+            return _validate.valid;
+        }
+        setArrayFilter(afLists => {
+            const exists = afLists.some(af => af.id === newFilter.id);
+            if (exists) {
+                // id가 같은 필터가 있으면 업데이트
+                return afLists.map(af => af.id === newFilter.id ? newFilter : af);
+            } else {
+                // 없으면 추가
+                return [...afLists, newFilter];
+            }
+        });
+
+        return true;
+    }
+
+    /**
+     * ArrayFilterListInterface 유효성 검사 함수
+     * - 필수 필드 존재 여부, filters 배열 값 체크
+     */
+    const validateArrayFilterList = (filterList: ArrayFilterListInterface): { valid: boolean, message?: string } => {
+        if (!filterList) return { valid: false, message: '필터 객체가 없습니다.' };
+        if (!filterList.id) return { valid: false, message: '필터 id가 없습니다.' };
+        if (!filterList.filterType) return { valid: false, message: '필터 타입이 없습니다.' };
+        if (!Array.isArray(filterList.filters) || filterList.filters.length === 0) return { valid: false, message: '하위 필터가 없습니다.' };
+        for (const filter of filterList.filters) {
+            if (!filter.value || filter.value === '') {
+                return { valid: false, message: '하위 필터 값이 비어 있습니다.' };
+            }
+        }
+        return { valid: true };
+    };
+
+    /**
+     * ArrayFilterListInterface의 특정 하위 필터(id) 삭제
+     */
+    const removeSubFilter = (filterListId: string, subFilterId: string) => {
+        setArrayFilter(afLists =>
+            afLists.map(list =>
+                list.id === filterListId
+                    ? { ...list, filters: list.filters.filter(f => f.id !== subFilterId) }
+                    : list
+            )
+        );
+    };
+
+    /**
+     * ArrayFilterListInterface의 특정 필드 값 제거
+     * @param filterListId 필터 리스트 id
+     * @param fieldName 제거할 필드 이름 (예: 'filterChannelName', 'filterChannelId', 'filterNote')
+     */
+    const removeFilterField = (filterListId: string, fieldName: keyof ArrayFilterListInterface) => {
+        setArrayFilter(afLists =>
+            afLists.map(list =>
+                list.id === filterListId
+                    ? { ...list, [fieldName]: undefined }
+                    : list
+            )
+        );
+    };
+
+    /**
+     * 
+     * @param chat 채팅 정보 객체
+     * @param chatInfoObject (트위치 전용) 채팅 배지, 이모티콘 정보
+     * @param channelId (치지직 전용, 트위치는 예정) 현재 채널 ID
+     * @returns 
+     */
+    const checkFilter = (chat: ChatInfo, chatInfoObject?: ChatInfoObjects | null, channelId?: string | null) => {
         if (typeof arrayFilterRef.current === 'undefined' || arrayFilterRef.current.length === 0) return false;
 
         let res = false; // true 이면 해당 chat 을 포함, false 이면 제외.
 
         for(let arrayFilter of arrayFilterRef.current){
+            if (arrayFilter.filterChannelId && arrayFilter.filterChannelId !== channelId) {
+                // 채널 전용 필터는 채널 ID 값이 일치해야 함.
+                continue;
+            }
             const filterMatched = arrayFilter.filters.every((filter) => {
                 let filterMatchedRes = false;
 
@@ -68,7 +154,7 @@ export default function useArrayFilter() {
                 }
 
                 if (filter.category === "badge") {
-                    if(typeof chatInfoObject === 'undefined'){
+                    if(typeof chatInfoObject === 'undefined' || !chatInfoObject){
                         const channelMisMatch = 
                             (chat.channelLogin && filter.channelLogin) && 
                             (chat.channelLogin !== filter.channelLogin);
@@ -129,5 +215,9 @@ export default function useArrayFilter() {
         return res;
     };
 
-    return { arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter, checkFilter };
+    return { 
+        arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter, 
+        upsertArrayFilter, checkFilter, validateArrayFilterList, 
+        removeSubFilter, removeFilterField, 
+    };
 }

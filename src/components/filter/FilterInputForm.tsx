@@ -21,13 +21,13 @@ import { useArrayFilterContext } from '../../context/ArrayFilter';
 import { nanoid } from 'nanoid';
 import { ArrayFilterSelectorType, ArrayFilterTypeSelector, FilterCategorySelector } from './ArrayFilterComponents';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
-import { getDefaultArrayFilter } from '@utils/utils-common';
-import CustomTextField from '@components/TextField/CustomTextField';
+import { getDefaultArrayFilter } from '@/utils/utils-common';
+import CustomTextField from '@/components/TextField/CustomTextField';
 
 export default function FilterInputForm(
     props: {
-    filterInput: ArrayFilterInterface,
-    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface>>,
+    filterInput: ArrayFilterInterface | undefined,
+    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface | undefined>>,
 }
 ) {
 
@@ -36,7 +36,9 @@ export default function FilterInputForm(
     const { globalSetting } = useGlobalSettingContext();
     const { addArrayFilter } = useArrayFilterContext();
     const [arrayFilterNote, setArrayFilterNote] = useState('');
-    const inputValue = useRef<TextFieldProps>(null);
+    const filterContentValue = useRef<TextFieldProps>(null);
+    const channelValue = useRef<TextFieldProps>(null);
+    const channelName = useRef<TextFieldProps>(null);
 
     const onArrayFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setArrayFilterNote(event.target.value);
@@ -44,15 +46,22 @@ export default function FilterInputForm(
 
     const addFilter = useCallback(() => {
         if(typeof props.filterInput === 'undefined') return;
-        if(inputValue.current === null) return;
+        if(filterContentValue.current === null) return;
+        if(channelValue.current === null || channelName.current === null) return;
 
-        const inputRef = inputValue.current;
-        const value = inputRef?.value as string;
+        const contentValueRef = filterContentValue.current;
+        const _contentValue = contentValueRef?.value as string;
+
+        const channelValueRef = channelValue.current;
+        const _channelValue = channelValueRef?.value as string;
+
+        const channelNameRef = channelName.current;
+        const _channelName = channelNameRef?.value as string;
 
         if(props.filterInput.category === 'badge'){
-            props.filterInput.badgeName = value;
+            props.filterInput.badgeName = _contentValue;
         }else{
-            props.filterInput.value = value;
+            props.filterInput.value = _contentValue;
         }
 
         // 기본 모드에서 필터 요소의 타입은 include로 고정되어 있습니다.
@@ -64,12 +73,16 @@ export default function FilterInputForm(
             id: nanoid(),
             filterNote: arrayFilterNote,
             filters: [props.filterInput],
-            platform: globalSetting.platform
+            platform: globalSetting.platform,
+            filterChannelId: _channelValue,
+            filterChannelName: _channelName,
         }]);
         if (added) {
             setArrayFilterNote('');
             props.setFilterInput(getDefaultArrayFilter());
-            inputRef.value = '';
+            contentValueRef.value = '';
+            channelValue.current.value = '';
+            channelName.current.value = '';
         }
     }, [props.filterInput, arrayFilterNote])
 
@@ -79,7 +92,9 @@ export default function FilterInputForm(
                 <BasicFilterInputForm 
                     filterInput={props.filterInput}
                     setFilterInput={props.setFilterInput}
-                    inputValue={inputValue}
+                    filterContentValue={filterContentValue}
+                    channelValue={channelValue}
+                    channelName={channelName}
                 />
             </CardContent>
             <CardActions sx={{ padding: '16px' }}>
@@ -109,9 +124,11 @@ export default function FilterInputForm(
 
 function BasicFilterInputForm(
     props: {
-    filterInput: ArrayFilterInterface,
-    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface>>,
-    inputValue: React.MutableRefObject<TextFieldProps | null>
+    filterInput: ArrayFilterInterface | undefined,
+    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface | undefined>>,
+    filterContentValue: React.MutableRefObject<TextFieldProps | null>,
+    channelValue: React.MutableRefObject<TextFieldProps | null>,
+    channelName: React.MutableRefObject<TextFieldProps | null>,
 }
 ){
     const {globalSetting} = useGlobalSettingContext();
@@ -121,6 +138,8 @@ function BasicFilterInputForm(
         const newValue = event.target.value;
 
         props.setFilterInput(l => {
+            if (!l) return l;
+
             const newL = { ...l };
             if (selectorType === 'category') {
                 newL.category = newValue as ArrayFilterCategory;
@@ -134,17 +153,27 @@ function BasicFilterInputForm(
     const resetFilterInput = useCallback(() => {
         props.setFilterInput(getDefaultArrayFilter());
 
-        const inputRef = props.inputValue.current;
-        
-        if(inputRef !== null) {
-            inputRef.value = '';
+        const filterContentRef = props.filterContentValue.current;
+        const channelValueRef = props.channelValue.current;
+        const channelNameRef = props.channelName.current;
+
+        if(filterContentRef !== null) {
+            filterContentRef.value = '';
+        };
+        if(channelValueRef !== null) {
+            channelValueRef.value = '';
+        };
+        if(channelNameRef !== null) {
+            channelNameRef.value = '';
         };
     }, []);
 
     useEffect(() => {
         // 선택한 배지의 이름을 TextInput 에 자동으로 입력.
+        if (!props.filterInput) return;
+
         if(props.filterInput.category === 'badge'){
-            props.inputValue.current!.value = props.filterInput.badgeName;
+            props.filterContentValue.current!.value = props.filterInput.badgeName;
         }
     }, [props.filterInput]);
 
@@ -153,68 +182,83 @@ function BasicFilterInputForm(
     }, [globalSetting.platform])
 
     return (
-        <Stack direction='row' spacing={1}>
-            {
-                props.filterInput.category === 'badge' ? (
-                    <>
-                        <Paper 
-                            variant="outlined" 
-                            sx={{ 
-                                minWidth: 120,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center'
-                            }}
-                        >
-                            {
-                                globalSetting.platform === 'twitch' ? (
-                                    <img
-                                        style={{ width: '18px', height: '18px' }}
-                                        src={`https://static-cdn.jtvnw.net/badges/v1/${props.filterInput.value}/1`}
-                                        srcSet={
-                                            `https://static-cdn.jtvnw.net/badges/v1/${props.filterInput.value}/1 1x, 
+        <Stack gap={2}>
+            <Stack direction='row' spacing={1}>
+                {
+                    props.filterInput && props.filterInput.category === 'badge' ? (
+                        <>
+                            <Paper
+                                variant="outlined"
+                                sx={{
+                                    minWidth: 120,
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                {
+                                    globalSetting.platform === 'twitch' ? (
+                                        <img
+                                            style={{ width: '18px', height: '18px' }}
+                                            src={`https://static-cdn.jtvnw.net/badges/v1/${props.filterInput.value}/1`}
+                                            srcSet={
+                                                `https://static-cdn.jtvnw.net/badges/v1/${props.filterInput.value}/1 1x, 
                             https://static-cdn.jtvnw.net/badges/v1/${props.filterInput.value}/2 2x, 
                             https://static-cdn.jtvnw.net/badges/v1/${props.filterInput.value}/3 4x`}
-                                    />
-                                ) : (
-                                    <img
-                                        style={{ width: '18px', height: '18px' }}
-                                        src={props.filterInput.value}
-                                    />
-                                )
-                            }
-                            
-                        </Paper>
+                                        />
+                                    ) : (
+                                        <img
+                                            style={{ width: '18px', height: '18px' }}
+                                            src={props.filterInput.value}
+                                        />
+                                    )
+                                }
 
-                        <CustomTextField
-                            label={t('common.badge_name')}
-                            defaultValue={props.filterInput.badgeName}
-                            inputRef={props.inputValue}
-                        />
-                    </>
-                ) : (
-                    <>
-                        <FilterCategorySelector 
-                            value={props.filterInput.category}
-                            onChange={(e) => selectorChanged(e, 'category')}
-                        />
+                            </Paper>
 
-                        <CustomTextField
-                            label={t('common.value')}
-                            defaultValue={props.filterInput.value}
-                            inputRef={props.inputValue}
-                        />
-                    </>
-                )
-            }
+                            <CustomTextField
+                                label={t('common.badge_name')}
+                                defaultValue={props.filterInput.badgeName}
+                                inputRef={props.filterContentValue}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <FilterCategorySelector
+                                value={props.filterInput?.category}
+                                onChange={(e) => selectorChanged(e, 'category')}
+                            />
 
-            <ArrayFilterTypeSelector
-                labelId="filter-type-label"
-                value={props.filterInput.type}
-                onChange={(e) => selectorChanged(e, 'type')}
-            />
+                            <CustomTextField
+                                label={t('common.value')}
+                                defaultValue={props.filterInput?.value}
+                                inputRef={props.filterContentValue}
+                            />
+                        </>
+                    )
+                }
+                <ArrayFilterTypeSelector
+                    labelId="filter-type-label"
+                    value={props.filterInput?.type}
+                    onChange={(e) => selectorChanged(e, 'type')}
+                />
 
-            <Button variant='contained' onClick={resetFilterInput}>초기화</Button>
+                <Button variant='contained' onClick={resetFilterInput}>초기화</Button>
+            </Stack>
+            <Stack gap={1}>
+                <CustomTextField
+                    label={'채널 ID'}
+                    defaultValue={props.filterInput?.filterChannelId}
+                    inputRef={props.channelValue}
+                />
+
+                <CustomTextField
+                    label={'채널 이름'}
+                    defaultValue={props.filterInput?.filterChannelName}
+                    inputRef={props.channelName}
+                />
+            </Stack>
         </Stack>
+        
     )
 }

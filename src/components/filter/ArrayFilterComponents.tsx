@@ -8,7 +8,7 @@ import {
     FilterType
 } from "../../interfaces/filter";
 
-interface ArrayFilterTypeSelector extends SelectProps<ArrayFilterCategory> {
+type ArrayFilterTypeSelector = SelectProps<ArrayFilterCategory> & {
     nameFilterAvail?: boolean;
 }
 export type ArrayFilterSelectorType = 'category' | 'type';
