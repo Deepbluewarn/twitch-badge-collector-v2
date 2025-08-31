@@ -143,7 +143,6 @@ export default function FilterDialog(props: FilterDialogProps) {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            bgcolor: 'grey.100',
                         }}
                     >
 
@@ -254,12 +253,16 @@ export default function FilterDialog(props: FilterDialogProps) {
                 {arrayFilter.category === 'badge' && (
                     <BadgeList
                         onBadgeSelect={(selectedBadge) => {
+                            const badgeUUID = globalSetting.platform === 'twitch'
+                                ? badgeUuidFromURL(selectedBadge.badgeImage.badge_img_url_1x)
+                                : selectedBadge.badgeImage.badge_img_url_1x;
+
                             const _badgeFilter: ArrayFilterInterface = {
                                 badgeName: selectedBadge.badgeName,
                                 category: 'badge',
                                 id: selectedBadge.id,
                                 type: selectedBadge.filterType,
-                                value: selectedBadge.badgeImage.badge_img_url_1x,
+                                value: badgeUUID,
                             }
                             handleFilterObjectChange(_badgeFilter, filterId!);
                         }}

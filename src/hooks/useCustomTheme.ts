@@ -8,7 +8,7 @@ export function useCustomTheme(theme: boolean): CustomTheme {
         palette: {
             mode: theme ? 'dark' : 'light',
             background: theme
-                ? { default: '#2e3440', paper: '#3b4252' } // 다크 모드 색상
+                ? { default: '#1A1A1A', paper: '#242424' }
                 : { default: '#ffffff', paper: '#ffffff' } // 라이트 모드 색상
         },
         typography: {

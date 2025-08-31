@@ -15,7 +15,6 @@ const MainBox = styled(Box)(({theme}) => {
     const _theme = theme as CustomTheme;
     return {
         flexGrow: '1',
-        width: `calc(100% - ${drawerWidth}px)`,
         display: 'flex',
         'flexDirection': 'column',
         backgroundColor: _theme.palette.background.default,

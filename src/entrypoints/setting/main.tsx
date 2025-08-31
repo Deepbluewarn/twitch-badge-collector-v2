@@ -74,11 +74,6 @@ function Router() {
           <Route
             path="/filter"
             element={
-              // <>
-              //   <Box sx={{ backgroundColor: 'red', width: '100%', heigth: '100%'}}>
-
-              //   </Box>
-              // </>
               <DrawerTemplate
                 title={''}
                 name="filter"
