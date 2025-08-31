@@ -8,10 +8,6 @@ export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(async function (details) {
     if (details.reason === "install") {
       await browser.storage.local.set({ filter: defaultFilter });
-
-      browser.tabs.create({
-        url: browser.runtime.getURL('/welcome.html'),
-      });
     }
 
     let updatedFilter: ArrayFilterListInterface[] = [];

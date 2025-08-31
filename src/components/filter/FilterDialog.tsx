@@ -143,7 +143,6 @@ export default function FilterDialog(props: FilterDialogProps) {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            bgcolor: 'grey.100',
                         }}
                     >
 

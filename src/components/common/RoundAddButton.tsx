@@ -1,6 +1,8 @@
 import React from 'react';
-import { Button } from '@mui/material';
+import { Button, useTheme } from '@mui/material';
+import { useCustomTheme } from "@/hooks/useCustomTheme";
 import AddIcon from '@mui/icons-material/Add';
+import { useGlobalSettingContext } from '@/context/GlobalSetting';
 
 interface RoundAddButtonProps {
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -9,6 +11,9 @@ interface RoundAddButtonProps {
 }
 
 const RoundAddButton: React.FC<RoundAddButtonProps> = ({ onClick, size = 32, sx }) => {
+    const { globalSetting } = useGlobalSettingContext();
+    const theme = useCustomTheme(globalSetting.darkTheme === 'on');
+    const colors = theme.colors;
     return (
         <Button
             size='small'
@@ -17,10 +22,10 @@ const RoundAddButton: React.FC<RoundAddButtonProps> = ({ onClick, size = 32, sx 
                 minHeight: size,
                 width: size,
                 height: size,
-                border: '1px solid #eeeeee',
+                border: `1px solid ${colors.borderColor}`,
                 borderRadius: '50%',
-                backgroundColor: '#fafafa',
-                color: '#888888',
+                backgroundColor: colors.bgColor_2,
+                color: colors.textColor_2,
                 fontWeight: 'bold',
                 boxShadow: 'none',
                 p: 0,
@@ -29,14 +34,14 @@ const RoundAddButton: React.FC<RoundAddButtonProps> = ({ onClick, size = 32, sx 
                 justifyContent: 'center',
                 transition: 'background-color 0.2s, color 0.2s',
                 '&:hover': {
-                    backgroundColor: '#f0f0f0',
-                    color: '#757575',
+                    backgroundColor: colors.bgColor_3,
+                    color: colors.textColor_1,
                 },
                 ...sx,
             }}
             onClick={onClick}
         >
-            <AddIcon />
+            <AddIcon sx={{ color: colors.textColor_2 }} />
         </Button>
     );
 };
