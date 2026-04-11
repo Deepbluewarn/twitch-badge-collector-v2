@@ -8,7 +8,7 @@ export default defineConfig({
     name: '__MSG_ExtensionName__',
     description: '__MSG_ExtensionDesc__',
     default_locale: 'ko',
-    version: '2.15.0',
+    version: '2.15.1',
 
     // Action (팝업)
     action: {
