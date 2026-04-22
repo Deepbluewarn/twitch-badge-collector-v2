@@ -45,7 +45,7 @@ export class ChzzkChatExtractor extends ChatExtractor {
         const verifiedBadge = checkVerifiedBadge(chat_clone);
 
         if (verifiedBadge) {
-            badgeArr.push("https://ssl.pstatic.net/static/nng/glive/resource/p/static/media/icon_official.a53d1555f8f4796d7862.png");
+            badgeArr.push("https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png");
         }
 
         return {
