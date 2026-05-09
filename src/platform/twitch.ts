@@ -1,8 +1,33 @@
-import { ChatInfo } from "@/interfaces/chat";
+import { BadgeInterface, ChatInfo } from "@/interfaces/chat";
 import type { PlatformAdapter } from "./";
+import { createTwitchAPI, TwitchAPI } from "@/api/twitch";
+import { Version } from "@/interfaces/api/twitchAPI";
 
 const TWITCH_BADGE_CDN = 'https://static-cdn.jtvnw.net/badges/v1';
 const TWITCH_DENSITY_TO_PATH = { '1x': '1', '2x': '2', '4x': '3' } as const;
+
+function badgeMapToInterface(
+    map: Map<string, Version>,
+    channel: string,
+    channelLogin?: string,
+    channelId?: string,
+): BadgeInterface[] {
+    return Array.from(map.entries()).map(([key, version]) => ({
+        id: `${version.image_url_1x}-${version.description}-`,
+        badgeImage: {
+            badge_img_url_1x: version.image_url_1x,
+            badge_img_url_2x: version.image_url_2x,
+            badge_img_url_4x: version.image_url_4x,
+        },
+        channel,
+        note: version.description,
+        badgeName: version.title,
+        filterType: 'include',
+        badgeSetId: key, // Map key (`set_id/version_id`)를 set_id로 사용 — 기존 컨벤션 유지
+        channelLogin,
+        channelId,
+    }));
+}
 
 export class TwitchAdapter implements PlatformAdapter {
     readonly type = 'twitch' as const;
@@ -11,6 +36,10 @@ export class TwitchAdapter implements PlatformAdapter {
     readonly brandColor = '#9147ff';
 
     readonly chatOrder = 'newest-bottom' as const;
+
+    readonly supportsChannelBadgeQuery = true;
+
+    private api: TwitchAPI = createTwitchAPI();
 
     extract(node: Node): ChatInfo | undefined {
         const nodeElement = node as HTMLElement;
@@ -96,5 +125,18 @@ export class TwitchAdapter implements PlatformAdapter {
 
     prepareChatClone(_clone: HTMLElement): void {
         // Twitch는 별도 처리 없음. 채팅 시간/사용자 정보는 inject 단에서 이미 attribute로 박혀있음.
+    }
+
+    async fetchBadges(opts: { scope: 'global' | 'channel'; channelLogin?: string }): Promise<BadgeInterface[]> {
+        if (opts.scope === 'global') {
+            const map = await this.api.fetchGlobalChatBadges();
+            return badgeMapToInterface(map, 'Global');
+        }
+        if (!opts.channelLogin) return [];
+        const userResp = await this.api.fetchUser('login', opts.channelLogin);
+        if (!userResp.data || userResp.data.length === 0) return [];
+        const user = userResp.data[0];
+        const map = await this.api.fetchChannelChatBadges(user.id);
+        return badgeMapToInterface(map, user.display_name, user.login, user.id);
     }
 }

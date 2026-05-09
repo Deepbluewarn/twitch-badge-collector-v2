@@ -1,6 +1,7 @@
-import { ChatInfo } from "@/interfaces/chat";
+import { BadgeInterface, ChatInfo } from "@/interfaces/chat";
 import type { PlatformAdapter } from "./";
 import { msToTime } from "@/utils/utils-common";
+import { createChzzkAPI, ChzzkAPI } from "@/api/chzzk";
 
 // Chzzk 채팅 영역 위/아래 고정 UI 높이 — 드래그 수식 보정에 사용
 const CHZZK_HEADER_OFFSET = 77;
@@ -25,6 +26,10 @@ export class ChzzkAdapter implements PlatformAdapter {
     readonly brandColor = '#00ffa3e6';
 
     readonly chatOrder = 'newest-top' as const;
+
+    readonly supportsChannelBadgeQuery = false;
+
+    private api: ChzzkAPI = createChzzkAPI();
 
     extract(node: Node): ChatInfo | undefined {
         const nodeElement = node as HTMLElement;
@@ -124,5 +129,22 @@ export class ChzzkAdapter implements PlatformAdapter {
         usernameElem.classList.add('tbcv2-chat-username');
         usernameElem.style.display = 'inline-flex';
         usernameElem.prepend(chatTime);
+    }
+
+    async fetchBadges(_opts: { scope: 'global' | 'channel'; channelLogin?: string }): Promise<BadgeInterface[]> {
+        // Chzzk는 채널별 배지 개념이 없어 scope/channelLogin 모두 무시.
+        const badges = await this.api.fetchBadges();
+        return badges.map(badge => ({
+            id: badge.id,
+            badgeImage: {
+                badge_img_url_1x: badge.image,
+                badge_img_url_2x: badge.image,
+                badge_img_url_4x: badge.image,
+            },
+            channel: 'Global',
+            note: badge.name,
+            badgeName: badge.name,
+            filterType: 'include',
+        } as BadgeInterface));
     }
 }

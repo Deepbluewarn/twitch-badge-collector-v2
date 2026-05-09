@@ -81,6 +81,6 @@ An optional restriction on a composite Filter Element making it fire only when t
 
 - The `BroadcastChannel('ArrayFilter')` channel name in [Filter.tsx](src/components/Filter.tsx) is intentionally preserved for cross-tab compatibility with users running older extension versions.
 
-- Badge fetching APIs in [BadgeList.tsx:128-146](src/components/filter/BadgeList.tsx#L128-L146) still branch on `globalSetting.platform` because the Twitch / Chzzk API clients are React-hook-bound (`useTwitchAPIContext`, `useChzzkAPIContext`) and don't fit the plain-class **Platform Adapter** as-is. A separate round can lift the API clients out of hooks (or pass them into the Adapter at construction) and unify the four `useQuery` calls into one `adapter.fetchBadges(...)`.
+- API client classes live as plain factories at [src/api/](src/api/) — `createTwitchAPI()` / `createChzzkAPI()`. The legacy hook wrappers `useTwitchAPI` / `useChzzkAPI` now just `useMemo` over the factory; they remain so existing Context-based consumers (`useChannelInfo`) keep working unchanged.
 
 - `evaluateFilterGroup` in [src/filter/evaluate.ts](src/filter/evaluate.ts) compares both `chat.channelLogin` and `chat.channelId` against `filter.channelLogin`/`filter.channelId` for badge atomic matches — this is Twitch-specific logic (sub/cheer badges scoped per channel). The data comparison itself is platform-neutral, so it stays inside the evaluator without an Adapter call, but the *fact that this matters* is Twitch-only.

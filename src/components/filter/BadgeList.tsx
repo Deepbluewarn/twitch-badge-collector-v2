@@ -19,11 +19,8 @@ import { BadgeInterface, BadgeUrls } from "../../interfaces/chat";
 import { AtomicFilterElement, FilterType } from "../../interfaces/filter";
 import { BadgeChannelType } from "../../interfaces/channel";
 import { BadgeChannelNameContext, BadgeListChannelContext, useBadgeChannelNameContext, useBadgeListChannelContext } from "../../context/BadgeChannel";
-import { useTwitchAPIContext } from "../../context/TwitchAPIContext";
-import { Version } from "../../interfaces/api/twitchAPI";
 import { useGlobalSettingContext } from "../../context/GlobalSetting";
 import RelaxedChip from "../chip/RelaxedChip";
-import { useChzzkAPIContext } from "../../context/ChzzkAPIContext";
 import { SettingInterface } from "@/interfaces/setting";
 import { CustomDataGrid } from "../datagrid/customDataGrid";
 import { getAdapter } from "@/platform";
@@ -40,7 +37,8 @@ function CustomToolbar(props: {
     setBadgeChannelName: React.Dispatch<React.SetStateAction<string>>;
 }) {
     const { globalSetting } = useGlobalSettingContext();
-    const customToolbarContainer = globalSetting.platform === 'twitch' ? (<CustomToolbarContainer />) : null
+    const adapter = getAdapter(globalSetting.platform);
+    const customToolbarContainer = adapter.supportsChannelBadgeQuery ? (<CustomToolbarContainer />) : null
 
     return (
         <BadgeListChannelContext.Provider value={{
@@ -79,16 +77,13 @@ export default function BadgeList({
     multiple = false // 기본값 설정
 }: SelectedBadgeCallbacks) {
     const { globalSetting } = useGlobalSettingContext();
+    const adapter = getAdapter(globalSetting.platform);
     const [badgesRow, setBadgesRows] = React.useState<BadgeInterface[]>([]);
     const [selectionModel, setSelectionModel] = React.useState<Set<GridRowId>>(new Set());
     const [showAddButton, setShowAddButton] = React.useState(false);
     const [badgeListChannel, setBadgeListChannel] = React.useState<BadgeChannelType>('global');
     const [badgeChannelName, setBadgeChannelName] = React.useState('');
-    const [userId, setUserId] = React.useState('');
-    const [loading, setLoading] = React.useState(true);
     const { t } = useTranslation();
-    const twitchAPI = useTwitchAPIContext();
-    const chzzkAPI = useChzzkAPIContext();
 
     const columns: GridColDef[] = [
         {
@@ -122,29 +117,16 @@ export default function BadgeList({
         },
     ];
 
-    const {data: User} = useQuery({
-        queryKey: ['User', badgeChannelName, globalSetting.platform],
-        queryFn: () => twitchAPI.fetchUser('login', badgeChannelName),
-        enabled: badgeChannelName !== '' && globalSetting.platform === 'twitch'
+    // platform 분기 없이 단일 useQuery — adapter가 모든 플랫폼/스코프 처리.
+    const channelScopeNeedsInput = adapter.supportsChannelBadgeQuery && badgeListChannel === 'channel';
+    const { data: fetchedBadges, isFetching: loading } = useQuery({
+        queryKey: ['badges', globalSetting.platform, badgeListChannel, badgeChannelName],
+        queryFn: () => adapter.fetchBadges({
+            scope: badgeListChannel === 'channel' ? 'channel' : 'global',
+            channelLogin: badgeListChannel === 'channel' ? badgeChannelName : undefined,
+        }),
+        enabled: !channelScopeNeedsInput || badgeChannelName !== '',
     });
-
-    const {data: GlobalBadges, isSuccess: isGBSuccess, fetchStatus: GBFetchStatus} = useQuery({
-        queryKey: ['GlobalBadges', badgeListChannel, globalSetting.platform],
-        queryFn: () => twitchAPI.fetchGlobalChatBadges(),
-        enabled: badgeListChannel === 'global' && globalSetting.platform === 'twitch'
-    })
-
-    const {data: ChannelChatBadges, isSuccess: isCBSuccess, fetchStatus: CBFetchStatus} = useQuery({
-        queryKey: ['ChannelChatBadges', badgeListChannel, userId, globalSetting.platform],
-        queryFn: () => twitchAPI.fetchChannelChatBadges(userId),
-        enabled: badgeListChannel === 'channel' && userId !== '' && globalSetting.platform === 'twitch'
-    })
-
-    const {data: ChzzkBadges, isSuccess: isChzzkSuccess, fetchStatus: ChzzkFetchStatus} = useQuery({
-        queryKey: ['ChzzkBadges', globalSetting.platform],
-        queryFn: async () => chzzkAPI.fetchBadges(),
-        enabled: globalSetting.platform === 'chzzk'
-    })
 
     const handleBadgeSelect = (id: GridRowId) => {
         if (typeof id === 'undefined' || !onBadgeSelect) return;
@@ -170,91 +152,12 @@ export default function BadgeList({
         setSelectionModel(new Set());
     }
 
+    // adapter.fetchBadges가 BadgeInterface[]로 정규화해서 반환하므로
+    // 별도 normalize 단계 없이 바로 state로 동기화. (chip 클릭으로 한 row의
+    // filterType이 바뀌는 등 로컬 mutation을 허용하기 위해 state로 유지.)
     React.useEffect(() => {
-        if (!GlobalBadges) return;
-
-        const badgesArray = badgesToArray(GlobalBadges);
-
-        const badgesRow: BadgeInterface[] = badgesArray.map(badge => {
-            return {
-                id: `${badge.image_url_1x}-${badge.description}-${badge.key}`,
-                badgeImage: {
-                    badge_img_url_1x: badge.image_url_1x,
-                    badge_img_url_2x: badge.image_url_2x,
-                    badge_img_url_4x: badge.image_url_4x,
-                },
-                channel: 'Global',
-                note: badge.description,
-                badgeName: badge.title,
-                filterType: 'include',
-                badgeSetId: badge.set_id,
-            } as BadgeInterface;
-        });
-        setLoading(false);
-        setBadgesRows(badgesRow);
-    }, [GlobalBadges]);
-
-    React.useEffect(() => {
-        if (!User || User.data.length === 0) return;
-
-        setUserId(User.data[0].id);
-    }, [User]);
-
-    React.useEffect(() => {
-        if (!ChannelChatBadges || (!User || User.data.length === 0)) return;
-
-        const badgesArray = badgesToArray(ChannelChatBadges);
-        const channelName = User.data[0].display_name;
-        const channelLogin = User.data[0].login;
-        const channelId = User.data[0].id;
-
-        const badgesRow: BadgeInterface[] = badgesArray.map(badge => {
-            return {
-                id: `${badge.image_url_1x}-${badge.description}-${badge.key}`,
-                badgeImage: {
-                    badge_img_url_1x: badge.image_url_1x,
-                    badge_img_url_2x: badge.image_url_2x,
-                    badge_img_url_4x: badge.image_url_4x,
-                },
-                channel: channelName,
-                note: badge.description,
-                badgeName: badge.title,
-                filterType: 'include',
-                badgeSetId: badge.set_id,
-                channelLogin: channelLogin,
-                channelId: channelId,
-            } as BadgeInterface;
-        });
-        setBadgesRows(badgesRow);
-    }, [ChannelChatBadges, User]);
-
-    React.useEffect(() => {
-        if(GBFetchStatus === 'fetching' || CBFetchStatus === 'fetching' || ChzzkFetchStatus === 'fetching') {
-            setLoading(true);
-        }else if(GBFetchStatus === 'idle' || CBFetchStatus === 'idle' || ChzzkFetchStatus === 'idle') {
-            setLoading(false);
-        }
-    }, [GBFetchStatus, CBFetchStatus, ChzzkFetchStatus]);
-
-    useEffect(() => {
-        if(!ChzzkBadges) return;
-
-        const badgesRow: BadgeInterface[] = ChzzkBadges.map(badge => {
-            return {
-                id: badge.id,
-                badgeImage: {
-                    badge_img_url_1x: badge.image,
-                    badge_img_url_2x: badge.image,
-                    badge_img_url_4x: badge.image,
-                },
-                channel: 'Global',
-                note: badge.name,
-                badgeName: badge.name,
-                filterType: 'include'
-            } as BadgeInterface;
-        });
-        setBadgesRows(badgesRow);
-    }, [ChzzkBadges]);
+        if (fetchedBadges) setBadgesRows(fetchedBadges);
+    }, [fetchedBadges]);
 
     // CustomToolbar를 래핑하는 컴포넌트
     const WrappedCustomToolbar = () => (
@@ -314,25 +217,6 @@ export default function BadgeList({
         />
     )
 }
-function badgesToArray(badges: Map<string, Version>) {
-    const res = [];
-
-    for (let [key, version] of badges) {
-        let badgeInfo = {
-            ...version,
-            set_id: key, // The key of the map is used as the set_id
-            type: "", // type 정보가 없으므로 빈 문자열로 설정
-            key: "", // key 정보가 없으므로 빈 문자열로 설정
-            click_action: "", // click_action 정보가 없으므로 빈 문자열로 설정
-            last_updated: null, // last_updated 정보가 없으므로 null로 설정
-        }
-
-        res.push(badgeInfo);
-    }
-
-    return res;
-}
-
 function AddSelectedBadges(
     badgesRow: BadgeInterface[],
     setAfInputRow: React.Dispatch<React.SetStateAction<AtomicFilterElement[]>>,

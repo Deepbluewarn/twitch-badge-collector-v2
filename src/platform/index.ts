@@ -1,4 +1,4 @@
-import { ChatExtractor } from "@/interfaces/chat";
+import { ChatExtractor, BadgeInterface } from "@/interfaces/chat";
 import { TwitchAdapter } from "./twitch";
 import { ChzzkAdapter } from "./chzzk";
 
@@ -62,6 +62,20 @@ export interface PlatformAdapter extends ChatExtractor {
      * Container에 삽입되기 직전에 호출됨.
      */
     prepareChatClone(clone: HTMLElement): void;
+
+    /**
+     * 배지 목록을 정규화된 BadgeInterface[] 형태로 가져온다.
+     * - Twitch: scope='global'은 전역 배지, scope='channel'은 channelLogin → user lookup → 채널 배지 chaining.
+     * - Chzzk: scope 무시, 단일 fetchBadges 결과 반환 (channelLogin 무시).
+     * 호출자(BadgeList)는 이 단일 메서드 + 단일 useQuery로 platform 분기를 추상화.
+     */
+    fetchBadges(opts: { scope: 'global' | 'channel'; channelLogin?: string }): Promise<BadgeInterface[]>;
+
+    /**
+     * 채널별 배지 조회를 지원하는지. UI에서 채널 선택 toolbar 렌더 여부를 결정.
+     * Twitch=true, Chzzk=false (글로벌 배지만 존재).
+     */
+    readonly supportsChannelBadgeQuery: boolean;
 }
 
 const adapters = {
