@@ -130,7 +130,10 @@ export default function useFilteredChatBuffer(
 
     const addChat = useCallback(({ clone, key, time }: PassedChat) => {
         setSavedChats(prev => {
-            if (prev.some(c => c.key === key)) return prev;
+            // dedupe: 같은 세션은 key로(Chzzk 내부 React key — 안정적),
+            // cross-session backfill은 time으로(Chzzk 서버 timestamp — 같은 채팅엔
+            // 같은 값, 다른 채팅엔 다른 값). 둘 중 하나라도 매치하면 중복.
+            if (prev.some(c => c.key === key || c.time === time)) return prev;
 
             const next = [...prev, { key, time, html: clone.outerHTML, restored: false }];
 
