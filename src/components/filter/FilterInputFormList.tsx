@@ -16,9 +16,9 @@ import {
     FilterCategory,
     FilterType
 } from "../../interfaces/filter";
-import { useArrayFilterContext } from '../../context/ArrayFilter';
+import { useFilterGroupContext } from '../../context/ArrayFilter';
 import { nanoid } from 'nanoid';
-import { ArrayFilterCategorySelector, ArrayFilterSelectorType, ArrayFilterTypeSelector } from './ArrayFilterComponents';
+import { AdvancedFilterCategorySelector, FilterSelectorType, FilterTypeSelector } from './ArrayFilterComponents';
 import Divider from '@mui/material/Divider';
 import CustomTextField from '../TextField/CustomTextField';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
@@ -31,9 +31,9 @@ export default function FilterInputFormList(
     }
 ) {
     const { globalSetting } = useGlobalSettingContext();
-    const { addArrayFilter } = useArrayFilterContext();
-    const [arrayFilterType, setArrayFilterType] = React.useState<FilterType>('include');
-    const [arrayFilterNote, setArrayFilterNote] = useState('');
+    const { addCompositeFilters } = useFilterGroupContext();
+    const [filterGroupType, setFilterGroupType] = React.useState<FilterType>('include');
+    const [filterGroupNote, setFilterGroupNote] = useState('');
     const [nameFilterAvail, setNameFilterAvail] = React.useState(false);
     const [channelId, setChannelId] = useState('');
     const [channelName, setChannelName] = useState('');
@@ -51,30 +51,30 @@ export default function FilterInputFormList(
         });
     }
     const onArrayFilterTypeChanged = (event: SelectChangeEvent<FilterType>) => {
-        setArrayFilterType(event.target.value as FilterType);
+        setFilterGroupType(event.target.value as FilterType);
     }
     const onArrayFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setArrayFilterNote(event.target.value);
+        setFilterGroupNote(event.target.value);
     }
     const addFilter = useCallback(() => {
-        const added = addArrayFilter([{
-            filterType: arrayFilterType,
+        const added = addCompositeFilters([{
+            filterType: filterGroupType,
             id: nanoid(),
-            filterNote: arrayFilterNote,
+            filterNote: filterGroupNote,
             filters: [...props.filterInputListRef.current],
             platform: globalSetting.platform,
             filterChannelId: channelId,
             filterChannelName: channelName,
         }]);
         if (added) {
-            resetArrayFilterInputList();
-            setArrayFilterNote('');
+            resetFilterGroupInputList();
+            setFilterGroupNote('');
             setChannelId('');
             setChannelName('');
         }
-    }, [arrayFilterType, arrayFilterNote, globalSetting.platform, channelId, channelName]);
+    }, [filterGroupType, filterGroupNote, globalSetting.platform, channelId, channelName]);
 
-    const resetArrayFilterInputList = () => {
+    const resetFilterGroupInputList = () => {
         props.setAfInputRow([]);
     }
 
@@ -87,7 +87,7 @@ export default function FilterInputFormList(
     }, [props.afInputRow]);
 
     useEffect(() => {
-        resetArrayFilterInputList();
+        resetFilterGroupInputList();
     }, [globalSetting.platform]);
 
     return (
@@ -135,13 +135,13 @@ export default function FilterInputFormList(
                         <Stack gap={1}>
                             <Stack direction={'row'} gap={1}>
                                 <CustomTextField
-                                    value={arrayFilterNote}
+                                    value={filterGroupNote}
                                     label={t('필터 설명을 추가하세요')}
                                     onChange={onArrayFilterNoteChanged}
                                 />
-                                <ArrayFilterTypeSelector
-                                    labelId="arrayFilterType"
-                                    value={arrayFilterType}
+                                <FilterTypeSelector
+                                    labelId="filterGroupType"
+                                    value={filterGroupType}
                                     onChange={onArrayFilterTypeChanged}
                                 />
                             </Stack>
@@ -198,7 +198,7 @@ function AdvancedFilterInputForm(props: {
         props.afInputListRef.current = newInputRef;
     }
 
-    const selectorChanged = (event: SelectChangeEvent<FilterCategory | FilterType>, selectorType: ArrayFilterSelectorType) => {
+    const selectorChanged = (event: SelectChangeEvent<FilterCategory | FilterType>, selectorType: FilterSelectorType) => {
         const newValue = event.target.value;
 
         props.setInputList(list => {
@@ -258,7 +258,7 @@ function AdvancedFilterInputForm(props: {
                     </>
                 ) : (
                     <>
-                        <ArrayFilterCategorySelector 
+                        <AdvancedFilterCategorySelector 
                             value={props.value.category}
                             onChange={(e) => selectorChanged(e, 'category')}
                             nameFilterAvail={props.nameFilterAvail}
@@ -273,7 +273,7 @@ function AdvancedFilterInputForm(props: {
                 )
             }
 
-            <ArrayFilterTypeSelector
+            <FilterTypeSelector
                 labelId="filter-type-label"
                 value={props.value.type}
                 onChange={(e) => selectorChanged(e, 'type')}

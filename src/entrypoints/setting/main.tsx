@@ -10,7 +10,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { getQueryParams } from "@/utils/utils-common";
 import globalStyles from "@/style/global";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
-import useArrayFilterExtension from "@/hooks/useArrayFilterExtension";
+import useFilterGroupStorage from "@/hooks/useFilterGroupStorage";
 import useAlert from "@/hooks/useAlert";
 import useChzzkAPI from "@/hooks/useChzzkAPI";
 import { GlobalSettingContext } from "@/context/GlobalSetting";
@@ -20,7 +20,7 @@ import { TwitchAPIContext } from "@/context/TwitchAPIContext";
 import useTwitchAPI from "@/hooks/useTwitchAPI";
 import { ChzzkAPIContext } from "@/context/ChzzkAPIContext";
 import AlertContainer from "@/components/AlertContainer";
-import { ArrayFilterContext } from "@/context/ArrayFilter";
+import { FilterGroupContext } from "@/context/ArrayFilter";
 import '@/translate/i18n';
 import { Box } from "@mui/material";
 import SettingPageDrawer from "@/components/drawer/SettingPageDrawer";
@@ -65,10 +65,10 @@ function App() {
 }
 
 function Router() {
-  const _arrayFilterHooks = useArrayFilterExtension('twitch', false);
+  const _filterGroupHooks = useFilterGroupStorage('twitch', false);
 
   return (
-    <ArrayFilterContext.Provider value={_arrayFilterHooks}>
+    <FilterGroupContext.Provider value={_filterGroupHooks}>
       <MemoryRouter initialEntries={[`/${getQueryParams("initialPath")}`]}>
         <Routes>
           <Route
@@ -89,7 +89,7 @@ function Router() {
           />
         </Routes>
       </MemoryRouter>
-    </ArrayFilterContext.Provider>
+    </FilterGroupContext.Provider>
   );
 }
 ReactDOM.createRoot(document.getElementById("root") as Element).render(

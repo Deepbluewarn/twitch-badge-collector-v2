@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
-import useArrayFilterExtension from "@/hooks/useArrayFilterExtension";
+import useFilterGroupStorage from "@/hooks/useFilterGroupStorage";
 import React from "react";
 import { findElement, generateRandomString, msToTime } from "@/utils/utils-common";
 import { convertToJSX } from "@/utils/converter";
@@ -36,7 +36,7 @@ export default function Local({
     const [chatIsBottom, setChatIsBottom] = useState(true);
     const maxNumChatsRef = useRef(import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
     const currentTimeRef = useRef<number>(0);
-    const { setArrayFilter, checkFilter } = useArrayFilterExtension(type, true);
+    const { setFilterGroup, checkFilter } = useFilterGroupStorage(type, true);
     const containerRef = useRef<HTMLDivElement>(null);
     const getScrollArea = () => {
         if (!containerRef.current) return;
@@ -181,7 +181,7 @@ export default function Local({
             }
 
             if (key === "filter") {
-                setArrayFilter(newValue);
+                setFilterGroup(newValue);
             }
         })
     }, [])

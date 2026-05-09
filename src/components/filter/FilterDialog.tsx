@@ -10,7 +10,7 @@ import { FilterCategory, AtomicFilterElement, CompositeFilterElement, FilterType
 import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Stack, Typography } from '@mui/material';
 import BadgeList from './BadgeList';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
-import { getDefaultArrayFilter } from '@/utils/utils-common';
+import { defaultAtomicFilter } from '@/utils/utils-common';
 
 // 모달 타입 정의
 export type DialogType = 'filter' | 'channel' | 'note' | null;
@@ -43,29 +43,29 @@ export default function FilterDialog(props: FilterDialogProps) {
     const { t } = useTranslation();
 
     // 새 필터 추가를 위한 기본 필터 객체 생성
-    const _defaultArrayFilter = getDefaultArrayFilter();
+    const _defaultArrayFilter = defaultAtomicFilter();
     // 편집 중인 데이터 상태
-    const [arrayFilterList, setArrayFilterList] = React.useState<CompositeFilterElement | undefined>(selectedFilterList);
-    const [arrayFilter, setArrayFilter] = React.useState<AtomicFilterElement | undefined>();
+    const [filterGroupList, setFilterGroupList] = React.useState<CompositeFilterElement | undefined>(selectedFilterList);
+    const [filterGroup, setFilterGroup] = React.useState<AtomicFilterElement | undefined>();
 
     // 모달이 열릴 때마다 편집 데이터 초기화
     React.useEffect(() => {
         if (mode === 'edit') {
-            setArrayFilterList(selectedFilterList);
-            setArrayFilter(type === 'filter' ? selectedFilterList?.filters.find(f => f.id === filterId) : undefined);
+            setFilterGroupList(selectedFilterList);
+            setFilterGroup(type === 'filter' ? selectedFilterList?.filters.find(f => f.id === filterId) : undefined);
         } else if (mode === 'add') {
-            setArrayFilterList(selectedFilterList);
-            setArrayFilter(type === 'filter' ? _defaultArrayFilter : undefined);
+            setFilterGroupList(selectedFilterList);
+            setFilterGroup(type === 'filter' ? _defaultArrayFilter : undefined);
         }
     }, [selectedFilterList, filterId, type, mode]);
 
     // 저장 핸들러
-    const handleSave = (_arrayFilterList?: CompositeFilterElement) => {
-        let saveData: CompositeFilterElement | undefined = _arrayFilterList ?? arrayFilterList;
+    const handleSave = (_filterGroupList?: CompositeFilterElement) => {
+        let saveData: CompositeFilterElement | undefined = _filterGroupList ?? filterGroupList;
 
-        if (mode === 'add' && arrayFilter && arrayFilterList && !NON_SUBFILTER_TYPES.includes(type)) {
-            const _afList: CompositeFilterElement = { ...arrayFilterList };
-            _afList.filters = [..._afList.filters, arrayFilter];
+        if (mode === 'add' && filterGroup && filterGroupList && !NON_SUBFILTER_TYPES.includes(type)) {
+            const _afList: CompositeFilterElement = { ...filterGroupList };
+            _afList.filters = [..._afList.filters, filterGroup];
             saveData = _afList;
         }
         onSave(type, saveData);
@@ -75,7 +75,7 @@ export default function FilterDialog(props: FilterDialogProps) {
 
     // 상위 필터(리스트) 속성 변경
     const handleListObjectChange = (updates: Partial<CompositeFilterElement>) => {
-        setArrayFilterList(afList => {
+        setFilterGroupList(afList => {
             if (!afList) return afList;
             return {
                 ...afList,
@@ -86,7 +86,7 @@ export default function FilterDialog(props: FilterDialogProps) {
 
     // 하위 필터(필터) 속성 변경
     const handleFilterObjectChange = (updates: Partial<AtomicFilterElement>, filterId: string) => {
-        setArrayFilterList(afList => {
+        setFilterGroupList(afList => {
             if (!afList) return afList;
             return {
                 ...afList,
@@ -98,7 +98,7 @@ export default function FilterDialog(props: FilterDialogProps) {
             };
         });
 
-        setArrayFilter(current =>
+        setFilterGroup(current =>
             current ? { ...current, ...updates } : current
         );
     };
@@ -131,10 +131,10 @@ export default function FilterDialog(props: FilterDialogProps) {
 
     // 필터 수정/추가 폼
     const renderFilterContent = () => {
-        if (!arrayFilter) return null;
+        if (!filterGroup) return null;
 
         const BadgeImage = () => {
-            if (!arrayFilter.value && arrayFilter.category === 'badge') {
+            if (!filterGroup.value && filterGroup.category === 'badge') {
                 return (
                     <Paper
                         variant="outlined"
@@ -150,7 +150,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                 );
             }
 
-            return arrayFilter.category === 'badge' ? (
+            return filterGroup.category === 'badge' ? (
                 <Paper
                     variant="outlined"
                     sx={{
@@ -165,16 +165,16 @@ export default function FilterDialog(props: FilterDialogProps) {
                         globalSetting.platform === 'twitch' ? (
                             <img
                                 style={{ width: '18px', height: '18px' }}
-                                src={`https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/1`}
+                                src={`https://static-cdn.jtvnw.net/badges/v1/${filterGroup.value}/1`}
                                 srcSet={
-                                    `https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/1 1x, 
-                            https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/2 2x, 
-                            https://static-cdn.jtvnw.net/badges/v1/${arrayFilter.value}/3 4x`}
+                                    `https://static-cdn.jtvnw.net/badges/v1/${filterGroup.value}/1 1x, 
+                            https://static-cdn.jtvnw.net/badges/v1/${filterGroup.value}/2 2x, 
+                            https://static-cdn.jtvnw.net/badges/v1/${filterGroup.value}/3 4x`}
                             />
                         ) : (
                             <img
                                 style={{ width: '18px', height: '18px' }}
-                                src={arrayFilter.value}
+                                src={filterGroup.value}
                             />
                         )
                     }
@@ -189,14 +189,14 @@ export default function FilterDialog(props: FilterDialogProps) {
                     <InputLabel id="filter-category-label">{'카테고리'}</InputLabel>
                     <Select
                         labelId="filter-category-label"
-                        value={arrayFilter.category || ''}
+                        value={filterGroup.category || ''}
                         label={'카테고리'}
                         size='small'
                         onChange={(e) => {
-                            setArrayFilter(filter => {
+                            setFilterGroup(filter => {
                                 if (!filter) return filter;
                                 return {
-                                    ...getDefaultArrayFilter(filter.id, filter.category, filter.type),
+                                    ...defaultAtomicFilter(filter.id, filter.category, filter.type),
                                 }
                             });
                             handleFilterObjectChange({ category: e.target.value as FilterCategory }, filterId!);
@@ -210,10 +210,10 @@ export default function FilterDialog(props: FilterDialogProps) {
                 <Stack spacing={2} direction={'row'}>
                     <BadgeImage />
                     {
-                        arrayFilter.category === 'badge' ? (
+                        filterGroup.category === 'badge' ? (
                             <CustomTextField
                                 label={'배지 이름'}
-                                value={arrayFilter.badgeName || ''}
+                                value={filterGroup.badgeName || ''}
                                 onChange={e => {
                                     handleFilterObjectChange({ badgeName: e.target.value }, filterId!);
                                 }}
@@ -222,7 +222,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                         ) : (
                             <CustomTextField
                                 label={'내용'}
-                                value={arrayFilter.value || ''}
+                                value={filterGroup.value || ''}
                                 onChange={e => {
                                     handleFilterObjectChange({ value: e.target.value }, filterId!);
                                 }}
@@ -236,7 +236,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                         <InputLabel id="filter-type-label">{'조건'}</InputLabel>
                         <Select
                             labelId="filter-type-label"
-                            value={arrayFilter.type || 'include'}
+                            value={filterGroup.type || 'include'}
                             label={'조건'}
                             size="small"
                             onChange={(e) => {
@@ -250,7 +250,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                     </FormControl>
                 </Stack>
 
-                {arrayFilter.category === 'badge' && (
+                {filterGroup.category === 'badge' && (
                     <BadgeList
                         onBadgeSelect={(selectedBadge) => {
                             const badgeUUID = globalSetting.platform === 'twitch'
@@ -274,13 +274,13 @@ export default function FilterDialog(props: FilterDialogProps) {
 
     // 채널 수정 폼
     const renderChannelContent = () => {
-        if (!arrayFilterList) return;
+        if (!filterGroupList) return;
 
         return (
             <Stack spacing={2}>
                 <CustomTextField
                     label={'채널명'}
-                    value={arrayFilterList.filterChannelName || ''}
+                    value={filterGroupList.filterChannelName || ''}
                     onChange={e => {
                         handleListObjectChange({ filterChannelName: e.target.value });
                     }}
@@ -288,7 +288,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                 />
                 <CustomTextField
                     label={'채널 ID'}
-                    value={arrayFilterList.filterChannelId || ''}
+                    value={filterGroupList.filterChannelId || ''}
                     onChange={e => {
                         handleListObjectChange({ filterChannelId: e.target.value });
                     }}
@@ -300,12 +300,12 @@ export default function FilterDialog(props: FilterDialogProps) {
 
     // 비고 수정 폼
     const renderNoteContent = () => {
-        if (!arrayFilterList) return;
+        if (!filterGroupList) return;
 
         return (
             <CustomTextField
                 label={'비고'}
-                value={arrayFilterList.filterNote || ''}
+                value={filterGroupList.filterNote || ''}
                 onChange={e => {
                     handleListObjectChange({ filterNote: e.target.value });
                 }}

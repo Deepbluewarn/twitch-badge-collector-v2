@@ -79,7 +79,11 @@ An optional restriction on a composite Filter Element making it fire only when t
 
 ## Flagged ambiguities
 
-- Several **function/hook/component names** still carry the legacy `ArrayFilter*` prefix even though the interface types have been renamed: `useArrayFilter`, `useArrayFilterExtension`, `useArrayFilterContext`, `addArrayFilter`, `upsertArrayFilter`, `getDefaultArrayFilter`, `arrayFiltersEqual`, `ArrayFilterList` (component), `ArrayFilterCategorySelector`, `ArrayFilterTypeSelector`, `ArrayFilterSelectorType`. These touch many call sites; rename in a separate scoped pass.
+- File names `src/context/ArrayFilter.ts` and `src/components/filter/ArrayFilterComponents.tsx` still carry the legacy "Array" prefix even though their exports have been renamed (`FilterGroupContext`, `FilterTypeSelector`, etc.). Rename in a future small pass via `git mv`.
+
+- A few local handler/variable names still reference "ArrayFilter": `onArrayFilterTypeChipClick` ([FilterTypeChip.tsx](src/components/chip/FilterTypeChip.tsx)), `onArrayFilterNoteChanged`/`onArrayFilterTypeChanged` (local handlers in `FilterInputForm.tsx`, `FilterInputFormList.tsx`), `_defaultArrayFilter` (local variable in `FilterDialog.tsx`). Internal-only, low priority.
+
+- The `BroadcastChannel('ArrayFilter')` channel name in [Filter.tsx](src/components/Filter.tsx) is intentionally preserved for cross-tab compatibility with users running older extension versions.
 
 - UI components still branch on `globalSetting.platform === 'twitch'` for brand colour, labels, and badge fetching APIs ([components/Filter.tsx](src/components/Filter.tsx), [components/filter/BadgeList.tsx](src/components/filter/BadgeList.tsx), [components/filter/FilterDialog.tsx](src/components/filter/FilterDialog.tsx), and several other filter components). The runtime layer is now Adapter-routed, but the UI layer is not. Future scope: extend **Platform Adapter** with UI-side concerns (badge fetching, brand colour, display name) so these components depend on the Adapter rather than a string discriminator.
 

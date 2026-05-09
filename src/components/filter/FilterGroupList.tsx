@@ -9,7 +9,7 @@ import Stack from "@mui/material/Stack";
 import { ImportFilter, ExportFilter } from "./FilterIO";
 import { chipColor, onArrayFilterTypeChipClick } from "../chip/FilterTypeChip";
 import { CustomToolbarItemStyle } from "@/components/datagrid/toolbar";
-import { useArrayFilterContext } from "@/context/ArrayFilter";
+import { useFilterGroupContext } from "@/context/ArrayFilter";
 import { AtomicFilterElement, CompositeFilterElement } from "../../interfaces/filter";
 import RelaxedChip from "../chip/RelaxedChip";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
@@ -35,10 +35,10 @@ const ChipListStyle = styled(Stack)({
     }
 })
 
-export function ArrayFilterList() {
+export function FilterGroupList() {
     const { globalSetting } = useGlobalSettingContext();
-    const { arrayFilter, setArrayFilter, upsertArrayFilter, removeSubFilter, removeFilterField } = useArrayFilterContext();
-    const [platformArrayFilter, setPlatformArrayFilter] = useState<CompositeFilterElement[]>(arrayFilter);
+    const { filterGroup, setFilterGroup, upsertCompositeFilter, removeSubFilter, removeFilterField } = useFilterGroupContext();
+    const [platformArrayFilter, setPlatformArrayFilter] = useState<CompositeFilterElement[]>(filterGroup);
     const [selectionModel, setSelectionModel] = React.useState<Set<GridRowId>>(new Set());
     const [showDeleteButton, setShowDeleteButton] = React.useState(false);
     const { t } = useTranslation();
@@ -230,7 +230,7 @@ export function ArrayFilterList() {
                             color={chipColor(params.value)}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onArrayFilterTypeChipClick(params, setArrayFilter);
+                                onArrayFilterTypeChipClick(params, setFilterGroup);
                             }}
                         />
                     )
@@ -240,13 +240,13 @@ export function ArrayFilterList() {
     }, [globalSetting.platform, platformArrayFilter]);
 
     useEffect(() => {
-        console.log('ArrayFilterList arrayFilter: ', arrayFilter)
-        localStorage.setItem('tbc-filter', JSON.stringify(arrayFilter));
-    }, [arrayFilter]);
+        console.log('FilterGroupList filterGroup: ', filterGroup)
+        localStorage.setItem('tbc-filter', JSON.stringify(filterGroup));
+    }, [filterGroup]);
 
     useEffect(() => {
-        setPlatformArrayFilter(arrayFilter.filter(af => af.platform === globalSetting.platform));
-    }, [arrayFilter, globalSetting.platform]);
+        setPlatformArrayFilter(filterGroup.filter(af => af.platform === globalSetting.platform));
+    }, [filterGroup, globalSetting.platform]);
 
     function CustomToolbar() {
         return (
@@ -266,7 +266,7 @@ export function ArrayFilterList() {
                 slots={{ toolbar: CustomToolbar }}
                 showToolbar
                 onRowSelectionModelChange={(selModel) => {
-                    console.log('ArrayFilterList selectionModel: ', selModel);
+                    console.log('FilterGroupList selectionModel: ', selModel);
                     
                     // v7의 새로운 selection model 처리
                     let actualSelectedCount = 0;
@@ -302,7 +302,7 @@ export function ArrayFilterList() {
                 onSave={(type, updatedData) => {
                     if (!updatedData) return;
 
-                    upsertArrayFilter(updatedData);
+                    upsertCompositeFilter(updatedData);
                 }}
             />
         </>
@@ -314,13 +314,13 @@ const DeleteButtonStyle = styled('div')({
 })
 
 function DeleteButton(props: { selectionModel: Set<GridRowId>, showDeleteButton: boolean }) {
-    const { setArrayFilter } = useArrayFilterContext();
+    const { setFilterGroup } = useFilterGroupContext();
 
     if (!props.showDeleteButton) return null;
 
     return (
         <DeleteButtonStyle>
-            <CustomToolbarItemStyle direction='row' onClick={() => { deleteSelectedFilter(setArrayFilter, props.selectionModel) }}>
+            <CustomToolbarItemStyle direction='row' onClick={() => { deleteSelectedFilter(setFilterGroup, props.selectionModel) }}>
                 <span className="material-icons-round">delete</span>
                 <span>선택 삭제</span>
             </CustomToolbarItemStyle>

@@ -7,17 +7,17 @@ import Card from '@mui/material/Card';
 import BadgeList from './filter/BadgeList';
 import { AtomicFilterElement, FilterBroadcastMessage } from '../interfaces/filter';
 import useChatInfoObjects from '../hooks/useChannelInfo';
-import { useArrayFilterContext } from '../context/ArrayFilter';
+import { useFilterGroupContext } from '../context/ArrayFilter';
 import FilterInputFormList from './filter/FilterInputFormList';
 import FilterInputForm from './filter/FilterInputForm';
-import { ArrayFilterList } from './filter/ArrayFilterList';
+import { FilterGroupList } from './filter/FilterGroupList';
 import { useGlobalSettingContext } from '../context/GlobalSetting';
 import Chip from '@mui/material/Chip';
 import { Button, Paper } from '@mui/material';
 import { SettingInterface } from '@/interfaces/setting';
 import { ChannelInfoContext } from '@/context/ChannelInfoContext';
 import SocialFooter from './SocialFooter';
-import { getDefaultArrayFilter } from '@/utils/utils-common';
+import { defaultAtomicFilter } from '@/utils/utils-common';
 import { setBadgeInSimpleFilter, setMultipleBadgesInFilterArray } from './filter/utils/badge-utils';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ChannelIdGuideDialog from './filter/dialog/ChannelIdGuideDialog';
@@ -25,9 +25,9 @@ import ChannelIdGuideDialog from './filter/dialog/ChannelIdGuideDialog';
 export default function Filter() {
     const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
     const [advancedFilter, setAdvancedFilter] = React.useState(globalSetting.advancedFilter);
-    const { arrayFilter } = useArrayFilterContext();
+    const { filterGroup } = useFilterGroupContext();
     const { channelInfoObject, dispatchChannelInfo, channel, setChannel, User } = useChatInfoObjects();
-    const [filterInput, setFilterInput] = React.useState<AtomicFilterElement | undefined>(getDefaultArrayFilter());
+    const [filterInput, setFilterInput] = React.useState<AtomicFilterElement | undefined>(defaultAtomicFilter());
     const [filterInputList, setFilterInputList] = React.useState<AtomicFilterElement[]>([]);
     const filterInputListRef = React.useRef<AtomicFilterElement[]>([]);
     const filterBroadcastChannel = React.useRef<BroadcastChannel<FilterBroadcastMessage>>(new BroadcastChannel('ArrayFilter'));
@@ -46,12 +46,12 @@ export default function Filter() {
     React.useEffect(() => {
         const msg = {
             from: 'filter',
-            filter: arrayFilter,
+            filter: filterGroup,
             msgId: messageId.current
         }
 
         filterBroadcastChannel.current.postMessage(msg);
-    }, [arrayFilter]);
+    }, [filterGroup]);
 
     useEffect(() => {
         setAdvancedFilter(() => globalSetting.advancedFilter);
@@ -100,7 +100,7 @@ export default function Filter() {
                             {t('setting.filter.filter_list')}
                         </Typography>
 
-                        <ArrayFilterList />
+                        <FilterGroupList />
 
                         <Stack direction={'row'} justifyContent={'space-between'} alignItems={'flex-end'}>
                             <Stack gap={2}> 

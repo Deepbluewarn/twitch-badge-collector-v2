@@ -18,12 +18,12 @@ export function evaluateFilterGroup(
 
     let res = false;
 
-    for (let arrayFilter of filterGroup) {
-        if (arrayFilter.filterChannelId && arrayFilter.filterChannelId !== channelId) {
+    for (let composite of filterGroup) {
+        if (composite.filterChannelId && composite.filterChannelId !== channelId) {
             // 채널 전용 필터는 채널 ID 값이 일치해야 함.
             continue;
         }
-        const filterMatched = arrayFilter.filters.every((filter) => {
+        const filterMatched = composite.filters.every((filter) => {
             let filterMatchedRes = false;
 
             if (filter.type === 'sleep') {
@@ -61,14 +61,14 @@ export function evaluateFilterGroup(
         });
 
         if (filterMatched) {
-            if (arrayFilter.filterType === 'include') {
+            if (composite.filterType === 'include') {
                 // include면 뒤에 exclude로 뒤집힐 수 있으니 계속 평가.
                 res = true;
-            } else if (arrayFilter.filterType === 'exclude') {
+            } else if (composite.filterType === 'exclude') {
                 // exclude면 즉시 드롭하고 단락.
                 res = false;
                 break;
-            } else if (arrayFilter.filterType === 'sleep') {
+            } else if (composite.filterType === 'sleep') {
                 // sleep이면 res 변경 없이 다음 composite로.
             }
         }

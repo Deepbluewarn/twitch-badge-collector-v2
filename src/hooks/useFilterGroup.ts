@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAlertContext } from "../context/Alert";
 import { ChatInfo } from "../interfaces/chat";
 import { CompositeFilterElement } from "../interfaces/filter";
-import { arrayFiltersEqual } from "@/utils/utils-common";
+import { atomicFiltersEqual } from "@/utils/utils-common";
 import { evaluateFilterGroup } from "@/filter/evaluate";
 import { FilterValidationError, validateFilterList } from "@/filter/validate";
 
@@ -24,17 +24,17 @@ const validationErrorMessages: Record<FilterValidationError, string> = {
  *                  @default true
  * @returns 
  */
-export default function useArrayFilter() {
-    const [ arrayFilter, setArrayFilter ] = React.useState<CompositeFilterElement[]>([]);
-    const arrayFilterRef = React.useRef<CompositeFilterElement[]>([]);
+export default function useFilterGroup() {
+    const [ filterGroup, setFilterGroup ] = React.useState<CompositeFilterElement[]>([]);
+    const filterGroupRef = React.useRef<CompositeFilterElement[]>([]);
     const { addAlert } = useAlertContext();
     const { t } = useTranslation();
 
     useEffect(() => {
-        arrayFilterRef.current = arrayFilter;
-    }, [arrayFilter]);
+        filterGroupRef.current = filterGroup;
+    }, [filterGroup]);
 
-    const addArrayFilter = (newFilters: CompositeFilterElement[]) => {
+    const addCompositeFilters = (newFilters: CompositeFilterElement[]) => {
         for(let newFilter of newFilters){
             const empty = newFilter.filters.some(row => row.value === '');
 
@@ -46,10 +46,10 @@ export default function useArrayFilter() {
                 return false;
             }
     
-            setArrayFilter(afLists => {
+            setFilterGroup(afLists => {
                 for (let af of afLists) {
                     if(
-                        arrayFiltersEqual(af.filters, newFilter.filters) && 
+                        atomicFiltersEqual(af.filters, newFilter.filters) && 
                         af.platform === newFilter.platform &&
                         (af.filterChannelId ?? "") === (newFilter.filterChannelId ?? "")
                     ){
@@ -67,7 +67,7 @@ export default function useArrayFilter() {
         return true;
     }
 
-    const upsertArrayFilter = (newFilter: CompositeFilterElement) => {
+    const upsertCompositeFilter = (newFilter: CompositeFilterElement) => {
         const result = validateFilterList(newFilter);
 
         if (!result.valid) {
@@ -77,7 +77,7 @@ export default function useArrayFilter() {
             });
             return false;
         }
-        setArrayFilter(afLists => {
+        setFilterGroup(afLists => {
             const exists = afLists.some(af => af.id === newFilter.id);
             if (exists) {
                 // id가 같은 필터가 있으면 업데이트
@@ -95,7 +95,7 @@ export default function useArrayFilter() {
      * CompositeFilterElement의 특정 하위 필터(id) 삭제
      */
     const removeSubFilter = (filterListId: string, subFilterId: string) => {
-        setArrayFilter(afLists =>
+        setFilterGroup(afLists =>
             afLists.map(list =>
                 list.id === filterListId
                     ? { ...list, filters: list.filters.filter(f => f.id !== subFilterId) }
@@ -110,7 +110,7 @@ export default function useArrayFilter() {
      * @param fieldName 제거할 필드 이름 (예: 'filterChannelName', 'filterChannelId', 'filterNote')
      */
     const removeFilterField = (filterListId: string, fieldName: keyof CompositeFilterElement) => {
-        setArrayFilter(afLists =>
+        setFilterGroup(afLists =>
             afLists.map(list =>
                 list.id === filterListId
                     ? { ...list, [fieldName]: undefined }
@@ -120,11 +120,11 @@ export default function useArrayFilter() {
     };
 
     const checkFilter = (chat: ChatInfo, channelId?: string | null) =>
-        evaluateFilterGroup(chat, arrayFilterRef.current, channelId);
+        evaluateFilterGroup(chat, filterGroupRef.current, channelId);
 
     return {
-        arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter,
-        upsertArrayFilter, checkFilter,
+        filterGroup, filterGroupRef, setFilterGroup, addCompositeFilters,
+        upsertCompositeFilter, checkFilter,
         removeSubFilter, removeFilterField,
     };
 }

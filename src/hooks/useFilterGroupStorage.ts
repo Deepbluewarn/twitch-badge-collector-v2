@@ -1,6 +1,6 @@
 import { SettingInterface } from "@/interfaces/setting";
 import React, { useEffect, useRef } from "react";
-import useArrayFilter from "./useArrayFilter";
+import useFilterGroup from "./useFilterGroup";
 /**
  * 
  * @param env 
@@ -10,25 +10,25 @@ import useArrayFilter from "./useArrayFilter";
  *                  @default true
  * @returns 
  */
-export default function useArrayFilterExtension(_platform: SettingInterface['platform'], extStorageReadOnly: boolean = true) {
-    const _arrayFilterHooks = useArrayFilter();
+export default function useFilterGroupStorage(_platform: SettingInterface['platform'], extStorageReadOnly: boolean = true) {
+    const _filterGroupHooks = useFilterGroup();
     const isFilterInitialized = useRef(false);
 
 
     React.useEffect(() => {
         if (isFilterInitialized.current && !extStorageReadOnly) {
-            browser.storage.local.set({ filter: _arrayFilterHooks.arrayFilter });
+            browser.storage.local.set({ filter: _filterGroupHooks.filterGroup });
         }
 
-        _arrayFilterHooks.arrayFilterRef.current = _arrayFilterHooks.arrayFilter.filter(af => af.platform === _platform);
-    }, [_arrayFilterHooks.arrayFilter]);
+        _filterGroupHooks.filterGroupRef.current = _filterGroupHooks.filterGroup.filter(af => af.platform === _platform);
+    }, [_filterGroupHooks.filterGroup]);
 
     useEffect(() => {
         browser.storage.local.get("filter").then((res) => {
-            _arrayFilterHooks.setArrayFilter(res.filter);
+            _filterGroupHooks.setFilterGroup(res.filter);
             isFilterInitialized.current = true;
         });
     }, []);
 
-    return _arrayFilterHooks;
+    return _filterGroupHooks;
 }

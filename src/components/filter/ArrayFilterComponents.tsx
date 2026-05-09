@@ -8,19 +8,19 @@ import {
     FilterType
 } from "../../interfaces/filter";
 
-type ArrayFilterTypeSelector = SelectProps<FilterCategory> & {
+type FilterTypeSelector = SelectProps<FilterCategory> & {
     nameFilterAvail?: boolean;
 }
-export type ArrayFilterSelectorType = 'category' | 'type';
+export type FilterSelectorType = 'category' | 'type';
 
-export function ArrayFilterTypeSelector(props: SelectProps<FilterType>) {
+export function FilterTypeSelector(props: SelectProps<FilterType>) {
     const { t } = useTranslation();
 
     return (
         <FormControl sx={{ minWidth: 120 }}>
-            <InputLabel id="arrayFilterType">{t('common.condition')}</InputLabel>
+            <InputLabel id="filterGroupType">{t('common.condition')}</InputLabel>
             <Select
-                labelId="arrayFilterType"
+                labelId="filterGroupType"
                 label={t('common.condition')}
                 size="small"
                 {...props}
@@ -51,7 +51,7 @@ export function FilterCategorySelector(props: SelectProps<FilterCategory>) {
         </FormControl>
     )
 }
-export function ArrayFilterCategorySelector(props: ArrayFilterTypeSelector) {
+export function AdvancedFilterCategorySelector(props: FilterTypeSelector) {
     const { t } = useTranslation();
 
     const {nameFilterAvail, ...rest} = props;

@@ -25,7 +25,7 @@ export function trim_hash(str: string) {
   }
   return c1;
 }
-export function getDefaultArrayFilter(id?: string, category?: FilterCategory, type?: FilterType) {
+export function defaultAtomicFilter(id?: string, category?: FilterCategory, type?: FilterType) {
   const _: AtomicFilterElement = {
     category: category || 'name',
     id: id || nanoid(),
@@ -65,7 +65,7 @@ export function getErrorMessage(error: unknown) {
   return String(error);
 }
 
-export function arrayFilterEqual(
+export function filterGroupEqual(
   a: AtomicFilterElement,
   b: AtomicFilterElement
 ) {
@@ -81,12 +81,12 @@ export function arrayFilterEqual(
   );
 }
 
-export function arrayFiltersEqual(
+export function atomicFiltersEqual(
   a: AtomicFilterElement[],
   b: AtomicFilterElement[]
 ) {
   return (
-    a.length === b.length && a.every((o, idx) => arrayFilterEqual(o, b[idx]))
+    a.length === b.length && a.every((o, idx) => filterGroupEqual(o, b[idx]))
   );
 }
 

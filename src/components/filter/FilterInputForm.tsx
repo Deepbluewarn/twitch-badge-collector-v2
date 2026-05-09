@@ -17,11 +17,11 @@ import {
     FilterCategory,
     FilterType
 } from "../../interfaces/filter";
-import { useArrayFilterContext } from '../../context/ArrayFilter';
+import { useFilterGroupContext } from '../../context/ArrayFilter';
 import { nanoid } from 'nanoid';
-import { ArrayFilterSelectorType, ArrayFilterTypeSelector, FilterCategorySelector } from './ArrayFilterComponents';
+import { FilterSelectorType, FilterTypeSelector, FilterCategorySelector } from './ArrayFilterComponents';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
-import { getDefaultArrayFilter } from '@/utils/utils-common';
+import { defaultAtomicFilter } from '@/utils/utils-common';
 import CustomTextField from '@/components/TextField/CustomTextField';
 
 export default function FilterInputForm(
@@ -34,14 +34,14 @@ export default function FilterInputForm(
     const { t } = useTranslation();
     const matches = useMediaQuery('(min-width:600px)');
     const { globalSetting } = useGlobalSettingContext();
-    const { addArrayFilter } = useArrayFilterContext();
-    const [arrayFilterNote, setArrayFilterNote] = useState('');
+    const { addCompositeFilters } = useFilterGroupContext();
+    const [filterGroupNote, setFilterGroupNote] = useState('');
     const filterContentValue = useRef<TextFieldProps>(null);
     const channelValue = useRef<TextFieldProps>(null);
     const channelName = useRef<TextFieldProps>(null);
 
     const onArrayFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setArrayFilterNote(event.target.value);
+        setFilterGroupNote(event.target.value);
     }
 
     const addFilter = useCallback(() => {
@@ -68,23 +68,23 @@ export default function FilterInputForm(
         const filterType = props.filterInput.type;
         props.filterInput.type = 'include';
         
-        const added = addArrayFilter([{
+        const added = addCompositeFilters([{
             filterType: filterType,
             id: nanoid(),
-            filterNote: arrayFilterNote,
+            filterNote: filterGroupNote,
             filters: [props.filterInput],
             platform: globalSetting.platform,
             filterChannelId: _channelValue,
             filterChannelName: _channelName,
         }]);
         if (added) {
-            setArrayFilterNote('');
-            props.setFilterInput(getDefaultArrayFilter());
+            setFilterGroupNote('');
+            props.setFilterInput(defaultAtomicFilter());
             contentValueRef.value = '';
             channelValue.current.value = '';
             channelName.current.value = '';
         }
-    }, [props.filterInput, arrayFilterNote])
+    }, [props.filterInput, filterGroupNote])
 
     return (
         <Card variant="outlined" sx={{ overflow: 'visible' }}>
@@ -105,7 +105,7 @@ export default function FilterInputForm(
                 >
                     <Stack direction={matches ? 'row' : 'column'} gap={1} sx={{width: '100%'}}>
                         <CustomTextField
-                            value={arrayFilterNote}
+                            value={filterGroupNote}
                             label={t('필터 설명을 추가하세요')}
                             onChange={onArrayFilterNoteChanged}
                         />
@@ -134,7 +134,7 @@ function BasicFilterInputForm(
     const {globalSetting} = useGlobalSettingContext();
     const { t } = useTranslation();
 
-    const selectorChanged = (event: SelectChangeEvent<FilterCategory | FilterType>, selectorType: ArrayFilterSelectorType) => {
+    const selectorChanged = (event: SelectChangeEvent<FilterCategory | FilterType>, selectorType: FilterSelectorType) => {
         const newValue = event.target.value;
 
         props.setFilterInput(l => {
@@ -151,7 +151,7 @@ function BasicFilterInputForm(
     }
 
     const resetFilterInput = useCallback(() => {
-        props.setFilterInput(getDefaultArrayFilter());
+        props.setFilterInput(defaultAtomicFilter());
 
         const filterContentRef = props.filterContentValue.current;
         const channelValueRef = props.channelValue.current;
@@ -237,7 +237,7 @@ function BasicFilterInputForm(
                         </>
                     )
                 }
-                <ArrayFilterTypeSelector
+                <FilterTypeSelector
                     labelId="filter-type-label"
                     value={props.filterInput?.type}
                     onChange={(e) => selectorChanged(e, 'type')}
