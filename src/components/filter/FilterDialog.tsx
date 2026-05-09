@@ -6,7 +6,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
 import CustomTextField from '@/components/TextField/CustomTextField';
 import { useTranslation } from 'react-i18next';
-import { ArrayFilterCategory, ArrayFilterInterface, ArrayFilterListInterface, FilterType } from '@/interfaces/filter';
+import { FilterCategory, AtomicFilterElement, CompositeFilterElement, FilterType } from '@/interfaces/filter';
 import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Stack, Typography } from '@mui/material';
 import BadgeList from './BadgeList';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
@@ -20,10 +20,10 @@ interface FilterDialogProps {
     open: boolean;
     onClose: () => void;
     type: DialogType;
-    selectedFilterList?: ArrayFilterListInterface;
+    selectedFilterList?: CompositeFilterElement;
     filterId?: string; // type === 'filter' 일때 ArrayFilter 내 Filter 특정하기 위함. 
     mode?: DialogMode;
-    onSave: (type: DialogType, updatedData: ArrayFilterListInterface | undefined) => void;
+    onSave: (type: DialogType, updatedData: CompositeFilterElement | undefined) => void;
 }
 
 // 하위 필터 배열을 건드릴 필요 없는 타입을 상수 배열로 관리
@@ -45,8 +45,8 @@ export default function FilterDialog(props: FilterDialogProps) {
     // 새 필터 추가를 위한 기본 필터 객체 생성
     const _defaultArrayFilter = getDefaultArrayFilter();
     // 편집 중인 데이터 상태
-    const [arrayFilterList, setArrayFilterList] = React.useState<ArrayFilterListInterface | undefined>(selectedFilterList);
-    const [arrayFilter, setArrayFilter] = React.useState<ArrayFilterInterface | undefined>();
+    const [arrayFilterList, setArrayFilterList] = React.useState<CompositeFilterElement | undefined>(selectedFilterList);
+    const [arrayFilter, setArrayFilter] = React.useState<AtomicFilterElement | undefined>();
 
     // 모달이 열릴 때마다 편집 데이터 초기화
     React.useEffect(() => {
@@ -60,11 +60,11 @@ export default function FilterDialog(props: FilterDialogProps) {
     }, [selectedFilterList, filterId, type, mode]);
 
     // 저장 핸들러
-    const handleSave = (_arrayFilterList?: ArrayFilterListInterface) => {
-        let saveData: ArrayFilterListInterface | undefined = _arrayFilterList ?? arrayFilterList;
+    const handleSave = (_arrayFilterList?: CompositeFilterElement) => {
+        let saveData: CompositeFilterElement | undefined = _arrayFilterList ?? arrayFilterList;
 
         if (mode === 'add' && arrayFilter && arrayFilterList && !NON_SUBFILTER_TYPES.includes(type)) {
-            const _afList: ArrayFilterListInterface = { ...arrayFilterList };
+            const _afList: CompositeFilterElement = { ...arrayFilterList };
             _afList.filters = [..._afList.filters, arrayFilter];
             saveData = _afList;
         }
@@ -74,7 +74,7 @@ export default function FilterDialog(props: FilterDialogProps) {
 
 
     // 상위 필터(리스트) 속성 변경
-    const handleListObjectChange = (updates: Partial<ArrayFilterListInterface>) => {
+    const handleListObjectChange = (updates: Partial<CompositeFilterElement>) => {
         setArrayFilterList(afList => {
             if (!afList) return afList;
             return {
@@ -85,7 +85,7 @@ export default function FilterDialog(props: FilterDialogProps) {
     };
 
     // 하위 필터(필터) 속성 변경
-    const handleFilterObjectChange = (updates: Partial<ArrayFilterInterface>, filterId: string) => {
+    const handleFilterObjectChange = (updates: Partial<AtomicFilterElement>, filterId: string) => {
         setArrayFilterList(afList => {
             if (!afList) return afList;
             return {
@@ -199,7 +199,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                                     ...getDefaultArrayFilter(filter.id, filter.category, filter.type),
                                 }
                             });
-                            handleFilterObjectChange({ category: e.target.value as ArrayFilterCategory }, filterId!);
+                            handleFilterObjectChange({ category: e.target.value as FilterCategory }, filterId!);
                         }}
                     >
                         <MenuItem value="name">{'닉네임'}</MenuItem>
@@ -257,7 +257,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                                 ? badgeUuidFromURL(selectedBadge.badgeImage.badge_img_url_1x)
                                 : selectedBadge.badgeImage.badge_img_url_1x;
 
-                            const _badgeFilter: ArrayFilterInterface = {
+                            const _badgeFilter: AtomicFilterElement = {
                                 badgeName: selectedBadge.badgeName,
                                 category: 'badge',
                                 id: selectedBadge.id,

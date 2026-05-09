@@ -1,4 +1,4 @@
-import { ArrayFilterListInterface } from "@/interfaces/filter";
+import { CompositeFilterElement } from "@/interfaces/filter";
 import defaultFilter from "@/defaultFilters";
 
 export default defineBackground(() => {
@@ -10,8 +10,8 @@ export default defineBackground(() => {
       await browser.storage.local.set({ filter: defaultFilter });
     }
 
-    let updatedFilter: ArrayFilterListInterface[] = [];
-    const filter: ArrayFilterListInterface[] = (await browser.storage.local.get('filter')).filter;
+    let updatedFilter: CompositeFilterElement[] = [];
+    const filter: CompositeFilterElement[] = (await browser.storage.local.get('filter')).filter;
     const chzzkBadgeList = await fetch('https://api.badgecollector.dev/chzzk/badges', { method: 'GET' }).then(res => res.json());
     const chzzkBadgeMap = new Map();
     chzzkBadgeList.forEach((b: any) => {

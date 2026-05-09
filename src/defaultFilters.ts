@@ -1,6 +1,6 @@
-import { ArrayFilterListInterface } from "./interfaces/filter";
+import { CompositeFilterElement } from "./interfaces/filter";
 
-const defaultFilter: ArrayFilterListInterface[] = [
+const defaultFilter: CompositeFilterElement[] = [
     {
         filterType: "include",
         id: "D3vnlEqK-CNmYHe8zkvIJ",

@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Card from '@mui/material/Card';
 import BadgeList from './filter/BadgeList';
-import { ArrayFilterInterface, ArrayFilterMessageInterface } from '../interfaces/filter';
+import { AtomicFilterElement, FilterBroadcastMessage } from '../interfaces/filter';
 import useChatInfoObjects from '../hooks/useChannelInfo';
 import { useArrayFilterContext } from '../context/ArrayFilter';
 import FilterInputFormList from './filter/FilterInputFormList';
@@ -27,10 +27,10 @@ export default function Filter() {
     const [advancedFilter, setAdvancedFilter] = React.useState(globalSetting.advancedFilter);
     const { arrayFilter } = useArrayFilterContext();
     const { channelInfoObject, dispatchChannelInfo, channel, setChannel, User } = useChatInfoObjects();
-    const [filterInput, setFilterInput] = React.useState<ArrayFilterInterface | undefined>(getDefaultArrayFilter());
-    const [filterInputList, setFilterInputList] = React.useState<ArrayFilterInterface[]>([]);
-    const filterInputListRef = React.useRef<ArrayFilterInterface[]>([]);
-    const filterBroadcastChannel = React.useRef<BroadcastChannel<ArrayFilterMessageInterface>>(new BroadcastChannel('ArrayFilter'));
+    const [filterInput, setFilterInput] = React.useState<AtomicFilterElement | undefined>(getDefaultArrayFilter());
+    const [filterInputList, setFilterInputList] = React.useState<AtomicFilterElement[]>([]);
+    const filterInputListRef = React.useRef<AtomicFilterElement[]>([]);
+    const filterBroadcastChannel = React.useRef<BroadcastChannel<FilterBroadcastMessage>>(new BroadcastChannel('ArrayFilter'));
     const messageId = React.useRef(''); // id 는 extension 에서 생성.
     const { t } = useTranslation();
     const [guideOpen, setGuideOpen] = useState(false);

@@ -3,12 +3,16 @@ import { SettingInterface } from "./setting";
 export const TypeArr = ["include", "exclude", "sleep"] as const;
 export type FilterType = typeof TypeArr[number];
 
-export const ArrayFilterCategoryArr = ["badge", "name", "keyword"] as const;
-export type ArrayFilterCategory = typeof ArrayFilterCategoryArr[number];
+export const FilterCategoryArr = ["badge", "name", "keyword"] as const;
+export type FilterCategory = typeof FilterCategoryArr[number];
 
-export interface ArrayFilterInterface {
+/**
+ * 원자형 Filter Element — Filter 트리의 잎. 채팅의 한 측면(category)을
+ * 검사해 boolean을 만들고, type(include/exclude/sleep)으로 그 결과를 변형한다.
+ */
+export interface AtomicFilterElement {
     [index : string] : string | undefined,
-    category: ArrayFilterCategory;
+    category: FilterCategory;
     id: string;
     type: FilterType;
     value: string;
@@ -18,18 +22,26 @@ export interface ArrayFilterInterface {
     channelId?: string; // 트위치 다시보기에서는 채널 login이 없고 id만 있더라
 }
 
-export interface ArrayFilterListInterface {
+/**
+ * 복합 Filter Element — Filter Group의 항목. 채널 스코프 + Filter Type을
+ * 가지고, 내부에 AtomicFilterElement들로 구성된 Filter(AND 결합)를 보유한다.
+ */
+export interface CompositeFilterElement {
     filterType: FilterType;
     id: string;
     filterNote: string;
     filterChannelId?: string; // 채널별 필터 적용 기능
     filterChannelName?: string;
-    filters: ArrayFilterInterface[];
+    filters: AtomicFilterElement[];
     platform: SettingInterface['platform'];
 }
 
-export interface ArrayFilterMessageInterface {
+/** 사용자의 Filter Group — 평가 순서대로 정렬된 CompositeFilterElement 배열 */
+export type FilterGroup = CompositeFilterElement[];
+
+/** broadcast-channel로 다른 탭/컨텍스트에 Filter Group 변경을 알릴 때의 메시지 */
+export interface FilterBroadcastMessage {
     from: string;
-    filter: ArrayFilterListInterface[];
+    filter: FilterGroup;
     msgId: string;
 }

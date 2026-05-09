@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAlertContext } from "../context/Alert";
 import { ChatInfo } from "../interfaces/chat";
-import { ArrayFilterListInterface } from "../interfaces/filter";
+import { CompositeFilterElement } from "../interfaces/filter";
 import { arrayFiltersEqual } from "@/utils/utils-common";
 import { evaluateFilterGroup } from "@/filter/evaluate";
 import { FilterValidationError, validateFilterList } from "@/filter/validate";
@@ -25,8 +25,8 @@ const validationErrorMessages: Record<FilterValidationError, string> = {
  * @returns 
  */
 export default function useArrayFilter() {
-    const [ arrayFilter, setArrayFilter ] = React.useState<ArrayFilterListInterface[]>([]);
-    const arrayFilterRef = React.useRef<ArrayFilterListInterface[]>([]);
+    const [ arrayFilter, setArrayFilter ] = React.useState<CompositeFilterElement[]>([]);
+    const arrayFilterRef = React.useRef<CompositeFilterElement[]>([]);
     const { addAlert } = useAlertContext();
     const { t } = useTranslation();
 
@@ -34,7 +34,7 @@ export default function useArrayFilter() {
         arrayFilterRef.current = arrayFilter;
     }, [arrayFilter]);
 
-    const addArrayFilter = (newFilters: ArrayFilterListInterface[]) => {
+    const addArrayFilter = (newFilters: CompositeFilterElement[]) => {
         for(let newFilter of newFilters){
             const empty = newFilter.filters.some(row => row.value === '');
 
@@ -67,7 +67,7 @@ export default function useArrayFilter() {
         return true;
     }
 
-    const upsertArrayFilter = (newFilter: ArrayFilterListInterface) => {
+    const upsertArrayFilter = (newFilter: CompositeFilterElement) => {
         const result = validateFilterList(newFilter);
 
         if (!result.valid) {
@@ -92,7 +92,7 @@ export default function useArrayFilter() {
     }
 
     /**
-     * ArrayFilterListInterface의 특정 하위 필터(id) 삭제
+     * CompositeFilterElement의 특정 하위 필터(id) 삭제
      */
     const removeSubFilter = (filterListId: string, subFilterId: string) => {
         setArrayFilter(afLists =>
@@ -105,11 +105,11 @@ export default function useArrayFilter() {
     };
 
     /**
-     * ArrayFilterListInterface의 특정 필드 값 제거
+     * CompositeFilterElement의 특정 필드 값 제거
      * @param filterListId 필터 리스트 id
      * @param fieldName 제거할 필드 이름 (예: 'filterChannelName', 'filterChannelId', 'filterNote')
      */
-    const removeFilterField = (filterListId: string, fieldName: keyof ArrayFilterListInterface) => {
+    const removeFilterField = (filterListId: string, fieldName: keyof CompositeFilterElement) => {
         setArrayFilter(afLists =>
             afLists.map(list =>
                 list.id === filterListId

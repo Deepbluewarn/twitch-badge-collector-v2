@@ -2,12 +2,12 @@ import { nanoid } from 'nanoid';
 import { SettingInterface } from "../../../interfaces/setting";
 import { BadgeInterface } from '../../../interfaces/chat';
 import { badgeUuidFromURL } from '../../../utils/utils-common';
-import { ArrayFilterInterface } from '../../../interfaces/filter';
+import { AtomicFilterElement } from '../../../interfaces/filter';
 
 /**
  * 배지 객체를 필터 객체로 변환
  */
-export function badgeToFilter(badge: BadgeInterface, platform: SettingInterface['platform']): ArrayFilterInterface {
+export function badgeToFilter(badge: BadgeInterface, platform: SettingInterface['platform']): AtomicFilterElement {
     const badgeUUID = platform === 'twitch'
         ? badgeUuidFromURL(badge.badgeImage.badge_img_url_1x)
         : badge.badgeImage.badge_img_url_1x;
@@ -33,7 +33,7 @@ export function badgeToFilter(badge: BadgeInterface, platform: SettingInterface[
 export function setBadgeInSimpleFilter(
     badge: BadgeInterface,
     platform: SettingInterface['platform'],
-    setFilter: React.Dispatch<React.SetStateAction<ArrayFilterInterface | undefined>>
+    setFilter: React.Dispatch<React.SetStateAction<AtomicFilterElement | undefined>>
 ): void {
     const badgeUUID = platform === 'twitch'
         ? badgeUuidFromURL(badge.badgeImage.badge_img_url_1x)
@@ -63,7 +63,7 @@ export function setBadgeInSimpleFilter(
 export function setBadgeInFilterArray(
     badge: BadgeInterface,
     platform: SettingInterface['platform'],
-    setFilters: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>
+    setFilters: React.Dispatch<React.SetStateAction<AtomicFilterElement[]>>
 ): void {
     setFilters(current => [
         ...current,
@@ -80,7 +80,7 @@ export function setBadgeInFilterArray(
 export function setMultipleBadgesInFilterArray(
     badges: BadgeInterface[],
     platform: SettingInterface['platform'],
-    setFilters: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>
+    setFilters: React.Dispatch<React.SetStateAction<AtomicFilterElement[]>>
 ): void {
     setFilters(current => [
         ...current,

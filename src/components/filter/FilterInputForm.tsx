@@ -13,8 +13,8 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Paper from '@mui/material/Paper';
 import {
-    ArrayFilterInterface,
-    ArrayFilterCategory,
+    AtomicFilterElement,
+    FilterCategory,
     FilterType
 } from "../../interfaces/filter";
 import { useArrayFilterContext } from '../../context/ArrayFilter';
@@ -26,8 +26,8 @@ import CustomTextField from '@/components/TextField/CustomTextField';
 
 export default function FilterInputForm(
     props: {
-    filterInput: ArrayFilterInterface | undefined,
-    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface | undefined>>,
+    filterInput: AtomicFilterElement | undefined,
+    setFilterInput: React.Dispatch<React.SetStateAction<AtomicFilterElement | undefined>>,
 }
 ) {
 
@@ -124,8 +124,8 @@ export default function FilterInputForm(
 
 function BasicFilterInputForm(
     props: {
-    filterInput: ArrayFilterInterface | undefined,
-    setFilterInput: React.Dispatch<React.SetStateAction<ArrayFilterInterface | undefined>>,
+    filterInput: AtomicFilterElement | undefined,
+    setFilterInput: React.Dispatch<React.SetStateAction<AtomicFilterElement | undefined>>,
     filterContentValue: React.MutableRefObject<TextFieldProps | null>,
     channelValue: React.MutableRefObject<TextFieldProps | null>,
     channelName: React.MutableRefObject<TextFieldProps | null>,
@@ -134,7 +134,7 @@ function BasicFilterInputForm(
     const {globalSetting} = useGlobalSettingContext();
     const { t } = useTranslation();
 
-    const selectorChanged = (event: SelectChangeEvent<ArrayFilterCategory | FilterType>, selectorType: ArrayFilterSelectorType) => {
+    const selectorChanged = (event: SelectChangeEvent<FilterCategory | FilterType>, selectorType: ArrayFilterSelectorType) => {
         const newValue = event.target.value;
 
         props.setFilterInput(l => {
@@ -142,7 +142,7 @@ function BasicFilterInputForm(
 
             const newL = { ...l };
             if (selectorType === 'category') {
-                newL.category = newValue as ArrayFilterCategory;
+                newL.category = newValue as FilterCategory;
             } else if (selectorType === 'type') {
                 newL.type = newValue as FilterType;
             }

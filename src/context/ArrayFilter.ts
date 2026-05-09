@@ -1,14 +1,14 @@
 import React, { createContext, useContext } from "react";
 import { ChatInfo } from "../interfaces/chat";
-import { ArrayFilterListInterface } from "../interfaces/filter";
+import { CompositeFilterElement } from "../interfaces/filter";
 
 export const ArrayFilterContext = createContext<{
-    arrayFilter: ArrayFilterListInterface[],
-    setArrayFilter: React.Dispatch<React.SetStateAction<ArrayFilterListInterface[]>>
-    addArrayFilter: (filters: ArrayFilterListInterface[]) => boolean,
-    upsertArrayFilter: (filter: ArrayFilterListInterface) => boolean,
+    arrayFilter: CompositeFilterElement[],
+    setArrayFilter: React.Dispatch<React.SetStateAction<CompositeFilterElement[]>>
+    addArrayFilter: (filters: CompositeFilterElement[]) => boolean,
+    upsertArrayFilter: (filter: CompositeFilterElement) => boolean,
     removeSubFilter: (filterListId: string, subFilterId: string) => void,
-    removeFilterField: (filterListId: string, fieldName: keyof ArrayFilterListInterface) => void,
+    removeFilterField: (filterListId: string, fieldName: keyof CompositeFilterElement) => void,
     checkFilter: (chat: ChatInfo, channelId?: string | null) => boolean
   } | undefined>(undefined);
 

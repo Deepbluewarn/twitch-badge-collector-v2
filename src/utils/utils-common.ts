@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { ArrayFilterCategory, ArrayFilterInterface, ArrayFilterListInterface, FilterType } from "../interfaces/filter"
+import { FilterCategory, AtomicFilterElement, CompositeFilterElement, FilterType } from "../interfaces/filter"
 import { Logger } from "./logger";
 
 export const generateRandomString = (length: number): string => {
@@ -25,8 +25,8 @@ export function trim_hash(str: string) {
   }
   return c1;
 }
-export function getDefaultArrayFilter(id?: string, category?: ArrayFilterCategory, type?: FilterType) {
-  const _: ArrayFilterInterface = {
+export function getDefaultArrayFilter(id?: string, category?: FilterCategory, type?: FilterType) {
+  const _: AtomicFilterElement = {
     category: category || 'name',
     id: id || nanoid(),
     type: type || 'include',
@@ -66,8 +66,8 @@ export function getErrorMessage(error: unknown) {
 }
 
 export function arrayFilterEqual(
-  a: ArrayFilterInterface,
-  b: ArrayFilterInterface
+  a: AtomicFilterElement,
+  b: AtomicFilterElement
 ) {
   return (
     // Object.keys(a).length === Object.keys(b).length &&
@@ -82,8 +82,8 @@ export function arrayFilterEqual(
 }
 
 export function arrayFiltersEqual(
-  a: ArrayFilterInterface[],
-  b: ArrayFilterInterface[]
+  a: AtomicFilterElement[],
+  b: AtomicFilterElement[]
 ) {
   return (
     a.length === b.length && a.every((o, idx) => arrayFilterEqual(o, b[idx]))

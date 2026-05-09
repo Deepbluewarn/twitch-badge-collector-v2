@@ -4,11 +4,11 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select, { SelectProps } from '@mui/material/Select';
 import {
-    ArrayFilterCategory,
+    FilterCategory,
     FilterType
 } from "../../interfaces/filter";
 
-type ArrayFilterTypeSelector = SelectProps<ArrayFilterCategory> & {
+type ArrayFilterTypeSelector = SelectProps<FilterCategory> & {
     nameFilterAvail?: boolean;
 }
 export type ArrayFilterSelectorType = 'category' | 'type';
@@ -33,7 +33,7 @@ export function ArrayFilterTypeSelector(props: SelectProps<FilterType>) {
     )
 }
 
-export function FilterCategorySelector(props: SelectProps<ArrayFilterCategory>) {
+export function FilterCategorySelector(props: SelectProps<FilterCategory>) {
     const { t } = useTranslation();
 
     return (

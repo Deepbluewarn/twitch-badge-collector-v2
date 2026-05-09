@@ -1,5 +1,5 @@
 import { ChatInfo } from "@/interfaces/chat";
-import { ArrayFilterListInterface } from "@/interfaces/filter";
+import { CompositeFilterElement } from "@/interfaces/filter";
 
 /**
  * Filter Group이 한 채팅을 Container에 admit할지 판정한다.
@@ -11,7 +11,7 @@ import { ArrayFilterListInterface } from "@/interfaces/filter";
  */
 export function evaluateFilterGroup(
     chat: ChatInfo,
-    filterGroup: ArrayFilterListInterface[],
+    filterGroup: CompositeFilterElement[],
     channelId?: string | null
 ): boolean {
     if (typeof filterGroup === 'undefined' || filterGroup.length === 0) return false;

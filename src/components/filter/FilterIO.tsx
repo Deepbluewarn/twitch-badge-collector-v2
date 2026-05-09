@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useArrayFilterContext } from "@/context/ArrayFilter";
 import { 
-    ArrayFilterListInterface, 
+    CompositeFilterElement, 
 } from "@/interfaces/filter";
 import { CustomToolbarItemStyle } from "../datagrid/toolbar";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
@@ -18,7 +18,7 @@ export function ImportFilter() {
     /**
      * 
      */
-    const modifyFilterListByPlatform = useCallback((filters: ArrayFilterListInterface[]) => {
+    const modifyFilterListByPlatform = useCallback((filters: CompositeFilterElement[]) => {
         const platformFilter = filters.filter((filter) => filter.platform === globalSetting.platform);
         const preservedFilter = arrayFilter.filter((filter) => filter.platform !== globalSetting.platform);
 

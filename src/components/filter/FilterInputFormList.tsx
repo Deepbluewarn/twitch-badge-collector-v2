@@ -12,8 +12,8 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Paper from '@mui/material/Paper';
 import {
-    ArrayFilterInterface,
-    ArrayFilterCategory,
+    AtomicFilterElement,
+    FilterCategory,
     FilterType
 } from "../../interfaces/filter";
 import { useArrayFilterContext } from '../../context/ArrayFilter';
@@ -25,9 +25,9 @@ import { useGlobalSettingContext } from '../../context/GlobalSetting';
 
 export default function FilterInputFormList(
     props: {
-        afInputRow: ArrayFilterInterface[],
-        setAfInputRow: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>,
-        filterInputListRef: React.MutableRefObject<ArrayFilterInterface[]>
+        afInputRow: AtomicFilterElement[],
+        setAfInputRow: React.Dispatch<React.SetStateAction<AtomicFilterElement[]>>,
+        filterInputListRef: React.MutableRefObject<AtomicFilterElement[]>
     }
 ) {
     const { globalSetting } = useGlobalSettingContext();
@@ -174,9 +174,9 @@ export default function FilterInputFormList(
 }
 
 function AdvancedFilterInputForm(props: {
-    value: ArrayFilterInterface,
-    setInputList: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>,
-    afInputListRef: React.MutableRefObject<ArrayFilterInterface[]>,
+    value: AtomicFilterElement,
+    setInputList: React.Dispatch<React.SetStateAction<AtomicFilterElement[]>>,
+    afInputListRef: React.MutableRefObject<AtomicFilterElement[]>,
     nameFilterAvail: boolean
 }) {
     const {globalSetting} = useGlobalSettingContext();
@@ -198,14 +198,14 @@ function AdvancedFilterInputForm(props: {
         props.afInputListRef.current = newInputRef;
     }
 
-    const selectorChanged = (event: SelectChangeEvent<ArrayFilterCategory | FilterType>, selectorType: ArrayFilterSelectorType) => {
+    const selectorChanged = (event: SelectChangeEvent<FilterCategory | FilterType>, selectorType: ArrayFilterSelectorType) => {
         const newValue = event.target.value;
 
         props.setInputList(list => {
             return list.map(l => {
                 if (l.id === props.value.id) {
                     if (selectorType === 'category') {
-                        l.category = newValue as ArrayFilterCategory;
+                        l.category = newValue as FilterCategory;
                     } else if (selectorType === 'type') {
                         l.type = newValue as FilterType;
                     }

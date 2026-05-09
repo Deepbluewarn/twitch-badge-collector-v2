@@ -79,7 +79,7 @@ An optional restriction on a composite Filter Element making it fire only when t
 
 ## Flagged ambiguities
 
-- The interfaces `ArrayFilterListInterface` (composite) and `ArrayFilterInterface` (atomic) in [src/interfaces/filter.ts](src/interfaces/filter.ts) carry an "Array" prefix from an older naming. The current canonical terms are **Filter Element** (both interfaces — distinguished by composite vs atomic role) and **Filter Group** (`ArrayFilterListInterface[]`). Drop the "Array" prefix in a future refactor.
+- Several **function/hook/component names** still carry the legacy `ArrayFilter*` prefix even though the interface types have been renamed: `useArrayFilter`, `useArrayFilterExtension`, `useArrayFilterContext`, `addArrayFilter`, `upsertArrayFilter`, `getDefaultArrayFilter`, `arrayFiltersEqual`, `ArrayFilterList` (component), `ArrayFilterCategorySelector`, `ArrayFilterTypeSelector`, `ArrayFilterSelectorType`. These touch many call sites; rename in a separate scoped pass.
 
 - UI components still branch on `globalSetting.platform === 'twitch'` for brand colour, labels, and badge fetching APIs ([components/Filter.tsx](src/components/Filter.tsx), [components/filter/BadgeList.tsx](src/components/filter/BadgeList.tsx), [components/filter/FilterDialog.tsx](src/components/filter/FilterDialog.tsx), and several other filter components). The runtime layer is now Adapter-routed, but the UI layer is not. Future scope: extend **Platform Adapter** with UI-side concerns (badge fetching, brand colour, display name) so these components depend on the Adapter rather than a string discriminator.
 

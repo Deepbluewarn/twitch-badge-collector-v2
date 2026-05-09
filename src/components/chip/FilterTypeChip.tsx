@@ -1,10 +1,10 @@
 import { Chip, ChipProps } from "@mui/material";
 import { GridCellParams } from "@mui/x-data-grid";
 import { BadgeInterface } from "../../interfaces/chat";
-import { ArrayFilterListInterface, FilterType, TypeArr } from "../../interfaces/filter";
+import { CompositeFilterElement, FilterType, TypeArr } from "../../interfaces/filter";
 
 export function onArrayFilterTypeChipClick(params: GridCellParams<any, FilterType>,
-    setRows: React.Dispatch<React.SetStateAction<ArrayFilterListInterface[]>>) {
+    setRows: React.Dispatch<React.SetStateAction<CompositeFilterElement[]>>) {
     if (params.field === 'filterType' && typeof params.value !== 'undefined') {
         const newType = rotateFilterType(params.value);
 

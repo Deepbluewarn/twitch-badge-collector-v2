@@ -17,7 +17,7 @@ import { badgeUuidFromURL } from "../../utils/utils-common";
 import { chipColor, onBadgeTypeChipClick } from "../chip/FilterTypeChip";
 // import { CustomDataGrid } from "@/components/datagrid/customDataGrid";
 import { BadgeInterface, BadgeUrls } from "../../interfaces/chat";
-import { ArrayFilterInterface, FilterType } from "../../interfaces/filter";
+import { AtomicFilterElement, FilterType } from "../../interfaces/filter";
 import { BadgeChannelType } from "../../interfaces/channel";
 import { BadgeChannelNameContext, BadgeListChannelContext, useBadgeChannelNameContext, useBadgeListChannelContext } from "../../context/BadgeChannel";
 import { useTwitchAPIContext } from "../../context/TwitchAPIContext";
@@ -335,14 +335,14 @@ function badgesToArray(badges: Map<string, Version>) {
 
 function AddSelectedBadges(
     badgesRow: BadgeInterface[],
-    setAfInputRow: React.Dispatch<React.SetStateAction<ArrayFilterInterface[]>>,
+    setAfInputRow: React.Dispatch<React.SetStateAction<AtomicFilterElement[]>>,
     selectionModel: GridRowId[],
     setSelectionModel: React.Dispatch<React.SetStateAction<GridRowId[]>>,
     setShowAddButton: React.Dispatch<React.SetStateAction<boolean>>,
     platform: SettingInterface['platform']
 ) {
     setAfInputRow(list => {
-        const newList: ArrayFilterInterface[] = badgesRow.map(badge => {
+        const newList: AtomicFilterElement[] = badgesRow.map(badge => {
             const badgeUUID = 
             platform === 'twitch' ? 
                 badgeUuidFromURL(badge.badgeImage.badge_img_url_1x) : 
@@ -359,8 +359,8 @@ function AddSelectedBadges(
                 badgeSetId: badge.badgeSetId,
                 channelLogin: badge.channelLogin,
                 channelId: badge.channelId,
-            } as ArrayFilterInterface;
-        }).filter(r => typeof r !== 'undefined') as ArrayFilterInterface[];
+            } as AtomicFilterElement;
+        }).filter(r => typeof r !== 'undefined') as AtomicFilterElement[];
 
         return [...list, ...newList];
     });

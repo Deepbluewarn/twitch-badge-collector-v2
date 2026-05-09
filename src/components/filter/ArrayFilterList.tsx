@@ -10,7 +10,7 @@ import { ImportFilter, ExportFilter } from "./FilterIO";
 import { chipColor, onArrayFilterTypeChipClick } from "../chip/FilterTypeChip";
 import { CustomToolbarItemStyle } from "@/components/datagrid/toolbar";
 import { useArrayFilterContext } from "@/context/ArrayFilter";
-import { ArrayFilterInterface, ArrayFilterListInterface } from "../../interfaces/filter";
+import { AtomicFilterElement, CompositeFilterElement } from "../../interfaces/filter";
 import RelaxedChip from "../chip/RelaxedChip";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import FilterDialog, { DialogMode, DialogType } from "./FilterDialog";
@@ -38,7 +38,7 @@ const ChipListStyle = styled(Stack)({
 export function ArrayFilterList() {
     const { globalSetting } = useGlobalSettingContext();
     const { arrayFilter, setArrayFilter, upsertArrayFilter, removeSubFilter, removeFilterField } = useArrayFilterContext();
-    const [platformArrayFilter, setPlatformArrayFilter] = useState<ArrayFilterListInterface[]>(arrayFilter);
+    const [platformArrayFilter, setPlatformArrayFilter] = useState<CompositeFilterElement[]>(arrayFilter);
     const [selectionModel, setSelectionModel] = React.useState<Set<GridRowId>>(new Set());
     const [showDeleteButton, setShowDeleteButton] = React.useState(false);
     const { t } = useTranslation();
@@ -46,7 +46,7 @@ export function ArrayFilterList() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogType, setDialogType] = useState<DialogType>(null);
     const [dialogMode, setDialogMode] = useState<DialogMode>(null);
-    const [selectedFilterList, setSelectedFilterList] = useState<ArrayFilterListInterface>();
+    const [selectedFilterList, setSelectedFilterList] = useState<CompositeFilterElement>();
     const [selectedFilterId, setSelectedFilterId] = useState<string | undefined>('');
     
     // 필터 수정 모달 열기 함수
@@ -57,7 +57,7 @@ export function ArrayFilterList() {
         mode = 'edit'
     }: {
         type: DialogType,
-        filterList?: ArrayFilterListInterface,
+        filterList?: CompositeFilterElement,
         selectedFilterId?: string,
         mode?: DialogMode
     }) => {
@@ -72,7 +72,7 @@ export function ArrayFilterList() {
         return [
             { 
                 field: 'filters', headerName: t('common.filter'), flex: 0.6, display: 'flex',
-                renderCell: (params: GridRenderCellParams<ArrayFilterListInterface, ArrayFilterInterface[]>) => {
+                renderCell: (params: GridRenderCellParams<CompositeFilterElement, AtomicFilterElement[]>) => {
                     if(!params.value) return null;
 
                     if(platformArrayFilter.length > 0 && platformArrayFilter[0].platform !== globalSetting.platform) return null;
@@ -328,7 +328,7 @@ function DeleteButton(props: { selectionModel: Set<GridRowId>, showDeleteButton:
     )
 }
 
-function deleteSelectedFilter(setRows: React.Dispatch<React.SetStateAction<ArrayFilterListInterface[]>>, selectionModel: Set<GridRowId>) {
+function deleteSelectedFilter(setRows: React.Dispatch<React.SetStateAction<CompositeFilterElement[]>>, selectionModel: Set<GridRowId>) {
     setRows(row => {
         const newRow = row.filter(r => {
             return !Array.from(selectionModel).includes(r.id);
