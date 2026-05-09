@@ -1,6 +1,6 @@
 import { getReactProps } from "@/utils/react";
 import { Observer } from "../base/observer";
-import { ChatInfo } from "@/interfaces/chat";
+import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 
 const callback = (elem: Element | null, mr?: MutationRecord[]) => {
     if (!mr) return;
@@ -18,24 +18,15 @@ const callback = (elem: Element | null, mr?: MutationRecord[]) => {
 
             const isReplayChat = props?.isReplayChat;
             const time = isReplayChat ? chatMessage?.playerMessageTime : chatMessage?.time;
-            const verified = chatMessage?.profile?.verifiedMark;
             const badges = chatMessage?.displayBadgeList;
-            const content = chatMessage?.content;
 
-            (node as Element).setAttribute('data-tbc-chat-key', chatMessage?.key);
-            (node as Element).setAttribute('data-tbc-chat-time', time);
-            (node as Element).setAttribute('data-tbc-chat-verified', verified);
-            (node as Element).setAttribute('data-tbc-chat-badges', JSON.stringify(badges?.map((e: any) => e.imageSource)));
+            const el = node as Element;
+            el.setAttribute(CHAT_ATTR.KEY, chatMessage?.key);
+            el.setAttribute(CHAT_ATTR.TIME, time);
+            el.setAttribute(CHAT_ATTR.BADGES, JSON.stringify(badges?.map((e: any) => e.imageSource)));
 
             if (isReplayChat) {
-                (node as Element).setAttribute('data-tbc-chat-replay-chat', isReplayChat);
-            }
-
-            const chatInfo: ChatInfo = {
-                badges: [],
-                textContents: [''],
-                loginName: '',
-                nickName: '',
+                el.setAttribute(CHAT_ATTR.REPLAY_CHAT, isReplayChat);
             }
         })
     })
@@ -62,4 +53,3 @@ window.addEventListener('message', (e)=> {
 
     init();
 });
-

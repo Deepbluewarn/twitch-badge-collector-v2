@@ -76,6 +76,7 @@ An optional restriction on a composite Filter Element making it fire only when t
 - **Filter validation**: [src/filter/validate.ts](src/filter/validate.ts) — `validateFilterList(filter)` returns `{valid:true}` or `{valid:false, error: FilterValidationError}` (error code, not localized string).
 - **Container layout**: [src/content-scripts/base/layout.ts](src/content-scripts/base/layout.ts) — `applyPosition`, `applyRatio`. Owns the 3 element ID convention, `order`/`height` rules.
 - **Platform adapters**: [src/platform/](src/platform/) — `PlatformAdapter` interface + `TwitchAdapter`/`ChzzkAdapter` impls. Each carries `extract`, `getCurrentChannelId`, `getPageMode`, `computeDragRatio`.
+- **Chat attribute contract**: [src/interfaces/chat-attributes.ts](src/interfaces/chat-attributes.ts) — `CHAT_ATTR` 상수 객체와 `PROCESSED_CHAT_CLASS`. inject 스크립트가 host page 채팅 노드에 박는 `data-tbc-chat-*` 속성과, useChatStream의 *처리됨* 마킹 클래스를 한 곳에 명시. inject ↔ Adapter.extract / useChatStream가 모두 이 상수를 참조해 컴파일 타임 sync.
 - **GlobalSetting cross-entrypoint sync**: [src/hooks/useGlobalSettingExtension.ts](src/hooks/useGlobalSettingExtension.ts) — `browser.storage.local`이 source of truth. 4개 entrypoint(popup/setting/welcome/Container)가 각자 hook을 호출하지만 `storage.onChanged` 리스너로 다른 entrypoint의 변경을 자기 state에 자동 반영. 자기 변경의 echo는 비교 후 no-op이라 루프 없음.
 
 ## Flagged ambiguities

@@ -2,6 +2,7 @@ import { BadgeInterface, ChatInfo } from "@/interfaces/chat";
 import type { PlatformAdapter } from "./";
 import { msToTime } from "@/utils/utils-common";
 import { createChzzkAPI, ChzzkAPI } from "@/api/chzzk";
+import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 
 // Chzzk 채팅 영역 위/아래 고정 UI 높이 — 드래그 수식 보정에 사용
 const CHZZK_HEADER_OFFSET = 77;
@@ -117,8 +118,8 @@ export class ChzzkAdapter implements PlatformAdapter {
         )[0] as HTMLElement;
         if (!usernameElem) return;
 
-        const time = parseInt(clone.getAttribute('data-tbc-chat-time') ?? '0', 10);
-        const isReplay = clone.getAttribute('data-tbc-chat-replay-chat');
+        const time = parseInt(clone.getAttribute(CHAT_ATTR.TIME) ?? '0', 10);
+        const isReplay = clone.getAttribute(CHAT_ATTR.REPLAY_CHAT);
         const chatTimeStr = isReplay
             ? msToTime(time)
             : new Date(time).toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit', hour12: false });

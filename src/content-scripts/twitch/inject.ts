@@ -1,6 +1,7 @@
 
 import { getReactProps } from "@/utils/react";
 import { Observer } from "../base/observer"
+import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 
 let path = window.location.pathname.split('/')[1];
 
@@ -18,7 +19,7 @@ const callback = (elem: Element | null, mr?: MutationRecord[]) => {
 
         addedNodes.forEach((node) => {
             const _props = getReactProps(node);
-            
+
             let badges, message_id, message_channel, message_channel_id;
 
             if (isLive()) {
@@ -34,21 +35,23 @@ const callback = (elem: Element | null, mr?: MutationRecord[]) => {
                 badges = message_context?.comment?.userBadges;
             }
 
+            const el = node as Element;
+
             if (badges) {
                 let badges_str = Object.entries(badges).map(b => `${b[0]}/${b[1]}`);
-                (node as Element).setAttribute('data-tbc-chat-badges', JSON.stringify(badges_str));
+                el.setAttribute(CHAT_ATTR.BADGES, JSON.stringify(badges_str));
             }
 
             if (message_id) {
-                (node as Element).setAttribute('data-tbc-chat-key', message_id ?? '');
+                el.setAttribute(CHAT_ATTR.KEY, message_id ?? '');
             }
 
             if (message_channel) {
-                (node as Element).setAttribute('data-tbc-chat-channel', message_channel);
+                el.setAttribute(CHAT_ATTR.CHANNEL, message_channel);
             }
 
             if (message_channel_id) {
-                (node as Element).setAttribute('data-tbc-chat-channel-id', message_channel_id);
+                el.setAttribute(CHAT_ATTR.CHANNEL_ID, message_channel_id);
             }
         })
     })

@@ -2,6 +2,7 @@ import { BadgeInterface, ChatInfo } from "@/interfaces/chat";
 import type { PlatformAdapter } from "./";
 import { createTwitchAPI, TwitchAPI } from "@/api/twitch";
 import { Version } from "@/interfaces/api/twitchAPI";
+import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 
 const TWITCH_BADGE_CDN = 'https://static-cdn.jtvnw.net/badges/v1';
 const TWITCH_DENSITY_TO_PATH = { '1x': '1', '2x': '2', '4x': '3' } as const;
@@ -78,12 +79,12 @@ export class TwitchAdapter implements PlatformAdapter {
         ) as HTMLCollectionOf<HTMLSpanElement>;
 
         const badgeElements = chat_clone.getElementsByClassName("chat-badge") as HTMLCollectionOf<HTMLImageElement>;
-        const dataBadges: string[] = JSON.parse(chat_clone.getAttribute('data-tbc-chat-badges') || '[]');
+        const dataBadges: string[] = JSON.parse(chat_clone.getAttribute(CHAT_ATTR.BADGES) || '[]');
         const fallbackBadges = Array.from(badgeElements)
             .map((badge) => new URL(badge.src).pathname.split("/")[3]);
 
-        const channel = chat_clone.getAttribute('data-tbc-chat-channel');
-        const channelId = chat_clone.getAttribute('data-tbc-chat-channel-id');
+        const channel = chat_clone.getAttribute(CHAT_ATTR.CHANNEL);
+        const channelId = chat_clone.getAttribute(CHAT_ATTR.CHANNEL_ID);
 
         return {
             textContents: Array.from(textContents).map((text) => text.textContent),
