@@ -5,7 +5,6 @@ import Stack from '@mui/material/Stack';
 import Card from '@mui/material/Card';
 import BadgeList from './filter/BadgeList';
 import { AtomicFilterElement } from '../interfaces/filter';
-import useChatInfoObjects from '../hooks/useChannelInfo';
 import { useFilterGroupContext } from '../context/FilterGroup';
 import FilterInputFormList from './filter/FilterInputFormList';
 import FilterInputForm from './filter/FilterInputForm';
@@ -14,7 +13,6 @@ import { useGlobalSettingContext } from '../context/GlobalSetting';
 import Chip from '@mui/material/Chip';
 import { Button, Paper } from '@mui/material';
 import { SettingInterface } from '@/interfaces/setting';
-import { ChannelInfoContext } from '@/context/ChannelInfoContext';
 import SocialFooter from './SocialFooter';
 import { defaultAtomicFilter } from '@/utils/utils-common';
 import { setBadgeInSimpleFilter, setMultipleBadgesInFilterArray } from './filter/utils/badge-utils';
@@ -26,7 +24,6 @@ export default function Filter() {
     const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
     const [advancedFilter, setAdvancedFilter] = React.useState(globalSetting.advancedFilter);
     const { filterGroup } = useFilterGroupContext();
-    const { channelInfoObject, dispatchChannelInfo, channel, setChannel, User } = useChatInfoObjects();
     const [filterInput, setFilterInput] = React.useState<AtomicFilterElement | undefined>(defaultAtomicFilter());
     const [filterInputList, setFilterInputList] = React.useState<AtomicFilterElement[]>([]);
     const filterInputListRef = React.useRef<AtomicFilterElement[]>([]);
@@ -46,8 +43,8 @@ export default function Filter() {
     }, [globalSetting]);
 
     return (
-        <ChannelInfoContext.Provider value={{ channelInfoObject, dispatchChannelInfo, channel, setChannel, User }}>
-            <Stack spacing={2} sx={{ 
+        <>
+            <Stack spacing={2} sx={{
                     minHeight: '0',
                     margin: '16px',
                 }}
@@ -147,6 +144,6 @@ export default function Filter() {
             </Stack>
             {/* <EncorageDonationDialog open={dialogOpen} onClose={() => {setDialogOpen(false)}}/> */}
             <ChannelIdGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
-        </ChannelInfoContext.Provider>
+        </>
     )
 }
