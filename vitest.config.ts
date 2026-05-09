@@ -8,8 +8,8 @@ export default defineConfig({
         },
     },
     test: {
-        // 도메인 모듈 단위 테스트 — DOM 불필요. browser 환경 필요해지면
-        // 'happy-dom' 또는 'jsdom' 추가 후 environment 옵션 설정.
+        // 기본은 node (DOM 무관 모듈용). DOM/React 필요한 파일은 파일 상단에
+        // `// @vitest-environment happy-dom` 코멘트로 per-file override.
         environment: 'node',
         include: ['src/**/*.test.{ts,tsx}'],
     },
