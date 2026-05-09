@@ -1,5 +1,6 @@
 import { ChatInfo } from "@/interfaces/chat";
-import { PlatformAdapter } from "./";
+import type { PlatformAdapter } from "./";
+import { msToTime } from "@/utils/utils-common";
 
 // Chzzk 채팅 영역 위/아래 고정 UI 높이 — 드래그 수식 보정에 사용
 const CHZZK_HEADER_OFFSET = 77;
@@ -19,6 +20,11 @@ function checkVerifiedBadge(chat_clone: Element): boolean {
 
 export class ChzzkAdapter implements PlatformAdapter {
     readonly type = 'chzzk' as const;
+
+    readonly displayName = '치지직';
+    readonly brandColor = '#00ffa3e6';
+
+    readonly chatOrder = 'newest-top' as const;
 
     extract(node: Node): ChatInfo | undefined {
         const nodeElement = node as HTMLElement;
@@ -87,5 +93,36 @@ export class ChzzkAdapter implements PlatformAdapter {
         const usableHeight = rect.height - CHZZK_HEADER_OFFSET - CHZZK_FOOTER_OFFSET;
         const ratio = (1 - (clientY - rect.y - CHZZK_HEADER_OFFSET) / usableHeight) * 100;
         return Math.max(0, Math.min(100, Math.round(ratio)));
+    }
+
+    getBadgeImageUrl(value: string, _density: '1x' | '2x' | '4x'): string {
+        // Chzzk는 배지 식별자 자체가 이미 이미지 URL이라 그대로 반환. density는 무시.
+        return value;
+    }
+
+    getBadgeIdentity(url: string): string {
+        // Chzzk는 URL 자체가 식별자.
+        return url;
+    }
+
+    prepareChatClone(clone: HTMLElement): void {
+        // 복제된 채팅의 username 컨테이너에 시간 표시를 prepend.
+        const usernameElem = clone.getElementsByClassName(
+            'live_chatting_username_container__m1-i5 live_chatting_username_is_message__jvTvP'
+        )[0] as HTMLElement;
+        if (!usernameElem) return;
+
+        const time = parseInt(clone.getAttribute('data-tbc-chat-time') ?? '0', 10);
+        const isReplay = clone.getAttribute('data-tbc-chat-replay-chat');
+        const chatTimeStr = isReplay
+            ? msToTime(time)
+            : new Date(time).toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit', hour12: false });
+
+        const chatTime = document.createElement('div');
+        chatTime.classList.add('tbcv2-chat-time');
+        chatTime.textContent = chatTimeStr;
+        usernameElem.classList.add('tbcv2-chat-username');
+        usernameElem.style.display = 'inline-flex';
+        usernameElem.prepend(chatTime);
     }
 }

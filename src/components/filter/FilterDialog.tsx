@@ -11,6 +11,7 @@ import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Stack, Typograph
 import BadgeList from './BadgeList';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
+import { getAdapter, getBadgeSrcSet } from '@/platform';
 
 // 모달 타입 정의
 export type DialogType = 'filter' | 'channel' | 'note' | null;
@@ -40,6 +41,7 @@ export default function FilterDialog(props: FilterDialogProps) {
         onSave
     } = props;
     const { globalSetting } = useGlobalSettingContext();
+    const adapter = getAdapter(globalSetting.platform);
     const { t } = useTranslation();
 
     // 새 필터 추가를 위한 기본 필터 객체 생성
@@ -161,23 +163,11 @@ export default function FilterDialog(props: FilterDialogProps) {
                     }}
                 >
 
-                    {
-                        globalSetting.platform === 'twitch' ? (
-                            <img
-                                style={{ width: '18px', height: '18px' }}
-                                src={`https://static-cdn.jtvnw.net/badges/v1/${filterGroup.value}/1`}
-                                srcSet={
-                                    `https://static-cdn.jtvnw.net/badges/v1/${filterGroup.value}/1 1x, 
-                            https://static-cdn.jtvnw.net/badges/v1/${filterGroup.value}/2 2x, 
-                            https://static-cdn.jtvnw.net/badges/v1/${filterGroup.value}/3 4x`}
-                            />
-                        ) : (
-                            <img
-                                style={{ width: '18px', height: '18px' }}
-                                src={filterGroup.value}
-                            />
-                        )
-                    }
+                    <img
+                        style={{ width: '18px', height: '18px' }}
+                        src={adapter.getBadgeImageUrl(filterGroup.value, '1x')}
+                        srcSet={getBadgeSrcSet(adapter, filterGroup.value)}
+                    />
 
                 </Paper>
             ) : null
@@ -253,9 +243,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                 {filterGroup.category === 'badge' && (
                     <BadgeList
                         onBadgeSelect={(selectedBadge) => {
-                            const badgeUUID = globalSetting.platform === 'twitch'
-                                ? badgeUuidFromURL(selectedBadge.badgeImage.badge_img_url_1x)
-                                : selectedBadge.badgeImage.badge_img_url_1x;
+                            const badgeUUID = adapter.getBadgeIdentity(selectedBadge.badgeImage.badge_img_url_1x);
 
                             const _badgeFilter: AtomicFilterElement = {
                                 badgeName: selectedBadge.badgeName,

@@ -1,16 +1,14 @@
 import { nanoid } from 'nanoid';
 import { SettingInterface } from "../../../interfaces/setting";
 import { BadgeInterface } from '../../../interfaces/chat';
-import { badgeUuidFromURL } from '../../../utils/utils-common';
 import { AtomicFilterElement } from '../../../interfaces/filter';
+import { getAdapter } from '@/platform';
 
 /**
  * 배지 객체를 필터 객체로 변환
  */
 export function badgeToFilter(badge: BadgeInterface, platform: SettingInterface['platform']): AtomicFilterElement {
-    const badgeUUID = platform === 'twitch'
-        ? badgeUuidFromURL(badge.badgeImage.badge_img_url_1x)
-        : badge.badgeImage.badge_img_url_1x;
+    const badgeUUID = getAdapter(platform).getBadgeIdentity(badge.badgeImage.badge_img_url_1x);
 
     return {
         category: 'badge',
@@ -35,9 +33,7 @@ export function setBadgeInSimpleFilter(
     platform: SettingInterface['platform'],
     setFilter: React.Dispatch<React.SetStateAction<AtomicFilterElement | undefined>>
 ): void {
-    const badgeUUID = platform === 'twitch'
-        ? badgeUuidFromURL(badge.badgeImage.badge_img_url_1x)
-        : badge.badgeImage.badge_img_url_1x;
+    const badgeUUID = getAdapter(platform).getBadgeIdentity(badge.badgeImage.badge_img_url_1x);
 
     setFilter(current => {
         if (!current) return current;

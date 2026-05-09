@@ -13,7 +13,6 @@ import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import { badgeUuidFromURL } from "../../utils/utils-common";
 import { chipColor, onBadgeTypeChipClick } from "../chip/FilterTypeChip";
 // import { CustomDataGrid } from "@/components/datagrid/customDataGrid";
 import { BadgeInterface, BadgeUrls } from "../../interfaces/chat";
@@ -27,6 +26,7 @@ import RelaxedChip from "../chip/RelaxedChip";
 import { useChzzkAPIContext } from "../../context/ChzzkAPIContext";
 import { SettingInterface } from "@/interfaces/setting";
 import { CustomDataGrid } from "../datagrid/customDataGrid";
+import { getAdapter } from "@/platform";
 
 function CustomToolbar(props: {
     onMultiBadgesSelect: () => void;
@@ -343,10 +343,7 @@ function AddSelectedBadges(
 ) {
     setAfInputRow(list => {
         const newList: AtomicFilterElement[] = badgesRow.map(badge => {
-            const badgeUUID = 
-            platform === 'twitch' ? 
-                badgeUuidFromURL(badge.badgeImage.badge_img_url_1x) : 
-                badge.badgeImage.badge_img_url_1x;
+            const badgeUUID = getAdapter(platform).getBadgeIdentity(badge.badgeImage.badge_img_url_1x);
 
             if (!selectionModel.includes(badge.id)) return;
 

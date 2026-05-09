@@ -23,6 +23,7 @@ import { FilterSelectorType, FilterTypeSelector, FilterCategorySelector } from '
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
 import CustomTextField from '@/components/TextField/CustomTextField';
+import { getAdapter, getBadgeSrcSet } from '@/platform';
 
 export default function FilterInputForm(
     props: {
@@ -34,6 +35,7 @@ export default function FilterInputForm(
     const { t } = useTranslation();
     const matches = useMediaQuery('(min-width:600px)');
     const { globalSetting } = useGlobalSettingContext();
+    const adapter = getAdapter(globalSetting.platform);
     const { addCompositeFilters } = useFilterGroupContext();
     const [filterGroupNote, setFilterGroupNote] = useState('');
     const filterContentValue = useRef<TextFieldProps>(null);
@@ -132,6 +134,7 @@ function BasicFilterInputForm(
 }
 ){
     const {globalSetting} = useGlobalSettingContext();
+    const adapter = getAdapter(globalSetting.platform);
     const { t } = useTranslation();
 
     const selectorChanged = (event: SelectChangeEvent<FilterCategory | FilterType>, selectorType: FilterSelectorType) => {
@@ -196,23 +199,11 @@ function BasicFilterInputForm(
                                     alignItems: 'center'
                                 }}
                             >
-                                {
-                                    globalSetting.platform === 'twitch' ? (
-                                        <img
-                                            style={{ width: '18px', height: '18px' }}
-                                            src={`https://static-cdn.jtvnw.net/badges/v1/${props.filterInput.value}/1`}
-                                            srcSet={
-                                                `https://static-cdn.jtvnw.net/badges/v1/${props.filterInput.value}/1 1x, 
-                            https://static-cdn.jtvnw.net/badges/v1/${props.filterInput.value}/2 2x, 
-                            https://static-cdn.jtvnw.net/badges/v1/${props.filterInput.value}/3 4x`}
-                                        />
-                                    ) : (
-                                        <img
-                                            style={{ width: '18px', height: '18px' }}
-                                            src={props.filterInput.value}
-                                        />
-                                    )
-                                }
+                                <img
+                                    style={{ width: '18px', height: '18px' }}
+                                    src={adapter.getBadgeImageUrl(props.filterInput.value, '1x')}
+                                    srcSet={getBadgeSrcSet(adapter, props.filterInput.value)}
+                                />
 
                             </Paper>
 

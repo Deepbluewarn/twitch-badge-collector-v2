@@ -21,6 +21,7 @@ import { defaultAtomicFilter } from '@/utils/utils-common';
 import { setBadgeInSimpleFilter, setMultipleBadgesInFilterArray } from './filter/utils/badge-utils';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ChannelIdGuideDialog from './filter/dialog/ChannelIdGuideDialog';
+import { getAdapter } from '@/platform';
 
 export default function Filter() {
     const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
@@ -72,7 +73,7 @@ export default function Filter() {
                         flexDirection: 'column',
                         overflow: 'auto',
                         border: '4px solid',
-                        borderColor: globalSetting.platform === 'twitch' ? '#9147ff' : '#00ffa3e6',
+                        borderColor: getAdapter(globalSetting.platform).brandColor,
                         minWidth: '720px',
                         maxWidth: '1080px',
                     }}
@@ -91,8 +92,8 @@ export default function Filter() {
 
                         <Paper sx={{ p: 1, m: 0 }}>
                             <Stack direction='row' gap={1}>
-                                <Chip label='트위치' color={globalSetting.platform === 'twitch' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('twitch')}} clickable />
-                                <Chip label='치지직' color={globalSetting.platform === 'chzzk' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('chzzk')}} clickable />
+                                <Chip label={getAdapter('twitch').displayName} color={globalSetting.platform === 'twitch' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('twitch')}} clickable />
+                                <Chip label={getAdapter('chzzk').displayName} color={globalSetting.platform === 'chzzk' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('chzzk')}} clickable />
                             </Stack>
                         </Paper>
                         

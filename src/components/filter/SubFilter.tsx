@@ -3,6 +3,7 @@ import { AtomicFilterElement } from '@/interfaces/filter';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { Paper, Typography, Box } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { getAdapter, getBadgeSrcSet } from '@/platform';
 
 interface SubFilterProps {
 	filter?: AtomicFilterElement;
@@ -10,6 +11,7 @@ interface SubFilterProps {
 
 const SubFilter: React.FC<SubFilterProps> = ({ filter }) => {
 	const { globalSetting } = useGlobalSettingContext();
+	const adapter = getAdapter(globalSetting.platform);
     const { t } = useTranslation();
 	if (!filter) return null;
 
@@ -19,20 +21,12 @@ const SubFilter: React.FC<SubFilterProps> = ({ filter }) => {
 			<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
 				<Paper variant="outlined" sx={{ p: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '74px' }}>
 					{filter.value ? (
-						globalSetting.platform === 'twitch' ? (
-							<img
-								style={{ width: '24px', height: '24px' }}
-								src={`https://static-cdn.jtvnw.net/badges/v1/${filter.value}/1`}
-								srcSet={`https://static-cdn.jtvnw.net/badges/v1/${filter.value}/1 1x, https://static-cdn.jtvnw.net/badges/v1/${filter.value}/2 2x, https://static-cdn.jtvnw.net/badges/v1/${filter.value}/3 4x`}
-								alt={filter.badgeName || 'badge'}
-							/>
-						) : (
-							<img
-								style={{ width: '24px', height: '24px' }}
-								src={filter.value}
-								alt={filter.badgeName || 'badge'}
-							/>
-						)
+						<img
+							style={{ width: '24px', height: '24px' }}
+							src={adapter.getBadgeImageUrl(filter.value, '1x')}
+							srcSet={getBadgeSrcSet(adapter, filter.value)}
+							alt={filter.badgeName || 'badge'}
+						/>
 					) : (
 						<Typography>배지 없음</Typography>
 					)}

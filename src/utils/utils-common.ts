@@ -34,16 +34,6 @@ export function defaultAtomicFilter(id?: string, category?: FilterCategory, type
   }
   return _;
 }
-export function badgeUuidFromURL(url: string) {
-  let badge_uuid: string = "";
-
-  try {
-    badge_uuid = new URL(url).pathname.split("/")[3];
-  } catch (e) {
-    return badge_uuid;
-  }
-  return badge_uuid;
-}
 export function getRandomString() {
   return Math.random().toString(36).substring(2, 12);
 }

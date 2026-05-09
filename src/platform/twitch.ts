@@ -1,8 +1,16 @@
 import { ChatInfo } from "@/interfaces/chat";
-import { PlatformAdapter } from "./";
+import type { PlatformAdapter } from "./";
+
+const TWITCH_BADGE_CDN = 'https://static-cdn.jtvnw.net/badges/v1';
+const TWITCH_DENSITY_TO_PATH = { '1x': '1', '2x': '2', '4x': '3' } as const;
 
 export class TwitchAdapter implements PlatformAdapter {
     readonly type = 'twitch' as const;
+
+    readonly displayName = '트위치';
+    readonly brandColor = '#9147ff';
+
+    readonly chatOrder = 'newest-bottom' as const;
 
     extract(node: Node): ChatInfo | undefined {
         const nodeElement = node as HTMLElement;
@@ -71,5 +79,22 @@ export class TwitchAdapter implements PlatformAdapter {
     computeDragRatio(rect: DOMRect, clientY: number): number {
         const ratio = (1 - (clientY - rect.y) / rect.height) * 100;
         return Math.max(0, Math.min(100, Math.round(ratio)));
+    }
+
+    getBadgeImageUrl(value: string, density: '1x' | '2x' | '4x'): string {
+        return `${TWITCH_BADGE_CDN}/${value}/${TWITCH_DENSITY_TO_PATH[density]}`;
+    }
+
+    getBadgeIdentity(url: string): string {
+        // Twitch CDN URL 패턴: https://static-cdn.jtvnw.net/badges/v1/<UUID>/<scale>
+        try {
+            return new URL(url).pathname.split('/')[3];
+        } catch {
+            return url;
+        }
+    }
+
+    prepareChatClone(_clone: HTMLElement): void {
+        // Twitch는 별도 처리 없음. 채팅 시간/사용자 정보는 inject 단에서 이미 attribute로 박혀있음.
     }
 }

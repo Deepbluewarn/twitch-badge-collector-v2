@@ -22,6 +22,7 @@ import { AdvancedFilterCategorySelector, FilterSelectorType, FilterTypeSelector 
 import Divider from '@mui/material/Divider';
 import CustomTextField from '../TextField/CustomTextField';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
+import { getAdapter, getBadgeSrcSet } from '@/platform';
 
 export default function FilterInputFormList(
     props: {
@@ -180,6 +181,7 @@ function AdvancedFilterInputForm(props: {
     nameFilterAvail: boolean
 }) {
     const {globalSetting} = useGlobalSettingContext();
+    const adapter = getAdapter(globalSetting.platform);
     const { t } = useTranslation();
     const inputChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = event.target.value;
@@ -233,20 +235,11 @@ function AdvancedFilterInputForm(props: {
                                 alignItems: 'center'
                             }}
                         >
-                            {globalSetting.platform === 'twitch' ? (
-                                <img
-                                    src={`https://static-cdn.jtvnw.net/badges/v1/${props.value.value}/1`}
-                                    srcSet={
-                                        `https://static-cdn.jtvnw.net/badges/v1/${props.value.value}/1 1x, 
-                            https://static-cdn.jtvnw.net/badges/v1/${props.value.value}/2 2x, 
-                            https://static-cdn.jtvnw.net/badges/v1/${props.value.value}/3 4x`}
-                                />
-                            ) : (
-                                <img
-                                    style={{ width: '18px', height: '18px' }}
-                                    src={props.value.value}
-                                />
-                            )}
+                            <img
+                                style={{ width: '18px', height: '18px' }}
+                                src={adapter.getBadgeImageUrl(props.value.value, '1x')}
+                                srcSet={getBadgeSrcSet(adapter, props.value.value)}
+                            />
                             
                         </Paper>
 

@@ -16,6 +16,7 @@ import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import FilterDialog, { DialogMode, DialogType } from "./FilterDialog";
 import RoundAddButton from '../common/RoundAddButton';
 import { CustomDataGrid } from "../datagrid/customDataGrid";
+import { getAdapter, getBadgeSrcSet } from '@/platform';
 
 const ChipListStyle = styled(Stack)({
     display: 'flex',
@@ -37,6 +38,7 @@ const ChipListStyle = styled(Stack)({
 
 export function FilterGroupList() {
     const { globalSetting } = useGlobalSettingContext();
+    const adapter = getAdapter(globalSetting.platform);
     const { filterGroup, setFilterGroup, upsertCompositeFilter, removeSubFilter, removeFilterField } = useFilterGroupContext();
     const [platformArrayFilter, setPlatformArrayFilter] = useState<CompositeFilterElement[]>(filterGroup);
     const [selectionModel, setSelectionModel] = React.useState<Set<GridRowId>>(new Set());
@@ -83,18 +85,11 @@ export function FilterGroupList() {
                         if(af.category === 'badge'){
                             const badgeUUID = af.value;
                             title = af.badgeName || '';
-                            badgeAvatar = (globalSetting.platform === 'twitch') ? (
-                                <Avatar 
-                                    alt={af.badgeName} 
-                                    src={`https://static-cdn.jtvnw.net/badges/v1/${badgeUUID}/1`} 
-                                    srcSet={`https://static-cdn.jtvnw.net/badges/v1/${badgeUUID}/1 1x,
-                                    https://static-cdn.jtvnw.net/badges/v1/${badgeUUID}/2 2x,
-                                    https://static-cdn.jtvnw.net/badges/v1/${badgeUUID}/3 4x`}
-                                />
-                            ) : (
-                                <Avatar 
-                                    alt={af.badgeName} 
-                                    src={badgeUUID} 
+                            badgeAvatar = (
+                                <Avatar
+                                    alt={af.badgeName}
+                                    src={adapter.getBadgeImageUrl(badgeUUID, '1x')}
+                                    srcSet={getBadgeSrcSet(adapter, badgeUUID)}
                                 />
                             )
                         }
