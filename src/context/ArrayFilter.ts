@@ -1,6 +1,5 @@
 import React, { createContext, useContext } from "react";
 import { ChatInfo } from "../interfaces/chat";
-import { ChatInfoObjects } from "../interfaces/chatInfoObjects";
 import { ArrayFilterListInterface } from "../interfaces/filter";
 
 export const ArrayFilterContext = createContext<{
@@ -10,7 +9,7 @@ export const ArrayFilterContext = createContext<{
     upsertArrayFilter: (filter: ArrayFilterListInterface) => boolean,
     removeSubFilter: (filterListId: string, subFilterId: string) => void,
     removeFilterField: (filterListId: string, fieldName: keyof ArrayFilterListInterface) => void,
-    checkFilter: (chat: ChatInfo, chatInfoObject: ChatInfoObjects) => boolean
+    checkFilter: (chat: ChatInfo, channelId?: string | null) => boolean
   } | undefined>(undefined);
 
 export function useArrayFilterContext() {

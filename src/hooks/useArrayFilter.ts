@@ -2,9 +2,18 @@ import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAlertContext } from "../context/Alert";
 import { ChatInfo } from "../interfaces/chat";
-import { ChatInfoObjects } from "../interfaces/chatInfoObjects";
 import { ArrayFilterListInterface } from "../interfaces/filter";
 import { arrayFiltersEqual } from "@/utils/utils-common";
+import { evaluateFilterGroup } from "@/filter/evaluate";
+import { FilterValidationError, validateFilterList } from "@/filter/validate";
+
+const validationErrorMessages: Record<FilterValidationError, string> = {
+    missing_filter: '필터 객체가 없습니다.',
+    missing_id: '필터 id가 없습니다.',
+    missing_filter_type: '필터 타입이 없습니다.',
+    missing_sub_filters: '하위 필터가 없습니다.',
+    empty_sub_filter_value: '하위 필터 값이 비어 있습니다.',
+};
 
 /**
  * 
@@ -59,16 +68,14 @@ export default function useArrayFilter() {
     }
 
     const upsertArrayFilter = (newFilter: ArrayFilterListInterface) => {
-        // validation 추가.
-        const _validate = validateArrayFilterList(newFilter);
+        const result = validateFilterList(newFilter);
 
-        if (!_validate.valid) {
+        if (!result.valid) {
             addAlert({
-                message: _validate.message || '필터를 추가할 수 없습니다.',
+                message: validationErrorMessages[result.error],
                 serverity: 'warning'
             });
-
-            return _validate.valid;
+            return false;
         }
         setArrayFilter(afLists => {
             const exists = afLists.some(af => af.id === newFilter.id);
@@ -83,23 +90,6 @@ export default function useArrayFilter() {
 
         return true;
     }
-
-    /**
-     * ArrayFilterListInterface 유효성 검사 함수
-     * - 필수 필드 존재 여부, filters 배열 값 체크
-     */
-    const validateArrayFilterList = (filterList: ArrayFilterListInterface): { valid: boolean, message?: string } => {
-        if (!filterList) return { valid: false, message: '필터 객체가 없습니다.' };
-        if (!filterList.id) return { valid: false, message: '필터 id가 없습니다.' };
-        if (!filterList.filterType) return { valid: false, message: '필터 타입이 없습니다.' };
-        if (!Array.isArray(filterList.filters) || filterList.filters.length === 0) return { valid: false, message: '하위 필터가 없습니다.' };
-        for (const filter of filterList.filters) {
-            if (!filter.value || filter.value === '') {
-                return { valid: false, message: '하위 필터 값이 비어 있습니다.' };
-            }
-        }
-        return { valid: true };
-    };
 
     /**
      * ArrayFilterListInterface의 특정 하위 필터(id) 삭제
@@ -129,95 +119,12 @@ export default function useArrayFilter() {
         );
     };
 
-    /**
-     * 
-     * @param chat 채팅 정보 객체
-     * @param chatInfoObject (트위치 전용) 채팅 배지, 이모티콘 정보
-     * @param channelId (치지직 전용, 트위치는 예정) 현재 채널 ID
-     * @returns 
-     */
-    const checkFilter = (chat: ChatInfo, chatInfoObject?: ChatInfoObjects | null, channelId?: string | null) => {
-        if (typeof arrayFilterRef.current === 'undefined' || arrayFilterRef.current.length === 0) return false;
+    const checkFilter = (chat: ChatInfo, channelId?: string | null) =>
+        evaluateFilterGroup(chat, arrayFilterRef.current, channelId);
 
-        let res = false; // true 이면 해당 chat 을 포함, false 이면 제외.
-
-        for(let arrayFilter of arrayFilterRef.current){
-            if (arrayFilter.filterChannelId && arrayFilter.filterChannelId !== channelId) {
-                // 채널 전용 필터는 채널 ID 값이 일치해야 함.
-                continue;
-            }
-            const filterMatched = arrayFilter.filters.every((filter) => {
-                let filterMatchedRes = false;
-
-                if(filter.type === 'sleep'){
-                    return filterMatchedRes;
-                }
-
-                if (filter.category === "badge") {
-                    if(typeof chatInfoObject === 'undefined' || !chatInfoObject){
-                        const channelMisMatch = 
-                            (chat.channelLogin && filter.channelLogin) && 
-                            (chat.channelLogin !== filter.channelLogin);
-                        const channelIdMisMatch = 
-                            (chat.channelId && filter.channelId) &&
-                            (chat.channelId !== filter.channelId);
-                        
-                        if (channelMisMatch || channelIdMisMatch) {
-                            // 트위치 전용. 구독이나 비트 뱃지가 해당 채널에서만 동작하도록..
-                            filterMatchedRes = false
-                        } else {
-                            filterMatchedRes = chat.badges.some(badge => {
-                                return badge === filter.value || badge === filter.badgeSetId;
-                            });
-                        }
-                    }else{
-                        filterMatchedRes = chat.badges.some(badge_str => {
-                            const badge = chatInfoObject.channelBadges.get(badge_str) || chatInfoObject.globalBadges.get(badge_str);
-                            
-                            if (!badge) return false;
-    
-                            const badge_uuid = new URL(badge.image_url_1x).pathname.split('/')[3];
-    
-                            return badge_uuid === filter.value;
-                        });
-                    }
-                    
-                } else if (filter.category === "name") {
-                    filterMatchedRes = chat.loginName.toLowerCase() === filter.value.toLowerCase() ||
-                        chat.nickName.toLowerCase() === filter.value.toLowerCase();
-                } else if (filter.category === "keyword") {
-                    filterMatchedRes = chat.textContents.some(text => text !== null ? text.includes(filter.value) : false);
-                }
-
-                if(filter.type === 'exclude'){
-                    filterMatchedRes = !filterMatchedRes;
-                }
-
-                return filterMatchedRes;
-            });
-
-            if(filterMatched){
-                if(arrayFilter.filterType === 'include'){
-                    // arrayFilter 가 include 이면 exclude 로 설정된 
-                    // 다른 ArrayFilter 가 있는지 찾아야 하므로 계속 진행.
-                    res = true; 
-                }else if(arrayFilter.filterType === 'exclude'){
-                    // arrayFilter 가 exclude 이면 다른 ArrayFilter 를 확인하지 않고 종료.
-                    res = false; 
-                    break;
-                }else if(arrayFilter.filterType === 'sleep'){
-                    // arrayFilter 가 sleep 이면 다른 ArrayFilter 를 확인하기 위해 계속 진행.
-                    // sleep 으로 설정된 필터일때는 res 의 값을 바꾸지 않음.
-                }
-            }
-        }
-
-        return res;
-    };
-
-    return { 
-        arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter, 
-        upsertArrayFilter, checkFilter, validateArrayFilterList, 
-        removeSubFilter, removeFilterField, 
+    return {
+        arrayFilter, arrayFilterRef, setArrayFilter, addArrayFilter,
+        upsertArrayFilter, checkFilter,
+        removeSubFilter, removeFilterField,
     };
 }

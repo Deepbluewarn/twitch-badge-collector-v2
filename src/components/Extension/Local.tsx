@@ -7,7 +7,7 @@ import { convertToJSX } from "@/utils/converter";
 import { styled } from "@mui/material/styles";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { SettingInterface } from "@/interfaces/setting";
-import { ChatExtractor } from "@/content-scripts/base/chatExtractor";
+import { PlatformAdapter } from "@/platform";
 import { Logger } from "@/utils/logger";
 import { Observer } from "@/content-scripts/base/observer";
 
@@ -25,11 +25,11 @@ function ChatWrapper(props: ChatWrapperProps) {
 }
 // 채팅 요소를 그대로 복제하는 방식
 export default function Local({
-    type, videoSelector, extractor, 
+    type, videoSelector, adapter,
 }: {
-    type: SettingInterface['platform'], 
+    type: SettingInterface['platform'],
     videoSelector?: string,
-    extractor: ChatExtractor,
+    adapter: PlatformAdapter,
 }) {
     const { globalSetting } = useGlobalSettingContext();
     const [chatSet, setChatSet] = useState<React.ReactElement<ChatWrapperProps>[]>([]);
@@ -46,12 +46,7 @@ export default function Local({
         );
     };
 
-    const channelId =
-        type === 'chzzk'
-            ? window.location.pathname.split('/')[2]
-            : type === 'twitch'
-                ? window.location.pathname.split('/')[1]
-                : null;
+    const channelId = adapter.getCurrentChannelId();
 
     const newChatCallback = (mutationRecord: MutationRecord[]) => {
         const records = Array.from(mutationRecord);
@@ -61,11 +56,11 @@ export default function Local({
             if (!addedNodes) return;
 
             addedNodes.forEach((node) => {
-                const chat = extractor.extract(node);
+                const chat = adapter.extract(node);
 
                 if (!chat || chat === null) return;
 
-                const filterRes = checkFilter(chat, null, channelId);
+                const filterRes = checkFilter(chat, channelId);
 
                 if (typeof filterRes !== "undefined" && filterRes) {
                     const clone = node.cloneNode(true) as HTMLElement;

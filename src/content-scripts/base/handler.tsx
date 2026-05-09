@@ -1,4 +1,6 @@
 import { SettingInterface } from "@/interfaces/setting";
+import { PlatformAdapter } from "@/platform";
+import { applyRatio } from "./layout";
 
 /**
  * Container Class에서 내부적으로 생성하는 클래스
@@ -7,6 +9,7 @@ export class Handle {
     handleContainer: HTMLDivElement;
     handle: HTMLDivElement;
 
+    adapter: PlatformAdapter;
     type: SettingInterface['platform'];
     tbcContainer: HTMLElement | null;
     position: SettingInterface['position'] = 'up';
@@ -19,9 +22,10 @@ export class Handle {
     boundDoDrag: (e: MouseEvent | TouchEvent) => void;
     boundEndDrag: (e: MouseEvent | TouchEvent) => void;
 
-    constructor(type: SettingInterface['platform'], chatRoomSelector: string) {
-        this.type = type;
-        this.tbcContainer = document.getElementById(`${type}-container`);
+    constructor(adapter: PlatformAdapter, chatRoomSelector: string) {
+        this.adapter = adapter;
+        this.type = adapter.type;
+        this.tbcContainer = document.getElementById(`${this.type}-container`);
         this.chatRoomSelector = chatRoomSelector;
 
         this.handleContainer = document.createElement('div');
@@ -65,22 +69,11 @@ export class Handle {
         const chatListContainer = document.querySelector(this.chatRoomSelector);
 
         const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-        let rectHeigth = 0;
 
         if (chatListContainer) {
             const rect = chatListContainer.getBoundingClientRect();
-
-            if (this.type === 'chzzk') {
-                rectHeigth = rect.height - 77 - 62;
-
-                this.ratio = (1 - (clientY - rect.y - 77) / (rectHeigth)) * 100;
-                this.ratio = Math.max(0, Math.min(100, Math.round(this.ratio)));
-            } else if (this.type === 'twitch') {
-                this.ratio = (1 - (clientY - rect.y) / rect.height) * 100;
-                this.ratio = Math.max(0, Math.min(100, Math.round(this.ratio)));
-            }
-            
-            Handle.updateContainerRatio(this.type, this.ratio, this.position);
+            this.ratio = this.adapter.computeDragRatio(rect, clientY);
+            applyRatio(this.type, this.ratio, this.position);
         }
     };
 
@@ -102,31 +95,4 @@ export class Handle {
         return container.style.order === "1" ? "up" : "down";
     }
 
-    static updateContainerRatio(
-        type: SettingInterface['platform'],
-        ratio: number,
-        position: SettingInterface["position"],
-    ) {
-        if (ratio != 0) ratio = ratio ? ratio : 30;
-
-        let orig_size = ratio === 0 ? 1 : ratio === 10 ? 0 : 1;
-        let clone_size = ratio === 0 ? 0 : ratio === 10 ? 1 : 0;
-
-        if (1 <= ratio && ratio <= 100) {
-            clone_size = parseFloat((ratio * 0.01).toFixed(2));
-            orig_size = parseFloat((1 - clone_size).toFixed(2));
-        }
-
-        if (position === "up") {
-            [orig_size, clone_size] = [clone_size, orig_size];
-        }
-
-        const orig = document.getElementById(`tbc-${type}-chat-list-wrapper`);
-        const clone = document.getElementById(`${type}-container`);
-
-        if (!orig || !clone) return;
-
-        orig.style.height = `${orig_size * 100}%`;
-        clone.style.height = `${clone_size * 100}%`;
-    }
 }
