@@ -15,7 +15,7 @@ const SETTING_KEYS = [
 /**
  * 사용자의 globalSetting을 관리한다.
  *
- * Storage가 source of truth — 한 entrypoint(popup/setting/welcome/Container)에서
+ * Storage가 source of truth — 한 entrypoint(popup/setting/Container)에서
  * 변경하면 storage.onChanged를 통해 다른 entrypoint들의 state도 자동 갱신.
  *
  * 흐름:

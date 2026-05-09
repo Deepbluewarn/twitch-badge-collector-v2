@@ -26,7 +26,14 @@
         "network_error": "Request failed.",
         "channel_not_found": "Channel info not found.",
         "notice_1": "If the filter does not work properly, please refer to the link below.",
-        "extensionNotice": "This is the extension settings page. Does not apply to web version."
+        "extensionNotice": "This is the extension settings page. Does not apply to web version.",
+        "filter_validation": {
+            "missing_filter": "Filter object is missing.",
+            "missing_id": "Filter id is missing.",
+            "missing_filter_type": "Filter type is missing.",
+            "missing_sub_filters": "No sub-filters defined.",
+            "empty_sub_filter_value": "A sub-filter has an empty value."
+        }
     },
     "common": {
         "en": "English",
@@ -86,10 +93,7 @@
         "channelName": "Channel Name",
         "confirm": "Confirm",
         "document": "Documentation",
-        "welcome_1": "Thank you for installing the extension.",
-        "welcome_2": "Please read the <1>document</1> before using the extension.",
-        "nofityAdsense": "Google Adsense advertisements will be displayed at the bottom of the instruction page, provided to generate revenue for the program.",
-        "encourage_donation": "Badge Collector is provided for free. Please consider supporting the project through the donation link below!"
+        "nofityAdsense": "Google Adsense advertisements will be displayed at the bottom of the instruction page, provided to generate revenue for the program."
     },
     "filter": {
         "category": {

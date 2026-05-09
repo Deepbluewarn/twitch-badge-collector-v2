@@ -6,15 +6,7 @@ import { CompositeFilterElement } from "../interfaces/filter";
 import { SettingInterface } from "@/interfaces/setting";
 import { atomicFiltersEqual } from "@/utils/utils-common";
 import { evaluateFilterGroup } from "@/filter/evaluate";
-import { FilterValidationError, validateFilterList } from "@/filter/validate";
-
-const validationErrorMessages: Record<FilterValidationError, string> = {
-    missing_filter: '필터 객체가 없습니다.',
-    missing_id: '필터 id가 없습니다.',
-    missing_filter_type: '필터 타입이 없습니다.',
-    missing_sub_filters: '하위 필터가 없습니다.',
-    empty_sub_filter_value: '하위 필터 값이 비어 있습니다.',
-};
+import { validateFilterList } from "@/filter/validate";
 
 /**
  * 사용자의 Filter Group 상태를 관리한다.
@@ -93,7 +85,7 @@ export default function useFilterGroup(
 
         if (!result.valid) {
             addAlert({
-                message: validationErrorMessages[result.error],
+                message: t(`alert.filter_validation.${result.error}`),
                 serverity: 'warning'
             });
             return false;

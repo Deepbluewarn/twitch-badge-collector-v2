@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { BroadcastChannel } from 'broadcast-channel';
 import { useTranslation } from 'react-i18next';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Card from '@mui/material/Card';
 import BadgeList from './filter/BadgeList';
-import { AtomicFilterElement, FilterBroadcastMessage } from '../interfaces/filter';
+import { AtomicFilterElement } from '../interfaces/filter';
 import useChatInfoObjects from '../hooks/useChannelInfo';
 import { useFilterGroupContext } from '../context/FilterGroup';
 import FilterInputFormList from './filter/FilterInputFormList';
@@ -31,8 +30,6 @@ export default function Filter() {
     const [filterInput, setFilterInput] = React.useState<AtomicFilterElement | undefined>(defaultAtomicFilter());
     const [filterInputList, setFilterInputList] = React.useState<AtomicFilterElement[]>([]);
     const filterInputListRef = React.useRef<AtomicFilterElement[]>([]);
-    const filterBroadcastChannel = React.useRef<BroadcastChannel<FilterBroadcastMessage>>(new BroadcastChannel('ArrayFilter'));
-    const messageId = React.useRef(''); // id 는 extension 에서 생성.
     const { t } = useTranslation();
     const [guideOpen, setGuideOpen] = useState(false);
 
@@ -43,16 +40,6 @@ export default function Filter() {
     React.useEffect(() => {
         document.title = `${t('setting.filter_setting')}- TBC`;
     }, []);
-
-    React.useEffect(() => {
-        const msg = {
-            from: 'filter',
-            filter: filterGroup,
-            msgId: messageId.current
-        }
-
-        filterBroadcastChannel.current.postMessage(msg);
-    }, [filterGroup]);
 
     useEffect(() => {
         setAdvancedFilter(() => globalSetting.advancedFilter);

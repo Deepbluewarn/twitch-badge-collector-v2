@@ -39,9 +39,3 @@ export interface CompositeFilterElement {
 /** 사용자의 Filter Group — 평가 순서대로 정렬된 CompositeFilterElement 배열 */
 export type FilterGroup = CompositeFilterElement[];
 
-/** broadcast-channel로 다른 탭/컨텍스트에 Filter Group 변경을 알릴 때의 메시지 */
-export interface FilterBroadcastMessage {
-    from: string;
-    filter: FilterGroup;
-    msgId: string;
-}

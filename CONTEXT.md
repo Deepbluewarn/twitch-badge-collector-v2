@@ -80,6 +80,4 @@ An optional restriction on a composite Filter Element making it fire only when t
 
 ## Flagged ambiguities
 
-- The `BroadcastChannel('ArrayFilter')` channel name in [Filter.tsx](src/components/Filter.tsx) is intentionally preserved for cross-tab compatibility with users running older extension versions.
-
 - API client classes live as plain factories at [src/api/](src/api/) — `createTwitchAPI()` / `createChzzkAPI()`. Consumers call the factory directly (`useChannelInfo` via `useMemo`, Adapter at construction). No more legacy hook/Context layering.

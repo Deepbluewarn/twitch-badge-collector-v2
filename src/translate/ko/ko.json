@@ -26,7 +26,14 @@
         "network_error": "요청이 실패했습니다.",
         "notice_1": "필터 기능이 제대로 동작하지 않는 경우 아래 링크를 참고해주세요.",
         "channel_not_found": "채널 정보를 찾을 수 없습니다.",
-        "extensionNotice": "확장 프로그램 설정 페이지입니다. 웹 버전에는 적용되지 않습니다."
+        "extensionNotice": "확장 프로그램 설정 페이지입니다. 웹 버전에는 적용되지 않습니다.",
+        "filter_validation": {
+            "missing_filter": "필터 객체가 없습니다.",
+            "missing_id": "필터 id가 없습니다.",
+            "missing_filter_type": "필터 타입이 없습니다.",
+            "missing_sub_filters": "하위 필터가 없습니다.",
+            "empty_sub_filter_value": "하위 필터 값이 비어 있습니다."
+        }
     },
     "common": {
         "en": "English",
@@ -86,10 +93,7 @@
         "channelName": "",
         "confirm": "확인",
         "document": "설명서",
-        "welcome_1": "확장 프로그램을 설치해주셔서 감사합니다.",
-        "welcome_2": "사용 전에는 반드시 <1>설명서</1>를 읽어보시기 바랍니다.",
-        "nofityAdsense": "설명서 페이지 하단에 Google Adsense 광고가 표시됩니다. 이 광고는 프로그램의 수익 창출을 위해 제공됩니다.",
-        "encourage_donation": "확장 프로그램이 유용하다면 아래 후원 링크를 통해 프로젝트를 지원해주세요!"
+        "nofityAdsense": "설명서 페이지 하단에 Google Adsense 광고가 표시됩니다. 이 광고는 프로그램의 수익 창출을 위해 제공됩니다."
     },
     "filter": {
         "category": {
