@@ -1,16 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { t } from "i18next";
-import React from "react";
-import { useTwitchAPIContext } from "../context/TwitchAPIContext";
+import React, { useMemo } from "react";
+import { createTwitchAPI } from "@/api/twitch";
 import { ChannelInfoInterface, ChannelInterface } from "../interfaces/channel";
-import { 
+import {
     Version,
 } from "../interfaces/api/twitchAPI";
 import { useAlertContext } from "../context/Alert";
 import { chatInfoReducer } from "../reducer/chatInfo";
 
 export default function useChannelInfo() {
-    const twitchAPI = useTwitchAPIContext();
+    const twitchAPI = useMemo(() => createTwitchAPI(), []);
     const { addAlert } = useAlertContext();
     const [ channelInfoObject, dispatchChannelInfo ] = React.useReducer(chatInfoReducer, {
         globalBadges: new Map<string, Version>(),

@@ -12,13 +12,9 @@ import globalStyles from "@/style/global";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
 import useFilterGroup from "@/hooks/useFilterGroup";
 import useAlert from "@/hooks/useAlert";
-import useChzzkAPI from "@/hooks/useChzzkAPI";
-import { GlobalSettingContext } from "@/context/GlobalSetting";
+import { GlobalSettingContext, useGlobalSettingContext } from "@/context/GlobalSetting";
 import { AlertContext } from "@/context/Alert";
 import { useCustomTheme } from "@/hooks/useCustomTheme";
-import { TwitchAPIContext } from "@/context/TwitchAPIContext";
-import useTwitchAPI from "@/hooks/useTwitchAPI";
-import { ChzzkAPIContext } from "@/context/ChzzkAPIContext";
 import AlertContainer from "@/components/AlertContainer";
 import { FilterGroupContext } from "@/context/FilterGroup";
 import '@/translate/i18n';
@@ -28,8 +24,6 @@ import SettingPageDrawer from "@/components/drawer/SettingPageDrawer";
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
-  const twitchAPI = useTwitchAPI();
-  const chzzkAPI = useChzzkAPI();
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -50,13 +44,9 @@ function App() {
       >
         <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
           <QueryClientProvider client={queryClient}>
-            <TwitchAPIContext.Provider value={twitchAPI}>
-              <ChzzkAPIContext.Provider value={chzzkAPI}>
-                {globalStyles}
-                <AlertContainer />
-                <Router />
-              </ChzzkAPIContext.Provider>
-            </TwitchAPIContext.Provider>
+            {globalStyles}
+            <AlertContainer />
+            <Router />
           </QueryClientProvider>
         </AlertContext.Provider>
       </GlobalSettingContext.Provider>
@@ -65,7 +55,8 @@ function App() {
 }
 
 function Router() {
-  const _filterGroupHooks = useFilterGroup('twitch', false);
+  const { globalSetting } = useGlobalSettingContext();
+  const _filterGroupHooks = useFilterGroup(globalSetting.platform, false);
 
   return (
     <FilterGroupContext.Provider value={_filterGroupHooks}>

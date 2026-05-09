@@ -81,8 +81,4 @@ An optional restriction on a composite Filter Element making it fire only when t
 
 - The `BroadcastChannel('ArrayFilter')` channel name in [Filter.tsx](src/components/Filter.tsx) is intentionally preserved for cross-tab compatibility with users running older extension versions.
 
-- API client classes live as plain factories at [src/api/](src/api/) — `createTwitchAPI()` / `createChzzkAPI()`. The legacy hook wrappers `useTwitchAPI` / `useChzzkAPI` now just `useMemo` over the factory; they remain so existing Context-based consumers (`useChannelInfo`) keep working unchanged.
-
-- `evaluateFilterGroup` in [src/filter/evaluate.ts](src/filter/evaluate.ts) compares both `chat.channelLogin` and `chat.channelId` against `filter.channelLogin`/`filter.channelId` for badge atomic matches — this is Twitch-specific logic (sub/cheer badges scoped per channel). The data comparison itself is platform-neutral, so it stays inside the evaluator without an Adapter call, but the *fact that this matters* is Twitch-only.
-
-- [src/entrypoints/setting/main.tsx](src/entrypoints/setting/main.tsx)는 `useFilterGroup('twitch', false)`로 platform을 *하드코딩*함. 사용자가 설정 페이지에서 Filter chip으로 platform을 토글해도 hook의 platform 인자는 변하지 않음. 현재는 setting 페이지에서 ref 평가 경로를 안 타기 때문에 보이는 영향 없음. Local.tsx만 ref를 평가에 씀 (그쪽은 Container 인스턴스의 platform이 고정).
+- API client classes live as plain factories at [src/api/](src/api/) — `createTwitchAPI()` / `createChzzkAPI()`. Consumers call the factory directly (`useChannelInfo` via `useMemo`, Adapter at construction). No more legacy hook/Context layering.
