@@ -10,7 +10,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { getQueryParams } from "@/utils/utils-common";
 import globalStyles from "@/style/global";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
-import useFilterGroupStorage from "@/hooks/useFilterGroupStorage";
+import useFilterGroup from "@/hooks/useFilterGroup";
 import useAlert from "@/hooks/useAlert";
 import useChzzkAPI from "@/hooks/useChzzkAPI";
 import { GlobalSettingContext } from "@/context/GlobalSetting";
@@ -65,7 +65,7 @@ function App() {
 }
 
 function Router() {
-  const _filterGroupHooks = useFilterGroupStorage('twitch', false);
+  const _filterGroupHooks = useFilterGroup('twitch', false);
 
   return (
     <FilterGroupContext.Provider value={_filterGroupHooks}>

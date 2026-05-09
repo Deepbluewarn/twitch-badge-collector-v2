@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAlertContext } from "../context/Alert";
 import { ChatInfo } from "../interfaces/chat";
 import { CompositeFilterElement } from "../interfaces/filter";
+import { SettingInterface } from "@/interfaces/setting";
 import { atomicFiltersEqual } from "@/utils/utils-common";
 import { evaluateFilterGroup } from "@/filter/evaluate";
 import { FilterValidationError, validateFilterList } from "@/filter/validate";
@@ -16,43 +17,63 @@ const validationErrorMessages: Record<FilterValidationError, string> = {
 };
 
 /**
- * 
- * @param env 
- * @param readOnly 변경된 globalSetting 값을 확장 프로그램 storage 에 저장할지 여부를 설정합니다. 
- *                  true 로 설정하면 Extension 의 storage 에 새로운 값을 저장하지 않습니다.
- *                  만약 storage.onChanged Event 의 callback 함수 내에서 값을 업데이트 해야 하는 경우 true 로 설정하세요.
- *                  @default true
- * @returns 
+ * 사용자의 Filter Group 상태를 관리한다.
+ *
+ * - 마운트 시 `browser.storage.local`의 `filter` 키에서 필터를 로드
+ * - filterGroup이 바뀌면 (extStorageReadOnly=false인 경우) storage에 다시 저장
+ * - `filterGroupRef`는 *현재 platform*으로 필터링된 부분집합만 보유.
+ *   `evaluateFilterGroup`이 React 외부의 MutationObserver 콜백에서 호출되어
+ *   render 사이의 closure가 stale state를 잡지 않도록 하기 위함.
+ *
+ * @param platform 현재 Host page의 platform. ref에 담길 필터를 이 platform으로 한정.
+ * @param extStorageReadOnly true면 mutation을 storage에 다시 쓰지 않음.
+ *   `storage.onChanged` 콜백 안에서 호출할 때 무한 루프 방지용. 기본 true.
  */
-export default function useFilterGroup() {
-    const [ filterGroup, setFilterGroup ] = React.useState<CompositeFilterElement[]>([]);
-    const filterGroupRef = React.useRef<CompositeFilterElement[]>([]);
+export default function useFilterGroup(
+    platform: SettingInterface['platform'],
+    extStorageReadOnly: boolean = true,
+) {
+    const [filterGroup, setFilterGroup] = React.useState<CompositeFilterElement[]>([]);
+    const filterGroupRef = useRef<CompositeFilterElement[]>([]);
+    const isFilterInitialized = useRef(false);
     const { addAlert } = useAlertContext();
     const { t } = useTranslation();
 
+    // 마운트 시 storage에서 초기 로드
     useEffect(() => {
-        filterGroupRef.current = filterGroup;
-    }, [filterGroup]);
+        browser.storage.local.get("filter").then((res) => {
+            setFilterGroup(res.filter);
+            isFilterInitialized.current = true;
+        });
+    }, []);
+
+    // filterGroup 변경 시: (쓰기 모드면) storage 저장 + ref를 현재 platform으로 한정해 동기화
+    useEffect(() => {
+        if (isFilterInitialized.current && !extStorageReadOnly) {
+            browser.storage.local.set({ filter: filterGroup });
+        }
+        filterGroupRef.current = filterGroup.filter(af => af.platform === platform);
+    }, [filterGroup, platform, extStorageReadOnly]);
 
     const addCompositeFilters = (newFilters: CompositeFilterElement[]) => {
-        for(let newFilter of newFilters){
+        for (let newFilter of newFilters) {
             const empty = newFilter.filters.some(row => row.value === '');
 
-            if(empty) {
+            if (empty) {
                 addAlert({
                     message: t('alert.no_value_filter'),
                     serverity: 'warning'
                 });
                 return false;
             }
-    
+
             setFilterGroup(afLists => {
                 for (let af of afLists) {
-                    if(
-                        atomicFiltersEqual(af.filters, newFilter.filters) && 
+                    if (
+                        atomicFiltersEqual(af.filters, newFilter.filters) &&
                         af.platform === newFilter.platform &&
                         (af.filterChannelId ?? "") === (newFilter.filterChannelId ?? "")
-                    ){
+                    ) {
                         addAlert({
                             message: t('alert.filter_already_exist'),
                             serverity: 'warning'
@@ -60,7 +81,7 @@ export default function useFilterGroup() {
                         return afLists;
                     }
                 }
-    
+
                 return [...afLists, newFilter];
             });
         }
@@ -80,10 +101,8 @@ export default function useFilterGroup() {
         setFilterGroup(afLists => {
             const exists = afLists.some(af => af.id === newFilter.id);
             if (exists) {
-                // id가 같은 필터가 있으면 업데이트
                 return afLists.map(af => af.id === newFilter.id ? newFilter : af);
             } else {
-                // 없으면 추가
                 return [...afLists, newFilter];
             }
         });
@@ -91,9 +110,7 @@ export default function useFilterGroup() {
         return true;
     }
 
-    /**
-     * CompositeFilterElement의 특정 하위 필터(id) 삭제
-     */
+    /** CompositeFilterElement의 특정 하위 필터(id) 삭제 */
     const removeSubFilter = (filterListId: string, subFilterId: string) => {
         setFilterGroup(afLists =>
             afLists.map(list =>
@@ -106,7 +123,6 @@ export default function useFilterGroup() {
 
     /**
      * CompositeFilterElement의 특정 필드 값 제거
-     * @param filterListId 필터 리스트 id
      * @param fieldName 제거할 필드 이름 (예: 'filterChannelName', 'filterChannelId', 'filterNote')
      */
     const removeFilterField = (filterListId: string, fieldName: keyof CompositeFilterElement) => {
