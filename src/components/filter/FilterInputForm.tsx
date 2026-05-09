@@ -17,9 +17,9 @@ import {
     FilterCategory,
     FilterType
 } from "../../interfaces/filter";
-import { useFilterGroupContext } from '../../context/ArrayFilter';
+import { useFilterGroupContext } from '../../context/FilterGroup';
 import { nanoid } from 'nanoid';
-import { FilterSelectorType, FilterTypeSelector, FilterCategorySelector } from './ArrayFilterComponents';
+import { FilterSelectorType, FilterTypeSelector, FilterCategorySelector } from './FilterComponents';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
 import CustomTextField from '@/components/TextField/CustomTextField';
@@ -42,7 +42,7 @@ export default function FilterInputForm(
     const channelValue = useRef<TextFieldProps>(null);
     const channelName = useRef<TextFieldProps>(null);
 
-    const onArrayFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFilterGroupNote(event.target.value);
     }
 
@@ -109,7 +109,7 @@ export default function FilterInputForm(
                         <CustomTextField
                             value={filterGroupNote}
                             label={t('필터 설명을 추가하세요')}
-                            onChange={onArrayFilterNoteChanged}
+                            onChange={onFilterNoteChanged}
                         />
                         <Button
                             onClick={addFilter}

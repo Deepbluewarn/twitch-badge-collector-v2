@@ -45,7 +45,7 @@ export default function FilterDialog(props: FilterDialogProps) {
     const { t } = useTranslation();
 
     // 새 필터 추가를 위한 기본 필터 객체 생성
-    const _defaultArrayFilter = defaultAtomicFilter();
+    const _defaultAtomicFilter = defaultAtomicFilter();
     // 편집 중인 데이터 상태
     const [filterGroupList, setFilterGroupList] = React.useState<CompositeFilterElement | undefined>(selectedFilterList);
     const [filterGroup, setFilterGroup] = React.useState<AtomicFilterElement | undefined>();
@@ -57,7 +57,7 @@ export default function FilterDialog(props: FilterDialogProps) {
             setFilterGroup(type === 'filter' ? selectedFilterList?.filters.find(f => f.id === filterId) : undefined);
         } else if (mode === 'add') {
             setFilterGroupList(selectedFilterList);
-            setFilterGroup(type === 'filter' ? _defaultArrayFilter : undefined);
+            setFilterGroup(type === 'filter' ? _defaultAtomicFilter : undefined);
         }
     }, [selectedFilterList, filterId, type, mode]);
 

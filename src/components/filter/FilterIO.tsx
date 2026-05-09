@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useFilterGroupContext } from "@/context/ArrayFilter";
+import { useFilterGroupContext } from "@/context/FilterGroup";
 import { 
     CompositeFilterElement, 
 } from "@/interfaces/filter";

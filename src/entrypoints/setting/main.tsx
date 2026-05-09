@@ -20,7 +20,7 @@ import { TwitchAPIContext } from "@/context/TwitchAPIContext";
 import useTwitchAPI from "@/hooks/useTwitchAPI";
 import { ChzzkAPIContext } from "@/context/ChzzkAPIContext";
 import AlertContainer from "@/components/AlertContainer";
-import { FilterGroupContext } from "@/context/ArrayFilter";
+import { FilterGroupContext } from "@/context/FilterGroup";
 import '@/translate/i18n';
 import { Box } from "@mui/material";
 import SettingPageDrawer from "@/components/drawer/SettingPageDrawer";

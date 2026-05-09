@@ -7,7 +7,7 @@ import Card from '@mui/material/Card';
 import BadgeList from './filter/BadgeList';
 import { AtomicFilterElement, FilterBroadcastMessage } from '../interfaces/filter';
 import useChatInfoObjects from '../hooks/useChannelInfo';
-import { useFilterGroupContext } from '../context/ArrayFilter';
+import { useFilterGroupContext } from '../context/FilterGroup';
 import FilterInputFormList from './filter/FilterInputFormList';
 import FilterInputForm from './filter/FilterInputForm';
 import { FilterGroupList } from './filter/FilterGroupList';

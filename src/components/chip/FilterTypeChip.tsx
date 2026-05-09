@@ -3,7 +3,7 @@ import { GridCellParams } from "@mui/x-data-grid";
 import { BadgeInterface } from "../../interfaces/chat";
 import { CompositeFilterElement, FilterType, TypeArr } from "../../interfaces/filter";
 
-export function onArrayFilterTypeChipClick(params: GridCellParams<any, FilterType>,
+export function onFilterTypeChipClick(params: GridCellParams<any, FilterType>,
     setRows: React.Dispatch<React.SetStateAction<CompositeFilterElement[]>>) {
     if (params.field === 'filterType' && typeof params.value !== 'undefined') {
         const newType = rotateFilterType(params.value);

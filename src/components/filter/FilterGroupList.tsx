@@ -7,9 +7,9 @@ import Tooltip from "@mui/material/Tooltip";
 import Avatar from "@mui/material/Avatar";
 import Stack from "@mui/material/Stack";
 import { ImportFilter, ExportFilter } from "./FilterIO";
-import { chipColor, onArrayFilterTypeChipClick } from "../chip/FilterTypeChip";
+import { chipColor, onFilterTypeChipClick } from "../chip/FilterTypeChip";
 import { CustomToolbarItemStyle } from "@/components/datagrid/toolbar";
-import { useFilterGroupContext } from "@/context/ArrayFilter";
+import { useFilterGroupContext } from "@/context/FilterGroup";
 import { AtomicFilterElement, CompositeFilterElement } from "../../interfaces/filter";
 import RelaxedChip from "../chip/RelaxedChip";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
@@ -40,7 +40,7 @@ export function FilterGroupList() {
     const { globalSetting } = useGlobalSettingContext();
     const adapter = getAdapter(globalSetting.platform);
     const { filterGroup, setFilterGroup, upsertCompositeFilter, removeSubFilter, removeFilterField } = useFilterGroupContext();
-    const [platformArrayFilter, setPlatformArrayFilter] = useState<CompositeFilterElement[]>(filterGroup);
+    const [platformFilters, setPlatformFilters] = useState<CompositeFilterElement[]>(filterGroup);
     const [selectionModel, setSelectionModel] = React.useState<Set<GridRowId>>(new Set());
     const [showDeleteButton, setShowDeleteButton] = React.useState(false);
     const { t } = useTranslation();
@@ -77,7 +77,7 @@ export function FilterGroupList() {
                 renderCell: (params: GridRenderCellParams<CompositeFilterElement, AtomicFilterElement[]>) => {
                     if(!params.value) return null;
 
-                    if(platformArrayFilter.length > 0 && platformArrayFilter[0].platform !== globalSetting.platform) return null;
+                    if(platformFilters.length > 0 && platformFilters[0].platform !== globalSetting.platform) return null;
     
                     const chips = params.value.map(af => {
                         let title = `${t(`filter.type.${af.category || ''}`)}: ${af.value}`;
@@ -225,14 +225,14 @@ export function FilterGroupList() {
                             color={chipColor(params.value)}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onArrayFilterTypeChipClick(params, setFilterGroup);
+                                onFilterTypeChipClick(params, setFilterGroup);
                             }}
                         />
                     )
                 }
             }
         ] as GridColDef[];
-    }, [globalSetting.platform, platformArrayFilter]);
+    }, [globalSetting.platform, platformFilters]);
 
     useEffect(() => {
         console.log('FilterGroupList filterGroup: ', filterGroup)
@@ -240,7 +240,7 @@ export function FilterGroupList() {
     }, [filterGroup]);
 
     useEffect(() => {
-        setPlatformArrayFilter(filterGroup.filter(af => af.platform === globalSetting.platform));
+        setPlatformFilters(filterGroup.filter(af => af.platform === globalSetting.platform));
     }, [filterGroup, globalSetting.platform]);
 
     function CustomToolbar() {
@@ -256,7 +256,7 @@ export function FilterGroupList() {
     return (
         <>
             <CustomDataGrid
-                rows={platformArrayFilter}
+                rows={platformFilters}
                 columns={getColumns()}
                 slots={{ toolbar: CustomToolbar }}
                 showToolbar
@@ -273,10 +273,10 @@ export function FilterGroupList() {
                         actualSelectedIds = selModel.ids;
                     } else {
                         // exclude 타입: 전체에서 ids에 제외된 항목들을 뺀 개수
-                        actualSelectedCount = platformArrayFilter.length - selModel.ids.size;
+                        actualSelectedCount = platformFilters.length - selModel.ids.size;
                         // exclude 타입에서는 선택된 항목들을 계산
                         actualSelectedIds = new Set(
-                            platformArrayFilter
+                            platformFilters
                                 .filter(filter => !selModel.ids.has(filter.id))
                                 .map(filter => filter.id)
                         );

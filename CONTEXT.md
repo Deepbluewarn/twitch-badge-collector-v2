@@ -79,10 +79,6 @@ An optional restriction on a composite Filter Element making it fire only when t
 
 ## Flagged ambiguities
 
-- File names `src/context/ArrayFilter.ts` and `src/components/filter/ArrayFilterComponents.tsx` still carry the legacy "Array" prefix even though their exports have been renamed (`FilterGroupContext`, `FilterTypeSelector`, etc.). Rename in a future small pass via `git mv`.
-
-- A few local handler/variable names still reference "ArrayFilter": `onArrayFilterTypeChipClick` ([FilterTypeChip.tsx](src/components/chip/FilterTypeChip.tsx)), `onArrayFilterNoteChanged`/`onArrayFilterTypeChanged` (local handlers in `FilterInputForm.tsx`, `FilterInputFormList.tsx`), `_defaultArrayFilter` (local variable in `FilterDialog.tsx`). Internal-only, low priority.
-
 - The `BroadcastChannel('ArrayFilter')` channel name in [Filter.tsx](src/components/Filter.tsx) is intentionally preserved for cross-tab compatibility with users running older extension versions.
 
 - Badge fetching APIs in [BadgeList.tsx:128-146](src/components/filter/BadgeList.tsx#L128-L146) still branch on `globalSetting.platform` because the Twitch / Chzzk API clients are React-hook-bound (`useTwitchAPIContext`, `useChzzkAPIContext`) and don't fit the plain-class **Platform Adapter** as-is. A separate round can lift the API clients out of hooks (or pass them into the Adapter at construction) and unify the four `useQuery` calls into one `adapter.fetchBadges(...)`.

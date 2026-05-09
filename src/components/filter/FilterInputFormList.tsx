@@ -16,9 +16,9 @@ import {
     FilterCategory,
     FilterType
 } from "../../interfaces/filter";
-import { useFilterGroupContext } from '../../context/ArrayFilter';
+import { useFilterGroupContext } from '../../context/FilterGroup';
 import { nanoid } from 'nanoid';
-import { AdvancedFilterCategorySelector, FilterSelectorType, FilterTypeSelector } from './ArrayFilterComponents';
+import { AdvancedFilterCategorySelector, FilterSelectorType, FilterTypeSelector } from './FilterComponents';
 import Divider from '@mui/material/Divider';
 import CustomTextField from '../TextField/CustomTextField';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
@@ -51,10 +51,10 @@ export default function FilterInputFormList(
             }]
         });
     }
-    const onArrayFilterTypeChanged = (event: SelectChangeEvent<FilterType>) => {
+    const onFilterTypeChanged = (event: SelectChangeEvent<FilterType>) => {
         setFilterGroupType(event.target.value as FilterType);
     }
-    const onArrayFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFilterGroupNote(event.target.value);
     }
     const addFilter = useCallback(() => {
@@ -138,12 +138,12 @@ export default function FilterInputFormList(
                                 <CustomTextField
                                     value={filterGroupNote}
                                     label={t('필터 설명을 추가하세요')}
-                                    onChange={onArrayFilterNoteChanged}
+                                    onChange={onFilterNoteChanged}
                                 />
                                 <FilterTypeSelector
                                     labelId="filterGroupType"
                                     value={filterGroupType}
-                                    onChange={onArrayFilterTypeChanged}
+                                    onChange={onFilterTypeChanged}
                                 />
                             </Stack>
 
