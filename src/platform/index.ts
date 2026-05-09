@@ -76,6 +76,13 @@ export interface PlatformAdapter extends ChatExtractor {
      * Twitch=true, Chzzk=false (글로벌 배지만 존재).
      */
     readonly supportsChannelBadgeQuery: boolean;
+
+    /**
+     * Container의 채팅 유지(localStorage 기반 복원) 기능을 지원하는지.
+     * Twitch=false (이번 v1 미지원 — inject 시간이 없어서 정렬 일관성 미흡).
+     * Chzzk=true.
+     */
+    readonly supportsChatPersistence: boolean;
 }
 
 const adapters = {

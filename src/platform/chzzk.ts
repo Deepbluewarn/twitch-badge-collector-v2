@@ -30,6 +30,8 @@ export class ChzzkAdapter implements PlatformAdapter {
 
     readonly supportsChannelBadgeQuery = false;
 
+    readonly supportsChatPersistence = true;
+
     private api: ChzzkAPI = createChzzkAPI();
 
     extract(node: Node): ChatInfo | undefined {

@@ -33,7 +33,17 @@ export default function Local({
         ?? (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
 
     const channelId = adapter.getCurrentChannelId();
-    const { chats, addChat, clear } = useFilteredChatBuffer(adapter, maxNumChats);
+
+    // 채팅 유지: Adapter가 지원하고 라이브 모드인 경우만. 채널 단위 scope.
+    const persistenceKey = (
+        adapter.supportsChatPersistence
+        && channelId
+        && adapter.getPageMode() === 'live'
+    )
+        ? `chatHistory:${type}:${channelId}:live`
+        : undefined;
+
+    const { chats, addChat, clear } = useFilteredChatBuffer(adapter, maxNumChats, persistenceKey);
 
     useChatStream(adapter, chat => checkFilter(chat, channelId), addChat);
 

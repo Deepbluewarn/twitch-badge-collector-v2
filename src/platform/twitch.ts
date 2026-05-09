@@ -40,6 +40,8 @@ export class TwitchAdapter implements PlatformAdapter {
 
     readonly supportsChannelBadgeQuery = true;
 
+    readonly supportsChatPersistence = false;
+
     private api: TwitchAPI = createTwitchAPI();
 
     extract(node: Node): ChatInfo | undefined {
