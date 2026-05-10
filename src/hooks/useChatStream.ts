@@ -41,9 +41,11 @@ export default function useChatStream(
 
                     const original = node as HTMLElement;
                     if (original.classList.contains(PROCESSED_CHAT_CLASS)) return;
-                    original.classList.add(PROCESSED_CHAT_CLASS);
 
+                    // 처리됨 마킹은 clone 만든 *후*에 — 그렇지 않으면 PROCESSED_CHAT_CLASS가
+                    // clone에 묻어가서 :before 노란 바가 복제 채팅에도 나타남.
                     const clone = node.cloneNode(true) as HTMLElement;
+                    original.classList.add(PROCESSED_CHAT_CLASS);
                     adapter.prepareChatClone(clone);
 
                     const key = clone.getAttribute(CHAT_ATTR.KEY)

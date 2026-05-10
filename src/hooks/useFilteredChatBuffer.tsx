@@ -48,13 +48,16 @@ const PERSIST_DEBOUNCE_MS = 500;
 const EVICTION_DROP_RATIO = 0.1;
 
 /**
- * 저장소에 저장. quota 초과 시 오래된 쪽부터 10%씩 drop하고 재시도.
+ * 채팅 유지는 *세션* 단위 — 새로고침/탭 이동엔 살아남되 브라우저 재시작엔 깨끗이 비움.
+ * MV3의 `storage.session`은 메모리 기반 + 브라우저 종료 시 자동 삭제.
+ *
+ * 저장. quota 초과 시 오래된 쪽부터 10%씩 drop하고 재시도.
  */
 async function saveWithEviction(key: string, payload: PersistedPayload): Promise<void> {
     let attempt = payload;
     while (attempt.chats.length > 0) {
         try {
-            await browser.storage.local.set({ [key]: attempt });
+            await browser.storage.session.set({ [key]: attempt });
             return;
         } catch {
             const evictCount = Math.max(1, Math.floor(attempt.chats.length * EVICTION_DROP_RATIO));
@@ -64,7 +67,7 @@ async function saveWithEviction(key: string, payload: PersistedPayload): Promise
 }
 
 async function loadPersisted(key: string): Promise<SavedChat[]> {
-    const res = await browser.storage.local.get(key);
+    const res = await browser.storage.session.get(key);
     const payload = res[key] as PersistedPayload | undefined;
     if (!payload || payload.version !== 1) return [];
     return payload.chats.map(c => ({ ...c, restored: true }));
@@ -97,6 +100,22 @@ export default function useFilteredChatBuffer(
     const [savedChats, setSavedChats] = useState<SavedChat[]>([]);
     const persistTimerRef = useRef<number | null>(null);
     const isHydratedRef = useRef(false);
+    // capture 상태는 ref로 — addChat의 useCallback이 dep 안 잡고 최신 값 읽음
+    const captureRef = useRef(capture);
+    useEffect(() => { captureRef.current = capture; }, [capture]);
+
+    // capture 모드 해제될 때 누적된 초과분을 한 번에 trim. 모드 동안 maxChats 넘게
+    // 쌓일 수 있어 (사용자가 선택 중인 채팅 보존 위해) 해제 시점에 정리.
+    useEffect(() => {
+        if (capture?.captureMode) return;
+        setSavedChats(prev => {
+            if (prev.length <= maxChats) return prev;
+            const overflow = prev.length - maxChats;
+            return adapter.chatOrder === 'newest-top'
+                ? prev.slice(0, maxChats)
+                : prev.slice(overflow);
+        });
+    }, [capture?.captureMode, maxChats, adapter.chatOrder]);
 
     // 마운트 시: persistenceKey 있으면 storage에서 load + restored=true로 hydrate.
     useEffect(() => {
@@ -147,19 +166,20 @@ export default function useFilteredChatBuffer(
             if (prev.some(c => c.key === key)) return prev;
             if (adapter.supportsChatPersistence && prev.some(c => c.time === time)) return prev;
 
-            const next = [...prev, { key, time, html: clone.outerHTML, restored: false }];
+            // 도착 순서대로 prepend/append. time 기준 sort는 안 함 — chzzk live time이
+            // 도착 순서와 어긋나는 경우 있어서 정렬 기준으로 신뢰 불가 (특정 채팅이
+            // 잠시 아래에 고정되는 현상의 원인). 각 채팅은 도착 시점이 곧 그 채팅의 자리.
+            const newEntry = { key, time, html: clone.outerHTML, restored: false };
+            const next = adapter.chatOrder === 'newest-top'
+                ? [newEntry, ...prev]
+                : [...prev, newEntry];
 
-            next.sort((a, b) => {
-                return adapter.chatOrder === 'newest-top'
-                    ? b.time - a.time
-                    : a.time - b.time;
-            });
-
-            if (next.length >= maxChats) {
-                const trimFromEnd = adapter.chatOrder === 'newest-top';
+            // capture 모드 동안엔 trim 일시 정지 — 사용자가 보고 있는 채팅이 사라지지
+            // 않도록. capture 모드 해제 시 별도 useEffect에서 한 번에 trim.
+            if (next.length >= maxChats && !captureRef.current?.captureMode) {
                 const overflow = next.length - maxChats;
-                if (trimFromEnd) {
-                    next.splice(next.length - 1, overflow);
+                if (adapter.chatOrder === 'newest-top') {
+                    next.splice(next.length - overflow, overflow);
                 } else {
                     next.splice(0, overflow);
                 }

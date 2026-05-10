@@ -102,6 +102,7 @@ async function downloadPng(dataUrl: string, filename: string): Promise<void> {
     if (res?.error) throw new Error(res.error);
 }
 
+
 /** 1x1 투명 PNG — html-to-image fetch 실패 시 fallback. */
 const TRANSPARENT_PNG =
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=';

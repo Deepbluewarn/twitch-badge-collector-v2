@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Fab from "@mui/material/Fab";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import PhotoCameraOutlinedIcon from "@mui/icons-material/PhotoCameraOutlined";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import useFilterGroup from "@/hooks/useFilterGroup";
 import useChatStream from "@/hooks/useChatStream";
@@ -85,6 +90,17 @@ export default function Local({
         if (!captureMode && selectedKeys.size > 0) setSelectedKeys(new Set());
     }, [captureMode]);
 
+    // 1분 inactivity 시 capture 모드 자동 해제.
+    // 활동 = 채팅 선택 변경 (selectedKeys ref 변화). 진입 직후에도 1분 카운트 시작.
+    // 자동 해제와 동시에 useFilteredChatBuffer가 누적된 초과분을 trim하므로 메모리 누수 없음.
+    useEffect(() => {
+        if (!captureMode) return;
+        const timer = window.setTimeout(() => {
+            setCaptureMode(false);
+        }, 60_000);
+        return () => window.clearTimeout(timer);
+    }, [captureMode, selectedKeys]);
+
     // 채팅 클릭 → 선택 토글. 캡쳐 모드일 때만 활성, 그 외엔 host page link 동작 보존.
     const onChatClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         if (!captureMode) return;
@@ -135,50 +151,69 @@ export default function Local({
     }, [selectedKeys, capturing, type]);
 
     /**
-     * 실제로 overflow:auto/scroll이 걸린 가장 가까운 조상.
-     * `#tbc-clone__${type}ui`가 시작점이지만 그 자체가 스크롤되지 않을 수 있어
-     * 부모 사슬을 타고 올라가며 스크롤 가능 요소를 찾는다.
+     * 자동 스크롤 — Sentinel + IntersectionObserver + ResizeObserver 패턴.
+     *
+     * 동작:
+     *  1. 채팅 visual 바닥에 invisible sentinel <div>를 둠
+     *     - newest-top(chzzk, column-reverse): sentinel을 chats 앞에 → DOM 첫 자식 = 시각 바닥
+     *     - newest-bottom(twitch, normal column): sentinel을 chats 뒤에 → DOM 마지막 자식 = 시각 바닥
+     *  2. IntersectionObserver: sentinel 보이면 followingRef=true (사용자가 바닥 근처 보고 있음)
+     *  3. ResizeObserver: 채팅 영역 크기 변할 때마다 (chat 추가 + 이미지 늦게 로드 둘 다 catch)
+     *     followingRef true면 sentinel을 scrollIntoView로 다시 바닥에 고정
+     *
+     * 이미지 lazy load + React commit/paint timing race 모두 한번에 해결.
      */
-    const findScrollableAncestor = (start: Element | null): HTMLElement | null => {
-        let el = start as HTMLElement | null;
-        while (el) {
-            const overflowY = window.getComputedStyle(el).overflowY;
-            if (overflowY === 'auto' || overflowY === 'scroll') return el;
-            el = el.parentElement;
-        }
-        return null;
-    };
+    const sentinelRef = useRef<HTMLDivElement>(null);
+    const followingRef = useRef(true);
+    const [showJumpToBottom, setShowJumpToBottom] = useState(false);
 
-    const getScrollArea = (): HTMLElement | null => {
-        const start = containerRef.current?.querySelector(`#tbc-clone__${type}ui`) ?? containerRef.current;
-        return findScrollableAncestor(start);
-    };
-
-    // 스크롤 추적: 사용자가 "따라가는 위치(visual 바닥)"에서 벗어나면 자동 스크롤
-    // 멈춤. Chzzk는 CSS의 flex-direction: column-reverse 덕분에 chats[0](newest)가
-    // visual 바닥에 렌더됨 → scrollHeight가 두 platform 모두에서 newest 위치.
-    const SCROLL_FOLLOW_TOLERANCE = 5;
-    const isAtFollowPositionRef = useRef(true);
+    const updateFollowingFromScroll = useCallback((scrollEl: HTMLElement) => {
+        // 스크롤 위치 기반 fallback. column-reverse(chzzk)는 scrollTop이 음수/0 근처가 바닥이라
+        // Math.abs로 처리. tolerance 5px.
+        const distFromBottom = adapter.chatOrder === 'newest-top'
+            ? Math.abs(scrollEl.scrollTop)  // column-reverse: 0이 바닥
+            : scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight;
+        const atBottom = distFromBottom <= 5;
+        followingRef.current = atBottom;
+        setShowJumpToBottom(!atBottom);
+    }, [adapter.chatOrder]);
 
     useEffect(() => {
-        const scrollArea = getScrollArea();
-        if (!scrollArea) return;
+        const sentinel = sentinelRef.current;
+        if (!sentinel) return;
+        const cloneEl = containerRef.current?.querySelector<HTMLElement>(`#tbc-clone__${type}ui`);
+        if (!cloneEl) return;
 
-        const onScroll = () => {
-            const distFromBottom =
-                scrollArea.scrollHeight - scrollArea.scrollTop - scrollArea.clientHeight;
-            isAtFollowPositionRef.current = distFromBottom <= SCROLL_FOLLOW_TOLERANCE;
+        // 1차: IntersectionObserver — sentinel 가시성으로 follow 판정.
+        const io = new IntersectionObserver(([entry]) => {
+            followingRef.current = entry.isIntersecting;
+            setShowJumpToBottom(!entry.isIntersecting);
+        }, { root: cloneEl, threshold: 0 });
+        io.observe(sentinel);
+
+        // 2차 fallback: scroll listener — IO가 0px sentinel 등 edge case에서 못 잡을 때 보강.
+        const onScroll = () => updateFollowingFromScroll(cloneEl);
+        cloneEl.addEventListener('scroll', onScroll, { passive: true });
+
+        // 채팅 영역 크기 변화 (chat 추가 / 이미지·폰트 늦은 로드 등) 감지.
+        // 사용자가 바닥에 있었으면 다시 바닥으로 끌어당김.
+        const ro = new ResizeObserver(() => {
+            if (followingRef.current) {
+                sentinel.scrollIntoView({ block: 'end', behavior: 'instant' as ScrollBehavior });
+            }
+        });
+        ro.observe(cloneEl);
+
+        return () => {
+            io.disconnect();
+            ro.disconnect();
+            cloneEl.removeEventListener('scroll', onScroll);
         };
-        scrollArea.addEventListener("scroll", onScroll, false);
-        return () => scrollArea.removeEventListener("scroll", onScroll);
-    }, []);
+    }, [type, updateFollowingFromScroll]);
 
-    useEffect(() => {
-        const scrollArea = getScrollArea();
-        if (!scrollArea) return;
-        if (!isAtFollowPositionRef.current) return;
-        scrollArea.scrollTop = scrollArea.scrollHeight;
-    }, [chats]);
+    const jumpToBottom = useCallback(() => {
+        sentinelRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    }, []);
 
     // chatTime 설정 토글 시 CSS 클래스 swap (rerender 없이 직접 DOM mutate).
     useEffect(() => {
@@ -210,116 +245,131 @@ export default function Local({
         });
     }, []);
 
-    // 캡쳐 toolbar 표시 정책: 평소엔 숨김(컨테이너 영역 0 점유), Wrapper hover 시
-    // 또는 캡쳐 모드 ON일 때만 표시. 표시 시엔 채팅 영역 위로 overlay (absolute) →
-    // 채팅 layout은 그대로 유지, 일시적으로 위쪽 일부 가려질 뿐.
-    const toolbarVisible = captureMode;
+    const allSelected = savedChats.length > 0 && selectedKeys.size === savedChats.length;
+    const [hovered, setHovered] = useState(false);
 
     return (
-        <Wrapper ref={containerRef} className={globalSetting.chatTime === 'on' ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'}>
-            {/* 복원 채팅 시각 구분 — useFilteredChatBuffer가 복원 채팅 root에 tbcv2-restored-chat 클래스를 부여 */}
+        <Wrapper
+            ref={containerRef}
+            className={globalSetting.chatTime === 'on' ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            sx={{ position: 'relative' }}
+        >
             <style>{`
                 .tbcv2-restored-chat { background-color: rgba(128, 128, 128, 0.15); }
                 .tbcv2-capture-mode { cursor: pointer; }
                 .tbcv2-capture-mode:hover { outline: 1px dashed rgba(255,193,7,0.6); outline-offset: -1px; }
                 .tbcv2-capture-selected { background-color: rgba(255,193,7,0.18) !important; outline: 2px solid #FFC107; outline-offset: -2px; }
-                .tbcv2-capture-toolbar-host { position: relative; height: 100%; }
-                .tbcv2-capture-toolbar-host > .tbcv2-capture-toolbar {
-                    position: absolute; top: 0; left: 0; right: 0;
-                    opacity: 0; pointer-events: none;
-                    transition: opacity 0.15s ease;
-                    z-index: 10;
-                    background: rgba(20, 20, 22, 0.92);
-                    backdrop-filter: blur(4px);
-                }
-                .tbcv2-capture-toolbar-host:hover > .tbcv2-capture-toolbar,
-                .tbcv2-capture-toolbar-host > .tbcv2-capture-toolbar.tbcv2-visible {
-                    opacity: 1; pointer-events: auto;
-                }
             `}</style>
-            <div className="tbcv2-capture-toolbar-host">
-                <CaptureToolbar
-                    captureMode={captureMode}
-                    onToggle={() => setCaptureMode(v => !v)}
-                    selectedCount={selectedKeys.size}
-                    totalCount={savedChats.length}
-                    onSelectAll={onSelectAllClick}
-                    onCapture={onCaptureClick}
-                    capturing={capturing}
-                    forceVisible={toolbarVisible}
-                />
-                <div
-                    id={`tbc-clone__${type}ui`}
-                    onClick={onChatClick}
-                    style={{
-                        marginTop: 0,
-                        paddingTop: 0,
-                        height: '100%',
+
+            <div
+                id={`tbc-clone__${type}ui`}
+                onClick={onChatClick}
+                style={{
+                    marginTop: 0,
+                    paddingTop: 0,
+                    // capture 모드의 하단 액션 바(약 52px)에 가려지지 않도록 채팅 영역 height 축소.
+                    // ResizeObserver가 변화를 감지해서 sentinel을 다시 시각 바닥으로 snap.
+                    height: captureMode ? 'calc(100% - 52px)' : '100%',
+                }}
+            >
+                {/* sentinel 위치는 시각 바닥에 가도록 chatOrder 따라 결정.
+                    chzzk(newest-top + column-reverse): DOM 첫 자식이 시각 바닥 → sentinel 먼저.
+                    twitch(newest-bottom + normal column): DOM 마지막 자식이 시각 바닥 → sentinel 나중.
+                    explicit 1px 높이 — 0px면 일부 브라우저에서 IntersectionObserver가 잘못 판정. */}
+                {adapter.chatOrder === 'newest-top' && (
+                    <div ref={sentinelRef} aria-hidden="true" style={{ height: 1, flexShrink: 0 }} />
+                )}
+                {chats}
+                {adapter.chatOrder !== 'newest-top' && (
+                    <div ref={sentinelRef} aria-hidden="true" style={{ height: 1, flexShrink: 0 }} />
+                )}
+            </div>
+
+            {/* "맨 아래로" FAB — 사용자가 위로 스크롤한 상태일 때만 표시. capture mode 무관. */}
+            {showJumpToBottom && (
+                <Fab
+                    size="small"
+                    onClick={jumpToBottom}
+                    aria-label="맨 아래로"
+                    sx={{
+                        position: 'absolute',
+                        bottom: captureMode ? 64 : 12,
+                        right: 12,
+                        zIndex: 11,
+                        bgcolor: '#7c8aef',
+                        color: '#fff',
+                        '&:hover': { bgcolor: '#5b6acb' },
                     }}
                 >
-                    {chats}
-                </div>
-            </div>
+                    <KeyboardArrowDownIcon />
+                </Fab>
+            )}
+
+            {/* 캡쳐 진입 FAB — 평상시 hover 시에만 표시. jump FAB과 겹치지 않게 위로 offset. */}
+            {!captureMode && (
+                <Fab
+                    size="small"
+                    onClick={() => setCaptureMode(true)}
+                    aria-label="캡쳐 시작"
+                    sx={{
+                        position: 'absolute',
+                        // jump FAB(showJumpToBottom일 때 bottom 12)과 겹치지 않게 위로.
+                        bottom: showJumpToBottom ? 64 : 12,
+                        right: 12,
+                        zIndex: 10,
+                        bgcolor: '#7c8aef',
+                        color: '#fff',
+                        opacity: hovered ? 1 : 0,
+                        pointerEvents: hovered ? 'auto' : 'none',
+                        transition: 'opacity 0.15s ease, bottom 0.15s ease',
+                        '&:hover': { bgcolor: '#5b6acb' },
+                    }}
+                >
+                    <PhotoCameraOutlinedIcon fontSize="small" />
+                </Fab>
+            )}
+
+            {/* 캡쳐 모드 — 하단 full-width 액션 바. 채팅 layout 보존 (overlay). */}
+            {captureMode && (
+                <Box
+                    sx={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10,
+                        bgcolor: 'rgba(20,20,22,0.95)',
+                        backdropFilter: 'blur(6px)',
+                        borderTop: '1px solid rgba(255,255,255,0.1)',
+                        p: 1, display: 'flex', gap: 1, alignItems: 'center',
+                    }}
+                >
+                    <ToolbarButton onClick={() => setCaptureMode(false)} disabled={capturing}>취소</ToolbarButton>
+                    <ToolbarButton onClick={onSelectAllClick} disabled={capturing || savedChats.length === 0}>
+                        {allSelected ? '전체 해제' : '전체 선택'}
+                    </ToolbarButton>
+                    <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(255,255,255,0.7)' }}>
+                        {selectedKeys.size}개 선택됨
+                    </Typography>
+                    <ToolbarButton
+                        onClick={onCaptureClick}
+                        disabled={selectedKeys.size === 0 || capturing}
+                        sx={{ bgcolor: 'rgba(124,138,239,0.6)', borderColor: 'rgba(124,138,239,0.8)', '&:hover': { bgcolor: 'rgba(124,138,239,0.8)' } }}
+                    >
+                        {capturing ? '캡쳐 중...' : 'PNG 다운로드'}
+                    </ToolbarButton>
+                </Box>
+            )}
         </Wrapper>
     );
 }
 
-const Toolbar = styled('div')({
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '4px 8px',
-    height: 36,
-    boxSizing: 'border-box',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
-    fontSize: 12,
-});
-
 const ToolbarButton = styled('button')({
     background: 'transparent',
     border: '1px solid rgba(255,255,255,0.2)',
-    color: 'inherit',
-    padding: '2px 8px',
+    color: 'white',
+    padding: '4px 10px',
     borderRadius: 4,
     cursor: 'pointer',
     fontSize: 12,
     '&:hover': { background: 'rgba(255,255,255,0.08)' },
     '&:disabled': { opacity: 0.5, cursor: 'default' },
 });
-
-function CaptureToolbar({
-    captureMode, onToggle, selectedCount, totalCount, onSelectAll, onCapture, capturing, forceVisible,
-}: {
-    captureMode: boolean;
-    onToggle: () => void;
-    selectedCount: number;
-    totalCount: number;
-    onSelectAll: () => void;
-    onCapture: () => void;
-    capturing: boolean;
-    forceVisible: boolean;
-}) {
-    const allSelected = totalCount > 0 && selectedCount === totalCount;
-    return (
-        <Toolbar className={`tbcv2-capture-toolbar${forceVisible ? ' tbcv2-visible' : ''}`}>
-            <ToolbarButton onClick={onToggle} disabled={capturing}>
-                {captureMode ? '캡쳐 취소' : '캡쳐'}
-            </ToolbarButton>
-            {captureMode && (
-                <>
-                    <ToolbarButton onClick={onSelectAll} disabled={capturing || totalCount === 0}>
-                        {allSelected ? '전체 해제' : '전체 선택'}
-                    </ToolbarButton>
-                    <span>{selectedCount}개 선택됨</span>
-                    <ToolbarButton
-                        onClick={onCapture}
-                        disabled={selectedCount === 0 || capturing}
-                        style={{ marginLeft: 'auto' }}
-                    >
-                        {capturing ? '캡쳐 중...' : 'PNG 다운로드'}
-                    </ToolbarButton>
-                </>
-            )}
-        </Toolbar>
-    );
-}

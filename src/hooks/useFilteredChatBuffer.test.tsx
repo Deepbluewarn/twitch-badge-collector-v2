@@ -43,24 +43,28 @@ describe('useFilteredChatBuffer', () => {
         expect(result.current.chats).toHaveLength(1);
     });
 
-    it('newest-bottom: chats sorted ascending by time (oldest first)', () => {
+    // 도착 순서대로 prepend(newest-top) / append(oldest-top). time 기준 sort는 안 함.
+    // chzzk live time이 도착 순서와 어긋나는 경우 있어 정렬 기준으로 신뢰 불가.
+    it('newest-bottom: appends in arrival order (NOT time-sorted)', () => {
         const { result } = renderHook(() => useFilteredChatBuffer(makeAdapter('newest-bottom'), 100));
 
         act(() => result.current.addChat(passed({ key: 'b', time: 200 })));
         act(() => result.current.addChat(passed({ key: 'a', time: 100 })));
         act(() => result.current.addChat(passed({ key: 'c', time: 300 })));
 
-        expect(result.current.chats.map(c => c.key)).toEqual(['a', 'b', 'c']);
+        // 'a'의 time이 더 작아도 도착 순서대로 b, a, c.
+        expect(result.current.chats.map(c => c.key)).toEqual(['b', 'a', 'c']);
     });
 
-    it('newest-top: chats sorted descending by time (newest first)', () => {
+    it('newest-top: prepends in arrival order (NOT time-sorted)', () => {
         const { result } = renderHook(() => useFilteredChatBuffer(makeAdapter('newest-top'), 100));
 
         act(() => result.current.addChat(passed({ key: 'b', time: 200 })));
         act(() => result.current.addChat(passed({ key: 'a', time: 100 })));
         act(() => result.current.addChat(passed({ key: 'c', time: 300 })));
 
-        expect(result.current.chats.map(c => c.key)).toEqual(['c', 'b', 'a']);
+        // 마지막 도착 'c'가 맨 위. time 무관.
+        expect(result.current.chats.map(c => c.key)).toEqual(['c', 'a', 'b']);
     });
 
     it('newest-bottom: when maxChats is reached, trims from the start (oldest)', () => {
