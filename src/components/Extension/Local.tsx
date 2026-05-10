@@ -50,22 +50,40 @@ export default function Local({
     const getScrollArea = () =>
         containerRef.current?.querySelector(`#tbc-clone__${type}ui`) ?? null;
 
-    // 스크롤 추적: 사용자가 바닥에 있으면 새 채팅 도착 시 자동으로 따라 내려감.
-    const isAtBottomRef = useRef(true);
+    // 스크롤 추적: platform의 chatOrder에 따라 "따라가는 위치"가 다름.
+    // - newest-bottom (Twitch): 바닥에 있을 때 새 채팅 도착 시 바닥으로 따라감.
+    // - newest-top (Chzzk): 맨 위에 있을 때 새 채팅 도착 시 맨 위로 따라감.
+    // 사용자가 그 위치에서 벗어나면 자동 스크롤 멈춤(과거 채팅 보는 중).
+    const SCROLL_FOLLOW_TOLERANCE = 5;
+    const isAtFollowPositionRef = useRef(true);
+
     useEffect(() => {
         const scrollArea = getScrollArea();
         if (!scrollArea) return;
 
-        const onScroll = () => { isAtBottomRef.current = scrollArea.scrollTop >= 0; };
+        const onScroll = () => {
+            if (adapter.chatOrder === 'newest-top') {
+                isAtFollowPositionRef.current = scrollArea.scrollTop <= SCROLL_FOLLOW_TOLERANCE;
+            } else {
+                const distFromBottom =
+                    scrollArea.scrollHeight - scrollArea.scrollTop - scrollArea.clientHeight;
+                isAtFollowPositionRef.current = distFromBottom <= SCROLL_FOLLOW_TOLERANCE;
+            }
+        };
         scrollArea.addEventListener("scroll", onScroll, false);
         return () => scrollArea.removeEventListener("scroll", onScroll);
-    }, []);
+    }, [adapter.chatOrder]);
 
     useEffect(() => {
         const scrollArea = getScrollArea();
         if (!scrollArea) return;
-        if (isAtBottomRef.current) scrollArea.scrollTop = scrollArea.scrollHeight;
-    }, [chats]);
+        if (!isAtFollowPositionRef.current) return;
+        if (adapter.chatOrder === 'newest-top') {
+            scrollArea.scrollTop = 0;
+        } else {
+            scrollArea.scrollTop = scrollArea.scrollHeight;
+        }
+    }, [chats, adapter.chatOrder]);
 
     // chatTime 설정 토글 시 CSS 클래스 swap (rerender 없이 직접 DOM mutate).
     useEffect(() => {
