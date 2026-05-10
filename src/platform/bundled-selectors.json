@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "rev": 1,
+  "platforms": {
+    "twitch": {
+      "livePathRegex": "^/(?!videos/)",
+      "vodPathRegex": "^/videos/",
+      "channelIdPathIndex": 1,
+      "selectors": {
+        "chatRoomLive": ".chat-room__content [class*=\"chat-list--\"] .scrollable-area",
+        "chatRoomVod": ".video-chat__message-list-wrapper",
+        "video": ".Layout-sc-1xcs6mc-0.video-ref video",
+        "displayName": ".chat-author__display-name",
+        "chatterName": ".intl-login",
+        "messageText": ".text-fragment",
+        "badge": ".chat-badge",
+        "pointButton": "button.bCfhNy",
+        "pointButtonContainer": ".community-points-summary"
+      },
+      "reactPropsPaths": {
+        "live": {
+          "messageId": "children.props.message.id",
+          "channelLogin": "children.props.channelLogin",
+          "badges": "children.props.message.badges"
+        },
+        "vod": {
+          "messageId": "children.props.messageContext.comment.message.id",
+          "channelId": "children.props.messageContext.comment.channelId",
+          "badges": "children.props.messageContext.comment.userBadges"
+        }
+      }
+    },
+    "chzzk": {
+      "livePathRegex": "^/live/",
+      "vodPathRegex": "^/video/",
+      "channelIdPathIndex": 2,
+      "selectors": {
+        "chatRoomLive": ".live_chatting_list_wrapper__a5XTV",
+        "chatRoomVod": ".vod_chatting_list__+LZHw",
+        "video": ".pzp-pc__video video.webplayer-internal-video",
+        "displayName": ".name_text__yQG50",
+        "messageText": ".live_chatting_message_text__DyleH",
+        "donationText": ".live_chatting_donation_message_text__XbDKP",
+        "badge": ".badge_container__a64XB",
+        "verifiedIcon": ".name_icon__zdbVH",
+        "blindText": ".blind",
+        "usernameContainer": ".live_chatting_username_container__m1-i5.live_chatting_username_is_message__jvTvP",
+        "popupProfileHeader": ".live_chatting_popup_profile_header__OWnnU",
+        "pointButton": ".live_chatting_power_button__Ov3eJ"
+      },
+      "reactPropsPaths": {
+        "live": {
+          "messageKey": "children.props.chatMessage.key",
+          "messageTime": "children.props.chatMessage.time",
+          "messageBadges": "children.props.chatMessage.displayBadgeList",
+          "isReplayChat": "children.props.isReplayChat"
+        },
+        "vod": {
+          "messageKey": "children.props.chatMessage.key",
+          "messageTime": "children.props.chatMessage.playerMessageTime",
+          "messageBadges": "children.props.chatMessage.displayBadgeList",
+          "isReplayChat": "children.props.isReplayChat"
+        }
+      },
+      "constants": {
+        "verifiedBadgeImageUrl": "https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png",
+        "dragHeaderOffset": 77,
+        "dragFooterOffset": 62
+      }
+    }
+  }
+}

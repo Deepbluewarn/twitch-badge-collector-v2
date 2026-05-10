@@ -3,9 +3,12 @@ import type { PlatformAdapter } from "./";
 import { createTwitchAPI, TwitchAPI } from "@/api/twitch";
 import { Version } from "@/interfaces/api/twitchAPI";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
+import { getPlatformConfig, detectPageMode, extractChannelId } from "./host-selectors";
 
 const TWITCH_BADGE_CDN = 'https://static-cdn.jtvnw.net/badges/v1';
 const TWITCH_DENSITY_TO_PATH = { '1x': '1', '2x': '2', '4x': '3' } as const;
+/** Dynamic getter — OTA로 갱신된 값을 매 호출마다 읽음. */
+const cfg = () => getPlatformConfig('twitch');
 
 function badgeMapToInterface(
     map: Map<string, Version>,
@@ -51,10 +54,11 @@ export class TwitchAdapter implements PlatformAdapter {
 
         const chat_clone = nodeElement.cloneNode(true) as Element;
 
-        const display_name = chat_clone.getElementsByClassName(
-            "chat-author__display-name"
-        )[0];
-        const chatter_name = chat_clone.getElementsByClassName("intl-login")[0];
+        const sel = cfg().selectors;
+        const display_name = chat_clone.querySelector(sel.displayName);
+        const chatter_name = sel.chatterName
+            ? chat_clone.querySelector(sel.chatterName)
+            : null;
 
         if (!display_name && !chatter_name) return;
 
@@ -76,11 +80,8 @@ export class TwitchAdapter implements PlatformAdapter {
         loginName = loginName ? loginName : subLoginName;
         nickName = nickName ? nickName : subNickname;
 
-        const textContents = (
-            chat_clone.getElementsByClassName("text-fragment")
-        ) as HTMLCollectionOf<HTMLSpanElement>;
-
-        const badgeElements = chat_clone.getElementsByClassName("chat-badge") as HTMLCollectionOf<HTMLImageElement>;
+        const textContents = chat_clone.querySelectorAll<HTMLSpanElement>(sel.messageText);
+        const badgeElements = chat_clone.querySelectorAll<HTMLImageElement>(sel.badge);
         const dataBadges: string[] = JSON.parse(chat_clone.getAttribute(CHAT_ATTR.BADGES) || '[]');
         const fallbackBadges = Array.from(badgeElements)
             .map((badge) => new URL(badge.src).pathname.split("/")[3]);
@@ -99,13 +100,14 @@ export class TwitchAdapter implements PlatformAdapter {
     }
 
     getCurrentChannelId(): string | null {
-        return window.location.pathname.split('/')[1] ?? null;
+        return extractChannelId(window.location.pathname, cfg());
     }
 
     getPageMode(): 'live' | 'video' | 'unknown' {
-        const pathSegment = window.location.pathname.split('/')[1];
-        if (pathSegment === 'videos') return 'video';
-        return 'live';
+        // Twitch는 /videos/ 가 아니면 모두 live (현재 코드 의미 유지 — detectPageMode가
+        // unknown 줄 수도 있는데 livePathRegex가 ^/(?!videos/) 라서 fallthrough 시 live).
+        const mode = detectPageMode(window.location.pathname, cfg());
+        return mode === 'unknown' ? 'live' : mode;
     }
 
     computeDragRatio(rect: DOMRect, clientY: number): number {

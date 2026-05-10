@@ -1,8 +1,23 @@
 import { CompositeFilterElement } from "@/interfaces/filter";
 import defaultFilter from "@/defaultFilters";
+import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
 
 export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id });
+
+  // storage.session은 기본적으로 background/popup 등 trusted context에서만 접근 가능.
+  // 채팅 유지 기능이 content script에서 set/get 하므로 untrusted까지 풀어줌.
+  // SW 재시작 시마다 호출해도 안전(idempotent).
+  browser.storage.session.setAccessLevel({
+    accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS',
+  }).catch((e) => console.warn('storage.session setAccessLevel failed', e));
+
+  // OTA selectors fetch — install/update 시 즉시 + browser startup + 매 SW wake 시 stale 체크.
+  // alarms permission 안 씀 — MV3 SW는 다양한 이벤트(content msg, tab nav 등)로 자주 깨므로
+  // 능동 사용자에겐 사실상 6시간 내 갱신됨. 비활동 사용자는 다음 사용 시 갱신.
+  browser.runtime.onInstalled.addListener(() => { fetchAndApplyOta(); });
+  browser.runtime.onStartup.addListener(() => { fetchIfStale(); });
+  fetchIfStale();
 
 
   browser.runtime.onInstalled.addListener(async function (details) {
@@ -54,11 +69,11 @@ export default defineBackground(() => {
     await browser.storage.local.set({
       position: settings.position ? settings.position : "up",
       pointBoxAuto: settings.pointBoxAuto ? settings.pointBoxAuto : "on",
-      darkTheme: settings.darkTheme ? settings.darkTheme : "off",
+      darkTheme: settings.darkTheme ? settings.darkTheme : "system",
       chatTime: settings.chatTime ? settings.chatTime : "off",
       maximumNumberChats: settings.maximumNumberChats ? settings.maximumNumberChats : (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
       advancedFilter: settings.advancedFilter ? settings.advancedFilter : "off",
-      platform: settings.platform ? settings.platform : "twitch",
+      platform: settings.platform ? settings.platform : "chzzk",
       containerRatio: settings.containerRatio ? settings.containerRatio : 30,
     });
   });
@@ -88,6 +103,12 @@ export default defineBackground(() => {
   }
 
   async function handleDownload(dataUrl: string, filename?: string): Promise<{ ok?: boolean; error?: string }> {
+    if (!browser.downloads?.download) {
+      // manifest엔 있지만 runtime에 미적용 — extension reload 필요
+      const msg = 'downloads API unavailable — extension reload 필요 (chrome://extensions에서 새로고침)';
+      console.warn('[tbcv2 bg]', msg);
+      return { error: msg };
+    }
     try {
       await browser.downloads.download({
         url: dataUrl,
@@ -113,16 +134,22 @@ export default defineBackground(() => {
     return false; // 다른 핸들러로 패스.
   });
 
-  browser.webNavigation.onHistoryStateUpdated.addListener(function () {
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-
-      if (tabs.length === 0) return;
-
-      const id = tabs[0].id;
-      const url = tabs[0].url;
-      if (!(id && url)) return;
-
-      browser.tabs.sendMessage(id, { action: "onHistoryStateUpdated", url: url });
-    });
-  });
+  // URL filter로 우리 사이트(트위치/치지직) 탭에서만 발화. content script 리스너가
+  // 없는 탭에 메시지 보내면 "Could not establish connection" 발생하므로 미연 차단.
+  // 그래도 timing 이슈(content script 로딩 전 이벤트)는 남을 수 있어 sendMessage는 catch.
+  browser.webNavigation.onHistoryStateUpdated.addListener(
+    (details) => {
+      browser.tabs.sendMessage(details.tabId, {
+        action: "onHistoryStateUpdated",
+        url: details.url,
+      }).catch(() => { /* receiver 부재(네비게이션 직후 등) — 무시 */ });
+    },
+    {
+      url: [
+        { hostSuffix: '.twitch.tv' },
+        { hostEquals: 'twitch.tv' },
+        { hostEquals: 'chzzk.naver.com' },
+      ],
+    }
+  );
 });

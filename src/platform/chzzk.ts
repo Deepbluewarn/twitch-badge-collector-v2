@@ -3,20 +3,16 @@ import type { PlatformAdapter } from "./";
 import { msToTime } from "@/utils/utils-common";
 import { createChzzkAPI, ChzzkAPI } from "@/api/chzzk";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
+import { getPlatformConfig, detectPageMode, extractChannelId } from "./host-selectors";
 
-// Chzzk 채팅 영역 위/아래 고정 UI 높이 — 드래그 수식 보정에 사용
-const CHZZK_HEADER_OFFSET = 77;
-const CHZZK_FOOTER_OFFSET = 62;
+const cfg = () => getPlatformConfig('chzzk');
 
 function checkVerifiedBadge(chat_clone: Element): boolean {
-    const verifiedBadge = (
-        chat_clone.getElementsByClassName("name_icon__zdbVH")[0]
-    ) as HTMLElement;
-
-    if (verifiedBadge === undefined) return false;
-
-    const text = verifiedBadge.getElementsByClassName('blind')[0].textContent;
-
+    const sel = cfg().selectors;
+    if (!sel.verifiedIcon || !sel.blindText) return false;
+    const verifiedBadge = chat_clone.querySelector<HTMLElement>(sel.verifiedIcon);
+    if (!verifiedBadge) return false;
+    const text = verifiedBadge.querySelector(sel.blindText)?.textContent;
     return text === '인증 마크';
 }
 
@@ -38,14 +34,14 @@ export class ChzzkAdapter implements PlatformAdapter {
         const nodeElement = node as HTMLElement;
         if (nodeElement.nodeType !== 1) return;
         if (nodeElement.parentElement?.id !== 'tbc-chzzk-chat-list-wrapper') return;
-        if (nodeElement.classList.contains('live_chatting_popup_profile_header__OWnnU')) return;
+
+        const sel = cfg().selectors;
+        // popup profile 등 채팅이 아닌 노드 무시
+        if (sel.popupProfileHeader && nodeElement.matches(sel.popupProfileHeader)) return;
 
         const chat_clone = nodeElement.cloneNode(true) as Element;
 
-        const display_name = chat_clone.getElementsByClassName(
-            "name_text__yQG50"
-        )[0];
-
+        const display_name = chat_clone.querySelector(sel.displayName);
         if (!display_name) return;
 
         let loginName: string = "";
@@ -56,26 +52,18 @@ export class ChzzkAdapter implements PlatformAdapter {
             nickName = display_name.textContent!;
         }
 
-        const badges = (
-            chat_clone.getElementsByClassName("badge_container__a64XB")
-        );
-
-        const textContents = (
-            chat_clone.getElementsByClassName("live_chatting_message_text__DyleH")
-        );
-
-        const donationTextContents = (
-            chat_clone.getElementsByClassName("live_chatting_donation_message_text__XbDKP")
-        );
+        const badges = chat_clone.querySelectorAll(sel.badge);
+        const textContents = chat_clone.querySelectorAll(sel.messageText);
+        const donationTextContents = sel.donationText
+            ? chat_clone.querySelectorAll(sel.donationText)
+            : [];
 
         const badgeArr = Array.from(badges).map((badge) => badge.getElementsByTagName("img")[0].src);
         const textArr = Array.from(textContents).map((text) => text.textContent);
         const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
 
-        const verifiedBadge = checkVerifiedBadge(chat_clone);
-
-        if (verifiedBadge) {
-            badgeArr.push("https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png");
+        if (checkVerifiedBadge(chat_clone) && (cfg().constants?.verifiedBadgeImageUrl as string)) {
+            badgeArr.push((cfg().constants?.verifiedBadgeImageUrl as string));
         }
 
         return {
@@ -87,19 +75,16 @@ export class ChzzkAdapter implements PlatformAdapter {
     }
 
     getCurrentChannelId(): string | null {
-        return window.location.pathname.split('/')[2] ?? null;
+        return extractChannelId(window.location.pathname, cfg());
     }
 
     getPageMode(): 'live' | 'video' | 'unknown' {
-        const pathSegment = window.location.pathname.split('/')[1];
-        if (pathSegment === 'video') return 'video';
-        if (pathSegment === 'live') return 'live';
-        return 'unknown';
+        return detectPageMode(window.location.pathname, cfg());
     }
 
     computeDragRatio(rect: DOMRect, clientY: number): number {
-        const usableHeight = rect.height - CHZZK_HEADER_OFFSET - CHZZK_FOOTER_OFFSET;
-        const ratio = (1 - (clientY - rect.y - CHZZK_HEADER_OFFSET) / usableHeight) * 100;
+        const usableHeight = rect.height - (cfg().constants?.dragHeaderOffset as number) - (cfg().constants?.dragFooterOffset as number);
+        const ratio = (1 - (clientY - rect.y - (cfg().constants?.dragHeaderOffset as number)) / usableHeight) * 100;
         return Math.max(0, Math.min(100, Math.round(ratio)));
     }
 
@@ -115,9 +100,9 @@ export class ChzzkAdapter implements PlatformAdapter {
 
     prepareChatClone(clone: HTMLElement): void {
         // 복제된 채팅의 username 컨테이너에 시간 표시를 prepend.
-        const usernameElem = clone.getElementsByClassName(
-            'live_chatting_username_container__m1-i5 live_chatting_username_is_message__jvTvP'
-        )[0] as HTMLElement;
+        const usernameSel = cfg().selectors.usernameContainer;
+        if (!usernameSel) return;
+        const usernameElem = clone.querySelector<HTMLElement>(usernameSel);
         if (!usernameElem) return;
 
         const time = parseInt(clone.getAttribute(CHAT_ATTR.TIME) ?? '0', 10);

@@ -4,48 +4,51 @@ import { addHistoryStateListener } from "../base/historyStateListener";
 import { Observer } from "../base/observer";
 import { Logger } from "@/utils/logger";
 import { ChzzkAdapter } from "@/platform/chzzk";
+import {
+    getPlatformConfig, manifestReady, getManifest,
+    SELECTORS_MESSAGE_TYPE,
+} from "@/platform/host-selectors";
 
-const adapter = new ChzzkAdapter();
+async function bootstrap() {
+    await manifestReady;
+    window.postMessage({ type: SELECTORS_MESSAGE_TYPE, manifest: getManifest() }, '*');
 
-const liveContainer = new BaseContainer(
-    adapter,
-    new Handle(adapter, '#tbc-chzzk-chat-list-container'),
-    '.live_chatting_list_wrapper__a5XTV',
-);
+    const adapter = new ChzzkAdapter();
+    const SEL = getPlatformConfig('chzzk').selectors;
 
-const vodContainer = new BaseContainer(
-    adapter,
-    new Handle(adapter, '#tbc-chzzk-chat-list-container'),
-    '.vod_chatting_list__+LZHw',
-    '.pzp-pc__video video.webplayer-internal-video',
-    '#tbc-clone__chzzkui',
-)
+    const liveContainer = new BaseContainer(
+        adapter,
+        new Handle(adapter, '#tbc-chzzk-chat-list-container'),
+        SEL.chatRoomLive,
+    );
 
-function init() {
-    const mode = adapter.getPageMode();
+    const vodContainer = new BaseContainer(
+        adapter,
+        new Handle(adapter, '#tbc-chzzk-chat-list-container'),
+        SEL.chatRoomVod,
+        SEL.video,
+        '#tbc-clone__chzzkui',
+    );
 
-    console.log('init pageMode: ', mode)
+    function init() {
+        const mode = adapter.getPageMode();
+        console.log('init pageMode: ', mode);
+        if (mode === 'video') vodContainer.create();
+        else if (mode === 'live') liveContainer.create();
+    }
 
-    if (mode === 'video') {
-        vodContainer.create();
-    } else if (mode === 'live') {
-        liveContainer.create();
+    init();
+    addHistoryStateListener('chzzk.naver.com', init);
+
+    if (SEL.pointButton) {
+        new Observer(SEL.pointButton, false).observe(async (elem) => {
+            if (!elem) return;
+            const isPointAutoOn = (await browser.storage.local.get('pointBoxAuto')).pointBoxAuto;
+            if (isPointAutoOn === 'off') return;
+            (elem as HTMLButtonElement).click();
+            Logger('observe pointButton callback: ', '포인트 박스를 클릭했어요!');
+        });
     }
 }
 
-init()
-
-addHistoryStateListener('chzzk.naver.com', init);
-
-new Observer('.live_chatting_power_button__Ov3eJ', false).observe(async (elem) => {
-    if (!elem) return;
-
-    if (elem) {
-        const isPointAutoOn = (await browser.storage.local.get('pointBoxAuto')).pointBoxAuto;
-
-        if (isPointAutoOn === 'off') return;
-
-        (elem as HTMLButtonElement).click();
-        Logger('observe .live_chatting_power_button__Ov3eJ callback: ', '포인트 박스를 클릭했어요!')
-    }
-})
+bootstrap();
