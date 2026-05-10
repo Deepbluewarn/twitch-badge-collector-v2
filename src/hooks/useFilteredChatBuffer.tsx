@@ -127,10 +127,14 @@ export default function useFilteredChatBuffer(
 
     const addChat = useCallback(({ clone, key, time }: PassedChat) => {
         setSavedChats(prev => {
-            // dedupe: 같은 세션은 key로(Chzzk 내부 React key — 안정적),
-            // cross-session backfill은 time으로(Chzzk 서버 timestamp — 같은 채팅엔
-            // 같은 값, 다른 채팅엔 다른 값). 둘 중 하나라도 매치하면 중복.
-            if (prev.some(c => c.key === key || c.time === time)) return prev;
+            // dedupe: 같은 세션은 key로(안정적인 React key 또는 동일 채팅 재발화 방지).
+            // cross-session backfill은 time으로(서버 timestamp — 같은 채팅엔 같은 값).
+            // time-dedupe는 persistence 켜진 어댑터에서만 의미 있음 (storage에서 load한
+            // restored 채팅 vs 라이브로 다시 들어오는 같은 채팅 매칭). persistence 미지원
+            // 어댑터(Twitch)는 inject가 CHAT_ATTR.TIME을 안 붙여 time=0으로 전부 들어오는데,
+            // 이때 time-dedupe를 켜면 두 번째 채팅부터 첫 채팅과 매치되어 모두 drop됨.
+            if (prev.some(c => c.key === key)) return prev;
+            if (adapter.supportsChatPersistence && prev.some(c => c.time === time)) return prev;
 
             const next = [...prev, { key, time, html: clone.outerHTML, restored: false }];
 
