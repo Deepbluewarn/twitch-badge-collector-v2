@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import useFilterGroup from "@/hooks/useFilterGroup";
 import useChatStream from "@/hooks/useChatStream";
@@ -9,6 +9,8 @@ import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { SettingInterface } from "@/interfaces/setting";
 import { PlatformAdapter } from "@/platform";
 import { Logger } from "@/utils/logger";
+import { captureChats } from "@/utils/captureChat";
+import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 
 const Wrapper = styled('div')({
     height: '100%',
@@ -43,9 +45,94 @@ export default function Local({
         ? `chatHistory:${type}:${channelId}:live`
         : undefined;
 
-    const { chats, addChat, clear } = useFilteredChatBuffer(adapter, maxNumChats, persistenceKey);
+    // 캡쳐 모드: 사용자가 채팅을 클릭으로 선택 → 한 번에 PNG 다운로드.
+    const [captureMode, setCaptureMode] = useState(false);
+    const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+    const [capturing, setCapturing] = useState(false);
+    const captureView = useMemo(() => ({ captureMode, selectedKeys }), [captureMode, selectedKeys]);
 
-    useChatStream(adapter, chat => checkFilter(chat, channelId), addChat);
+    const { chats, addChat, clear, savedChats } = useFilteredChatBuffer(
+        adapter, maxNumChats, persistenceKey, captureView,
+    );
+
+    // savedChats 트림으로 사라진 키를 selectedKeys에서 제거 — 카운트가 실제 선택된
+    // 가시 채팅 수와 일치하도록.
+    useEffect(() => {
+        if (selectedKeys.size === 0) return;
+        const aliveKeys = new Set(savedChats.map(c => c.key));
+        let changed = false;
+        const next = new Set<string>();
+        selectedKeys.forEach(k => {
+            if (aliveKeys.has(k)) next.add(k);
+            else changed = true;
+        });
+        if (changed) setSelectedKeys(next);
+    }, [savedChats]);
+
+    // 캡쳐 중엔 새 채팅 추가를 pause. 이유: 새 채팅 → savedChats 변경 → React 재렌더 →
+    // inlineImages가 setattr한 img.src(data URL)이 새 DOM으로 교체되며 사라짐 →
+    // html-to-image가 clone 시점에 원본 URL을 보고 페이지 컨텍스트에서 fetch 시도 → CORS.
+    const capturingRef = useRef(false);
+    const guardedAddChat = useCallback((chat: Parameters<typeof addChat>[0]) => {
+        if (capturingRef.current) return;
+        addChat(chat);
+    }, [addChat]);
+
+    useChatStream(adapter, chat => checkFilter(chat, channelId), guardedAddChat);
+
+    // 캡쳐 모드 OFF로 전환되면 선택 초기화.
+    useEffect(() => {
+        if (!captureMode && selectedKeys.size > 0) setSelectedKeys(new Set());
+    }, [captureMode]);
+
+    // 채팅 클릭 → 선택 토글. 캡쳐 모드일 때만 활성, 그 외엔 host page link 동작 보존.
+    const onChatClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        if (!captureMode) return;
+        const target = e.target as HTMLElement;
+        const node = target.closest(`[${CHAT_ATTR.KEY}]`) as HTMLElement | null;
+        if (!node) return;
+        const key = node.getAttribute(CHAT_ATTR.KEY);
+        if (!key) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedKeys(prev => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
+    }, [captureMode]);
+
+    const onSelectAllClick = useCallback(() => {
+        const allKeys = savedChats.map(c => c.key);
+        const allSelected = allKeys.length > 0 && allKeys.every(k => selectedKeys.has(k));
+        setSelectedKeys(allSelected ? new Set() : new Set(allKeys));
+    }, [savedChats, selectedKeys]);
+
+    const onCaptureClick = useCallback(async () => {
+        if (selectedKeys.size === 0 || capturing) return;
+        const visibleContainer = containerRef.current?.querySelector<HTMLDivElement>(
+            `#tbc-clone__${type}ui`
+        );
+        if (!visibleContainer) return;
+
+        setCapturing(true);
+        capturingRef.current = true;
+        try {
+            await captureChats({
+                container: visibleContainer,
+                selectedKeys,
+                keyAttr: CHAT_ATTR.KEY,
+                filename: `tbcv2-chats-${type}-${Date.now()}.png`,
+            });
+            setCaptureMode(false);
+        } catch (err) {
+            Logger('Local', `capture failed: ${err}`);
+        } finally {
+            capturingRef.current = false;
+            setCapturing(false);
+        }
+    }, [selectedKeys, capturing, type]);
 
     /**
      * 실제로 overflow:auto/scroll이 걸린 가장 가까운 조상.
@@ -123,20 +210,116 @@ export default function Local({
         });
     }, []);
 
+    // 캡쳐 toolbar 표시 정책: 평소엔 숨김(컨테이너 영역 0 점유), Wrapper hover 시
+    // 또는 캡쳐 모드 ON일 때만 표시. 표시 시엔 채팅 영역 위로 overlay (absolute) →
+    // 채팅 layout은 그대로 유지, 일시적으로 위쪽 일부 가려질 뿐.
+    const toolbarVisible = captureMode;
+
     return (
         <Wrapper ref={containerRef} className={globalSetting.chatTime === 'on' ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'}>
             {/* 복원 채팅 시각 구분 — useFilteredChatBuffer가 복원 채팅 root에 tbcv2-restored-chat 클래스를 부여 */}
-            <style>{`.tbcv2-restored-chat { background-color: rgba(128, 128, 128, 0.15); }`}</style>
-            <div
-                id={`tbc-clone__${type}ui`}
-                style={{
-                    marginTop: 0,
-                    paddingTop: 0,
-                    height: '100%'
-                }}
-            >
-                {chats}
+            <style>{`
+                .tbcv2-restored-chat { background-color: rgba(128, 128, 128, 0.15); }
+                .tbcv2-capture-mode { cursor: pointer; }
+                .tbcv2-capture-mode:hover { outline: 1px dashed rgba(255,193,7,0.6); outline-offset: -1px; }
+                .tbcv2-capture-selected { background-color: rgba(255,193,7,0.18) !important; outline: 2px solid #FFC107; outline-offset: -2px; }
+                .tbcv2-capture-toolbar-host { position: relative; height: 100%; }
+                .tbcv2-capture-toolbar-host > .tbcv2-capture-toolbar {
+                    position: absolute; top: 0; left: 0; right: 0;
+                    opacity: 0; pointer-events: none;
+                    transition: opacity 0.15s ease;
+                    z-index: 10;
+                    background: rgba(20, 20, 22, 0.92);
+                    backdrop-filter: blur(4px);
+                }
+                .tbcv2-capture-toolbar-host:hover > .tbcv2-capture-toolbar,
+                .tbcv2-capture-toolbar-host > .tbcv2-capture-toolbar.tbcv2-visible {
+                    opacity: 1; pointer-events: auto;
+                }
+            `}</style>
+            <div className="tbcv2-capture-toolbar-host">
+                <CaptureToolbar
+                    captureMode={captureMode}
+                    onToggle={() => setCaptureMode(v => !v)}
+                    selectedCount={selectedKeys.size}
+                    totalCount={savedChats.length}
+                    onSelectAll={onSelectAllClick}
+                    onCapture={onCaptureClick}
+                    capturing={capturing}
+                    forceVisible={toolbarVisible}
+                />
+                <div
+                    id={`tbc-clone__${type}ui`}
+                    onClick={onChatClick}
+                    style={{
+                        marginTop: 0,
+                        paddingTop: 0,
+                        height: '100%',
+                    }}
+                >
+                    {chats}
+                </div>
             </div>
         </Wrapper>
+    );
+}
+
+const Toolbar = styled('div')({
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '4px 8px',
+    height: 36,
+    boxSizing: 'border-box',
+    borderBottom: '1px solid rgba(255,255,255,0.1)',
+    fontSize: 12,
+});
+
+const ToolbarButton = styled('button')({
+    background: 'transparent',
+    border: '1px solid rgba(255,255,255,0.2)',
+    color: 'inherit',
+    padding: '2px 8px',
+    borderRadius: 4,
+    cursor: 'pointer',
+    fontSize: 12,
+    '&:hover': { background: 'rgba(255,255,255,0.08)' },
+    '&:disabled': { opacity: 0.5, cursor: 'default' },
+});
+
+function CaptureToolbar({
+    captureMode, onToggle, selectedCount, totalCount, onSelectAll, onCapture, capturing, forceVisible,
+}: {
+    captureMode: boolean;
+    onToggle: () => void;
+    selectedCount: number;
+    totalCount: number;
+    onSelectAll: () => void;
+    onCapture: () => void;
+    capturing: boolean;
+    forceVisible: boolean;
+}) {
+    const allSelected = totalCount > 0 && selectedCount === totalCount;
+    return (
+        <Toolbar className={`tbcv2-capture-toolbar${forceVisible ? ' tbcv2-visible' : ''}`}>
+            <ToolbarButton onClick={onToggle} disabled={capturing}>
+                {captureMode ? '캡쳐 취소' : '캡쳐'}
+            </ToolbarButton>
+            {captureMode && (
+                <>
+                    <ToolbarButton onClick={onSelectAll} disabled={capturing || totalCount === 0}>
+                        {allSelected ? '전체 해제' : '전체 선택'}
+                    </ToolbarButton>
+                    <span>{selectedCount}개 선택됨</span>
+                    <ToolbarButton
+                        onClick={onCapture}
+                        disabled={selectedCount === 0 || capturing}
+                        style={{ marginLeft: 'auto' }}
+                    >
+                        {capturing ? '캡쳐 중...' : 'PNG 다운로드'}
+                    </ToolbarButton>
+                </>
+            )}
+        </Toolbar>
     );
 }

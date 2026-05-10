@@ -23,6 +23,11 @@ function ChatWrapper(props: ChatWrapperProps) {
 /** 복원된 채팅 root에 붙이는 클래스. 시각 구분용. */
 export const RESTORED_CHAT_CLASS = 'tbcv2-restored-chat';
 
+/** 캡쳐 모드 ON일 때 채팅 root에 붙는 클래스 — 클릭/호버 hint. */
+export const CAPTURE_MODE_CLASS = 'tbcv2-capture-mode';
+/** 캡쳐 모드에서 선택된 채팅 root에 붙는 클래스. */
+export const CAPTURE_SELECTED_CLASS = 'tbcv2-capture-selected';
+
 /**
  * useFilteredChatBuffer가 보관/저장하는 단위.
  * html은 직렬화 가능한 채팅 노드 스냅샷 — DOMPurify로 sanitize 후 JSX로 환원.
@@ -78,10 +83,16 @@ async function loadPersisted(key: string): Promise<SavedChat[]> {
  * 정렬은 *현재 buffer 순서*를 그대로 보존. 시간 비교에 의존하지 않음 —
  * Chzzk live time이 도착 순서와 어긋나는 경우가 있어 신뢰 X.
  */
+interface CaptureViewState {
+    captureMode: boolean;
+    selectedKeys: Set<string>;
+}
+
 export default function useFilteredChatBuffer(
     adapter: PlatformAdapter,
     maxChats: number,
     persistenceKey?: string,
+    capture?: CaptureViewState,
 ) {
     const [savedChats, setSavedChats] = useState<SavedChat[]>([]);
     const persistTimerRef = useRef<number | null>(null);
@@ -161,15 +172,17 @@ export default function useFilteredChatBuffer(
     const clear = useCallback(() => setSavedChats([]), []);
 
     // 렌더용 ReactElement 매핑. SavedChat.html을 DOMPurify로 sanitize 후
-    // DOM Element로 환원 → 복원이면 RESTORED_CHAT_CLASS 부여 → convertToJSX.
+    // DOM Element로 환원 → 복원/캡쳐 클래스 부여 → convertToJSX.
     const chats = useMemo(() => {
         return savedChats.map(c => {
             const sanitized = DOMPurify.sanitize(c.html);
             const wrapper = document.createElement('div');
             wrapper.innerHTML = sanitized;
             const node = wrapper.firstElementChild as HTMLElement | null;
-            if (node && c.restored) {
-                node.classList.add(RESTORED_CHAT_CLASS);
+            if (node) {
+                if (c.restored) node.classList.add(RESTORED_CHAT_CLASS);
+                if (capture?.captureMode) node.classList.add(CAPTURE_MODE_CLASS);
+                if (capture?.selectedKeys.has(c.key)) node.classList.add(CAPTURE_SELECTED_CLASS);
             }
             const content = node ? convertToJSX(node) : null;
             return React.createElement(
@@ -178,7 +191,7 @@ export default function useFilteredChatBuffer(
                 content,
             );
         });
-    }, [savedChats]);
+    }, [savedChats, capture?.captureMode, capture?.selectedKeys]);
 
-    return { chats, addChat, clear };
+    return { chats, addChat, clear, savedChats };
 }
