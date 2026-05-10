@@ -47,13 +47,29 @@ export default function Local({
 
     useChatStream(adapter, chat => checkFilter(chat, channelId), addChat);
 
-    const getScrollArea = () =>
-        containerRef.current?.querySelector(`#tbc-clone__${type}ui`) ?? null;
+    /**
+     * 실제로 overflow:auto/scroll이 걸린 가장 가까운 조상.
+     * `#tbc-clone__${type}ui`가 시작점이지만 그 자체가 스크롤되지 않을 수 있어
+     * 부모 사슬을 타고 올라가며 스크롤 가능 요소를 찾는다.
+     */
+    const findScrollableAncestor = (start: Element | null): HTMLElement | null => {
+        let el = start as HTMLElement | null;
+        while (el) {
+            const overflowY = window.getComputedStyle(el).overflowY;
+            if (overflowY === 'auto' || overflowY === 'scroll') return el;
+            el = el.parentElement;
+        }
+        return null;
+    };
 
-    // 스크롤 추적: platform의 chatOrder에 따라 "따라가는 위치"가 다름.
-    // - newest-bottom (Twitch): 바닥에 있을 때 새 채팅 도착 시 바닥으로 따라감.
-    // - newest-top (Chzzk): 맨 위에 있을 때 새 채팅 도착 시 맨 위로 따라감.
-    // 사용자가 그 위치에서 벗어나면 자동 스크롤 멈춤(과거 채팅 보는 중).
+    const getScrollArea = (): HTMLElement | null => {
+        const start = containerRef.current?.querySelector(`#tbc-clone__${type}ui`) ?? containerRef.current;
+        return findScrollableAncestor(start);
+    };
+
+    // 스크롤 추적: 사용자가 "따라가는 위치(visual 바닥)"에서 벗어나면 자동 스크롤
+    // 멈춤. Chzzk는 CSS의 flex-direction: column-reverse 덕분에 chats[0](newest)가
+    // visual 바닥에 렌더됨 → scrollHeight가 두 platform 모두에서 newest 위치.
     const SCROLL_FOLLOW_TOLERANCE = 5;
     const isAtFollowPositionRef = useRef(true);
 
@@ -62,28 +78,20 @@ export default function Local({
         if (!scrollArea) return;
 
         const onScroll = () => {
-            if (adapter.chatOrder === 'newest-top') {
-                isAtFollowPositionRef.current = scrollArea.scrollTop <= SCROLL_FOLLOW_TOLERANCE;
-            } else {
-                const distFromBottom =
-                    scrollArea.scrollHeight - scrollArea.scrollTop - scrollArea.clientHeight;
-                isAtFollowPositionRef.current = distFromBottom <= SCROLL_FOLLOW_TOLERANCE;
-            }
+            const distFromBottom =
+                scrollArea.scrollHeight - scrollArea.scrollTop - scrollArea.clientHeight;
+            isAtFollowPositionRef.current = distFromBottom <= SCROLL_FOLLOW_TOLERANCE;
         };
         scrollArea.addEventListener("scroll", onScroll, false);
         return () => scrollArea.removeEventListener("scroll", onScroll);
-    }, [adapter.chatOrder]);
+    }, []);
 
     useEffect(() => {
         const scrollArea = getScrollArea();
         if (!scrollArea) return;
         if (!isAtFollowPositionRef.current) return;
-        if (adapter.chatOrder === 'newest-top') {
-            scrollArea.scrollTop = 0;
-        } else {
-            scrollArea.scrollTop = scrollArea.scrollHeight;
-        }
-    }, [chats, adapter.chatOrder]);
+        scrollArea.scrollTop = scrollArea.scrollHeight;
+    }, [chats]);
 
     // chatTime 설정 토글 시 CSS 클래스 swap (rerender 없이 직접 DOM mutate).
     useEffect(() => {
