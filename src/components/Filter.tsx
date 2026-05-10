@@ -1,36 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Card from '@mui/material/Card';
-import BadgeList from './filter/BadgeList';
-import { AtomicFilterElement } from '../interfaces/filter';
-import { useFilterGroupContext } from '../context/FilterGroup';
-import FilterInputFormList from './filter/FilterInputFormList';
-import FilterInputForm from './filter/FilterInputForm';
 import { FilterGroupList } from './filter/FilterGroupList';
 import { useGlobalSettingContext } from '../context/GlobalSetting';
-import Chip from '@mui/material/Chip';
-import { Button, Paper } from '@mui/material';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Button from '@mui/material/Button';
+import AddIcon from '@mui/icons-material/Add';
 import { SettingInterface } from '@/interfaces/setting';
 import SocialFooter from './SocialFooter';
-import { defaultAtomicFilter } from '@/utils/utils-common';
-import { setBadgeInSimpleFilter, setMultipleBadgesInFilterArray } from './filter/utils/badge-utils';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import ChannelIdGuideDialog from './filter/dialog/ChannelIdGuideDialog';
+import FilterAddDialog from './filter/FilterAddDialog';
 import { getAdapter } from '@/platform';
 
 export default function Filter() {
     const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
-    const [advancedFilter, setAdvancedFilter] = React.useState(globalSetting.advancedFilter);
-    const { filterGroup } = useFilterGroupContext();
-    const [filterInput, setFilterInput] = React.useState<AtomicFilterElement | undefined>(defaultAtomicFilter());
-    const [filterInputList, setFilterInputList] = React.useState<AtomicFilterElement[]>([]);
-    const filterInputListRef = React.useRef<AtomicFilterElement[]>([]);
     const { t } = useTranslation();
-    const [guideOpen, setGuideOpen] = useState(false);
+    const [addOpen, setAddOpen] = useState(false);
 
-    const onPlatformChipClick = (platform: SettingInterface['platform']) => {
+    const onPlatformChange = (_e: React.SyntheticEvent, platform: SettingInterface['platform']) => {
         dispatchGlobalSetting({ type: 'SET_PLATFORM', payload: platform });
     }
 
@@ -38,112 +27,85 @@ export default function Filter() {
         document.title = `${t('setting.filter_setting')}- TBC`;
     }, []);
 
-    useEffect(() => {
-        setAdvancedFilter(() => globalSetting.advancedFilter);
-    }, [globalSetting]);
-
     return (
         <>
-            <Stack spacing={2} sx={{
-                    minHeight: '0',
-                    margin: '16px',
+            {/* 페이지 중앙 정렬 — Card는 자연 크기, 양옆/위아래 여백을 가져 가운데 자리. */}
+            <Stack
+                spacing={2}
+                sx={{
+                    minHeight: '100vh',
+                    maxWidth: 1080,
+                    width: '100%',
+                    margin: '0 auto',
+                    padding: 2,
+                    boxSizing: 'border-box',
+                    justifyContent: 'center',
                 }}
             >
                 <Card
                     sx={{
-                        padding: '16px',
-                        flex: '1',
                         display: 'flex',
                         flexDirection: 'column',
-                        overflow: 'auto',
-                        border: '4px solid',
-                        borderColor: getAdapter(globalSetting.platform).brandColor,
-                        minWidth: '720px',
-                        maxWidth: '1080px',
+                        overflow: 'hidden',
                     }}
                     className="card"
-                    variant='outlined'
+                    variant="outlined"
                 >
+                    {/* 플랫폼 Tabs — scrollable이라 사용자 정의 플랫폼이 추가돼도(고급 모드)
+                        N개까지 깨지지 않음. 활성 탭 indicator는 해당 플랫폼 brand color. */}
+                    <Tabs
+                        value={globalSetting.platform}
+                        onChange={onPlatformChange}
+                        variant="scrollable"
+                        scrollButtons="auto"
+                        allowScrollButtonsMobile
+                        sx={{
+                            borderBottom: 1,
+                            borderColor: 'divider',
+                            '& .MuiTabs-indicator': {
+                                backgroundColor: getAdapter(globalSetting.platform).brandColor,
+                                height: 3,
+                            },
+                            '& .MuiTab-root': {
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                textTransform: 'none',
+                                minWidth: 120,
+                            },
+                            '& .Mui-selected': {
+                                color: 'text.primary',
+                            },
+                        }}
+                    >
+                        <Tab value="twitch" label={getAdapter('twitch').displayName} />
+                        <Tab value="chzzk" label={getAdapter('chzzk').displayName} />
+                    </Tabs>
+
                     <Stack
                         spacing={2}
                         sx={{
-                            flex: '1 1 auto',
+                            padding: '16px',
                         }}
                     >
-                        <Typography variant="h6">
-                            {t('setting.filter.select_platform')}
-                        </Typography>
-
-                        <Paper sx={{ p: 1, m: 0 }}>
-                            <Stack direction='row' gap={1}>
-                                <Chip label={getAdapter('twitch').displayName} color={globalSetting.platform === 'twitch' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('twitch')}} clickable />
-                                <Chip label={getAdapter('chzzk').displayName} color={globalSetting.platform === 'chzzk' ? 'primary' : 'default'} onClick={() => {onPlatformChipClick('chzzk')}} clickable />
-                            </Stack>
-                        </Paper>
-                        
-                        <Typography variant="h6">
-                            {t('setting.filter.filter_list')}
-                        </Typography>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" gap={2}>
+                            <Typography variant="h6">
+                                {t('setting.filter.filter_list')}
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={() => setAddOpen(true)}
+                            >
+                                {t('setting.filter.filter_add')}
+                            </Button>
+                        </Stack>
 
                         <FilterGroupList />
-
-                        <Stack direction={'row'} justifyContent={'space-between'} alignItems={'flex-end'}>
-                            <Stack gap={2}> 
-                                <Typography variant="h6">
-                                    {t('setting.filter.filter_add')}
-                                </Typography>
-                                {
-                                    advancedFilter === 'on' ?
-                                        (
-                                            <Typography variant='subtitle2'>
-                                                {t('setting.filter.filter_add_subtitle')}
-                                            </Typography>
-                                        ) : null
-                                }
-                            </Stack>
-
-                            <Stack direction="row" alignItems="center" spacing={1}>
-                                <InfoOutlinedIcon color="primary" />
-                                <Typography variant="body2" color="textSecondary">
-                                    채널 별 필터 설정이 가능합니다.
-                                </Typography>
-                                <Button size="small" onClick={() => { setGuideOpen(true) }}>자세히 보기</Button>
-                            </Stack>
-                        </Stack>
-                        {
-                            advancedFilter === 'on' ? (
-                                <FilterInputFormList
-                                    afInputRow={filterInputList}
-                                    setAfInputRow={setFilterInputList}
-                                    filterInputListRef={filterInputListRef}
-                                />
-                            ) : (
-                                <FilterInputForm
-                                    filterInput={filterInput}
-                                    setFilterInput={setFilterInput}
-                                />
-                            )
-                        }
-
-                        <Typography variant="h6">
-                            {t('setting.filter.select_badges')}
-                        </Typography>
-
-                        <BadgeList
-                            multiple={globalSetting.advancedFilter === 'on'}
-                            onBadgeSelect={(badge) => {
-                                setBadgeInSimpleFilter(badge, globalSetting.platform, setFilterInput);
-                            }}
-                            onMultiBadgesSelect={(badges) => {
-                                setMultipleBadgesInFilterArray(badges, globalSetting.platform, setFilterInputList);
-                            }}
-                        />
                     </Stack>
                 </Card>
                 <SocialFooter />
             </Stack>
-            {/* <EncorageDonationDialog open={dialogOpen} onClose={() => {setDialogOpen(false)}}/> */}
-            <ChannelIdGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
+            <FilterAddDialog open={addOpen} onClose={() => setAddOpen(false)} />
         </>
     )
 }

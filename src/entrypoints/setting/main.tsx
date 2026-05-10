@@ -15,15 +15,17 @@ import useAlert from "@/hooks/useAlert";
 import { GlobalSettingContext, useGlobalSettingContext } from "@/context/GlobalSetting";
 import { AlertContext } from "@/context/Alert";
 import { useCustomTheme } from "@/hooks/useCustomTheme";
+import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import AlertContainer from "@/components/AlertContainer";
 import { FilterGroupContext } from "@/context/FilterGroup";
+import Filter from "@/components/Filter";
 import '@/translate/i18n';
-import { Box } from "@mui/material";
-import SettingPageDrawer from "@/components/drawer/SettingPageDrawer";
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
+  // 사용자 설정(system/light/dark)을 boolean으로 해석. 'system'이면 prefers-color-scheme 따라감.
+  const isDark = useResolvedDarkMode(globalSetting.darkTheme);
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -38,7 +40,7 @@ function App() {
   });
 
   return (
-    <ThemeProvider theme={useCustomTheme(globalSetting.darkTheme === 'on')}>
+    <ThemeProvider theme={useCustomTheme(isDark)}>
       <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
@@ -62,27 +64,14 @@ function Router() {
     <FilterGroupContext.Provider value={_filterGroupHooks}>
       <MemoryRouter initialEntries={[`/${getQueryParams("initialPath")}`]}>
         <Routes>
-          <Route
-            path="/filter"
-            element={
-              <DrawerTemplate
-                title={''}
-                name="filter"
-                drawer={<SettingPageDrawer />}
-              >
-                <Filter />
-              </DrawerTemplate>
-            }
-          />
-          <Route
-            path="*"
-            element={<Navigate to="/filter" replace />}
-          />
+          <Route path="/filter" element={<Filter />} />
+          <Route path="*" element={<Navigate to="/filter" replace />} />
         </Routes>
       </MemoryRouter>
     </FilterGroupContext.Provider>
   );
 }
+
 ReactDOM.createRoot(document.getElementById("root") as Element).render(
   <React.StrictMode>
     <App />

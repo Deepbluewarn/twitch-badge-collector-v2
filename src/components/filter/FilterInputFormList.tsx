@@ -6,6 +6,17 @@ import { useTranslation } from 'react-i18next';
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import FilterListIcon from '@mui/icons-material/FilterList';
+import AddIcon from '@mui/icons-material/Add';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import CheckIcon from '@mui/icons-material/Check';
+import BlockIcon from '@mui/icons-material/Block';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import ChannelIdGuideDialog from './dialog/ChannelIdGuideDialog';
 import { SelectChangeEvent } from '@mui/material/Select';
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -38,6 +49,7 @@ export default function FilterInputFormList(
     const [nameFilterAvail, setNameFilterAvail] = React.useState(false);
     const [channelId, setChannelId] = useState('');
     const [channelName, setChannelName] = useState('');
+    const [guideOpen, setGuideOpen] = useState(false);
 
     const { t } = useTranslation();
 
@@ -92,8 +104,15 @@ export default function FilterInputFormList(
     }, [globalSetting.platform]);
 
     return (
-        <Card variant="outlined" sx={{ overflow: 'visible' }}>
-            <CardContent sx={{ display: 'flex', minHeight: '22rem' }}>
+        <Card
+            variant="outlined"
+            sx={{
+                overflow: 'visible',
+                // Dialog가 paper. 안쪽 Card는 default로 한 단계 inset.
+                bgcolor: 'background.default',
+            }}
+        >
+            <CardContent sx={{ display: 'flex', minHeight: '22rem', flex: 1 }}>
                 {
                     props.afInputRow.length > 0 ? (
                         <Stack spacing={2} sx={{ width: '100%' }}>
@@ -113,9 +132,31 @@ export default function FilterInputFormList(
                         </Stack>
 
                     ) : (
-                        <Stack justifyContent='center' alignItems='center' sx={{ 'width': '100%' }}>
-                            <Typography color='textSecondary' variant="subtitle1" gutterBottom>
+                        <Stack
+                            justifyContent='center'
+                            alignItems='center'
+                            spacing={1.5}
+                            sx={{ width: '100%' }}
+                        >
+                            <Box
+                                sx={{
+                                    width: 56,
+                                    height: 56,
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    bgcolor: 'action.hover',
+                                    color: 'text.secondary',
+                                }}
+                            >
+                                <FilterListIcon fontSize="medium" />
+                            </Box>
+                            <Typography color='textSecondary' variant="subtitle1">
                                 {t('common.add_filter_elements')}
+                            </Typography>
+                            <Typography color='text.disabled' variant="caption" sx={{ textAlign: 'center', maxWidth: 280 }}>
+                                아래 <b>+ 필터 요소 추가</b> 또는 배지를 클릭해서 시작하세요.
                             </Typography>
                         </Stack>
                     )
@@ -123,53 +164,115 @@ export default function FilterInputFormList(
             </CardContent>
 
             <Divider />
-            <CardActions sx={{ padding: '16px' }}>
-                <Stack
-                    direction='row'
-                    justifyContent='space-between'
-                    sx={{ width: '100%' }}
-                >
-                    <Button onClick={addFilterInputForm}>
-                        {t('common.add_filter_element')}
-                    </Button>
-                    <Stack direction={'row'} gap={1}>
-                        <Stack gap={1}>
-                            <Stack direction={'row'} gap={1}>
-                                <CustomTextField
-                                    value={filterGroupNote}
-                                    label={t('필터 설명을 추가하세요')}
-                                    onChange={onFilterNoteChanged}
-                                />
-                                <FilterTypeSelector
-                                    labelId="filterGroupType"
-                                    value={filterGroupType}
-                                    onChange={onFilterTypeChanged}
-                                />
-                            </Stack>
+            <CardActions sx={{ p: 2, display: 'block' }}>
+                <Stack spacing={1.75}>
+                    {/* 조건(filterType) toggle + "필터 요소 추가" 버튼을 같은 행에 — 같이 폼 영역
+                        편집 액션이라 시각적으로 가까이. 조건 색상은 chipColor와 동일 의미. */}
+                    <Stack direction="row" alignItems="flex-end" spacing={1.5} flexWrap="wrap" useFlexGap>
+                        <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
+                                {t('common.condition')}
+                            </Typography>
+                            <ToggleButtonGroup
+                                value={filterGroupType}
+                                exclusive
+                                size="small"
+                                onChange={(_e, v) => {
+                                    if (v) onFilterTypeChanged({ target: { value: v } } as any);
+                                }}
+                                sx={{
+                                    '& .MuiToggleButton-root': {
+                                        px: 2,
+                                        textTransform: 'none',
+                                        gap: 0.5,
+                                    },
+                                    '& .MuiToggleButton-root.Mui-selected[value="include"]': {
+                                        color: 'success.main',
+                                        bgcolor: (theme) => theme.palette.success.main + '20',
+                                    },
+                                    '& .MuiToggleButton-root.Mui-selected[value="exclude"]': {
+                                        color: 'error.main',
+                                        bgcolor: (theme) => theme.palette.error.main + '20',
+                                    },
+                                }}
+                            >
+                                <ToggleButton value="include">
+                                    <CheckIcon sx={{ fontSize: 18 }} />
+                                    {t('filter.category.include')}
+                                </ToggleButton>
+                                <ToggleButton value="exclude">
+                                    <BlockIcon sx={{ fontSize: 18 }} />
+                                    {t('filter.category.exclude')}
+                                </ToggleButton>
+                                <ToggleButton value="sleep">
+                                    <VisibilityOffIcon sx={{ fontSize: 18 }} />
+                                    {t('filter.category.sleep')}
+                                </ToggleButton>
+                            </ToggleButtonGroup>
+                        </Box>
+                        <Button
+                            onClick={addFilterInputForm}
+                            variant="outlined"
+                            size="small"
+                            startIcon={<AddIcon />}
+                            sx={{ height: 38, ml: 'auto' }}
+                        >
+                            {t('common.add_filter_element')}
+                        </Button>
+                    </Stack>
 
-                            <Stack direction={'row'} gap={1}>
-                                <CustomTextField
-                                    value={channelId}
-                                    label={'채널 ID'}
-                                    onChange={(e) => setChannelId(e.target.value)}
-                                />
-                                <CustomTextField
-                                    value={channelName}
-                                    label={'채널 이름'}
-                                    onChange={(e) => setChannelName(e.target.value)}
-                                />
-                            </Stack>
+                    <CustomTextField
+                        value={filterGroupNote}
+                        label="메모 (선택)"
+                        onChange={onFilterNoteChanged}
+                        fullWidth
+                    />
+
+                    {/* 채널 섹션: optional + 모르는 사람 위해 inline help icon */}
+                    <Box>
+                        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.75 }}>
+                            <Typography variant="caption" color="text.secondary">
+                                특정 채널에서만 적용 (선택)
+                            </Typography>
+                            <IconButton
+                                size="small"
+                                onClick={() => setGuideOpen(true)}
+                                aria-label="채널 ID 안내"
+                                sx={{ p: 0.25 }}
+                            >
+                                <HelpOutlineIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
                         </Stack>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
+                            <CustomTextField
+                                value={channelId}
+                                label={'채널 ID'}
+                                onChange={(e) => setChannelId(e.target.value)}
+                                sx={{ flex: 1 }}
+                            />
+                            <CustomTextField
+                                value={channelName}
+                                label={'채널 이름'}
+                                onChange={(e) => setChannelName(e.target.value)}
+                                sx={{ flex: 1 }}
+                            />
+                        </Stack>
+                    </Box>
+
+                    {/* primary CTA: 우측 하단에 명확하게 */}
+                    <Stack direction="row" justifyContent="flex-end">
                         <Button
                             disabled={props.afInputRow.length === 0}
                             onClick={addFilter}
                             variant='contained'
+                            size="medium"
                         >
                             {t('common.add_filter')}
                         </Button>
                     </Stack>
                 </Stack>
             </CardActions>
+            <ChannelIdGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
         </Card>
     )
 }

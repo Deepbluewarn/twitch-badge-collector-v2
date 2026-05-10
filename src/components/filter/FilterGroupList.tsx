@@ -1,16 +1,22 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { GridColDef, GridRenderCellParams, GridRowId, GridToolbarContainer, GridToolbarProps, Toolbar } from "@mui/x-data-grid";
+import { GridColDef, GridRenderCellParams, GridRowId } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { styled } from "@mui/material/styles";
 import Tooltip from "@mui/material/Tooltip";
 import Avatar from "@mui/material/Avatar";
 import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from '@mui/icons-material/Close';
+import CheckIcon from '@mui/icons-material/Check';
+import BlockIcon from '@mui/icons-material/Block';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { ImportFilter, ExportFilter } from "./FilterIO";
 import { chipColor, onFilterTypeChipClick } from "../chip/FilterTypeChip";
 import { CustomToolbarItemStyle } from "@/components/datagrid/toolbar";
 import { useFilterGroupContext } from "@/context/FilterGroup";
-import { AtomicFilterElement, CompositeFilterElement } from "../../interfaces/filter";
+import { AtomicFilterElement, CompositeFilterElement, FilterType } from "../../interfaces/filter";
 import RelaxedChip from "../chip/RelaxedChip";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import FilterDialog, { DialogMode, DialogType } from "./FilterDialog";
@@ -99,7 +105,8 @@ export function FilterGroupList() {
                                     label={title}
                                     avatar={badgeAvatar}
                                     color={chipColor(af.type)}
-                                    onClick={(e) => { 
+                                    variant="outlined"
+                                    onClick={(e) => {
                                         e.stopPropagation();
                                         openFilterDialog({
                                             type: 'filter',
@@ -136,9 +143,7 @@ export function FilterGroupList() {
             {
                 field: 'filterChannelName', headerName: "채널", flex: 0.2, display: 'flex',
                 renderCell: (params: GridRenderCellParams<any, string>) => {
-
-                    if(!params.value) {
-                        // Subtle chip for adding channel name
+                    if (!params.value) {
                         return (
                             <RoundAddButton
                                 onClick={(e) => {
@@ -152,33 +157,32 @@ export function FilterGroupList() {
                             />
                         )
                     }
-
+                    // chip 대신 텍스트 + delete 아이콘 — 데이터 셀에 적합한 lightweight 표현
                     return (
-                        <Tooltip key={params.row.filterChannelId} title={params.row.filterChannelId} placement="top">
-                            <RelaxedChip
-                                label={params.value}
-                                color='secondary'
-                                onClick={(e) => { 
-                                    e.stopPropagation();
-                                    openFilterDialog({
-                                        type: 'channel',
-                                        filterList: params.row,
-                                        mode: 'edit'
-                                    });
-                                 }}
-                                 onDelete={() => {
-                                    removeFilterField(params.row.id, 'filterChannelId')
-                                    removeFilterField(params.row.id, 'filterChannelName')
-                                 }}
-                            />
-                        </Tooltip >
+                        <TextCell
+                            label={params.value}
+                            tooltip={params.row.filterChannelId}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                openFilterDialog({
+                                    type: 'channel',
+                                    filterList: params.row,
+                                    mode: 'edit'
+                                });
+                            }}
+                            onDelete={(e) => {
+                                e.stopPropagation();
+                                removeFilterField(params.row.id, 'filterChannelId');
+                                removeFilterField(params.row.id, 'filterChannelName');
+                            }}
+                        />
                     )
                 }
             },
             {
-                field: 'filterNote', headerName: "비고", flex: 0.2, display: 'flex',
+                field: 'filterNote', headerName: "메모", flex: 0.2, display: 'flex',
                 renderCell: (params: GridRenderCellParams<any, string>) => {
-                    if(!params.value) {
+                    if (!params.value) {
                         return (
                             <RoundAddButton
                                 onClick={(e) => {
@@ -192,37 +196,34 @@ export function FilterGroupList() {
                             />
                         )
                     }
-
                     return (
-                        <Tooltip key={params.value} title={params.value} placement="top">
-                            <RelaxedChip
-                                label={params.value}
-                                color='secondary'
-                                onClick={(e) => { 
-                                    e.stopPropagation();
-                                    openFilterDialog({
-                                        type: 'note',
-                                        filterList: params.row,
-                                        mode: 'edit'
-                                    });
-                                }}
-                                onDelete={() => {
-                                    removeFilterField(params.row.id, 'filterNote');
-                                }}
-                            />
-                        </Tooltip >
+                        <TextCell
+                            label={params.value}
+                            tooltip={params.value}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                openFilterDialog({
+                                    type: 'note',
+                                    filterList: params.row,
+                                    mode: 'edit'
+                                });
+                            }}
+                            onDelete={(e) => {
+                                e.stopPropagation();
+                                removeFilterField(params.row.id, 'filterNote');
+                            }}
+                        />
                     )
                 }
             },
             {
-                field: 'filterType', headerName: t('common.condition'), flex: 0.2, display: 'flex',
+                field: 'filterType', headerName: t('common.condition'), flex: 0.18, display: 'flex',
                 renderCell: (params: GridRenderCellParams) => {
                     if (!params.value) return null;
-    
                     return (
-                        <RelaxedChip
+                        <ConditionLabel
+                            value={params.value as FilterType}
                             label={t(`filter.category.${params.value}`)}
-                            color={chipColor(params.value)}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onFilterTypeChipClick(params, setFilterGroup);
@@ -330,4 +331,96 @@ function deleteSelectedFilter(setRows: React.Dispatch<React.SetStateAction<Compo
         });
         return newRow;
     });
+}
+
+/**
+ * 채널/메모 셀 — chip 대신 텍스트 + hover 시 미니 delete 버튼.
+ * chip은 시각 무게가 너무 무거워서 데이터 그리드에서 산만함.
+ */
+function TextCell({
+    label, tooltip, onClick, onDelete,
+}: {
+    label: string;
+    tooltip?: string;
+    onClick: (e: React.MouseEvent) => void;
+    onDelete: (e: React.MouseEvent) => void;
+}) {
+    const content = (
+        <Stack
+            direction="row"
+            alignItems="center"
+            gap={0.5}
+            onClick={onClick}
+            sx={{
+                cursor: 'pointer',
+                width: '100%',
+                py: 0.25,
+                px: 0.5,
+                borderRadius: 1,
+                '&:hover': {
+                    bgcolor: 'action.hover',
+                    '& .tbcv2-cell-delete': { opacity: 1 },
+                },
+            }}
+        >
+            <Typography
+                variant="body2"
+                sx={{
+                    flex: 1,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                }}
+            >
+                {label}
+            </Typography>
+            <IconButton
+                size="small"
+                onClick={onDelete}
+                className="tbcv2-cell-delete"
+                aria-label="삭제"
+                sx={{ opacity: 0, transition: 'opacity 0.15s', p: 0.25 }}
+            >
+                <CloseIcon sx={{ fontSize: 14 }} />
+            </IconButton>
+        </Stack>
+    );
+    return tooltip ? <Tooltip title={tooltip} placement="top">{content}</Tooltip> : content;
+}
+
+/**
+ * 조건 라벨 — chip 대신 아이콘 + 색있는 텍스트. include/exclude 의미 색상 유지하되
+ * 배경 fill 없이 inline.
+ */
+function ConditionLabel({
+    value, label, onClick,
+}: {
+    value: FilterType;
+    label: string;
+    onClick: (e: React.MouseEvent) => void;
+}) {
+    const Icon = value === 'include' ? CheckIcon : value === 'exclude' ? BlockIcon : VisibilityOffIcon;
+    const color =
+        value === 'include' ? 'success.main' :
+        value === 'exclude' ? 'error.main' :
+        'text.secondary';
+    return (
+        <Stack
+            direction="row"
+            alignItems="center"
+            gap={0.5}
+            onClick={onClick}
+            sx={{
+                cursor: 'pointer',
+                color,
+                py: 0.25,
+                px: 0.5,
+                borderRadius: 1,
+                '&:hover': { bgcolor: 'action.hover' },
+            }}
+        >
+            <Icon sx={{ fontSize: 16 }} />
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>{label}</Typography>
+        </Stack>
+    );
 }

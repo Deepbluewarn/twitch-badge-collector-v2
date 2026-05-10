@@ -1,7 +1,7 @@
 export interface SettingInterface {
     position: 'up' | 'down';
     pointBoxAuto: 'on' | 'off';
-    darkTheme: 'on' | 'off';
+    darkTheme: 'system' | 'light' | 'dark';
     chatTime: 'on' | 'off';
     maximumNumberChats: number;
     advancedFilter: 'on' | 'off';

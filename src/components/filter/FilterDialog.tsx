@@ -112,7 +112,7 @@ export default function FilterDialog(props: FilterDialogProps) {
         switch (type) {
             case 'filter': return t(`하위 필터 ${modeTitle}`);
             case 'channel': return t(`채널 ${modeTitle}`);
-            case 'note': return t(`비고 ${modeTitle}`);
+            case 'note': return t(`메모 ${modeTitle}`);
             default: return t('수정');
         }
     };
@@ -241,20 +241,22 @@ export default function FilterDialog(props: FilterDialogProps) {
                 </Stack>
 
                 {filterGroup.category === 'badge' && (
-                    <BadgeList
-                        onBadgeSelect={(selectedBadge) => {
-                            const badgeUUID = adapter.getBadgeIdentity(selectedBadge.badgeImage.badge_img_url_1x);
+                    <Box sx={{ height: 420, display: 'flex', flexDirection: 'column' }}>
+                        <BadgeList
+                            onBadgeSelect={(selectedBadge) => {
+                                const badgeUUID = adapter.getBadgeIdentity(selectedBadge.badgeImage.badge_img_url_1x);
 
-                            const _badgeFilter: AtomicFilterElement = {
-                                badgeName: selectedBadge.badgeName,
-                                category: 'badge',
-                                id: selectedBadge.id,
-                                type: selectedBadge.filterType,
-                                value: badgeUUID,
-                            }
-                            handleFilterObjectChange(_badgeFilter, filterId!);
-                        }}
-                    />
+                                const _badgeFilter: AtomicFilterElement = {
+                                    badgeName: selectedBadge.badgeName,
+                                    category: 'badge',
+                                    id: selectedBadge.id,
+                                    type: selectedBadge.filterType,
+                                    value: badgeUUID,
+                                }
+                                handleFilterObjectChange(_badgeFilter, filterId!);
+                            }}
+                        />
+                    </Box>
                 )}
             </Stack>
         );
@@ -292,7 +294,7 @@ export default function FilterDialog(props: FilterDialogProps) {
 
         return (
             <CustomTextField
-                label={'비고'}
+                label={'메모'}
                 value={filterGroupList.filterNote || ''}
                 onChange={e => {
                     handleListObjectChange({ filterNote: e.target.value });
