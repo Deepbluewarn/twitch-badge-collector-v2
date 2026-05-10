@@ -99,6 +99,8 @@ export default function Local({
 
     return (
         <Wrapper ref={containerRef} className={globalSetting.chatTime === 'on' ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'}>
+            {/* 복원 채팅 시각 구분 — useFilteredChatBuffer가 복원 채팅 root에 tbcv2-restored-chat 클래스를 부여 */}
+            <style>{`.tbcv2-restored-chat { background-color: rgba(128, 128, 128, 0.15); }`}</style>
             <div
                 id={`tbc-clone__${type}ui`}
                 style={{

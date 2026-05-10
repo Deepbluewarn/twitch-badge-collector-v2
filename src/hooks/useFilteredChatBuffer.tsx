@@ -11,20 +11,17 @@ interface ChatWrapperProps {
 }
 
 /**
- * 새 채팅은 Fragment(호스트 페이지 레이아웃 영향 0).
- * 복원된 채팅은 div로 감싸 inline style로 시각 구분 (테스트용 — 안정화 후
- * 옵션화 또는 제거 결정).
+ * 새 채팅이든 복원이든 Fragment 그대로 — 호스트 페이지 레이아웃 영향 0.
+ * 복원 시각 구분은 chat root element에 'tbcv2-restored-chat' className을
+ * 직접 추가해서 처리(아래 chats useMemo). 그래야 wrapper div로 인한
+ * `:last-child::before` 부작용이 안 생김.
  */
-const RESTORED_CHAT_STYLE: React.CSSProperties = {
-    backgroundColor: 'rgba(128, 128, 128, 0.15)',
-};
-
 function ChatWrapper(props: ChatWrapperProps) {
-    if (props.restored) {
-        return <div style={RESTORED_CHAT_STYLE}>{props.children}</div>;
-    }
     return <>{props.children}</>;
 }
+
+/** 복원된 채팅 root에 붙이는 클래스. 시각 구분용. */
+export const RESTORED_CHAT_CLASS = 'tbcv2-restored-chat';
 
 /**
  * useFilteredChatBuffer가 보관/저장하는 단위.
@@ -160,13 +157,16 @@ export default function useFilteredChatBuffer(
     const clear = useCallback(() => setSavedChats([]), []);
 
     // 렌더용 ReactElement 매핑. SavedChat.html을 DOMPurify로 sanitize 후
-    // DOM Element로 환원 → convertToJSX.
+    // DOM Element로 환원 → 복원이면 RESTORED_CHAT_CLASS 부여 → convertToJSX.
     const chats = useMemo(() => {
         return savedChats.map(c => {
             const sanitized = DOMPurify.sanitize(c.html);
             const wrapper = document.createElement('div');
             wrapper.innerHTML = sanitized;
             const node = wrapper.firstElementChild as HTMLElement | null;
+            if (node && c.restored) {
+                node.classList.add(RESTORED_CHAT_CLASS);
+            }
             const content = node ? convertToJSX(node) : null;
             return React.createElement(
                 ChatWrapper,
