@@ -8,7 +8,9 @@ export default defineConfig({
     name: '__MSG_ExtensionName__',
     description: '__MSG_ExtensionDesc__',
     default_locale: 'ko',
-    version: '2.18.2',
+    // CI 배포 시 release tag(v2.18.3 → 2.18.3)에서 주입.
+    // 로컬 dev/zip은 fallback 사용 (스토어 정책상 패치 0이면 충돌하므로 미존재 시 dev 표기).
+    version: process.env.RELEASE_VERSION || '2.18.2',
 
     // Action (팝업)
     action: {
