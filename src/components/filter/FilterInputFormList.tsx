@@ -107,12 +107,13 @@ export default function FilterInputFormList(
         <Card
             variant="outlined"
             sx={{
-                overflow: 'visible',
-                // Dialog가 paper. 안쪽 Card는 default로 한 단계 inset.
                 bgcolor: 'background.default',
+                // 부모 flex column 안에서 shrink 당하면 Card overflow:hidden (MUI 기본)에
+                // 내용 잘림. flexShrink:0으로 content 크기 유지 → column이 overflow:auto로 스크롤.
+                flexShrink: 0,
             }}
         >
-            <CardContent sx={{ display: 'flex', minHeight: '22rem', flex: 1 }}>
+            <CardContent sx={{ display: 'flex' }}>
                 {
                     props.afInputRow.length > 0 ? (
                         <Stack spacing={2} sx={{ width: '100%' }}>
@@ -136,7 +137,7 @@ export default function FilterInputFormList(
                             justifyContent='center'
                             alignItems='center'
                             spacing={1.5}
-                            sx={{ width: '100%' }}
+                            sx={{ width: '100%', minHeight: '18rem' }}
                         >
                             <Box
                                 sx={{

@@ -109,12 +109,14 @@ export default function FilterInputForm(
         <Card
             variant="outlined"
             sx={{
-                overflow: 'visible',
-                // Dialog가 paper. 안쪽 Card는 default로 한 단계 inset.
                 bgcolor: 'background.default',
+                // simple 모드: 짧은 content. column 내 vertical center (my:auto) +
+                // shrink 차단(overflow:hidden로 잘리는 거 방지).
+                my: 'auto',
+                flexShrink: 0,
             }}
         >
-            <CardContent sx={{ flex: 1 }}>
+            <CardContent>
                 <BasicFilterInputForm
                     filterInput={props.filterInput}
                     setFilterInput={props.setFilterInput}

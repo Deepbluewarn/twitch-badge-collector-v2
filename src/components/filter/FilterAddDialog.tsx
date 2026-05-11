@@ -63,6 +63,10 @@ export default function FilterAddDialog({ open, onClose }: Props) {
                 sx: {
                     width: '1100px',
                     maxWidth: '95vw',
+                    // 고정 height 필요 — 내부 column이 overflow:auto로 스크롤하려면
+                    // flex 부모에 definite height가 있어야 함. auto height면 height:'100%'
+                    // 체인이 계산 깨져 컬럼이 0 또는 content 높이로 잡힘.
+                    // simple 모드 공간 비는 건 my:auto로 Card vertical centering.
                     height: '70vh',
                     maxHeight: '70vh',
                     bgcolor: 'background.paper',
@@ -108,7 +112,7 @@ export default function FilterAddDialog({ open, onClose }: Props) {
                     direction={{ xs: 'column', md: 'row' }}
                     sx={{ height: '100%', overflow: 'hidden' }}
                 >
-                    {/* 좌측: 폼 영역 (input + 안내). flex column으로 안의 Card가 남은 높이 채움. */}
+                    {/* 좌측: 폼 영역. 자체 scroll 컨테이너 — Card는 content 높이로 자라고 column이 스크롤. */}
                     <Box
                         sx={{
                             flex: { xs: '0 0 auto', md: '0 0 560px' },
@@ -117,7 +121,7 @@ export default function FilterAddDialog({ open, onClose }: Props) {
                             display: 'flex',
                             flexDirection: 'column',
                             minHeight: 0,
-                            overflow: 'hidden',
+                            overflow: 'auto',
                         }}
                     >
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2, flexShrink: 0 }}>
@@ -128,21 +132,18 @@ export default function FilterAddDialog({ open, onClose }: Props) {
                             <Button size="small" onClick={() => setGuideOpen(true)}>자세히</Button>
                         </Stack>
 
-                        {/* Card가 남은 높이를 채우도록 — 내부 form 영역이 dialog 높이만큼 시원하게. */}
-                        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', '& > *': { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' } }}>
-                            {advancedFilter === 'on' ? (
-                                <FilterInputFormList
-                                    afInputRow={filterInputList}
-                                    setAfInputRow={setFilterInputList}
-                                    filterInputListRef={filterInputListRef}
-                                />
-                            ) : (
-                                <FilterInputForm
-                                    filterInput={filterInput}
-                                    setFilterInput={setFilterInput}
-                                />
-                            )}
-                        </Box>
+                        {advancedFilter === 'on' ? (
+                            <FilterInputFormList
+                                afInputRow={filterInputList}
+                                setAfInputRow={setFilterInputList}
+                                filterInputListRef={filterInputListRef}
+                            />
+                        ) : (
+                            <FilterInputForm
+                                filterInput={filterInput}
+                                setFilterInput={setFilterInput}
+                            />
+                        )}
                     </Box>
 
                     <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' } }} />
