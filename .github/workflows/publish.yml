@@ -77,6 +77,8 @@ jobs:
         with:
           name: extension-zips
           path: .output/*.zip
+          # .output은 dot-prefixed → upload-artifact v4 기본 무시. 명시적으로 켜야 함.
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
 
