@@ -148,3 +148,27 @@ jobs:
           EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
           EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
           EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+
+  notify-discord:
+    name: Notify Discord
+    needs: [build, publish-chrome, publish-firefox, publish-edge]
+    runs-on: ubuntu-latest
+    # 실제 release일 때만 알림. publish 모두 성공해야 알림 — 일부 실패 시 수동 확인 후 재공지.
+    if: github.event_name == 'release'
+    steps:
+      - name: Post to Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ needs.build.outputs.version }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          RELEASE_NOTES: ${{ github.event.release.body }}
+        run: |
+          # 기존 공지 톤: 코드 블록 버전 + bullet list + GitHub URL (Discord 자동 embed)
+          CONTENT=$(jq -n \
+            --arg ver "$VERSION" \
+            --arg url "$RELEASE_URL" \
+            --arg notes "$RELEASE_NOTES" \
+            '{
+              content: "`\($ver)` 버전 업데이트\n\n\($notes)\n\n\($url)"
+            }')
+          curl -sS -H "Content-Type: application/json" -X POST -d "$CONTENT" "$WEBHOOK"
