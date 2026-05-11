@@ -3,6 +3,17 @@ name: Publish Extension
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version override (예: 2.18.3). 비우면 wxt.config.ts fallback 사용.'
+        required: false
+        type: string
+      dry_run:
+        description: 'wxt submit --dry-run (credentials만 검증, 실제 업로드 없음)'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -19,13 +30,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract version from tag
+      - name: Extract version
         id: version
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          VERSION="${TAG#v}"
-          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Tag '$TAG' is not a valid semver (expected vX.Y.Z)"
+          if [[ "${GITHUB_EVENT_NAME}" == "release" ]]; then
+            TAG="${GITHUB_REF_NAME}"
+            VERSION="${TAG#v}"
+          else
+            VERSION="${{ inputs.version }}"
+          fi
+          if [[ -n "$VERSION" ]] && ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version '$VERSION' is not a valid semver (expected X.Y.Z)"
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -82,7 +97,7 @@ jobs:
           name: extension-zips
           path: .output
       - name: Submit
-        run: npx wxt submit --chrome-zip .output/*-chrome.zip
+        run: npx wxt submit ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '--dry-run' || '' }} --chrome-zip .output/*-chrome.zip
         env:
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
@@ -105,7 +120,7 @@ jobs:
           name: extension-zips
           path: .output
       - name: Submit
-        run: npx wxt submit --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
+        run: npx wxt submit ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '--dry-run' || '' }} --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
         env:
           FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
           FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
@@ -127,7 +142,7 @@ jobs:
           name: extension-zips
           path: .output
       - name: Submit
-        run: npx wxt submit --edge-zip .output/*-chrome.zip
+        run: npx wxt submit ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '--dry-run' || '' }} --edge-zip .output/*-chrome.zip
         env:
           EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
           EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
