@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { ArrayFilterCategory, ArrayFilterInterface, ArrayFilterListInterface, FilterType } from "../interfaces/filter"
+import { FilterCategory, AtomicFilterElement, CompositeFilterElement, FilterType } from "../interfaces/filter"
 import { Logger } from "./logger";
 
 export const generateRandomString = (length: number): string => {
@@ -25,24 +25,14 @@ export function trim_hash(str: string) {
   }
   return c1;
 }
-export function getDefaultArrayFilter(id?: string, category?: ArrayFilterCategory, type?: FilterType) {
-  const _: ArrayFilterInterface = {
+export function defaultAtomicFilter(id?: string, category?: FilterCategory, type?: FilterType) {
+  const _: AtomicFilterElement = {
     category: category || 'name',
     id: id || nanoid(),
     type: type || 'include',
     value: ''
   }
   return _;
-}
-export function badgeUuidFromURL(url: string) {
-  let badge_uuid: string = "";
-
-  try {
-    badge_uuid = new URL(url).pathname.split("/")[3];
-  } catch (e) {
-    return badge_uuid;
-  }
-  return badge_uuid;
 }
 export function getRandomString() {
   return Math.random().toString(36).substring(2, 12);
@@ -65,9 +55,9 @@ export function getErrorMessage(error: unknown) {
   return String(error);
 }
 
-export function arrayFilterEqual(
-  a: ArrayFilterInterface,
-  b: ArrayFilterInterface
+export function filterGroupEqual(
+  a: AtomicFilterElement,
+  b: AtomicFilterElement
 ) {
   return (
     // Object.keys(a).length === Object.keys(b).length &&
@@ -81,12 +71,12 @@ export function arrayFilterEqual(
   );
 }
 
-export function arrayFiltersEqual(
-  a: ArrayFilterInterface[],
-  b: ArrayFilterInterface[]
+export function atomicFiltersEqual(
+  a: AtomicFilterElement[],
+  b: AtomicFilterElement[]
 ) {
   return (
-    a.length === b.length && a.every((o, idx) => arrayFilterEqual(o, b[idx]))
+    a.length === b.length && a.every((o, idx) => filterGroupEqual(o, b[idx]))
   );
 }
 
@@ -107,43 +97,6 @@ export function inIframe() {
 }
 export const getRandomBooleanWithProbability = (probability: number) => {
   return Math.random() < probability;
-}
-
-export function getChannelFromPath() {
-  const paths = window.location.pathname.split("/");
-  let channel = paths[1];
-
-  if (paths.length > 2) {
-    if (channel === "popout") {
-      channel = paths[2];
-    } else if (channel === "moderator") {
-      channel = paths[2];
-    } else if (channel === "embed") {
-      channel = paths[2];
-    }
-  }
-  return channel;
-}
-export function getVideoIdParam(replayType: "replay" | "clip" | boolean) {
-  const paths = window.location.pathname.split("/");
-
-  if (replayType === "clip") {
-    return paths[3];
-  } else if (replayType === "replay") {
-    return paths[2];
-  }
-}
-
-export function ReplayPageType() {
-  const replay_regex = /\/videos\/[0-9]*/g;
-  const url = new URL(location.href);
-
-  if (replay_regex.test(url.pathname)) {
-    return "replay";
-  } else if (url.pathname.split("/")[2] === "clip") {
-    return "clip";
-  }
-  return false;
 }
 
 export function findElement(selector: string, cb: (elem: Element | null) => void) {

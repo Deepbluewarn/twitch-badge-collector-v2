@@ -1,0 +1,73 @@
+import { useTranslation } from 'react-i18next';
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { SelectProps } from '@mui/material/Select';
+import {
+    FilterCategory,
+    FilterType
+} from "../../interfaces/filter";
+
+type FilterTypeSelector = SelectProps<FilterCategory> & {
+    nameFilterAvail?: boolean;
+}
+export type FilterSelectorType = 'category' | 'type';
+
+export function FilterTypeSelector(props: SelectProps<FilterType>) {
+    const { t } = useTranslation();
+
+    return (
+        <FormControl sx={{ minWidth: 120 }}>
+            <InputLabel id="filterGroupType">{t('common.condition')}</InputLabel>
+            <Select
+                labelId="filterGroupType"
+                label={t('common.condition')}
+                size="small"
+                {...props}
+            >
+                <MenuItem value='include'>{t('filter.category.include')}</MenuItem>
+                <MenuItem value='exclude'>{t('filter.category.exclude')}</MenuItem>
+                <MenuItem value='sleep'>{t('filter.category.sleep')}</MenuItem>
+            </Select>
+        </FormControl>
+    )
+}
+
+export function FilterCategorySelector(props: SelectProps<FilterCategory>) {
+    const { t } = useTranslation();
+
+    return (
+        <FormControl sx={{ minWidth: 120 }} size="small">
+            <InputLabel id="filter-category-label">{t('common.category')}</InputLabel>
+            <Select
+                labelId="filter-category-label"
+                className="filter-category"
+                label={t('common.category')}
+                {...props}
+            >
+                <MenuItem value='name'>{t('common.nickname')}</MenuItem>
+                <MenuItem value='keyword'>{t('common.keyword')}</MenuItem>
+            </Select>
+        </FormControl>
+    )
+}
+export function AdvancedFilterCategorySelector(props: FilterTypeSelector) {
+    const { t } = useTranslation();
+
+    const {nameFilterAvail, ...rest} = props;
+
+    return (
+        <FormControl sx={{ minWidth: 120 }} size="small">
+            <InputLabel id="filter-category-label">{t('common.category')}</InputLabel>
+            <Select
+                labelId="filter-category-label"
+                className="filter-category"
+                label={t('common.category')}
+                {...rest}
+            >
+                <MenuItem disabled={props.nameFilterAvail} value='name'>{t('common.nickname')}</MenuItem>
+                <MenuItem value='keyword'>{t('common.keyword')}</MenuItem>
+            </Select>
+        </FormControl>
+    )
+}

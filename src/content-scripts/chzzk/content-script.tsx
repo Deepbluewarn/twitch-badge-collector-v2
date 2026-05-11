@@ -1,101 +1,84 @@
-import { ChatExtractor, checkVerifiedBadge } from "../base/chatExtractor";
 import { BaseContainer } from "../base/container";
 import { Handle } from "../base/handler";
 import { addHistoryStateListener } from "../base/historyStateListener";
 import { Observer } from "../base/observer";
 import { Logger } from "@/utils/logger";
-import { ChatInfo } from "@/interfaces/chat";
+import { ChzzkAdapter } from "@/platform/chzzk";
+import {
+    getPlatformConfig, manifestReady, getManifest,
+    SELECTORS_MESSAGE_TYPE,
+} from "@/platform/host-selectors";
 
-export class ChzzkChatExtractor extends ChatExtractor {
-    extract(node: Node): ChatInfo | undefined {
-        if (!this.prep(node)) return;
+async function bootstrap() {
+    await manifestReady;
+    window.postMessage({ type: SELECTORS_MESSAGE_TYPE, manifest: getManifest() }, '*');
 
-        const chat_clone = node.cloneNode(true) as Element;
+    const adapter = new ChzzkAdapter();
+    const SEL = getPlatformConfig('chzzk').selectors;
 
-        const display_name = chat_clone.getElementsByClassName(
-            "name_text__yQG50"
-        )[0];
+    const liveContainer = new BaseContainer(
+        adapter,
+        new Handle(adapter, '#tbc-chzzk-chat-list-container'),
+        SEL.chatRoomLive,
+    );
 
-        if (!display_name) return;
+    const vodContainer = new BaseContainer(
+        adapter,
+        new Handle(adapter, '#tbc-chzzk-chat-list-container'),
+        SEL.chatRoomVod,
+        SEL.video,
+        '#tbc-clone__chzzkui',
+    );
 
-        let loginName: string = "";
-        let nickName: string = "";
+    function init() {
+        const mode = adapter.getPageMode();
+        console.log('init pageMode: ', mode);
+        if (mode === 'video') vodContainer.create();
+        else if (mode === 'live') liveContainer.create();
+    }
 
-        if (display_name) {
-            loginName = display_name.textContent!;
-            nickName = display_name.textContent!;
-        }
+    init();
+    addHistoryStateListener('chzzk.naver.com', init);
+    setupFullscreenKeepAlive();
 
-        const badges = (
-            chat_clone.getElementsByClassName("badge_container__a64XB")
-        );
-
-        const textContents = (
-            chat_clone.getElementsByClassName("live_chatting_message_text__DyleH")
-        );
-
-        const donationTextContents = (
-            chat_clone.getElementsByClassName("live_chatting_donation_message_text__XbDKP")
-        );
-
-        const badgeArr = Array.from(badges).map((badge) => badge.getElementsByTagName("img")[0].src);
-        const textArr = Array.from(textContents).map((text) => text.textContent);
-        const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
-
-        const verifiedBadge = checkVerifiedBadge(chat_clone);
-
-        if (verifiedBadge) {
-            badgeArr.push("https://ssl.pstatic.net/static/nng/glive/resource/p/static/media/icon_official.a53d1555f8f4796d7862.png");
-        }
-
-        return {
-            badges: [...badgeArr],
-            textContents: [...textArr, ...donationTextArr],
-            loginName: loginName,
-            nickName: nickName,
-        } as ChatInfo;
+    if (SEL.pointButton) {
+        new Observer(SEL.pointButton, false).observe(async (elem) => {
+            if (!elem) return;
+            const isPointAutoOn = (await browser.storage.local.get('pointBoxAuto')).pointBoxAuto;
+            if (isPointAutoOn === 'off') return;
+            (elem as HTMLButtonElement).click();
+            Logger('observe pointButton callback: ', '포인트 박스를 클릭했어요!');
+        });
     }
 }
-function init() {
-    const pathSegment = window.location.pathname.split('/')[1];
 
-    console.log('init pathSegment: ', pathSegment)
-    
-    if (pathSegment === 'video') {
-        vodContainer.create();
-    } else if (pathSegment === 'live') {
-        liveContainer.create();
-    }
+// chzzk fullscreen 진입 시 #aside-chatting을 display:none 처리 → host React가 채팅 렌더 멈춤
+// → 우리 MutationObserver가 변화를 못 잡음.
+// aside는 fullscreen subtree 안에 있어서 browser가 자동으로 가려주지 않음.
+// → display:flex로 되살리되, 화면 밖으로 빼서 시각적으로만 숨김.
+//   host의 layout/IntersectionObserver에는 정상 element로 보이도록 size 유지.
+function setupFullscreenKeepAlive() {
+    const ASIDE_ID = 'aside-chatting';
+    const HIDE_PROPS: Array<[string, string]> = [
+        ['display', 'flex'],
+        ['position', 'absolute'],
+        ['left', '-99999px'],
+        ['top', '0'],
+        ['width', '320px'],
+        ['height', '600px'],
+        ['visibility', 'hidden'],
+        ['pointer-events', 'none'],
+        ['z-index', '-1'],
+    ];
+    document.addEventListener('fullscreenchange', () => {
+        const aside = document.getElementById(ASIDE_ID);
+        if (!aside) return;
+        if (document.fullscreenElement) {
+            HIDE_PROPS.forEach(([k, v]) => aside.style.setProperty(k, v, 'important'));
+        } else {
+            HIDE_PROPS.forEach(([k]) => aside.style.removeProperty(k));
+        }
+    });
 }
-const liveContainer = new BaseContainer(
-    'chzzk', 
-    new ChzzkChatExtractor('chzzk'), 
-    new Handle('chzzk', '#tbc-chzzk-chat-list-container'), 
-    '.live_chatting_list_wrapper__a5XTV',
-);
 
-const vodContainer = new BaseContainer(
-    'chzzk',
-    new ChzzkChatExtractor('chzzk'),
-    new Handle('chzzk', '#tbc-chzzk-chat-list-container'),
-    '.vod_chatting_list__+LZHw',
-    '.pzp-pc__video video.webplayer-internal-video',
-    '#tbc-clone__chzzkui',
-)
-
-init()
-
-addHistoryStateListener('chzzk.naver.com', init);
-
-new Observer('.live_chatting_power_button__Ov3eJ', false).observe(async (elem) => {
-    if (!elem) return;
-
-    if (elem) {
-        const isPointAutoOn = (await browser.storage.local.get('pointBoxAuto')).pointBoxAuto;
-
-        if (isPointAutoOn === 'off') return;
-
-        (elem as HTMLButtonElement).click();
-        Logger('observe .live_chatting_power_button__Ov3eJ callback: ', '포인트 박스를 클릭했어요!')
-    }
-})
+bootstrap();

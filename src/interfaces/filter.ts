@@ -1,44 +1,18 @@
 import { SettingInterface } from "./setting";
 
-export const CategoryArr = ["badge_uuid", "login_name", "keyword"] as const;
-export type FilterCategory = typeof CategoryArr[number];
-
 export const TypeArr = ["include", "exclude", "sleep"] as const;
 export type FilterType = typeof TypeArr[number];
 
-export interface FilterInterface {
-    id: string;
-    category: FilterCategory;
-    badge: string;
-    filterType: FilterType;
-    note?: string;
-    value: string;
-}
+export const FilterCategoryArr = ["badge", "name", "keyword"] as const;
+export type FilterCategory = typeof FilterCategoryArr[number];
 
-export interface FilterJsonInterface {
-    version?: string;
-    date?: number;
-
-    category: FilterCategory;
-    filter_id: string;
-    filter_type: FilterType;
-    note: string;
-    value: string;
-}
-
-export interface CheckFilterInterface {
-    badgesRaw: string | undefined;
-    message: string;
-    username: string;
-    dispName: string | undefined;
-}
-
-export const ArrayFilterCategoryArr = ["badge", "name", "keyword"] as const;
-export type ArrayFilterCategory = typeof ArrayFilterCategoryArr[number];
-
-export interface ArrayFilterInterface {
+/**
+ * 원자형 Filter Element — Filter 트리의 잎. 채팅의 한 측면(category)을
+ * 검사해 boolean을 만들고, type(include/exclude/sleep)으로 그 결과를 변형한다.
+ */
+export interface AtomicFilterElement {
     [index : string] : string | undefined,
-    category: ArrayFilterCategory;
+    category: FilterCategory;
     id: string;
     type: FilterType;
     value: string;
@@ -48,18 +22,20 @@ export interface ArrayFilterInterface {
     channelId?: string; // 트위치 다시보기에서는 채널 login이 없고 id만 있더라
 }
 
-export interface ArrayFilterListInterface {
+/**
+ * 복합 Filter Element — Filter Group의 항목. 채널 스코프 + Filter Type을
+ * 가지고, 내부에 AtomicFilterElement들로 구성된 Filter(AND 결합)를 보유한다.
+ */
+export interface CompositeFilterElement {
     filterType: FilterType;
     id: string;
     filterNote: string;
     filterChannelId?: string; // 채널별 필터 적용 기능
     filterChannelName?: string;
-    filters: ArrayFilterInterface[];
+    filters: AtomicFilterElement[];
     platform: SettingInterface['platform'];
 }
 
-export interface ArrayFilterMessageInterface {
-    from: string;
-    filter: ArrayFilterListInterface[];
-    msgId: string;
-}
+/** 사용자의 Filter Group — 평가 순서대로 정렬된 CompositeFilterElement 배열 */
+export type FilterGroup = CompositeFilterElement[];
+

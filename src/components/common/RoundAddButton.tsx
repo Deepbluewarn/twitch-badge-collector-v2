@@ -1,48 +1,43 @@
 import React from 'react';
-import { Button, useTheme } from '@mui/material';
-import { useCustomTheme } from "@/hooks/useCustomTheme";
+import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
-import { useGlobalSettingContext } from '@/context/GlobalSetting';
 
 interface RoundAddButtonProps {
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-    size?: number; // 버튼 크기 (기본값: 32)
-    sx?: object; // 추가 스타일
+    size?: number;
+    sx?: object;
 }
 
-const RoundAddButton: React.FC<RoundAddButtonProps> = ({ onClick, size = 32, sx }) => {
-    const { globalSetting } = useGlobalSettingContext();
-    const theme = useCustomTheme(globalSetting.darkTheme === 'on');
-    const colors = theme.colors;
+/**
+ * 빈 셀에 항목 추가용. 흰 원이 셀에 박혀 "귀신 눈깔" 같던 기존 디자인 → 투명 배경 +
+ * dashed border + 저대비 아이콘. hover 시에만 살짝 부각.
+ */
+const RoundAddButton: React.FC<RoundAddButtonProps> = ({ onClick, size = 24, sx }) => {
     return (
-        <Button
+        <IconButton
             size='small'
+            onClick={onClick}
+            aria-label="추가"
             sx={{
-                minWidth: size,
-                minHeight: size,
                 width: size,
                 height: size,
-                border: `1px solid ${colors.borderColor}`,
-                borderRadius: '50%',
-                backgroundColor: colors.bgColor_2,
-                color: colors.textColor_2,
-                fontWeight: 'bold',
-                boxShadow: 'none',
-                p: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'background-color 0.2s, color 0.2s',
+                // text.secondary 정도로 명도를 올려서 라이트 모드에서도 또렷하게 보임.
+                color: 'text.secondary',
+                border: '1px dashed',
+                borderColor: 'text.disabled',
+                bgcolor: 'transparent',
+                transition: 'all 0.15s',
                 '&:hover': {
-                    backgroundColor: colors.bgColor_3,
-                    color: colors.textColor_1,
+                    color: 'primary.main',
+                    borderColor: 'primary.main',
+                    borderStyle: 'solid',
+                    bgcolor: 'action.hover',
                 },
                 ...sx,
             }}
-            onClick={onClick}
         >
-            <AddIcon sx={{ color: colors.textColor_2 }} />
-        </Button>
+            <AddIcon sx={{ fontSize: 14 }} />
+        </IconButton>
     );
 };
 

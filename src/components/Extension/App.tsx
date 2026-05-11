@@ -3,21 +3,21 @@ import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
 import { SettingInterface } from "@/interfaces/setting";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { useEffect } from "react";
-import { BaseContainer } from "@/content-scripts/base/container";
 import { Handle } from "@/content-scripts/base/handler";
+import { applyPosition, applyRatio } from "@/content-scripts/base/layout";
 import { GlobalSettingContext } from "@/context/GlobalSetting";
 import { AlertContext } from "@/context/Alert";
 import Local from "./Local";
-import { ChatExtractor } from "@/content-scripts/base/chatExtractor";
+import { PlatformAdapter } from "@/platform";
 
 export default function App({
     type,
     videoSelector,
-    extractor,
+    adapter,
 } : {
     type: SettingInterface['platform'],
     videoSelector?: string;
-    extractor: ChatExtractor,
+    adapter: PlatformAdapter,
 }) {
     const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
     const { alerts, setAlerts, addAlert } = useAlert();
@@ -26,10 +26,10 @@ export default function App({
         addStorageUpdateListener((key, newValue) => {
             switch (key) {
                 case 'position':
-                    BaseContainer.updatePosition(type, newValue)
+                    applyPosition(type, newValue)
                     break;
                 case 'containerRatio':
-                    Handle.updateContainerRatio(type, newValue, Handle.getPosition(type))
+                    applyRatio(type, newValue, Handle.getPosition(type))
                     break;
             }
         })
@@ -40,10 +40,10 @@ export default function App({
             value={{ globalSetting, dispatchGlobalSetting }}
         >
             <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
-                <Local 
-                    type={type} 
+                <Local
+                    type={type}
                     videoSelector={videoSelector}
-                    extractor={extractor}
+                    adapter={adapter}
                 />
             </AlertContext.Provider>
         </GlobalSettingContext.Provider>

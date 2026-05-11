@@ -36,6 +36,11 @@ li.InjectLayout-sc-1i43xsx-0.gZQijS {
     position: relative;
 }
 
+/* 호버 시 native 팝업(예: 시스템 메시지 안내)이 다음 행에 가려지지 않도록 stack 올림. */
+.tbcv2-highlight:hover {
+    z-index: 1;
+}
+
 .tbcv2-highlight > :first-child:before {
     position: absolute;
     content: '';

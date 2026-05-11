@@ -1,58 +1,59 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import AlertInterface from "../interfaces/alert";
 
+const ALERT_TTL_MS = 4000;
+const MAX_VISIBLE = 4;
+
 export default function useAlert() {
-    const [ alerts, setAlerts ] = React.useState<AlertInterface[]>([]);
-    const [ times, setTimes ] = React.useState<number[]>([]);
+    const [alerts, setAlerts] = React.useState<AlertInterface[]>([]);
+    // 다음 dismiss timeout 1개만 유지 — alerts가 바뀔 때마다 이전 것을 cancel.
+    // 이전 구조는 매 alerts 변경마다 setTimeout을 새로 등록하면서 timeoutId를 배열에
+    // 누적만 하고 비우지 않아 leak이 있었음.
+    const dismissTimeoutRef = useRef<number | null>(null);
 
     const addAlert = (alert: AlertInterface) => {
-        setAlerts(alerts => {
-            if(alerts.some(a => checkAlertDuplicate(a, alert))){
-                return alerts;
-            }
-            return [...alerts, alert];
+        setAlerts(prev => {
+            if (prev.some(a => isDuplicate(a, alert))) return prev;
+            return [...prev, alert];
         });
-
-        return;
-    }
-
-    const checkAlertDuplicate = (alert_1: AlertInterface, alert_2: AlertInterface) => {
-        return (
-            alert_1.message === alert_2.message && 
-            alert_1.serverity === alert_2.serverity
-        )
-    }
+    };
 
     const shiftAlert = () => {
-        setAlerts(alerts => {
-            alerts.shift();
-            return [...alerts];
+        setAlerts(prev => {
+            const next = prev.slice(1);
+            return next;
         });
-    }
+    };
 
-    React.useEffect(() => {
-        if(alerts.length === 0){
-            times.forEach(t => {
-                clearTimeout(t);
-            });
+    useEffect(() => {
+        // 이전 timeout이 있으면 cancel — alerts 변경마다 단일 활성 timeout만 유지.
+        if (dismissTimeoutRef.current !== null) {
+            clearTimeout(dismissTimeoutRef.current);
+            dismissTimeoutRef.current = null;
         }
-        if(alerts.length > 4){
+
+        if (alerts.length === 0) return;
+        if (alerts.length > MAX_VISIBLE) {
             shiftAlert();
+            return;
         }
-    }, [alerts]);
 
-    React.useEffect(() => {
-        const timeId = window.setTimeout(() => {
-            if(alerts.length <= 0) return;
-
+        dismissTimeoutRef.current = window.setTimeout(() => {
             shiftAlert();
+            dismissTimeoutRef.current = null;
+        }, ALERT_TTL_MS);
 
-            clearTimeout(timeId);
-        }, 4000);
-
-        setTimes([...times, timeId]);
+        return () => {
+            if (dismissTimeoutRef.current !== null) {
+                clearTimeout(dismissTimeoutRef.current);
+                dismissTimeoutRef.current = null;
+            }
+        };
     }, [alerts]);
 
     return { alerts, setAlerts, addAlert };
 }
 
+function isDuplicate(a: AlertInterface, b: AlertInterface): boolean {
+    return a.message === b.message && a.serverity === b.serverity;
+}

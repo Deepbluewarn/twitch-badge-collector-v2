@@ -5,11 +5,38 @@ import { CustomTheme } from '../interfaces/ThemeInterface';
 export function useCustomTheme(theme: boolean): CustomTheme {
 
     const baseTheme = createTheme({
-        palette: {
-            mode: theme ? 'dark' : 'light',
-            background: theme
-                ? { default: '#1A1A1A', paper: '#242424' }
-                : { default: '#ffffff', paper: '#ffffff' } // 라이트 모드 색상
+        palette: theme ? {
+            // dark — 무채색 grey 대신 살짝 cool tint(blue 쪽). paper(elevated surface)는 default보다
+            // 명확히 한 단계 밝게 — 모달/카드의 위계 가시성 확보.
+            mode: 'dark',
+            background: { default: '#0f1014', paper: '#1d1f26' },
+            primary: { main: '#7c8aef', light: '#a5afff', dark: '#5b6acb', contrastText: '#0a0a10' },
+            secondary: { main: '#b07ce6' },
+            text: { primary: '#e6e8ee', secondary: '#9296a3', disabled: '#6a6e7a' },
+            divider: 'rgba(255, 255, 255, 0.09)',
+            action: {
+                hover: 'rgba(255, 255, 255, 0.06)',
+                selected: 'rgba(124, 138, 239, 0.16)',
+                active: 'rgba(255, 255, 255, 0.7)',
+            },
+        } : {
+            // light — 약간 cool grey base, paper는 순백.
+            // 텍스트/primary 색을 충분히 진하게 — 이전엔 contrast 부족해서 흐릿했음.
+            mode: 'light',
+            background: { default: '#fafbfd', paper: '#ffffff' },
+            primary: { main: '#3f4ba8', light: '#5b6acb', dark: '#2c357a', contrastText: '#ffffff' },
+            secondary: { main: '#6b3eb1' },
+            text: { primary: '#0f1014', secondary: '#3d4250', disabled: '#7a8090' },
+            divider: 'rgba(15, 16, 20, 0.14)',
+            action: {
+                hover: 'rgba(15, 16, 20, 0.06)',
+                selected: 'rgba(63, 75, 168, 0.12)',
+                active: 'rgba(15, 16, 20, 0.7)',
+            },
+        },
+        // 모서리 부드럽게 — 기본 4 → 8. Card/Button/Chip/Input 등 전반에 통일 적용.
+        shape: {
+            borderRadius: 8,
         },
         typography: {
             fontFamily: [

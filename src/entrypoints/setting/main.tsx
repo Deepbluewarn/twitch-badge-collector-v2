@@ -10,26 +10,22 @@ import { ThemeProvider } from "@mui/material/styles";
 import { getQueryParams } from "@/utils/utils-common";
 import globalStyles from "@/style/global";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
-import useArrayFilterExtension from "@/hooks/useArrayFilterExtension";
+import useFilterGroup from "@/hooks/useFilterGroup";
 import useAlert from "@/hooks/useAlert";
-import useChzzkAPI from "@/hooks/useChzzkAPI";
-import { GlobalSettingContext } from "@/context/GlobalSetting";
+import { GlobalSettingContext, useGlobalSettingContext } from "@/context/GlobalSetting";
 import { AlertContext } from "@/context/Alert";
 import { useCustomTheme } from "@/hooks/useCustomTheme";
-import { TwitchAPIContext } from "@/context/TwitchAPIContext";
-import useTwitchAPI from "@/hooks/useTwitchAPI";
-import { ChzzkAPIContext } from "@/context/ChzzkAPIContext";
+import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import AlertContainer from "@/components/AlertContainer";
-import { ArrayFilterContext } from "@/context/ArrayFilter";
+import { FilterGroupContext } from "@/context/FilterGroup";
+import Filter from "@/components/Filter";
 import '@/translate/i18n';
-import { Box } from "@mui/material";
-import SettingPageDrawer from "@/components/drawer/SettingPageDrawer";
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
-  const twitchAPI = useTwitchAPI();
-  const chzzkAPI = useChzzkAPI();
+  // 사용자 설정(system/light/dark)을 boolean으로 해석. 'system'이면 prefers-color-scheme 따라감.
+  const isDark = useResolvedDarkMode(globalSetting.darkTheme);
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -44,19 +40,15 @@ function App() {
   });
 
   return (
-    <ThemeProvider theme={useCustomTheme(globalSetting.darkTheme === 'on')}>
+    <ThemeProvider theme={useCustomTheme(isDark)}>
       <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
         <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
           <QueryClientProvider client={queryClient}>
-            <TwitchAPIContext.Provider value={twitchAPI}>
-              <ChzzkAPIContext.Provider value={chzzkAPI}>
-                {globalStyles}
-                <AlertContainer />
-                <Router />
-              </ChzzkAPIContext.Provider>
-            </TwitchAPIContext.Provider>
+            {globalStyles}
+            <AlertContainer />
+            <Router />
           </QueryClientProvider>
         </AlertContext.Provider>
       </GlobalSettingContext.Provider>
@@ -65,33 +57,21 @@ function App() {
 }
 
 function Router() {
-  const _arrayFilterHooks = useArrayFilterExtension('twitch', false);
+  const { globalSetting } = useGlobalSettingContext();
+  const _filterGroupHooks = useFilterGroup(globalSetting.platform, false);
 
   return (
-    <ArrayFilterContext.Provider value={_arrayFilterHooks}>
+    <FilterGroupContext.Provider value={_filterGroupHooks}>
       <MemoryRouter initialEntries={[`/${getQueryParams("initialPath")}`]}>
         <Routes>
-          <Route
-            path="/filter"
-            element={
-              <DrawerTemplate
-                title={''}
-                name="filter"
-                drawer={<SettingPageDrawer />}
-              >
-                <Filter />
-              </DrawerTemplate>
-            }
-          />
-          <Route
-            path="*"
-            element={<Navigate to="/filter" replace />}
-          />
+          <Route path="/filter" element={<Filter />} />
+          <Route path="*" element={<Navigate to="/filter" replace />} />
         </Routes>
       </MemoryRouter>
-    </ArrayFilterContext.Provider>
+    </FilterGroupContext.Provider>
   );
 }
+
 ReactDOM.createRoot(document.getElementById("root") as Element).render(
   <React.StrictMode>
     <App />

@@ -195,8 +195,5 @@ export interface GetUsersFollows {
     ]
 }
 
-export const TypeArr = ["include", "exclude", "sleep"] as const;
-export type FilterType = typeof TypeArr[number];
-
 export const ChannelChatBadgesCategoryArr = ['bits', 'subscriber'];
 export type ChannelChatBadgesCategory = typeof ChannelChatBadgesCategoryArr[number];

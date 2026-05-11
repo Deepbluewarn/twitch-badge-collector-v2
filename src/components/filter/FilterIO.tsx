@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { useArrayFilterContext } from "@/context/ArrayFilter";
+import { useFilterGroupContext } from "@/context/FilterGroup";
 import { 
-    ArrayFilterListInterface, 
+    CompositeFilterElement, 
 } from "@/interfaces/filter";
 import { CustomToolbarItemStyle } from "../datagrid/toolbar";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
@@ -10,7 +10,7 @@ import { useAlertContext } from "@/context/Alert";
 
 export function ImportFilter() {
     const {globalSetting} = useGlobalSettingContext();
-    const { arrayFilter, setArrayFilter, addArrayFilter } = useArrayFilterContext();
+    const { filterGroup, setFilterGroup, addCompositeFilters } = useFilterGroupContext();
     const { t } = useTranslation();
     const { addAlert } = useAlertContext();
     const inputRef = useRef<HTMLInputElement>(null);
@@ -18,9 +18,9 @@ export function ImportFilter() {
     /**
      * 
      */
-    const modifyFilterListByPlatform = useCallback((filters: ArrayFilterListInterface[]) => {
+    const modifyFilterListByPlatform = useCallback((filters: CompositeFilterElement[]) => {
         const platformFilter = filters.filter((filter) => filter.platform === globalSetting.platform);
-        const preservedFilter = arrayFilter.filter((filter) => filter.platform !== globalSetting.platform);
+        const preservedFilter = filterGroup.filter((filter) => filter.platform !== globalSetting.platform);
 
         if(platformFilter.length === 0) {
             addAlert({
@@ -30,9 +30,9 @@ export function ImportFilter() {
             return;
         }
 
-        setArrayFilter([]);
-        addArrayFilter([...preservedFilter, ...platformFilter]);
-    }, [arrayFilter, globalSetting.platform])
+        setFilterGroup([]);
+        addCompositeFilters([...preservedFilter, ...platformFilter]);
+    }, [filterGroup, globalSetting.platform])
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const fileReader = new FileReader();
@@ -65,7 +65,7 @@ export function ImportFilter() {
 
 export function ExportFilter() {
     const { globalSetting } = useGlobalSettingContext();
-    const { arrayFilter } = useArrayFilterContext();
+    const { filterGroup } = useFilterGroupContext();
     const { t } = useTranslation();
 
     const today = new Date();
@@ -76,9 +76,9 @@ export function ExportFilter() {
 
     const clickHandler = useCallback(() => {
         const platform = globalSetting.platform;
-        const platformFilter = arrayFilter.filter((filter) => filter.platform === platform);
+        const platformFilter = filterGroup.filter((filter) => filter.platform === platform);
         downloadFile(JSON.stringify(platformFilter), `${dateString}_${platform}_filter_backup.tbc`, 'text/json');
-    }, [arrayFilter, globalSetting.platform])
+    }, [filterGroup, globalSetting.platform])
 
     return (
         <CustomToolbarItemStyle direction='row' onClick={clickHandler}>

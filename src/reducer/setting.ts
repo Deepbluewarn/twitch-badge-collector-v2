@@ -4,11 +4,11 @@ import { SettingInterface, SettingReducerAction, SettingReducerActionTypes } fro
 export const initialState: SettingInterface = {
     position: "up",
     pointBoxAuto: 'on',
-    darkTheme: 'off',
+    darkTheme: 'system',
     chatTime: 'off',
     maximumNumberChats: (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
     advancedFilter: 'off',
-    platform: "twitch",
+    platform: "chzzk",
 }
 
 // 액션 타입 정의
@@ -39,7 +39,7 @@ function settingsReducer(state: SettingInterface = initialState, action: Setting
         case actionTypes.SET_ADVANCED_FILTER:
             return { ...state, advancedFilter: action.payload || false };
         case actionTypes.SET_PLATFORM:
-            return { ...state, platform: action.payload || "twitch" };
+            return { ...state, platform: action.payload || "chzzk" };
         case actionTypes.SET_MULTIPLE: // 새로운 액션 타입 처리
             return { ...state, ...action.payload };
         default:

@@ -5,16 +5,16 @@ const globalStyles = (
     styles={(theme) => ({
       body: {
         fontFamily: `
-          'Pretendard Variable', 
-          -apple-system, 
-          BlinkMacSystemFont, 
-          system-ui, 
-          Roboto, 
-          'Helvetica Neue', 
-          'Segoe UI', 
-          'Apple SD Gothic Neo', 
-          'Noto Sans KR', 
-          'Malgun Gothic', 
+          'Pretendard Variable',
+          -apple-system,
+          BlinkMacSystemFont,
+          system-ui,
+          Roboto,
+          'Helvetica Neue',
+          'Segoe UI',
+          'Apple SD Gothic Neo',
+          'Noto Sans KR',
+          'Malgun Gothic',
           sans-serif
         `,
         padding: "0",
@@ -23,6 +23,9 @@ const globalStyles = (
         overflow: "hidden",
         overscrollBehavior: "contain",
         height: `calc(var(--vh, 1vh) * 100)`,
+        // 페이지 배경을 테마 배경색에 맞춤. light=흰색, dark=어두운 색.
+        backgroundColor: theme.palette.background.default,
+        color: theme.palette.text.primary,
       },
       "#root": {
         width: "100%",
