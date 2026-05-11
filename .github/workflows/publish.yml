@@ -68,10 +68,9 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
 
-      - name: Lint zips (web-ext)
-        run: |
-          npx --yes web-ext lint --source-dir .output/chrome-mv3 --self-hosted
-          npx --yes web-ext lint --source-dir .output/firefox-mv2 --self-hosted
+      - name: Lint Firefox build (web-ext)
+        # web-ext lint는 Firefox 전용 도구 — Chrome 빌드 검증 시 FF 요구사항 위반으로 무조건 fail.
+        run: npx --yes web-ext lint --source-dir .output/firefox-mv2 --self-hosted
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

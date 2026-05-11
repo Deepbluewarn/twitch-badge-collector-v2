@@ -12,6 +12,14 @@ export default defineConfig({
     // 로컬 dev/zip은 fallback 사용 (스토어 정책상 패치 0이면 충돌하므로 미존재 시 dev 표기).
     version: process.env.RELEASE_VERSION || '2.18.2',
 
+    // Firefox AMO에 등록된 extension ID. Chrome은 unknown key 무시.
+    browser_specific_settings: {
+      gecko: {
+        id: 'tbcextension@gmail.com',
+        strict_min_version: '109.0',
+      },
+    },
+
     // Action (팝업)
     action: {
       default_icon: {
