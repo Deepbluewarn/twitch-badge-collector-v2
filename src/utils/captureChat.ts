@@ -40,13 +40,36 @@ async function fetchImageAsDataUrl(url: string): Promise<string | null> {
     }
 }
 
+interface InlineCleanup {
+    tempClasses: Array<{ el: HTMLElement; cls: string }>;
+    styleEl: HTMLStyleElement | null;
+}
+
+const URL_REGEX = /url\((['"]?)([^'")]+?)\1\)/g;
+
+function extractUrls(value: string): Array<{ raw: string; url: string }> {
+    const out: Array<{ raw: string; url: string }> = [];
+    if (!value || value === 'none') return out;
+    let m: RegExpExecArray | null;
+    const re = new RegExp(URL_REGEX);
+    while ((m = re.exec(value)) !== null) {
+        if (!m[2].startsWith('data:')) out.push({ raw: m[0], url: m[2] });
+    }
+    return out;
+}
+
 /**
  * root 안 이미지를 data URL로 변환.
  *  - <img> 태그의 src
  *  - computed style의 background-image: url(...)
+ *  - ::before/::after pseudo-element의 background-image (chzzk 구독 메달 등)
+ *
  * 동일 src는 한 번만 fetch (cache).
+ *
+ * Pseudo-element는 JS로 직접 style 못 주므로 임시 class + <style> rule 주입 방식.
+ * cleanup 호출로 원복 필요.
  */
-async function inlineImages(root: HTMLElement): Promise<void> {
+async function inlineImages(roots: HTMLElement[]): Promise<InlineCleanup> {
     const cache = new Map<string, Promise<string | null>>();
     const getDataUrl = (src: string) => {
         if (!cache.has(src)) cache.set(src, fetchImageAsDataUrl(src));
@@ -54,43 +77,78 @@ async function inlineImages(root: HTMLElement): Promise<void> {
     };
 
     const tasks: Promise<void>[] = [];
+    const tempClasses: Array<{ el: HTMLElement; cls: string }> = [];
+    const pseudoRules: string[] = [];
+    let pseudoCounter = 0;
 
-    // (1) <img> 태그
-    root.querySelectorAll('img').forEach((img) => {
-        const src = img.src;
-        if (!src || src.startsWith('data:')) return;
-        tasks.push((async () => {
-            const dataUrl = await getDataUrl(src);
-            if (dataUrl) img.src = dataUrl;
-        })());
-    });
+    for (const root of roots) {
+        // (1) <img> 태그
+        root.querySelectorAll('img').forEach((img) => {
+            const src = img.src;
+            if (!src || src.startsWith('data:')) return;
+            tasks.push((async () => {
+                const dataUrl = await getDataUrl(src);
+                if (dataUrl) img.src = dataUrl;
+            })());
+        });
 
-    // (2) background-image: url(...). chzzk emoji/구독배지가 이 형태로 종종 렌더됨.
-    // 자기 자신 + 모든 자손 element의 computed style을 검사.
-    const allElements: HTMLElement[] = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
-    const URL_REGEX = /url\((['"]?)([^'")]+?)\1\)/g;
-    allElements.forEach((el) => {
-        const bg = window.getComputedStyle(el).backgroundImage;
-        if (!bg || bg === 'none') return;
-        // 동일 element에 여러 url() 가능 (multi-bg). 모두 inline 후 통째로 재할당.
-        const matches: { raw: string; url: string }[] = [];
-        let m: RegExpExecArray | null;
-        const re = new RegExp(URL_REGEX);
-        while ((m = re.exec(bg)) !== null) {
-            if (!m[2].startsWith('data:')) matches.push({ raw: m[0], url: m[2] });
-        }
-        if (matches.length === 0) return;
-        tasks.push((async () => {
-            let next = bg;
-            for (const { raw, url } of matches) {
-                const dataUrl = await getDataUrl(url);
-                if (dataUrl) next = next.replace(raw, `url("${dataUrl}")`);
+        const allElements: HTMLElement[] = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
+
+        // (2) 자기 element의 background-image
+        allElements.forEach((el) => {
+            const bg = window.getComputedStyle(el).backgroundImage;
+            const matches = extractUrls(bg);
+            if (matches.length === 0) return;
+            tasks.push((async () => {
+                let next = bg;
+                for (const { raw, url } of matches) {
+                    const dataUrl = await getDataUrl(url);
+                    if (dataUrl) next = next.replace(raw, `url("${dataUrl}")`);
+                }
+                el.style.backgroundImage = next;
+            })());
+        });
+
+        // (3) pseudo-element ::before/::after의 background-image
+        // chzzk 구독 알림 메달 아이콘 등 host CSS가 ::before로 그리는 케이스.
+        // pseudo는 JS style 직접 주입 불가 → 임시 class + 전역 <style>로 우회.
+        for (const el of allElements) {
+            for (const pseudo of ['::before', '::after'] as const) {
+                const bg = window.getComputedStyle(el, pseudo).backgroundImage;
+                const matches = extractUrls(bg);
+                if (matches.length === 0) continue;
+
+                const cls = `tbcv2-pseudo-${pseudoCounter++}`;
+                el.classList.add(cls);
+                tempClasses.push({ el, cls });
+
+                tasks.push((async () => {
+                    let next = bg;
+                    for (const { raw, url } of matches) {
+                        const dataUrl = await getDataUrl(url);
+                        if (dataUrl) next = next.replace(raw, `url("${dataUrl}")`);
+                    }
+                    pseudoRules.push(`.${cls}${pseudo} { background-image: ${next} !important; }`);
+                })());
             }
-            el.style.backgroundImage = next;
-        })());
-    });
+        }
+    }
 
     await Promise.all(tasks);
+
+    let styleEl: HTMLStyleElement | null = null;
+    if (pseudoRules.length > 0) {
+        styleEl = document.createElement('style');
+        styleEl.textContent = pseudoRules.join('\n');
+        document.head.appendChild(styleEl);
+    }
+
+    return { tempClasses, styleEl };
+}
+
+function cleanupInline(cleanup: InlineCleanup) {
+    cleanup.tempClasses.forEach(({ el, cls }) => el.classList.remove(cls));
+    if (cleanup.styleEl) cleanup.styleEl.remove();
 }
 
 async function downloadPng(dataUrl: string, filename: string): Promise<void> {
@@ -115,7 +173,13 @@ const TRANSPARENT_PNG =
 const ESSENTIAL_STYLE_PROPS = [
     // 색상/배경
     'color', 'background-color', 'background-image', 'background-size',
-    'background-position', 'background-repeat', 'background-clip', 'opacity',
+    'background-position', 'background-repeat', 'background-clip',
+    '-webkit-background-clip', '-webkit-text-fill-color', // 구독 닉네임 그라데이션 텍스트
+    'opacity',
+    // 마스크 (icon mask + bg-color 패턴)
+    'mask', 'mask-image', 'mask-size', 'mask-position', 'mask-repeat', 'mask-mode',
+    '-webkit-mask', '-webkit-mask-image', '-webkit-mask-size', '-webkit-mask-position',
+    '-webkit-mask-repeat',
     // 폰트/텍스트
     'font-family', 'font-size', 'font-weight', 'font-style', 'line-height',
     'letter-spacing', 'text-align', 'text-decoration', 'text-decoration-color',
@@ -196,9 +260,22 @@ export async function captureChats({
     container.style.maxHeight = 'none';
     container.style.overflow = 'visible';
 
-    try {
-        await Promise.all(selectedEls.map((el) => inlineImages(el)));
+    // 채팅 row가 toBlob clone 단계에서 width 계산이 달라져 닉네임이 ...으로 잘림.
+    // 캡쳐 동안만 ellipsis 관련 속성을 무력화 — root 클래스 + 전역 style.
+    const ELLIPSIS_FIX_CLASS = 'tbcv2-capture-no-ellipsis';
+    selectedEls.forEach((el) => el.classList.add(ELLIPSIS_FIX_CLASS));
+    const ellipsisStyle = document.createElement('style');
+    ellipsisStyle.textContent = `
+        .${ELLIPSIS_FIX_CLASS}, .${ELLIPSIS_FIX_CLASS} * {
+            text-overflow: clip !important;
+            overflow: visible !important;
+            max-width: none !important;
+        }
+    `;
+    document.head.appendChild(ellipsisStyle);
 
+    const inlineCleanup = await inlineImages(selectedEls);
+    try {
         // toBlob: canvas.toBlob() 기반(async, non-blocking). toPng는 canvas.toDataURL()로
         // 큰 캔버스(100개+)에서 메인 스레드를 수 초 멈춤. blob 받은 뒤엔 background로
         // 직접 blob URL 다운로드 (FileReader 거치는 base64 변환도 회피).
@@ -235,6 +312,9 @@ export async function captureChats({
             setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
         }
     } finally {
+        cleanupInline(inlineCleanup);
+        ellipsisStyle.remove();
+        selectedEls.forEach((el) => el.classList.remove(ELLIPSIS_FIX_CLASS));
         hiddenEls.forEach(({ el, prevDisplay }) => {
             el.style.display = prevDisplay;
         });
