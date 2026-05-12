@@ -236,11 +236,6 @@ export function FilterGroupList() {
     }, [globalSetting.platform, platformFilters]);
 
     useEffect(() => {
-        console.log('FilterGroupList filterGroup: ', filterGroup)
-        localStorage.setItem('tbc-filter', JSON.stringify(filterGroup));
-    }, [filterGroup]);
-
-    useEffect(() => {
         setPlatformFilters(filterGroup.filter(af => af.platform === globalSetting.platform));
     }, [filterGroup, globalSetting.platform]);
 
@@ -262,8 +257,7 @@ export function FilterGroupList() {
                 slots={{ toolbar: CustomToolbar }}
                 showToolbar
                 onRowSelectionModelChange={(selModel) => {
-                    console.log('FilterGroupList selectionModel: ', selModel);
-                    
+
                     // v7의 새로운 selection model 처리
                     let actualSelectedCount = 0;
                     let actualSelectedIds = new Set<GridRowId>();

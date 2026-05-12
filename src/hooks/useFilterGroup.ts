@@ -28,39 +28,36 @@ export default function useFilterGroup(
     const [filterGroup, setFilterGroup] = React.useState<CompositeFilterElement[]>([]);
     const filterGroupRef = useRef<CompositeFilterElement[]>([]);
     const isFilterInitialized = useRef(false);
-    // 자기 storage write가 일으킨 echo로 listener가 다시 setState하는 무한 루프 방지용.
-    // write 시작 전에 true로 set, write 완료 후 false. listener는 true면 skip.
-    const writingRef = useRef(false);
     const { addAlert } = useAlertContext();
     const { t } = useTranslation();
 
-    // 마운트 시 storage에서 초기 로드 + 외부 변경 구독.
-    // 다른 entrypoint(예: setting 페이지)가 'filter'를 수정하면 자동 반영.
+    // 마운트 시 storage에서 초기 로드.
+    // 외부 변경 구독은 read-only 모드(예: content script)에만 — write 모드(setting 페이지)는
+    // 자기 변경만 처리하면 되므로 listener 자체 등록 X. Firefox에서 self-write echo가
+    // writingRef 보호를 우회하여 무한 루프 일으키는 케이스 차단.
     useEffect(() => {
         browser.storage.local.get("filter").then((res) => {
             setFilterGroup(res.filter);
             isFilterInitialized.current = true;
         });
 
+        if (!extStorageReadOnly) return;
+
         const listener = (changes: Record<string, { oldValue?: unknown; newValue?: unknown }>) => {
             if (!('filter' in changes)) return;
-            if (writingRef.current) return; // 자기 write의 echo는 무시
             const next = changes.filter.newValue as CompositeFilterElement[] | undefined;
             if (!next) return;
             setFilterGroup(next);
         };
         browser.storage.local.onChanged.addListener(listener);
         return () => browser.storage.local.onChanged.removeListener(listener);
-    }, []);
+    }, [extStorageReadOnly]);
 
     // filterGroup 변경 시: (쓰기 모드면) storage 저장 + ref를 현재 platform으로 한정해 동기화
     useEffect(() => {
         filterGroupRef.current = filterGroup.filter(af => af.platform === platform);
         if (!isFilterInitialized.current || extStorageReadOnly) return;
-        writingRef.current = true;
-        browser.storage.local.set({ filter: filterGroup }).then(() => {
-            writingRef.current = false;
-        });
+        browser.storage.local.set({ filter: filterGroup });
     }, [filterGroup, platform, extStorageReadOnly]);
 
     const addCompositeFilters = (newFilters: CompositeFilterElement[]) => {
