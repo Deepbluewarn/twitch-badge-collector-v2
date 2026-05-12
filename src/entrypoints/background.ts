@@ -8,9 +8,15 @@ export default defineBackground(() => {
   // storage.session은 기본적으로 background/popup 등 trusted context에서만 접근 가능.
   // 채팅 유지 기능이 content script에서 set/get 하므로 untrusted까지 풀어줌.
   // SW 재시작 시마다 호출해도 안전(idempotent).
-  browser.storage.session.setAccessLevel({
-    accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS',
-  }).catch((e) => console.warn('storage.session setAccessLevel failed', e));
+  //
+  // setAccessLevel은 Chrome 전용 — Firefox엔 함수 자체가 없어 호출 시 동기 TypeError.
+  // .catch는 sync throw 못 잡으므로 typeof check로 가드. 가드 없으면 background 전체
+  // crash → onInstalled 등록 안 됨 → 기본 필터 set 안 됨.
+  if (typeof browser.storage.session?.setAccessLevel === 'function') {
+    browser.storage.session.setAccessLevel({
+      accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS',
+    }).catch((e) => console.warn('storage.session setAccessLevel failed', e));
+  }
 
   // OTA selectors fetch — install/update 시 즉시 + browser startup + 매 SW wake 시 stale 체크.
   // alarms permission 안 씀 — MV3 SW는 다양한 이벤트(content msg, tab nav 등)로 자주 깨므로
