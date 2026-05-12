@@ -37,7 +37,8 @@ export default function useFilterGroup(
     // writingRef 보호를 우회하여 무한 루프 일으키는 케이스 차단.
     useEffect(() => {
         browser.storage.local.get("filter").then((res) => {
-            setFilterGroup(res.filter);
+            // 신규 설치/데이터 없음 시 res.filter undefined → 이후 .filter() 호출에서 crash.
+            setFilterGroup(res.filter ?? []);
             isFilterInitialized.current = true;
         });
 
