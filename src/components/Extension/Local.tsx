@@ -135,11 +135,25 @@ export default function Local({
         setCapturing(true);
         capturingRef.current = true;
         try {
+            // host(chzzk)는 라이트/다크 테마 따라 배경색이 바뀜. 컨테이너 또는 조상
+            // element의 첫 non-transparent bg를 캡쳐 배경으로 사용. 하드코딩된 dark
+            // fallback은 라이트 테마에서 어색.
+            let bgEl: HTMLElement | null = visibleContainer;
+            let bg = '';
+            while (bgEl) {
+                const c = window.getComputedStyle(bgEl).backgroundColor;
+                if (c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') {
+                    bg = c;
+                    break;
+                }
+                bgEl = bgEl.parentElement;
+            }
             await captureChats({
                 container: visibleContainer,
                 selectedKeys,
                 keyAttr: CHAT_ATTR.KEY,
                 filename: `tbcv2-chats-${type}-${Date.now()}.png`,
+                backgroundColor: bg || undefined,
             });
             setCaptureMode(false);
         } catch (err) {

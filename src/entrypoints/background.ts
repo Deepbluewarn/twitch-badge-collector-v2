@@ -116,12 +116,24 @@ export default defineBackground(() => {
       return { error: msg };
     }
     try {
-      await browser.downloads.download({
-        url: dataUrl,
-        filename: filename ?? 'capture.png',
-        saveAs: false,
-      });
-      return { ok: true };
+      // Firefox downloads.download는 content script가 만든 URL을 cross-origin으로 거부
+      // (blob URL ↔ data URL 둘 다). background context에서 직접 fetch → blob → URL을
+      // 만들어야 함. dataURL을 background에서 fetch하면 같은 origin(확장) blob URL이 생성됨.
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      try {
+        await browser.downloads.download({
+          url: objectUrl,
+          filename: filename ?? 'capture.png',
+          saveAs: false,
+        });
+        return { ok: true };
+      } finally {
+        // Chrome downloads는 URL을 비동기로 fetch 시작하므로 즉시 revoke하면 실패.
+        // 충분히 큰 지연 후 revoke.
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+      }
     } catch (e) {
       console.warn('[tbcv2 bg] download failed', e);
       return { error: String(e) };
