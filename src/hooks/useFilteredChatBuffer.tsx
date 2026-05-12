@@ -53,7 +53,15 @@ const EVICTION_DROP_RATIO = 0.1;
  *
  * 저장. quota 초과 시 오래된 쪽부터 10%씩 drop하고 재시도.
  */
+// storage.session은 Firefox 115+에서만 지원. 미지원 환경에선 채팅 유지 기능 자체를 skip.
+// (Firefox 109-114 사용자가 신버전 받으면 그냥 persistence 동작 안 함 — crash X).
+// typeof로 평가하여 테스트 환경(browser undefined)에서도 안전.
+const hasSessionStorage = typeof browser !== 'undefined'
+    && typeof browser.storage !== 'undefined'
+    && typeof browser.storage.session !== 'undefined';
+
 async function saveWithEviction(key: string, payload: PersistedPayload): Promise<void> {
+    if (!hasSessionStorage) return;
     let attempt = payload;
     while (attempt.chats.length > 0) {
         try {
@@ -67,6 +75,7 @@ async function saveWithEviction(key: string, payload: PersistedPayload): Promise
 }
 
 async function loadPersisted(key: string): Promise<SavedChat[]> {
+    if (!hasSessionStorage) return [];
     const res = await browser.storage.session.get(key);
     const payload = res[key] as PersistedPayload | undefined;
     if (!payload || payload.version !== 1) return [];

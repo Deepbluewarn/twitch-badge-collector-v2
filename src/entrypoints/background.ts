@@ -111,7 +111,7 @@ export default defineBackground(() => {
   async function handleDownload(dataUrl: string, filename?: string): Promise<{ ok?: boolean; error?: string }> {
     if (!browser.downloads?.download) {
       // manifest엔 있지만 runtime에 미적용 — extension reload 필요
-      const msg = 'downloads API unavailable — extension reload 필요 (chrome://extensions에서 새로고침)';
+      const msg = 'downloads API unavailable — 확장 관리 페이지에서 확장 새로고침 필요';
       console.warn('[tbcv2 bg]', msg);
       return { error: msg };
     }
