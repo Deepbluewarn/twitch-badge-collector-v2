@@ -77,14 +77,14 @@ async function loadPersisted(key: string): Promise<SavedChat[]> {
  * Container에 표시되는 채팅 *배열*의 상태 관리.
  *
  * 책임:
- *  - dedupe (같은 key 무시)
- *  - 정렬 (adapter.chatOrder)
+ *  - dedupe (같은 key 무시 + persistence 어댑터는 same-time 무시)
+ *  - 위치 결정 (host DOM prevSibling 기반, fallback은 time 추정)
  *  - 트림 (maxChats 초과 시 오래된 쪽부터)
  *  - 선택적 persistence: persistenceKey 주어지면 마운트 시 load,
  *    버퍼 변경 시 debounced save (quota 초과 시 오래된 채팅부터 evict).
  *
- * 정렬은 *현재 buffer 순서*를 그대로 보존. 시간 비교에 의존하지 않음 —
- * Chzzk live time이 도착 순서와 어긋나는 경우가 있어 신뢰 X.
+ * 기존 buffer 요소 순서는 절대 변경 안 함 — 새 chat의 자리만 splice insert.
+ * 평소엔 prevKey(host DOM 직전 sibling) 기반. time은 prevKey 누락 시 fallback에서만.
  */
 interface CaptureViewState {
     captureMode: boolean;
@@ -155,7 +155,7 @@ export default function useFilteredChatBuffer(
         };
     }, [savedChats, persistenceKey]);
 
-    const addChat = useCallback(({ clone, key, time }: PassedChat) => {
+    const addChat = useCallback(({ clone, key, time, prevKey }: PassedChat) => {
         setSavedChats(prev => {
             // dedupe: 같은 세션은 key로(안정적인 React key 또는 동일 채팅 재발화 방지).
             // cross-session backfill은 time으로(서버 timestamp — 같은 채팅엔 같은 값).
@@ -166,13 +166,35 @@ export default function useFilteredChatBuffer(
             if (prev.some(c => c.key === key)) return prev;
             if (adapter.supportsChatPersistence && prev.some(c => c.time === time)) return prev;
 
-            // 도착 순서대로 prepend/append. time 기준 sort는 안 함 — chzzk live time이
-            // 도착 순서와 어긋나는 경우 있어서 정렬 기준으로 신뢰 불가 (특정 채팅이
-            // 잠시 아래에 고정되는 현상의 원인). 각 채팅은 도착 시점이 곧 그 채팅의 자리.
+            // 삽입 위치는 host DOM에서의 prevSibling을 기준으로 결정.
+            // - prevKey === null     → host DOM 맨 앞 → buffer 맨 앞에 prepend.
+            // - prevKey가 buffer에 존재 → 그 chat 바로 뒤에 splice insert.
+            // - prevKey가 buffer에 없음  → chatOrder 기본값(newest-top=prepend, oldest-top=append).
+            //
+            // time/sort 안 씀. chzzk의 time이 도착 순서와 어긋나는 경우 있어 신뢰 불가.
+            // host DOM 순서는 항상 진실이므로 그걸 미러링.
+            // 기존 buffer 요소의 순서는 절대 변경 안 함 — 새 chat의 자리만 찾아 splice.
             const newEntry = { key, time, html: clone.outerHTML, restored: false };
-            const next = adapter.chatOrder === 'newest-top'
-                ? [newEntry, ...prev]
-                : [...prev, newEntry];
+            let next: SavedChat[];
+            if (prevKey === null) {
+                next = [newEntry, ...prev];
+            } else {
+                const idx = prev.findIndex(c => c.key === prevKey);
+                if (idx === -1) {
+                    // prevKey가 buffer에 없을 때만 time으로 위치 추정 fallback.
+                    // 단순 prepend/append fallback은 chat이 newer/older인지 모르고 추측 →
+                    // chronologically 잘못된 위치에 박혀 후속 chain이 어긋남.
+                    // time 비교는 fallback에서만 — AFTER_PREV 일반 케이스엔 영향 X.
+                    // 따라서 chzzk time jitter로 인한 stuck-chat 재발 없음.
+                    const i = adapter.chatOrder === 'newest-top'
+                        ? prev.findIndex(c => c.time < time)
+                        : prev.findIndex(c => c.time > time);
+                    const insertIdx = i === -1 ? prev.length : i;
+                    next = [...prev.slice(0, insertIdx), newEntry, ...prev.slice(insertIdx)];
+                } else {
+                    next = [...prev.slice(0, idx + 1), newEntry, ...prev.slice(idx + 1)];
+                }
+            }
 
             // capture 모드 동안엔 trim 일시 정지 — 사용자가 보고 있는 채팅이 사라지지
             // 않도록. capture 모드 해제 시 별도 useEffect에서 한 번에 trim.

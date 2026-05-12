@@ -29,3 +29,24 @@ export const CHAT_ATTR = {
  * useChatStream이 add/check해서 같은 노드의 중복 처리를 방지.
  */
 export const PROCESSED_CHAT_CLASS = 'tbcv2-highlight';
+
+/**
+ * inject.ts(MAIN world)가 host DOM mutation을 처리한 뒤 ISOLATED로 송신하는 메시지.
+ * 같은 host mutation에 대해 MAIN과 ISOLATED MO가 독립적으로 콜백되어 race 가능 →
+ * inject.ts에서 CHAT_ATTR.KEY 세팅 + prevKey 계산까지 모두 마친 후 발행. ISOLATED는
+ * MO 대신 이 메시지를 듣고 DOM에서 element를 querySelector로 찾아 처리.
+ */
+export const TBC_CHAT_PASSED_ACTION = 'tbc-chat-passed';
+
+export interface TbcChatPassedMessage {
+    action: typeof TBC_CHAT_PASSED_ACTION;
+    /** CHAT_ATTR.KEY 값 (chzzk: chatMessage.key, twitch: message.id) */
+    key: string;
+    /** ms epoch 또는 replay 상대 시간. twitch는 0. */
+    time: number;
+    /** host DOM 직전 chat sibling의 key. 같은 inject.ts 동기 컨텍스트에서 추출되어 race 없음. */
+    prevKey: string | null;
+    /** chat element의 outerHTML. ISOLATED가 host DOM lookup 없이 직접 파싱.
+     *  chzzk가 virtual window로 element를 unmount할 수 있어 key-by-querySelector 신뢰 불가. */
+    html: string;
+}

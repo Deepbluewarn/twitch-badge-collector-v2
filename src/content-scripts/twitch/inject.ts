@@ -1,6 +1,6 @@
 import { getReactProps } from "@/utils/react";
 import { Observer } from "../base/observer";
-import { CHAT_ATTR } from "@/interfaces/chat-attributes";
+import { CHAT_ATTR, TBC_CHAT_PASSED_ACTION, TbcChatPassedMessage } from "@/interfaces/chat-attributes";
 import { getPlatformConfig, getAtPath, manifestReady } from "@/platform/host-selectors";
 
 let path = window.location.pathname.split('/')[1];
@@ -41,6 +41,25 @@ const callback = (_elem: Element | null, mr?: MutationRecord[]) => {
             if (message_id) el.setAttribute(CHAT_ATTR.KEY, message_id);
             if (message_channel) el.setAttribute(CHAT_ATTR.CHANNEL, message_channel);
             if (message_channel_id) el.setAttribute(CHAT_ATTR.CHANNEL_ID, message_channel_id);
+
+            // key 없으면 ISOLATED에서 querySelector로 못 찾으므로 skip.
+            if (!message_id) return;
+
+            // 같은 MAIN 동기 컨텍스트에서 prevSibling key 추출 — race 없음.
+            let prev = el.previousElementSibling;
+            while (prev && !prev.getAttribute(CHAT_ATTR.KEY)) {
+                prev = prev.previousElementSibling;
+            }
+            const prevKey = prev?.getAttribute(CHAT_ATTR.KEY) ?? null;
+
+            const msg: TbcChatPassedMessage = {
+                action: TBC_CHAT_PASSED_ACTION,
+                key: message_id,
+                time: 0, // twitch는 inject 단에서 time 안 박음 (persistence 미지원)
+                prevKey,
+                html: (el as HTMLElement).outerHTML,
+            };
+            window.postMessage(msg, '*');
         });
     });
 };
