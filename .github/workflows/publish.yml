@@ -14,6 +14,21 @@ on:
         required: false
         type: boolean
         default: true
+      publish_chrome:
+        description: 'Chrome Web Store 배포'
+        required: false
+        type: boolean
+        default: true
+      publish_firefox:
+        description: 'Firefox AMO 배포'
+        required: false
+        type: boolean
+        default: true
+      publish_edge:
+        description: 'Microsoft Edge Add-ons 배포'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -86,6 +101,8 @@ jobs:
     name: Publish to Chrome Web Store
     needs: build
     runs-on: ubuntu-latest
+    # release 트리거는 항상 모두 배포. workflow_dispatch는 체크박스 따라.
+    if: github.event_name == 'release' || inputs.publish_chrome
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -109,6 +126,7 @@ jobs:
     name: Publish to Firefox AMO
     needs: build
     runs-on: ubuntu-latest
+    if: github.event_name == 'release' || inputs.publish_firefox
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -131,6 +149,7 @@ jobs:
     name: Publish to Microsoft Edge Add-ons
     needs: build
     runs-on: ubuntu-latest
+    if: github.event_name == 'release' || inputs.publish_edge
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
