@@ -19,6 +19,7 @@
     "alert": {
         "no_value_filter": "필터에 내용이 없습니다.",
         "filter_already_exist": "이미 존재하는 필터입니다.",
+        "filter_added": "필터가 추가되었습니다.",
         "filter_updated": "필터가 업데이트되었습니다.",
         "no_selected_chat": "선택된 채팅이 없습니다.",
         "no_connect_channel": "연결된 채널이 없습니다.",

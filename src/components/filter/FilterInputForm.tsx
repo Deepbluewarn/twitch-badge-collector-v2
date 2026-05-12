@@ -38,16 +38,19 @@ import { defaultAtomicFilter } from '@/utils/utils-common';
 import CustomTextField from '@/components/TextField/CustomTextField';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
 import ChannelIdGuideDialog from './dialog/ChannelIdGuideDialog';
+import { useAlertContext } from '@/context/Alert';
 
 export default function FilterInputForm(
     props: {
         filterInput: AtomicFilterElement | undefined,
         setFilterInput: React.Dispatch<React.SetStateAction<AtomicFilterElement | undefined>>,
+        onAddSuccess?: () => void,
     }
 ) {
     const { t } = useTranslation();
     const { globalSetting } = useGlobalSettingContext();
     const { addCompositeFilters } = useFilterGroupContext();
+    const { addAlert } = useAlertContext();
     const [filterGroupNote, setFilterGroupNote] = useState('');
     const [guideOpen, setGuideOpen] = useState(false);
     const filterContentValue = useRef<TextFieldProps>(null);
@@ -102,8 +105,10 @@ export default function FilterInputForm(
             contentValueRef.value = '';
             channelValue.current.value = '';
             channelName.current.value = '';
+            addAlert({ serverity: 'success', message: t('alert.filter_added') });
+            props.onAddSuccess?.();
         }
-    }, [props.filterInput, filterGroupNote])
+    }, [props.filterInput, filterGroupNote, props.onAddSuccess])
 
     return (
         <Card

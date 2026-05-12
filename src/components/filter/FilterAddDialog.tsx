@@ -137,11 +137,13 @@ export default function FilterAddDialog({ open, onClose }: Props) {
                                 afInputRow={filterInputList}
                                 setAfInputRow={setFilterInputList}
                                 filterInputListRef={filterInputListRef}
+                                onAddSuccess={onClose}
                             />
                         ) : (
                             <FilterInputForm
                                 filterInput={filterInput}
                                 setFilterInput={setFilterInput}
+                                onAddSuccess={onClose}
                             />
                         )}
                     </Box>

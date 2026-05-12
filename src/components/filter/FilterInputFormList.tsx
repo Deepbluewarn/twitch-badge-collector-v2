@@ -34,16 +34,19 @@ import Divider from '@mui/material/Divider';
 import CustomTextField from '../TextField/CustomTextField';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
+import { useAlertContext } from '@/context/Alert';
 
 export default function FilterInputFormList(
     props: {
         afInputRow: AtomicFilterElement[],
         setAfInputRow: React.Dispatch<React.SetStateAction<AtomicFilterElement[]>>,
-        filterInputListRef: React.MutableRefObject<AtomicFilterElement[]>
+        filterInputListRef: React.MutableRefObject<AtomicFilterElement[]>,
+        onAddSuccess?: () => void,
     }
 ) {
     const { globalSetting } = useGlobalSettingContext();
     const { addCompositeFilters } = useFilterGroupContext();
+    const { addAlert } = useAlertContext();
     const [filterGroupType, setFilterGroupType] = React.useState<FilterType>('include');
     const [filterGroupNote, setFilterGroupNote] = useState('');
     const [nameFilterAvail, setNameFilterAvail] = React.useState(false);
@@ -84,8 +87,10 @@ export default function FilterInputFormList(
             setFilterGroupNote('');
             setChannelId('');
             setChannelName('');
+            addAlert({ serverity: 'success', message: t('alert.filter_added') });
+            props.onAddSuccess?.();
         }
-    }, [filterGroupType, filterGroupNote, globalSetting.platform, channelId, channelName]);
+    }, [filterGroupType, filterGroupNote, globalSetting.platform, channelId, channelName, props.onAddSuccess]);
 
     const resetFilterGroupInputList = () => {
         props.setAfInputRow([]);

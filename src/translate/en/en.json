@@ -19,6 +19,7 @@
     "alert": {
         "no_value_filter": "No values in filter.",
         "filter_already_exist": "Filter already exist.",
+        "filter_added": "Filter has been added.",
         "filter_updated": "Filter has been updated.",
         "no_selected_chat": "No chats selected.",
         "no_connect_channel": "No channels are connected.",
