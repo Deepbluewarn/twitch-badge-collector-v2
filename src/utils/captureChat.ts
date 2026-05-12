@@ -303,14 +303,16 @@ export async function captureChats({
         });
         if (!blob) throw new Error('toBlob returned null');
 
-        const blobUrl = URL.createObjectURL(blob);
-        try {
-            await downloadPng(blobUrl, filename);
-        } finally {
-            // Chrome downloads는 URL을 비동기로 fetch하므로 즉시 revoke하면 실패.
-            // 충분히 큰 지연 후 revoke (메모리 누수 방지).
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-        }
+        // blob URL은 origin이 host page(chzzk.naver.com)에 묶임. Firefox는 background
+        // (extension origin)에서 그 URL 접근을 거부 ('Access denied'). dataURL은 origin
+        // 무관해 cross-context 안전. Chrome도 dataURL 받을 수 있음 — 양쪽 호환.
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(blob);
+        });
+        await downloadPng(dataUrl, filename);
     } finally {
         cleanupInline(inlineCleanup);
         ellipsisStyle.remove();
