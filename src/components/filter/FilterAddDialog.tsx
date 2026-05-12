@@ -112,7 +112,9 @@ export default function FilterAddDialog({ open, onClose }: Props) {
                     direction={{ xs: 'column', md: 'row' }}
                     sx={{ height: '100%', overflow: 'hidden' }}
                 >
-                    {/* 좌측: 폼 영역. 자체 scroll 컨테이너 — Card는 content 높이로 자라고 column이 스크롤. */}
+                    {/* 좌측: 폼 영역. column 자체는 overflow:hidden — scroll은 안쪽
+                        CardContent가 담당. CardActions(메모/채널/필터추가)는 column 하단에
+                        고정으로 늘 보임. */}
                     <Box
                         sx={{
                             flex: { xs: '0 0 auto', md: '0 0 560px' },
@@ -121,7 +123,7 @@ export default function FilterAddDialog({ open, onClose }: Props) {
                             display: 'flex',
                             flexDirection: 'column',
                             minHeight: 0,
-                            overflow: 'auto',
+                            overflow: 'hidden',
                         }}
                     >
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2, flexShrink: 0 }}>

@@ -113,12 +113,15 @@ export default function FilterInputFormList(
             variant="outlined"
             sx={{
                 bgcolor: 'background.default',
-                // 부모 flex column 안에서 shrink 당하면 Card overflow:hidden (MUI 기본)에
-                // 내용 잘림. flexShrink:0으로 content 크기 유지 → column이 overflow:auto로 스크롤.
-                flexShrink: 0,
+                // column 전체 차지 + 내부에서 CardContent만 scroll. CardActions(메모/채널/
+                // 필터추가)는 column 하단 고정으로 항상 보임.
+                flex: 1,
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
             }}
         >
-            <CardContent sx={{ display: 'flex' }}>
+            <CardContent sx={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'auto' }}>
                 {
                     props.afInputRow.length > 0 ? (
                         <Stack spacing={2} sx={{ width: '100%' }}>
@@ -335,9 +338,9 @@ function AdvancedFilterInputForm(props: {
             {
                 props.value.category === 'badge' ? (
                     <>
-                        <Paper 
-                            variant="outlined" 
-                            sx={{ 
+                        <Paper
+                            variant="outlined"
+                            sx={{
                                 minWidth: 120,
                                 display: 'flex',
                                 justifyContent: 'center',
@@ -349,7 +352,7 @@ function AdvancedFilterInputForm(props: {
                                 src={adapter.getBadgeImageUrl(props.value.value, '1x')}
                                 srcSet={getBadgeSrcSet(adapter, props.value.value)}
                             />
-                            
+
                         </Paper>
 
                         <CustomTextField
@@ -360,7 +363,7 @@ function AdvancedFilterInputForm(props: {
                     </>
                 ) : (
                     <>
-                        <AdvancedFilterCategorySelector 
+                        <AdvancedFilterCategorySelector
                             value={props.value.category}
                             onChange={(e) => selectorChanged(e, 'category')}
                             nameFilterAvail={props.nameFilterAvail}
