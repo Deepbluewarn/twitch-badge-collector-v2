@@ -12,16 +12,10 @@ interface ChatWrapperProps {
 
 /**
  * 새 채팅이든 복원이든 Fragment 그대로 — 호스트 페이지 레이아웃 영향 0.
- * 복원 시각 구분은 chat root element에 'tbcv2-restored-chat' className을
- * 직접 추가해서 처리(아래 chats useMemo). 그래야 wrapper div로 인한
- * `:last-child::before` 부작용이 안 생김.
  */
 function ChatWrapper(props: ChatWrapperProps) {
     return <>{props.children}</>;
 }
-
-/** 복원된 채팅 root에 붙이는 클래스. 시각 구분용. */
-export const RESTORED_CHAT_CLASS = 'tbcv2-restored-chat';
 
 /** 캡쳐 모드 ON일 때 채팅 root에 붙는 클래스 — 클릭/호버 hint. */
 export const CAPTURE_MODE_CLASS = 'tbcv2-capture-mode';
@@ -223,7 +217,7 @@ export default function useFilteredChatBuffer(
     const clear = useCallback(() => setSavedChats([]), []);
 
     // 렌더용 ReactElement 매핑. SavedChat.html을 DOMPurify로 sanitize 후
-    // DOM Element로 환원 → 복원/캡쳐 클래스 부여 → convertToJSX.
+    // DOM Element로 환원 → 캡쳐 클래스 부여 → convertToJSX.
     const chats = useMemo(() => {
         return savedChats.map(c => {
             const sanitized = DOMPurify.sanitize(c.html);
@@ -231,7 +225,6 @@ export default function useFilteredChatBuffer(
             wrapper.innerHTML = sanitized;
             const node = wrapper.firstElementChild as HTMLElement | null;
             if (node) {
-                if (c.restored) node.classList.add(RESTORED_CHAT_CLASS);
                 if (capture?.captureMode) node.classList.add(CAPTURE_MODE_CLASS);
                 if (capture?.selectedKeys.has(c.key)) node.classList.add(CAPTURE_SELECTED_CLASS);
             }

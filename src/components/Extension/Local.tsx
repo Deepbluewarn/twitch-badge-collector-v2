@@ -271,7 +271,6 @@ export default function Local({
             sx={{ position: 'relative' }}
         >
             <style>{`
-                .tbcv2-restored-chat { background-color: rgba(128, 128, 128, 0.15); }
                 .tbcv2-capture-mode { cursor: pointer; }
                 .tbcv2-capture-mode:hover { outline: 1px dashed rgba(255,193,7,0.6); outline-offset: -1px; }
                 .tbcv2-capture-selected { background-color: rgba(255,193,7,0.18) !important; outline: 2px solid #FFC107; outline-offset: -2px; }
