@@ -106,6 +106,12 @@ export default function useFilteredChatBuffer(
     // capture 상태는 ref로 — addChat의 useCallback이 dep 안 잡고 최신 값 읽음
     const captureRef = useRef(capture);
     useEffect(() => { captureRef.current = capture; }, [capture]);
+    // maxChats도 ref로 — useChatStream이 빈 deps로 onChatPassed 클로저를 mount 시점에 동결.
+    // useCallback dep로 addChat을 갱신해도 stream의 listener는 안 바뀜.
+    // 결과: storage 비동기 로드로 maxChats가 100→10000 갱신돼도 trim은 100으로 계속 작동.
+    // ref로 최신값 읽어서 우회.
+    const maxChatsRef = useRef(maxChats);
+    useEffect(() => { maxChatsRef.current = maxChats; }, [maxChats]);
 
     // capture 모드 해제될 때 누적된 초과분을 한 번에 trim. 모드 동안 maxChats 넘게
     // 쌓일 수 있어 (사용자가 선택 중인 채팅 보존 위해) 해제 시점에 정리.
@@ -201,8 +207,9 @@ export default function useFilteredChatBuffer(
 
             // capture 모드 동안엔 trim 일시 정지 — 사용자가 보고 있는 채팅이 사라지지
             // 않도록. capture 모드 해제 시 별도 useEffect에서 한 번에 trim.
-            if (next.length >= maxChats && !captureRef.current?.captureMode) {
-                const overflow = next.length - maxChats;
+            const cap = maxChatsRef.current;
+            if (next.length >= cap && !captureRef.current?.captureMode) {
+                const overflow = next.length - cap;
                 if (adapter.chatOrder === 'newest-top') {
                     next.splice(next.length - overflow, overflow);
                 } else {
@@ -212,7 +219,7 @@ export default function useFilteredChatBuffer(
 
             return next;
         });
-    }, [adapter, maxChats]);
+    }, [adapter]);
 
     const clear = useCallback(() => setSavedChats([]), []);
 
