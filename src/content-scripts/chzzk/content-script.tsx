@@ -52,13 +52,19 @@ async function bootstrap() {
     }
 }
 
-// chzzk fullscreen 진입 시 #aside-chatting을 display:none 처리 → host React가 채팅 렌더 멈춤
-// → 우리 MutationObserver가 변화를 못 잡음.
-// aside는 fullscreen subtree 안에 있어서 browser가 자동으로 가려주지 않음.
-// → display:flex로 되살리되, 화면 밖으로 빼서 시각적으로만 숨김.
-//   host의 layout/IntersectionObserver에는 정상 element로 보이도록 size 유지.
+// chzzk fullscreen 진입 시 chzzk가 #aside-chatting에 is_folded 클래스 부여 → display:none
+// → host React가 채팅 렌더 멈춤 → 우리 capture가 변화를 못 잡음.
+//
+// 단순히 display 강제하면 사용자가 chzzk의 채팅 버튼 토글했을 때 우리 !important inline이
+// chzzk의 토글을 막아 chat panel이 안 열림 (사용자 보고된 버그).
+//
+// 해결: aside의 class를 MutationObserver로 watch.
+//  - is_folded 클래스 있음 = chzzk가 의도적으로 hide → 우리가 offscreen으로 keep-alive
+//  - is_folded 클래스 없음 = chzzk가 보이려 함 → 우리 override 제거, chzzk 정상 렌더
 function setupFullscreenKeepAlive() {
     const ASIDE_ID = 'aside-chatting';
+    // chzzk minified hash. 추후 OTA로 관리 가능.
+    const FOLDED_CLASS_PREFIX = 'live_chatting_is_folded';
     const HIDE_PROPS: Array<[string, string]> = [
         ['display', 'flex'],
         ['position', 'absolute'],
@@ -70,13 +76,46 @@ function setupFullscreenKeepAlive() {
         ['pointer-events', 'none'],
         ['z-index', '-1'],
     ];
+
+    let mo: MutationObserver | null = null;
+    let overrideActive = false;
+
+    function isFolded(aside: HTMLElement): boolean {
+        return Array.from(aside.classList).some(c => c.startsWith(FOLDED_CLASS_PREFIX));
+    }
+
+    function applyOverride(aside: HTMLElement) {
+        if (overrideActive) return;
+        HIDE_PROPS.forEach(([k, v]) => aside.style.setProperty(k, v, 'important'));
+        overrideActive = true;
+    }
+
+    function removeOverride(aside: HTMLElement) {
+        if (!overrideActive) return;
+        HIDE_PROPS.forEach(([k]) => aside.style.removeProperty(k));
+        overrideActive = false;
+    }
+
+    function sync() {
+        const aside = document.getElementById(ASIDE_ID);
+        if (!aside) return;
+        if (isFolded(aside)) applyOverride(aside);
+        else removeOverride(aside);
+    }
+
     document.addEventListener('fullscreenchange', () => {
         const aside = document.getElementById(ASIDE_ID);
         if (!aside) return;
         if (document.fullscreenElement) {
-            HIDE_PROPS.forEach(([k, v]) => aside.style.setProperty(k, v, 'important'));
+            sync(); // 진입 시점 chzzk 의도 반영
+            if (!mo) {
+                mo = new MutationObserver(sync);
+                mo.observe(aside, { attributes: true, attributeFilter: ['class'] });
+            }
         } else {
-            HIDE_PROPS.forEach(([k]) => aside.style.removeProperty(k));
+            removeOverride(aside);
+            mo?.disconnect();
+            mo = null;
         }
     });
 }

@@ -94,42 +94,57 @@ async function inlineImages(roots: HTMLElement[]): Promise<InlineCleanup> {
 
         const allElements: HTMLElement[] = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
 
-        // (2) 자기 element의 background-image
+        // (2) 자기 element의 url() 함유 CSS 속성들. chzzk이 색상 입힌 아이콘(인증마크,
+        // 카테고리 아이콘 등)을 mask-image + background-color로 그려서 mask도 inline 필요.
+        // content: url(...) 케이스도 같은 방식 처리. style.* 카멜케이스 매핑 필요.
+        const URL_CSS_PROPS: Array<[string, string]> = [
+            ['backgroundImage', 'background-image'],
+            ['maskImage', 'mask-image'],
+            ['webkitMaskImage', '-webkit-mask-image'],
+            // content는 url() 단독일 때만 — 'foo' 같은 텍스트 content는 건드리지 않음.
+        ];
         allElements.forEach((el) => {
-            const bg = window.getComputedStyle(el).backgroundImage;
-            const matches = extractUrls(bg);
-            if (matches.length === 0) return;
-            tasks.push((async () => {
-                let next = bg;
-                for (const { raw, url } of matches) {
-                    const dataUrl = await getDataUrl(url);
-                    if (dataUrl) next = next.replace(raw, `url("${dataUrl}")`);
-                }
-                el.style.backgroundImage = next;
-            })());
-        });
-
-        // (3) pseudo-element ::before/::after의 background-image
-        // chzzk 구독 알림 메달 아이콘 등 host CSS가 ::before로 그리는 케이스.
-        // pseudo는 JS style 직접 주입 불가 → 임시 class + 전역 <style>로 우회.
-        for (const el of allElements) {
-            for (const pseudo of ['::before', '::after'] as const) {
-                const bg = window.getComputedStyle(el, pseudo).backgroundImage;
-                const matches = extractUrls(bg);
-                if (matches.length === 0) continue;
-
-                const cls = `tbcv2-pseudo-${pseudoCounter++}`;
-                el.classList.add(cls);
-                tempClasses.push({ el, cls });
-
+            const cs = window.getComputedStyle(el);
+            URL_CSS_PROPS.forEach(([camel, kebab]) => {
+                const value = cs.getPropertyValue(kebab);
+                const matches = extractUrls(value);
+                if (matches.length === 0) return;
                 tasks.push((async () => {
-                    let next = bg;
+                    let next = value;
                     for (const { raw, url } of matches) {
                         const dataUrl = await getDataUrl(url);
                         if (dataUrl) next = next.replace(raw, `url("${dataUrl}")`);
                     }
-                    pseudoRules.push(`.${cls}${pseudo} { background-image: ${next} !important; }`);
+                    (el.style as unknown as Record<string, string>)[camel] = next;
                 })());
+            });
+        });
+
+        // (3) pseudo-element ::before/::after의 url() 함유 속성들.
+        // pseudo는 JS style 직접 주입 불가 → 임시 class + 전역 <style>로 우회.
+        const PSEUDO_URL_PROPS = ['background-image', 'mask-image', '-webkit-mask-image'] as const;
+        for (const el of allElements) {
+            for (const pseudo of ['::before', '::after'] as const) {
+                const cs = window.getComputedStyle(el, pseudo);
+                for (const prop of PSEUDO_URL_PROPS) {
+                    const value = cs.getPropertyValue(prop);
+                    const matches = extractUrls(value);
+                    if (matches.length === 0) continue;
+
+                    const cls = `tbcv2-pseudo-${pseudoCounter++}`;
+                    el.classList.add(cls);
+                    tempClasses.push({ el, cls });
+
+                    tasks.push((async () => {
+                        let next = value;
+                        for (const { raw, url } of matches) {
+                            const dataUrl = await getDataUrl(url);
+                            if (dataUrl) next = next.replace(raw, `url("${dataUrl}")`);
+                        }
+                        // 높은 specificity로 chzzk 원본 규칙 확실히 덮어씀.
+                        pseudoRules.push(`html .${cls}${pseudo} { ${prop}: ${next} !important; }`);
+                    })());
+                }
             }
         }
     }
@@ -166,46 +181,15 @@ const TRANSPARENT_PNG =
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=';
 
 /**
- * html-to-image의 cloneCSSStyle은 기본적으로 *모든* (~400개) CSS 속성을 element마다
- * 복사함. 채팅 100개 × 30 element × 400 = 120만 setProperty 호출 → 메인 스레드 수 초 멈춤.
- * 채팅 시각 재현에 실제로 필요한 속성만 추려서 8배 정도 단축.
+ * 한 PNG 파일 당 최대 채팅 수. 초과 시 여러 파일로 분할 저장.
+ * html-to-image는 element마다 ~400개 CSS 속성을 모두 inline 복사 → 채팅 많을수록
+ * 메인 스레드 블록. 30개가 ~3-5초 수준이라 sweet spot.
+ *
+ * 이전엔 ESSENTIAL_STYLE_PROPS 화이트리스트로 속도 확보했으나 chzzk 신규 채팅 유형
+ * (도네이션 등)이 화이트리스트 밖 속성에 의존해 fragile. 전체 속성 + 개수 제한이
+ * 유지보수 단순함.
  */
-const ESSENTIAL_STYLE_PROPS = [
-    // 색상/배경
-    'color', 'background-color', 'background-image', 'background-size',
-    'background-position', 'background-repeat', 'background-clip',
-    '-webkit-background-clip', '-webkit-text-fill-color', // 구독 닉네임 그라데이션 텍스트
-    'opacity',
-    // 마스크 (icon mask + bg-color 패턴)
-    'mask', 'mask-image', 'mask-size', 'mask-position', 'mask-repeat', 'mask-mode',
-    '-webkit-mask', '-webkit-mask-image', '-webkit-mask-size', '-webkit-mask-position',
-    '-webkit-mask-repeat',
-    // 폰트/텍스트
-    'font-family', 'font-size', 'font-weight', 'font-style', 'line-height',
-    'letter-spacing', 'text-align', 'text-decoration', 'text-decoration-color',
-    'text-transform', 'white-space', 'word-break', 'word-wrap', 'overflow-wrap',
-    'text-overflow', 'text-shadow',
-    // 박스
-    'display', 'visibility', 'box-sizing',
-    'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
-    'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
-    'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
-    'border', 'border-top', 'border-right', 'border-bottom', 'border-left',
-    'border-color', 'border-style', 'border-width', 'border-radius',
-    'outline', 'outline-color', 'outline-style', 'outline-width', 'outline-offset',
-    // 위치/레이아웃
-    'position', 'top', 'right', 'bottom', 'left', 'z-index',
-    'flex', 'flex-direction', 'flex-wrap', 'flex-grow', 'flex-shrink', 'flex-basis',
-    'justify-content', 'align-items', 'align-content', 'align-self', 'gap',
-    'order',
-    // 오버플로우/이미지
-    'overflow', 'overflow-x', 'overflow-y',
-    'object-fit', 'object-position',
-    // 트랜스폼/효과
-    'transform', 'transform-origin', 'filter',
-    // 인라인 이미지
-    'vertical-align',
-];
+const CHUNK_SIZE = 30;
 
 interface CaptureOptions {
     container: HTMLElement;
@@ -215,31 +199,58 @@ interface CaptureOptions {
     backgroundColor?: string;
 }
 
-export async function captureChats({
+export async function captureChats(opts: CaptureOptions): Promise<void> {
+    const { container, selectedKeys, keyAttr, filename } = opts;
+    if (selectedKeys.size === 0) return;
+
+    // 선택된 chat을 host DOM 순서대로 정렬해서 chunk로 분할.
+    const allChats = Array.from(container.querySelectorAll<HTMLElement>(`[${keyAttr}]`));
+    const selectedInOrder = allChats.filter(el => {
+        const k = el.getAttribute(keyAttr);
+        return k !== null && selectedKeys.has(k);
+    });
+    if (selectedInOrder.length === 0) return;
+
+    const chunks: HTMLElement[][] = [];
+    for (let i = 0; i < selectedInOrder.length; i += CHUNK_SIZE) {
+        chunks.push(selectedInOrder.slice(i, i + CHUNK_SIZE));
+    }
+
+    for (let i = 0; i < chunks.length; i++) {
+        const chunkEls = chunks[i];
+        const chunkKeys = new Set(chunkEls.map(el => el.getAttribute(keyAttr) ?? ''));
+        // 단일 chunk면 원본 파일명. 다중이면 _1, _2 인덱스 부여.
+        const chunkFilename = chunks.length === 1
+            ? filename
+            : filename.replace(/(\.png)?$/i, `_${i + 1}.png`);
+        await captureChunk({ ...opts, allChats, selectedEls: chunkEls, chunkKeys, filename: chunkFilename });
+    }
+}
+
+interface CaptureChunkArgs extends CaptureOptions {
+    allChats: HTMLElement[];
+    selectedEls: HTMLElement[];
+    chunkKeys: Set<string>;
+}
+
+async function captureChunk({
     container,
-    selectedKeys,
     keyAttr,
     filename,
     backgroundColor = '#0e0e10',
-}: CaptureOptions): Promise<void> {
-    if (selectedKeys.size === 0) return;
-
-    // 선택/비선택 채팅 분리.
-    const allChats = Array.from(container.querySelectorAll<HTMLElement>(`[${keyAttr}]`));
-    const selectedEls: HTMLElement[] = [];
+    allChats,
+    selectedEls,
+    chunkKeys,
+}: CaptureChunkArgs): Promise<void> {
+    // 이번 chunk 외 모든 채팅을 layout에서 빼서 container 사이즈 축소.
     const hiddenEls: { el: HTMLElement; prevDisplay: string }[] = [];
-
     allChats.forEach((el) => {
-        const k = el.getAttribute(keyAttr);
-        if (k !== null && selectedKeys.has(k)) {
-            selectedEls.push(el);
-        } else {
-            // 비선택 채팅: layout에서 빼서 container scrollHeight를 줄임 (canvas 사이즈 결정 요인).
+        const k = el.getAttribute(keyAttr) ?? '';
+        if (!chunkKeys.has(k)) {
             hiddenEls.push({ el, prevDisplay: el.style.display });
             el.style.display = 'none';
         }
     });
-    if (selectedEls.length === 0) return;
 
     // 선택 표시용 outline 클래스는 캡쳐 PNG에 안 들어가게 잠깐 제거.
     const removedSelectedClass: HTMLElement[] = [];
@@ -260,8 +271,7 @@ export async function captureChats({
     container.style.maxHeight = 'none';
     container.style.overflow = 'visible';
 
-    // 채팅 row가 toBlob clone 단계에서 width 계산이 달라져 닉네임이 ...으로 잘림.
-    // 캡쳐 동안만 ellipsis 관련 속성을 무력화 — root 클래스 + 전역 style.
+    // 닉네임 등이 narrow container 안에서 wrap돼 잘리는 케이스. 캡쳐 동안만 무력화.
     const ELLIPSIS_FIX_CLASS = 'tbcv2-capture-no-ellipsis';
     selectedEls.forEach((el) => el.classList.add(ELLIPSIS_FIX_CLASS));
     const ellipsisStyle = document.createElement('style');
@@ -271,41 +281,42 @@ export async function captureChats({
             overflow: visible !important;
             max-width: none !important;
         }
+        /* 닉네임 류는 절대 wrap 안 되게. 메시지 본문은 wrap 자연스러움 유지. */
+        .${ELLIPSIS_FIX_CLASS} [class*="username"],
+        .${ELLIPSIS_FIX_CLASS} [class*="username"] * {
+            white-space: nowrap !important;
+        }
     `;
     document.head.appendChild(ellipsisStyle);
 
     const inlineCleanup = await inlineImages(selectedEls);
     try {
-        // toBlob: canvas.toBlob() 기반(async, non-blocking). toPng는 canvas.toDataURL()로
-        // 큰 캔버스(100개+)에서 메인 스레드를 수 초 멈춤. blob 받은 뒤엔 background로
-        // 직접 blob URL 다운로드 (FileReader 거치는 base64 변환도 회피).
+        // toBlob: canvas.toBlob() 기반(async, non-blocking). includeStyleProperties 미지정 →
+        // 전체 computed style 복사. 화이트리스트로 인한 chzzk 신규 유형 깨짐 회피.
+        // 대신 chunk 단위로 호출하여 1회 비용 제한.
         const blob = await toBlob(container, {
             backgroundColor,
             pixelRatio: window.devicePixelRatio || 1,
             skipFonts: true,
             imagePlaceholder: TRANSPARENT_PNG,
-            includeStyleProperties: ESSENTIAL_STYLE_PROPS,
-            // filter: clone 트리에서 비선택 채팅을 통째로 제외.
             filter: (node: Node) => {
                 if (!(node instanceof Element)) return true;
                 if (node === container) return true;
                 if (node.hasAttribute(keyAttr)) {
                     const k = node.getAttribute(keyAttr);
-                    return k !== null && selectedKeys.has(k);
+                    return k !== null && chunkKeys.has(k);
                 }
                 const chatAncestor = node.closest(`[${keyAttr}]`);
                 if (chatAncestor) {
                     const k = chatAncestor.getAttribute(keyAttr);
-                    return k !== null && selectedKeys.has(k);
+                    return k !== null && chunkKeys.has(k);
                 }
                 return true;
             },
         });
         if (!blob) throw new Error('toBlob returned null');
 
-        // blob URL은 origin이 host page(chzzk.naver.com)에 묶임. Firefox는 background
-        // (extension origin)에서 그 URL 접근을 거부 ('Access denied'). dataURL은 origin
-        // 무관해 cross-context 안전. Chrome도 dataURL 받을 수 있음 — 양쪽 호환.
+        // blob URL은 host origin 묶임 → Firefox 거부. dataURL로 전환해 cross-context 안전.
         const dataUrl = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result as string);
