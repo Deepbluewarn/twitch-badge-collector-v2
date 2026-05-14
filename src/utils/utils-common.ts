@@ -148,19 +148,8 @@ export function msToTime(duration: number) {
   const seconds = Math.floor((duration / 1000) % 60);
   const minutes = Math.floor((duration / (1000 * 60)) % 60);
   const hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
-  const res = [];
-
-  if (hours > 0) {
-    res.push(hours);
-  }
-
-  if (minutes > 0) {
-    res.push(minutes < 10 ? "0" + minutes : minutes);
-  }
-
-  if (seconds > 0) {
-    res.push(seconds < 10 ? "0" + seconds : seconds);
-  }
-
-  return res.join(':')
+  const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+  return hours > 0
+    ? `${hours}:${pad(minutes)}:${pad(seconds)}`
+    : `${pad(minutes)}:${pad(seconds)}`;
 }
