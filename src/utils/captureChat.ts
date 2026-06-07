@@ -1,4 +1,11 @@
 import { toBlob } from 'html-to-image';
+// snapdom은 USE_SNAPDOM=true 시 동적 import — 번들 격리.
+
+// PoC 토글. true면 SnapDOM, false면 기존 html-to-image.
+// 둘 다 foreignObject SVG 기반이지만 SnapDOM은 layout-thrash 최소화 + asset caching으로
+// heavy DOM에서 더 빠르다고 알려짐. 우리 컨텍스트(chzzk 채팅, CORS-blocked 배지)에서
+// 실측 비교 필요.
+const USE_SNAPDOM = false;
 
 /**
  * 채팅 이미지 캡쳐.
@@ -166,6 +173,51 @@ function cleanupInline(cleanup: InlineCleanup) {
     if (cleanup.styleEl) cleanup.styleEl.remove();
 }
 
+/**
+ * chzzk 그라데이션 닉네임은 `color: transparent` + `background-image: linear-gradient(...)`
+ * + `background-clip: text`로 텍스트를 칠함. SnapDOM은 이 조합을 캡쳐에서 못 살려
+ * 닉네임이 안 보이게 됨 (html-to-image는 OK). 캡쳐 직전 임시로 solid color로 swap.
+ *
+ * 그라데이션의 첫 stop 색을 추출해 적용. 색감 일부 손실하지만 가독성 확보.
+ */
+function flattenGradientText(roots: HTMLElement[]): () => void {
+    const restores: Array<() => void> = [];
+    const all: HTMLElement[] = [];
+    for (const root of roots) {
+        all.push(root);
+        all.push(...Array.from(root.querySelectorAll<HTMLElement>('*')));
+    }
+    const colorRe = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\))/;
+    for (const el of all) {
+        const cs = window.getComputedStyle(el);
+        const color = cs.color;
+        const bgImg = cs.backgroundImage;
+        const clip = cs.webkitBackgroundClip || (cs as any).backgroundClip;
+        const fill = (cs as any).webkitTextFillColor as string | undefined;
+        const transparent = color === 'transparent' || color === 'rgba(0, 0, 0, 0)' || fill === 'transparent' || fill === 'rgba(0, 0, 0, 0)';
+        if (!transparent) continue;
+        if (!bgImg || bgImg === 'none') continue;
+        if (clip !== 'text') continue;
+        const m = bgImg.match(colorRe);
+        if (!m) continue;
+        const firstStop = m[1];
+        const prev = {
+            color: el.style.color,
+            bgImg: el.style.backgroundImage,
+            fill: el.style.webkitTextFillColor,
+        };
+        el.style.color = firstStop;
+        el.style.backgroundImage = 'none';
+        el.style.webkitTextFillColor = firstStop;
+        restores.push(() => {
+            el.style.color = prev.color;
+            el.style.backgroundImage = prev.bgImg;
+            el.style.webkitTextFillColor = prev.fill;
+        });
+    }
+    return () => restores.forEach(fn => fn());
+}
+
 async function downloadPng(dataUrl: string, filename: string): Promise<void> {
     const res = await browser.runtime.sendMessage({
         type: 'downloadDataUrl',
@@ -290,31 +342,55 @@ async function captureChunk({
     document.head.appendChild(ellipsisStyle);
 
     const inlineCleanup = await inlineImages(selectedEls);
+    // SnapDOM 한정 — background-clip:text 그라데이션 닉네임 못 살려서 첫 stop 색으로 flatten.
+    const restoreGradient = USE_SNAPDOM ? flattenGradientText(selectedEls) : () => {};
     try {
-        // toBlob: canvas.toBlob() 기반(async, non-blocking). includeStyleProperties 미지정 →
-        // 전체 computed style 복사. 화이트리스트로 인한 chzzk 신규 유형 깨짐 회피.
-        // 대신 chunk 단위로 호출하여 1회 비용 제한.
-        const blob = await toBlob(container, {
-            backgroundColor,
-            pixelRatio: window.devicePixelRatio || 1,
-            skipFonts: true,
-            imagePlaceholder: TRANSPARENT_PNG,
-            filter: (node: Node) => {
-                if (!(node instanceof Element)) return true;
-                if (node === container) return true;
-                if (node.hasAttribute(keyAttr)) {
-                    const k = node.getAttribute(keyAttr);
-                    return k !== null && chunkKeys.has(k);
-                }
-                const chatAncestor = node.closest(`[${keyAttr}]`);
-                if (chatAncestor) {
-                    const k = chatAncestor.getAttribute(keyAttr);
-                    return k !== null && chunkKeys.has(k);
-                }
-                return true;
-            },
-        });
-        if (!blob) throw new Error('toBlob returned null');
+        const t0 = performance.now();
+        const filterFn = (node: Element): boolean => {
+            if (node === container) return true;
+            if (node.hasAttribute(keyAttr)) {
+                const k = node.getAttribute(keyAttr);
+                return k !== null && chunkKeys.has(k);
+            }
+            const chatAncestor = node.closest(`[${keyAttr}]`);
+            if (chatAncestor) {
+                const k = chatAncestor.getAttribute(keyAttr);
+                return k !== null && chunkKeys.has(k);
+            }
+            return true;
+        };
+
+        let blob: Blob | null;
+        if (USE_SNAPDOM) {
+            // SnapDOM: caching + minimal layout reads. embed/icon fonts 자동 처리.
+            // filter는 (el: Element) => boolean. excludeMode 'remove'로 비선택 노드 완전 제거.
+            const { snapdom } = await import('@zumer/snapdom');
+            const result = await snapdom(container, {
+                backgroundColor,
+                dpr: window.devicePixelRatio || 1,
+                embedFonts: false,
+                filter: filterFn,
+                filterMode: 'remove',
+                cache: 'soft',
+            });
+            blob = await result.toBlob({ type: 'png' });
+        } else {
+            // toBlob: canvas.toBlob() 기반(async, non-blocking). includeStyleProperties 미지정 →
+            // 전체 computed style 복사. 화이트리스트로 인한 chzzk 신규 유형 깨짐 회피.
+            // 대신 chunk 단위로 호출하여 1회 비용 제한.
+            blob = await toBlob(container, {
+                backgroundColor,
+                pixelRatio: window.devicePixelRatio || 1,
+                skipFonts: true,
+                imagePlaceholder: TRANSPARENT_PNG,
+                filter: (node: Node) => {
+                    if (!(node instanceof Element)) return true;
+                    return filterFn(node);
+                },
+            });
+        }
+        console.log(`[tbcv2 capture] ${USE_SNAPDOM ? 'snapdom' : 'html-to-image'} ${selectedEls.length} chats in ${(performance.now() - t0).toFixed(0)}ms`);
+        if (!blob) throw new Error('blob is null');
 
         // blob URL은 host origin 묶임 → Firefox 거부. dataURL로 전환해 cross-context 안전.
         const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -325,6 +401,7 @@ async function captureChunk({
         });
         await downloadPng(dataUrl, filename);
     } finally {
+        restoreGradient();
         cleanupInline(inlineCleanup);
         ellipsisStyle.remove();
         selectedEls.forEach((el) => el.classList.remove(ELLIPSIS_FIX_CLASS));
