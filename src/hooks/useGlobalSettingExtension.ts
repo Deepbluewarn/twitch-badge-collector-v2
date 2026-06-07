@@ -10,6 +10,7 @@ const SETTING_KEYS = [
     "maximumNumberChats",
     "advancedFilter",
     "platform",
+    "collectedChatMarker",
 ] as const;
 
 /**

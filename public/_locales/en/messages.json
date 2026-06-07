@@ -71,6 +71,9 @@
   "chatTime" : {
     "message" : "Show Chat Time"
   },
+  "collectedChatMarker" : {
+    "message" : "Mark collected chats"
+  },
   "chatPosition" : {
     "message" : "Chat Position"
   },

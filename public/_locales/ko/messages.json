@@ -71,6 +71,9 @@
   "chatTime" : {
     "message" : "채팅 시간 표시"
   },
+  "collectedChatMarker" : {
+    "message" : "수집된 채팅 표시"
+  },
   "chatPosition" : {
     "message" : "채팅 위치"
   },

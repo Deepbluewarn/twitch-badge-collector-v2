@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from "react";
 import { ChatInfo } from "../interfaces/chat";
 import { CompositeFilterElement } from "../interfaces/filter";
+import type { FilterEvalResult } from "@/filter/evaluate";
 
 export const FilterGroupContext = createContext<{
     filterGroup: CompositeFilterElement[],
@@ -9,7 +10,7 @@ export const FilterGroupContext = createContext<{
     upsertCompositeFilter: (filter: CompositeFilterElement) => boolean,
     removeSubFilter: (filterListId: string, subFilterId: string) => void,
     removeFilterField: (filterListId: string, fieldName: keyof CompositeFilterElement) => void,
-    checkFilter: (chat: ChatInfo, channelId?: string | null) => boolean
+    checkFilter: (chat: ChatInfo, channelId?: string | null) => FilterEvalResult
   } | undefined>(undefined);
 
 export function useFilterGroupContext() {

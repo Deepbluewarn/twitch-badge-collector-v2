@@ -88,7 +88,22 @@ export default function Local({
         addChat(chat);
     }, [addChat]);
 
-    useChatStream(adapter, chat => checkFilter(chat, channelId), guardedAddChat);
+    // marker 설정은 ref로 — useChatStream이 [] deps라 closure 동결되는 문제 회피.
+    const markerEnabledRef = useRef(globalSetting.collectedChatMarker !== 'off');
+    useEffect(() => {
+        markerEnabledRef.current = globalSetting.collectedChatMarker !== 'off';
+    }, [globalSetting.collectedChatMarker]);
+    useChatStream(adapter, chat => {
+        const r = checkFilter(chat, channelId);
+        return {
+            pass: r.pass,
+            // marker 꺼져 있으면 undefined → highlight 스킵. 켜져 있고 그룹별 색 없으면
+            // CSS 변수 미설정으로 기본 #FFC107 발동 → 빈 문자열로 신호.
+            markerColor: !r.pass || !markerEnabledRef.current
+                ? undefined
+                : (r.markerColor ?? '#FFC107'),
+        };
+    }, guardedAddChat);
 
     // 캡쳐 모드 OFF로 전환되면 선택 + anchor + range 초기화.
     useEffect(() => {

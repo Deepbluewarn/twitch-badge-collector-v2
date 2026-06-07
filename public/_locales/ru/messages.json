@@ -71,6 +71,9 @@
   "chatTime" : {
     "message" : "Show chat time"
   },
+  "collectedChatMarker" : {
+    "message" : "Отмечать собранные сообщения"
+  },
   "chatPosition": {
     "message": "Chat Position"
   },

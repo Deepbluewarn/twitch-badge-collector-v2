@@ -19,7 +19,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
-import { setChatTime, setDarkTheme, setMaximumNumberChats, setPosition } from "@/reducer/setting";
+import { setChatTime, setCollectedChatMarker, setDarkTheme, setMaximumNumberChats, setPosition } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
 
 const PopupGlobalStyle = (
@@ -171,6 +171,14 @@ function PopupSetting() {
         <Switch
           checked={globalSetting.chatTime === 'on'}
           onChange={(e) => dispatchGlobalSetting(setChatTime(e.target.checked ? 'on' : 'off'))}
+        />
+      </SettingRow>
+
+      {/* 수집된 채팅 마커 표시 — 호스트 채팅창 좌측 띠 */}
+      <SettingRow label={t('collectedChatMarker')}>
+        <Switch
+          checked={globalSetting.collectedChatMarker !== 'off'}
+          onChange={(e) => dispatchGlobalSetting(setCollectedChatMarker(e.target.checked ? 'on' : 'off'))}
         />
       </SettingRow>
     </Stack>

@@ -42,6 +42,46 @@ const ChipListStyle = styled(Stack)({
     }
 })
 
+/**
+ * 그룹별 마커 색상 swatch + 네이티브 color picker. 스와치 클릭 시 hidden
+ * `<input type="color">`를 programmatically 열어 OS native picker 띄움 — 라이브러리 의존성 0.
+ *
+ * native color input은 사용자가 색을 드래그할 때마다 'input' 이벤트가 연속 발화 →
+ * React onChange로 받으면 storage write가 폭주. 'change' 이벤트는 picker가 닫힐 때
+ * 한 번만 발화하므로 그걸로 commit. React onChange는 'input'을 매핑하므로 사용 X,
+ * defaultValue + native addEventListener('change') 패턴 사용.
+ */
+function ColorSwatch({ value, onChange }: { value: string; onChange: (c: string) => void }) {
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    React.useEffect(() => {
+        const el = inputRef.current;
+        if (!el) return;
+        const onChangeHandler = (e: Event) => {
+            const v = (e.target as HTMLInputElement).value;
+            onChange(v);
+        };
+        el.addEventListener('change', onChangeHandler);
+        return () => el.removeEventListener('change', onChangeHandler);
+    }, [onChange]);
+    return (
+        <Box
+            onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+            sx={{
+                width: 24, height: 24, borderRadius: '50%', backgroundColor: value,
+                cursor: 'pointer', border: '1px solid rgba(0,0,0,0.2)',
+            }}
+        >
+            <input
+                ref={inputRef}
+                type="color"
+                defaultValue={value}
+                onClick={(e) => e.stopPropagation()}
+                style={{ position: 'absolute', visibility: 'hidden', width: 0, height: 0 }}
+            />
+        </Box>
+    );
+}
+
 export function FilterGroupList() {
     const { globalSetting } = useGlobalSettingContext();
     const adapter = getAdapter(globalSetting.platform);
@@ -231,9 +271,22 @@ export function FilterGroupList() {
                         />
                     )
                 }
+            },
+            {
+                field: 'markerColor', headerName: '색상', flex: 0.1, display: 'flex',
+                renderCell: (params: GridRenderCellParams) => {
+                    const row = params.row as CompositeFilterElement;
+                    const value = (params.value as string) || '#FFC107';
+                    return (
+                        <ColorSwatch
+                            value={value}
+                            onChange={(c) => upsertCompositeFilter({ ...row, markerColor: c })}
+                        />
+                    );
+                }
             }
         ] as GridColDef[];
-    }, [globalSetting.platform, platformFilters]);
+    }, [globalSetting.platform, platformFilters, upsertCompositeFilter]);
 
     useEffect(() => {
         setPlatformFilters(filterGroup.filter(af => af.platform === globalSetting.platform));

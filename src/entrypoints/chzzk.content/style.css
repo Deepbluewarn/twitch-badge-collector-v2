@@ -61,7 +61,7 @@
     content: '';
     width: 4px;
     height: 100%;
-    background-color: #FFC107;
+    background-color: var(--tbc-marker-color, #FFC107);
     left: 0;
     top: 0;
 }

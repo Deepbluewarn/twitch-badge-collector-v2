@@ -3,6 +3,7 @@ import { ChatInfo } from "@/interfaces/chat";
 import { PlatformAdapter } from "@/platform";
 import {
     CHAT_ATTR,
+    PROCESSED_CHAT_CLASS,
     TBC_CHAT_PASSED_ACTION,
     TbcChatPassedMessage,
 } from "@/interfaces/chat-attributes";
@@ -31,9 +32,15 @@ export interface PassedChat {
  *
  * Container 삽입(상태 관리 + JSX)은 호출자(useFilteredChatBuffer)가 담당.
  */
+export interface ChatPredicateResult {
+    pass: boolean;
+    /** marker on이면 highlight 색. 없으면 highlight 자체 안 함. */
+    markerColor?: string;
+}
+
 export default function useChatStream(
     adapter: PlatformAdapter,
-    predicate: (chat: ChatInfo) => boolean,
+    predicate: (chat: ChatInfo) => ChatPredicateResult,
     onChatPassed: (chat: PassedChat) => void,
 ) {
     useEffect(() => {
@@ -54,10 +61,27 @@ export default function useChatStream(
 
             const chat = adapter.extract(element);
             if (!chat) return;
-            if (!predicate(chat)) return;
+            const result = predicate(chat);
+            if (!result.pass) return;
 
             adapter.prepareChatClone(element);
             seenKeys.add(key);
+
+            // 원본 chzzk/twitch DOM의 같은 KEY 요소에 highlight 클래스 부여 — 사용자가
+            // 호스트 채팅창에서 "이 채팅이 수집됐구나" 시각 확인. CSS는 content style.css의
+            // `.tbcv2-highlight` 룰. 색상은 CSS 변수 --tbc-marker-color로 override.
+            // markerColor undefined면 highlight off (사용자 설정 또는 미매칭).
+            // 우리 컨테이너(#tbc-clone__*) 안 clone은 제외 — original만 표시.
+            if (result.markerColor) {
+                try {
+                    const all = document.querySelectorAll(`[${CHAT_ATTR.KEY}="${CSS.escape(key)}"]`);
+                    all.forEach(orig => {
+                        if (orig.closest(`#tbc-clone__${adapter.type}ui`)) return;
+                        (orig as HTMLElement).style.setProperty('--tbc-marker-color', result.markerColor!);
+                        orig.classList.add(PROCESSED_CHAT_CLASS);
+                    });
+                } catch { /* CSS.escape 미지원 등 — 표시만 못 함, 기능엔 영향 X */ }
+            }
 
             onChatPassed({ clone: element, key, time, prevKey });
         }

@@ -9,6 +9,7 @@ export const initialState: SettingInterface = {
     maximumNumberChats: (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
     advancedFilter: 'off',
     platform: "chzzk",
+    collectedChatMarker: 'on',
 }
 
 // 액션 타입 정의
@@ -20,6 +21,7 @@ const actionTypes: SettingReducerActionTypes = {
     SET_MAXIMUM_NUMBER_CHATS: "SET_MAXIMUM_NUMBER_CHATS",
     SET_ADVANCED_FILTER: "SET_ADVANCED_FILTER",
     SET_PLATFORM: "SET_PLATFORM",
+    SET_COLLECTED_CHAT_MARKER: "SET_COLLECTED_CHAT_MARKER",
     SET_MULTIPLE: "SET_MULTIPLE"
 };
 
@@ -40,6 +42,8 @@ function settingsReducer(state: SettingInterface = initialState, action: Setting
             return { ...state, advancedFilter: action.payload || false };
         case actionTypes.SET_PLATFORM:
             return { ...state, platform: action.payload || "chzzk" };
+        case actionTypes.SET_COLLECTED_CHAT_MARKER:
+            return { ...state, collectedChatMarker: action.payload || 'on' };
         case actionTypes.SET_MULTIPLE: // 새로운 액션 타입 처리
             return { ...state, ...action.payload };
         default:
@@ -55,6 +59,7 @@ const setChatTime = (chatTime: SettingInterface['chatTime']) => ({ type: actionT
 const setMaximumNumberChats = (maximumNumberChats: SettingInterface['maximumNumberChats']) => ({ type: actionTypes.SET_MAXIMUM_NUMBER_CHATS, payload: maximumNumberChats });
 const setAdvancedFilter = (advancedFilter: SettingInterface['advancedFilter']) => ({ type: actionTypes.SET_ADVANCED_FILTER, payload: advancedFilter });
 const setPlatform = (platform: SettingInterface['platform']) => ({ type: actionTypes.SET_PLATFORM, payload: platform });
+const setCollectedChatMarker = (collectedChatMarker: SettingInterface['collectedChatMarker']) => ({ type: actionTypes.SET_COLLECTED_CHAT_MARKER, payload: collectedChatMarker });
 const setMultipleSettings = (settings: SettingInterface) => ({ type: actionTypes.SET_MULTIPLE, payload: settings });
 
 export {
@@ -66,5 +71,6 @@ export {
     setMaximumNumberChats,
     setAdvancedFilter,
     setPlatform,
+    setCollectedChatMarker,
     setMultipleSettings,
 };

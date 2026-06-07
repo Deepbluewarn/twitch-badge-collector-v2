@@ -34,6 +34,8 @@ export interface CompositeFilterElement {
     filterChannelName?: string;
     filters: AtomicFilterElement[];
     platform: SettingInterface['platform'];
+    /** 호스트 채팅창에서 이 그룹에 매칭된 채팅의 좌측 마커 색. 미지정 시 기본 노랑(#FFC107). */
+    markerColor?: string;
 }
 
 /** 사용자의 Filter Group — 평가 순서대로 정렬된 CompositeFilterElement 배열 */

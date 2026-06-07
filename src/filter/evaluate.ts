@@ -14,22 +14,29 @@ function isBadgeChannelScopeMismatch(chat: ChatInfo, atom: AtomicFilterElement):
     return loginMismatch || idMismatch;
 }
 
+export interface FilterEvalResult {
+    pass: boolean;
+    /** 최종 admit한 include 그룹의 마커 색. 없으면 undefined → 호출자에서 기본색 적용. */
+    markerColor?: string;
+}
+
 /**
  * Filter Group이 한 채팅을 Container에 admit할지 판정한다.
  *
  * @param chat 평가 대상 채팅
  * @param filterGroup 사용자의 Filter Group
  * @param channelId 현재 Host page의 채널 ID. composite Channel Scope 게이팅에 사용
- * @returns true면 admit, false면 drop
+ * @returns pass=true면 admit. markerColor는 마지막으로 admit한 include 그룹의 마커 색.
  */
 export function evaluateFilterGroup(
     chat: ChatInfo,
     filterGroup: CompositeFilterElement[],
     channelId?: string | null
-): boolean {
-    if (typeof filterGroup === 'undefined' || filterGroup.length === 0) return false;
+): FilterEvalResult {
+    if (typeof filterGroup === 'undefined' || filterGroup.length === 0) return { pass: false };
 
     let res = false;
+    let lastIncludeColor: string | undefined;
 
     for (let composite of filterGroup) {
         if (composite.filterChannelId && composite.filterChannelId !== channelId) {
@@ -69,9 +76,11 @@ export function evaluateFilterGroup(
             if (composite.filterType === 'include') {
                 // include면 뒤에 exclude로 뒤집힐 수 있으니 계속 평가.
                 res = true;
+                lastIncludeColor = composite.markerColor;
             } else if (composite.filterType === 'exclude') {
                 // exclude면 즉시 드롭하고 단락.
                 res = false;
+                lastIncludeColor = undefined;
                 break;
             } else if (composite.filterType === 'sleep') {
                 // sleep이면 res 변경 없이 다음 composite로.
@@ -79,5 +88,5 @@ export function evaluateFilterGroup(
         }
     }
 
-    return res;
+    return { pass: res, markerColor: lastIncludeColor };
 }

@@ -6,6 +6,8 @@ export interface SettingInterface {
     maximumNumberChats: number;
     advancedFilter: 'on' | 'off';
     platform: 'twitch' | 'chzzk';
+    /** 호스트 채팅창에서 수집된 채팅 좌측에 마커 표시할지. default 'on'. */
+    collectedChatMarker: 'on' | 'off';
 }
 
 export interface SettingReducerActionTypes {
@@ -16,6 +18,7 @@ export interface SettingReducerActionTypes {
     SET_MAXIMUM_NUMBER_CHATS: "SET_MAXIMUM_NUMBER_CHATS";
     SET_ADVANCED_FILTER: "SET_ADVANCED_FILTER";
     SET_PLATFORM: "SET_PLATFORM";
+    SET_COLLECTED_CHAT_MARKER: "SET_COLLECTED_CHAT_MARKER";
     SET_MULTIPLE: "SET_MULTIPLE";
 }
 
