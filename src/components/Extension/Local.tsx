@@ -54,6 +54,11 @@ export default function Local({
     const [captureMode, setCaptureMode] = useState(false);
     const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
     const [capturing, setCapturing] = useState(false);
+    // shift+click 범위 선택용 anchor — 마지막 단일 클릭한 채팅 key. 캡쳐 모드 OFF 시 reset.
+    const anchorKeyRef = useRef<string | null>(null);
+    // 직전 shift+클릭으로 만든 range — 새 shift+클릭 시 이 범위만 재계산(축소/확장).
+    // 단일 클릭으로 추가한 항목은 보존 (Explorer의 ctrl+click 보존 동작과 동일).
+    const lastRangeKeysRef = useRef<Set<string>>(new Set());
     const captureView = useMemo(() => ({ captureMode, selectedKeys }), [captureMode, selectedKeys]);
 
     const { chats, addChat, clear, savedChats } = useFilteredChatBuffer(
@@ -85,9 +90,13 @@ export default function Local({
 
     useChatStream(adapter, chat => checkFilter(chat, channelId), guardedAddChat);
 
-    // 캡쳐 모드 OFF로 전환되면 선택 초기화.
+    // 캡쳐 모드 OFF로 전환되면 선택 + anchor + range 초기화.
     useEffect(() => {
-        if (!captureMode && selectedKeys.size > 0) setSelectedKeys(new Set());
+        if (!captureMode) {
+            anchorKeyRef.current = null;
+            lastRangeKeysRef.current = new Set();
+            if (selectedKeys.size > 0) setSelectedKeys(new Set());
+        }
     }, [captureMode]);
 
     // 1분 inactivity 시 capture 모드 자동 해제.
@@ -102,6 +111,7 @@ export default function Local({
     }, [captureMode, selectedKeys]);
 
     // 채팅 클릭 → 선택 토글. 캡쳐 모드일 때만 활성, 그 외엔 host page link 동작 보존.
+    // shift+클릭: anchor부터 현재까지 범위 add-select (해제 X). anchor 없으면 단일 클릭으로 처리.
     const onChatClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         if (!captureMode) return;
         const target = e.target as HTMLElement;
@@ -111,13 +121,48 @@ export default function Local({
         if (!key) return;
         e.preventDefault();
         e.stopPropagation();
+
+        if (e.shiftKey && anchorKeyRef.current && anchorKeyRef.current !== key) {
+            const allKeys = savedChats.map(c => c.key);
+            const anchorIdx = allKeys.indexOf(anchorKeyRef.current);
+            const currentIdx = allKeys.indexOf(key);
+            if (anchorIdx === -1 || currentIdx === -1) {
+                // anchor가 트림돼 사라진 경우 단일 클릭으로 fallback.
+                anchorKeyRef.current = key;
+                lastRangeKeysRef.current = new Set();
+                setSelectedKeys(prev => {
+                    const next = new Set(prev);
+                    if (next.has(key)) next.delete(key);
+                    else next.add(key);
+                    return next;
+                });
+                return;
+            }
+            const [from, to] = anchorIdx < currentIdx ? [anchorIdx, currentIdx] : [currentIdx, anchorIdx];
+            const newRange = new Set(allKeys.slice(from, to + 1));
+            const prevRange = lastRangeKeysRef.current;
+            setSelectedKeys(prev => {
+                const next = new Set(prev);
+                // 이전 range 중 새 range에 없는 것 제거 (축소 처리)
+                prevRange.forEach(k => { if (!newRange.has(k)) next.delete(k); });
+                // 새 range 추가
+                newRange.forEach(k => next.add(k));
+                return next;
+            });
+            lastRangeKeysRef.current = newRange;
+            // anchor는 갱신 X — 범위 재계산 반복 가능.
+            return;
+        }
+
+        anchorKeyRef.current = key;
+        lastRangeKeysRef.current = new Set();
         setSelectedKeys(prev => {
             const next = new Set(prev);
             if (next.has(key)) next.delete(key);
             else next.add(key);
             return next;
         });
-    }, [captureMode]);
+    }, [captureMode, savedChats]);
 
     const onSelectAllClick = useCallback(() => {
         const allKeys = savedChats.map(c => c.key);
@@ -271,7 +316,7 @@ export default function Local({
             sx={{ position: 'relative' }}
         >
             <style>{`
-                .tbcv2-capture-mode { cursor: pointer; }
+                .tbcv2-capture-mode { cursor: pointer; user-select: none; -webkit-user-select: none; }
                 .tbcv2-capture-mode:hover { outline: 1px dashed rgba(255,193,7,0.6); outline-offset: -1px; }
                 .tbcv2-capture-selected { background-color: rgba(255,193,7,0.18) !important; outline: 2px solid #FFC107; outline-offset: -2px; }
             `}</style>
@@ -300,7 +345,9 @@ export default function Local({
                 )}
             </div>
 
-            {/* "맨 아래로" FAB — 사용자가 위로 스크롤한 상태일 때만 표시. capture mode 무관. */}
+            {/* "맨 아래로" FAB — 위로 스크롤한 상태 + hover일 때만 표시.
+                hover 없이 항상 떠 있던 게 거슬린다는 피드백. 스크롤 자체가 hover 동반이므로
+                discoverability 손실 없음. */}
             {showJumpToBottom && (
                 <Fab
                     size="small"
@@ -313,6 +360,9 @@ export default function Local({
                         zIndex: 11,
                         bgcolor: '#7c8aef',
                         color: '#fff',
+                        opacity: hovered ? 1 : 0,
+                        pointerEvents: hovered ? 'auto' : 'none',
+                        transition: 'opacity 0.15s ease',
                         '&:hover': { bgcolor: '#5b6acb' },
                     }}
                 >
