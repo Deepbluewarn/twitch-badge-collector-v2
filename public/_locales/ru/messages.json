@@ -74,6 +74,18 @@
   "collectedChatMarker" : {
     "message" : "Отмечать собранные сообщения"
   },
+  "jumpToBottomButton" : {
+    "message" : "Кнопка «Вниз»"
+  },
+  "chatPersistence" : {
+    "message" : "Сохранять собранные сообщения"
+  },
+  "startCapture" : {
+    "message" : "Начать захват чата"
+  },
+  "clearCollectedChats" : {
+    "message" : "Очистить собранные сообщения"
+  },
   "chatPosition": {
     "message": "Chat Position"
   },

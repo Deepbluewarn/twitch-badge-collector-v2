@@ -10,6 +10,8 @@ export const initialState: SettingInterface = {
     advancedFilter: 'off',
     platform: "chzzk",
     collectedChatMarker: 'on',
+    jumpToBottomButton: 'on',
+    chatPersistence: 'on',
 }
 
 // 액션 타입 정의
@@ -22,6 +24,8 @@ const actionTypes: SettingReducerActionTypes = {
     SET_ADVANCED_FILTER: "SET_ADVANCED_FILTER",
     SET_PLATFORM: "SET_PLATFORM",
     SET_COLLECTED_CHAT_MARKER: "SET_COLLECTED_CHAT_MARKER",
+    SET_JUMP_TO_BOTTOM_BUTTON: "SET_JUMP_TO_BOTTOM_BUTTON",
+    SET_CHAT_PERSISTENCE: "SET_CHAT_PERSISTENCE",
     SET_MULTIPLE: "SET_MULTIPLE"
 };
 
@@ -44,6 +48,10 @@ function settingsReducer(state: SettingInterface = initialState, action: Setting
             return { ...state, platform: action.payload || "chzzk" };
         case actionTypes.SET_COLLECTED_CHAT_MARKER:
             return { ...state, collectedChatMarker: action.payload || 'on' };
+        case actionTypes.SET_JUMP_TO_BOTTOM_BUTTON:
+            return { ...state, jumpToBottomButton: action.payload || 'on' };
+        case actionTypes.SET_CHAT_PERSISTENCE:
+            return { ...state, chatPersistence: action.payload || 'on' };
         case actionTypes.SET_MULTIPLE: // 새로운 액션 타입 처리
             return { ...state, ...action.payload };
         default:
@@ -60,6 +68,8 @@ const setMaximumNumberChats = (maximumNumberChats: SettingInterface['maximumNumb
 const setAdvancedFilter = (advancedFilter: SettingInterface['advancedFilter']) => ({ type: actionTypes.SET_ADVANCED_FILTER, payload: advancedFilter });
 const setPlatform = (platform: SettingInterface['platform']) => ({ type: actionTypes.SET_PLATFORM, payload: platform });
 const setCollectedChatMarker = (collectedChatMarker: SettingInterface['collectedChatMarker']) => ({ type: actionTypes.SET_COLLECTED_CHAT_MARKER, payload: collectedChatMarker });
+const setJumpToBottomButton = (jumpToBottomButton: SettingInterface['jumpToBottomButton']) => ({ type: actionTypes.SET_JUMP_TO_BOTTOM_BUTTON, payload: jumpToBottomButton });
+const setChatPersistence = (chatPersistence: SettingInterface['chatPersistence']) => ({ type: actionTypes.SET_CHAT_PERSISTENCE, payload: chatPersistence });
 const setMultipleSettings = (settings: SettingInterface) => ({ type: actionTypes.SET_MULTIPLE, payload: settings });
 
 export {
@@ -72,5 +82,7 @@ export {
     setAdvancedFilter,
     setPlatform,
     setCollectedChatMarker,
+    setJumpToBottomButton,
+    setChatPersistence,
     setMultipleSettings,
 };

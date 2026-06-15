@@ -221,7 +221,14 @@ export default function useFilteredChatBuffer(
         });
     }, [adapter]);
 
-    const clear = useCallback(() => setSavedChats([]), []);
+    const clear = useCallback(() => {
+        setSavedChats([]);
+        // persisted storage도 즉시 비움 — 디바운스된 save가 결국 빈 payload를 쓰겠지만
+        // 사용자가 "초기화" 클릭 직후 새로고침해도 깨끗해야 함.
+        if (persistenceKey && hasSessionStorage) {
+            void browser.storage.session.remove(persistenceKey).catch(() => {});
+        }
+    }, [persistenceKey]);
 
     // 렌더용 ReactElement 매핑. SavedChat.html을 DOMPurify로 sanitize 후
     // DOM Element로 환원 → 캡쳐 클래스 부여 → convertToJSX.

@@ -11,6 +11,8 @@ const SETTING_KEYS = [
     "advancedFilter",
     "platform",
     "collectedChatMarker",
+    "jumpToBottomButton",
+    "chatPersistence",
 ] as const;
 
 /**

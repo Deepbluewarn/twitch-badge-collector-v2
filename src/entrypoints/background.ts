@@ -68,7 +68,8 @@ export default defineBackground(() => {
     const SETTING_LIST = [
       "position", "pointBoxAuto", "darkTheme",
       "chatTime", "maximumNumberChats", "advancedFilter",
-      "platform", "containerRatio", "collectedChatMarker",
+      "platform", "containerRatio", "collectedChatMarker", "jumpToBottomButton",
+      "chatPersistence",
     ]
 
     const settings = await browser.storage.local.get(SETTING_LIST);
@@ -82,6 +83,8 @@ export default defineBackground(() => {
       platform: settings.platform ? settings.platform : "chzzk",
       containerRatio: settings.containerRatio ? settings.containerRatio : 30,
       collectedChatMarker: settings.collectedChatMarker ? settings.collectedChatMarker : "on",
+      jumpToBottomButton: settings.jumpToBottomButton ? settings.jumpToBottomButton : "on",
+      chatPersistence: settings.chatPersistence ? settings.chatPersistence : "on",
     });
   });
 

@@ -74,6 +74,18 @@
   "collectedChatMarker" : {
     "message" : "Mark collected chats"
   },
+  "jumpToBottomButton" : {
+    "message" : "Jump-to-bottom button"
+  },
+  "chatPersistence" : {
+    "message" : "Keep collected chats across reloads"
+  },
+  "startCapture" : {
+    "message" : "Start chat capture"
+  },
+  "clearCollectedChats" : {
+    "message" : "Clear collected chats"
+  },
   "chatPosition" : {
     "message" : "Chat Position"
   },

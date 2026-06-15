@@ -16,10 +16,12 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import SettingsIcon from "@mui/icons-material/Settings";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import PhotoCameraOutlinedIcon from "@mui/icons-material/PhotoCameraOutlined";
+import DeleteSweepOutlinedIcon from "@mui/icons-material/DeleteSweepOutlined";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
-import { setChatTime, setCollectedChatMarker, setDarkTheme, setMaximumNumberChats, setPosition } from "@/reducer/setting";
+import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setJumpToBottomButton, setMaximumNumberChats, setPosition } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
 
 const PopupGlobalStyle = (
@@ -181,6 +183,22 @@ function PopupSetting() {
           onChange={(e) => dispatchGlobalSetting(setCollectedChatMarker(e.target.checked ? 'on' : 'off'))}
         />
       </SettingRow>
+
+      {/* 맨 아래로 버튼 표시 */}
+      <SettingRow label={t('jumpToBottomButton' as any)}>
+        <Switch
+          checked={globalSetting.jumpToBottomButton !== 'off'}
+          onChange={(e) => dispatchGlobalSetting(setJumpToBottomButton(e.target.checked ? 'on' : 'off'))}
+        />
+      </SettingRow>
+
+      {/* 새로고침/탭전환 후 수집된 채팅 유지 */}
+      <SettingRow label={t('chatPersistence' as any)}>
+        <Switch
+          checked={globalSetting.chatPersistence !== 'off'}
+          onChange={(e) => dispatchGlobalSetting(setChatPersistence(e.target.checked ? 'on' : 'off'))}
+        />
+      </SettingRow>
     </Stack>
   );
 }
@@ -210,6 +228,21 @@ function Popup() {
 
   const onRatioResetButtonClicked = () => {
     browser.storage.local.set({containerRatio: 30});
+  }
+
+  // 활성 탭의 content script로 메시지 전송. content는 chzzk/twitch 페이지에서만 mount
+  // 되므로 다른 탭에선 sendMessage가 reject 됨 — 그땐 alert로 안내만 하고 silent.
+  const sendToActiveContent = async (type: 'tbc-start-capture' | 'tbc-clear-chats') => {
+    try {
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const id = tabs[0]?.id;
+      if (id == null) return;
+      await browser.tabs.sendMessage(id, { type });
+      window.close();
+    } catch {
+      // content script 미주입 탭 — 안내 후 그대로 둠.
+      alert('치지직 또는 트위치 페이지에서만 동작합니다.');
+    }
   }
 
   useEffect(() => {
@@ -256,6 +289,24 @@ function Popup() {
         onClick={() => router.navigate("/setting")}
       >
         {browser.i18n.getMessage("generalSetting")}
+      </Button>
+
+      {/* 채팅 캡쳐 시작 — 활성 탭의 content script로 메시지 */}
+      <Button
+        variant="outlined"
+        startIcon={<PhotoCameraOutlinedIcon />}
+        onClick={() => sendToActiveContent('tbc-start-capture')}
+      >
+        {browser.i18n.getMessage('startCapture' as any)}
+      </Button>
+
+      {/* 저장된 채팅 비우기 */}
+      <Button
+        variant="outlined"
+        startIcon={<DeleteSweepOutlinedIcon />}
+        onClick={() => sendToActiveContent('tbc-clear-chats')}
+      >
+        {browser.i18n.getMessage('clearCollectedChats' as any)}
       </Button>
 
       {/* tertiary: 비율 초기화 — 가끔 쓰는 액션은 text variant로 demote */}

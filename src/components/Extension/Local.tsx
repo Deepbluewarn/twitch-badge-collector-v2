@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Fab from "@mui/material/Fab";
+import IconButton from "@mui/material/IconButton";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import PhotoCameraOutlinedIcon from "@mui/icons-material/PhotoCameraOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import useFilterGroup from "@/hooks/useFilterGroup";
@@ -41,11 +40,12 @@ export default function Local({
 
     const channelId = adapter.getCurrentChannelId();
 
-    // 채팅 유지: Adapter가 지원하고 라이브 모드인 경우만. 채널 단위 scope.
+    // 채팅 유지: Adapter가 지원하고 라이브 모드 + 사용자 설정 on일 때만. 채널 단위 scope.
     const persistenceKey = (
         adapter.supportsChatPersistence
         && channelId
         && adapter.getPageMode() === 'live'
+        && globalSetting.chatPersistence !== 'off'
     )
         ? `chatHistory:${type}:${channelId}:live`
         : undefined;
@@ -113,6 +113,23 @@ export default function Local({
             if (selectedKeys.size > 0) setSelectedKeys(new Set());
         }
     }, [captureMode]);
+
+    // popup → content script 메시지: 캡쳐 시작 / 저장된 채팅 초기화.
+    // FAB 제거하면서 외부 트리거 path 필요 (popup에서 sendMessage).
+    useEffect(() => {
+        const listener = (msg: any) => {
+            if (msg?.type === 'tbc-start-capture') {
+                setCaptureMode(true);
+                return Promise.resolve({ ok: true });
+            }
+            if (msg?.type === 'tbc-clear-chats') {
+                clear();
+                return Promise.resolve({ ok: true });
+            }
+        };
+        browser.runtime.onMessage.addListener(listener);
+        return () => browser.runtime.onMessage.removeListener(listener);
+    }, [clear]);
 
     // 1분 inactivity 시 capture 모드 자동 해제.
     // 활동 = 채팅 선택 변경 (selectedKeys ref 변화). 진입 직후에도 1분 카운트 시작.
@@ -240,6 +257,30 @@ export default function Local({
     const sentinelRef = useRef<HTMLDivElement>(null);
     const followingRef = useRef(true);
     const [showJumpToBottom, setShowJumpToBottom] = useState(false);
+    const [hovered, setHovered] = useState(false);
+    // chzzk 라이트/다크 테마 자동 대응 — container 배경색 읽어 FAB 색 계산.
+    // hover 시점에 한 번 읽으면 충분 (테마 자주 안 바뀜).
+    const [jumpFabColors, setJumpFabColors] = useState({ bg: 'rgba(127,127,127,0.25)', fg: 'rgba(255,255,255,0.7)' });
+    useEffect(() => {
+        if (!hovered) return;
+        let el: HTMLElement | null = containerRef.current;
+        while (el) {
+            const c = window.getComputedStyle(el).backgroundColor;
+            const m = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if (m && c !== 'rgba(0, 0, 0, 0)') {
+                const r = +m[1], g = +m[2], b = +m[3];
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b; // perceived brightness
+                const dark = lum < 128;
+                // 다크 배경: 약간 밝게 (흰색 alpha 8%), 라이트 배경: 약간 어둡게 (검정 alpha 8%).
+                setJumpFabColors({
+                    bg: dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)',
+                    fg: dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                });
+                break;
+            }
+            el = el.parentElement;
+        }
+    }, [hovered]);
 
     const updateFollowingFromScroll = useCallback((scrollEl: HTMLElement) => {
         // 스크롤 위치 기반 fallback. column-reverse(chzzk)는 scrollTop이 음수/0 근처가 바닥이라
@@ -320,7 +361,6 @@ export default function Local({
     }, []);
 
     const allSelected = savedChats.length > 0 && selectedKeys.size === savedChats.length;
-    const [hovered, setHovered] = useState(false);
 
     return (
         <Wrapper
@@ -363,9 +403,8 @@ export default function Local({
             {/* "맨 아래로" FAB — 위로 스크롤한 상태 + hover일 때만 표시.
                 hover 없이 항상 떠 있던 게 거슬린다는 피드백. 스크롤 자체가 hover 동반이므로
                 discoverability 손실 없음. */}
-            {showJumpToBottom && (
-                <Fab
-                    size="small"
+            {showJumpToBottom && globalSetting.jumpToBottomButton !== 'off' && (
+                <IconButton
                     onClick={jumpToBottom}
                     aria-label="맨 아래로"
                     sx={{
@@ -373,41 +412,24 @@ export default function Local({
                         bottom: captureMode ? 64 : 12,
                         right: 12,
                         zIndex: 11,
-                        bgcolor: '#7c8aef',
-                        color: '#fff',
+                        width: 28,
+                        height: 28,
+                        bgcolor: jumpFabColors.bg,
+                        color: jumpFabColors.fg,
                         opacity: hovered ? 1 : 0,
                         pointerEvents: hovered ? 'auto' : 'none',
-                        transition: 'opacity 0.15s ease',
-                        '&:hover': { bgcolor: '#5b6acb' },
+                        transition: 'opacity 0.15s ease, background-color 0.15s ease',
+                        backdropFilter: 'blur(4px)',
+                        '&:hover': { bgcolor: jumpFabColors.bg, filter: 'brightness(1.3)' },
+                        '& .MuiSvgIcon-root': { fontSize: 18 },
                     }}
                 >
                     <KeyboardArrowDownIcon />
-                </Fab>
+                </IconButton>
             )}
 
-            {/* 캡쳐 진입 FAB — 평상시 hover 시에만 표시. jump FAB과 겹치지 않게 위로 offset. */}
-            {!captureMode && (
-                <Fab
-                    size="small"
-                    onClick={() => setCaptureMode(true)}
-                    aria-label="캡쳐 시작"
-                    sx={{
-                        position: 'absolute',
-                        // jump FAB(showJumpToBottom일 때 bottom 12)과 겹치지 않게 위로.
-                        bottom: showJumpToBottom ? 64 : 12,
-                        right: 12,
-                        zIndex: 10,
-                        bgcolor: '#7c8aef',
-                        color: '#fff',
-                        opacity: hovered ? 1 : 0,
-                        pointerEvents: hovered ? 'auto' : 'none',
-                        transition: 'opacity 0.15s ease, bottom 0.15s ease',
-                        '&:hover': { bgcolor: '#5b6acb' },
-                    }}
-                >
-                    <PhotoCameraOutlinedIcon fontSize="small" />
-                </Fab>
-            )}
+            {/* 캡쳐 진입은 popup 버튼 → runtime.sendMessage('tbc-start-capture')로 트리거.
+                FAB는 작은 화면에서 채팅 가린다는 피드백으로 제거. */}
 
             {/* 캡쳐 모드 — 하단 full-width 액션 바. 채팅 layout 보존 (overlay). */}
             {captureMode && (

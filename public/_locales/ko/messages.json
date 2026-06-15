@@ -74,6 +74,18 @@
   "collectedChatMarker" : {
     "message" : "수집된 채팅 표시"
   },
+  "jumpToBottomButton" : {
+    "message" : "맨 아래로 버튼"
+  },
+  "chatPersistence" : {
+    "message" : "수집된 채팅 유지"
+  },
+  "startCapture" : {
+    "message" : "채팅 캡쳐 시작"
+  },
+  "clearCollectedChats" : {
+    "message" : "저장된 채팅 초기화"
+  },
   "chatPosition" : {
     "message" : "채팅 위치"
   },
