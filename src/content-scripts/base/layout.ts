@@ -22,15 +22,12 @@ export function applyPosition(type: Platform, position: Position) {
 }
 
 export function applyRatio(type: Platform, ratio: number, position: Position) {
-    if (ratio != 0) ratio = ratio ? ratio : 30;
+    // 0/undefined/범위 밖 값은 default 30. 이전 회귀(handler가 미드래그 mouseup으로
+    // 0 저장)로 storage 깨진 사용자 자동 복구. drag-only path는 1..100만 생성.
+    if (!ratio || ratio < 1 || ratio > 100) ratio = 30;
 
-    let orig_size = ratio === 0 ? 1 : ratio === 10 ? 0 : 1;
-    let clone_size = ratio === 0 ? 0 : ratio === 10 ? 1 : 0;
-
-    if (1 <= ratio && ratio <= 100) {
-        clone_size = parseFloat((ratio * 0.01).toFixed(2));
-        orig_size = parseFloat((1 - clone_size).toFixed(2));
-    }
+    let clone_size = parseFloat((ratio * 0.01).toFixed(2));
+    let orig_size = parseFloat((1 - clone_size).toFixed(2));
 
     if (position === "up") {
         [orig_size, clone_size] = [clone_size, orig_size];
