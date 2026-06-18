@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "rev": 1,
+  "rev": 2,
   "platforms": {
     "twitch": {
       "livePathRegex": "^/(?!videos/)",
@@ -35,16 +35,16 @@
       "vodPathRegex": "^/video/",
       "channelIdPathIndex": 2,
       "selectors": {
-        "chatRoomLive": ".live_chatting_list_wrapper__a5XTV",
+        "chatRoomLive": "aside#aside-chatting > div:nth-child(3) > div:nth-child(1)",
         "chatRoomVod": ".vod_chatting_list__+LZHw",
         "video": ".pzp-pc__video video.webplayer-internal-video",
-        "displayName": ".name_text__yQG50",
-        "messageText": ".live_chatting_message_text__DyleH",
-        "donationText": ".live_chatting_donation_message_text__XbDKP",
-        "badge": ".badge_container__a64XB",
+        "displayName": "[class*=\"_is_message_\"] [class*=\"_text_\"]",
+        "messageText": "[class*=\"_chatting_message_\"] > [class*=\"_text_\"]",
+        "donationText": "[class*=\"_is_donation_\"] [class*=\"_text_\"]",
+        "badge": "[class*=\"_container_1jo9t_\"]",
         "verifiedIcon": ".name_icon__zdbVH",
         "blindText": ".blind",
-        "usernameContainer": ".live_chatting_username_container__m1-i5.live_chatting_username_is_message__jvTvP",
+        "usernameContainer": "[class*=\"_is_message_\"]",
         "popupProfileHeader": ".live_chatting_popup_profile_header__OWnnU",
         "pointButton": ".live_chatting_power_button__Ov3eJ"
       },
