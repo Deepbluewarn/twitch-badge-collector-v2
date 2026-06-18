@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "rev": 2,
+  "rev": 3,
   "platforms": {
     "twitch": {
       "livePathRegex": "^/(?!videos/)",
@@ -46,7 +46,8 @@
         "blindText": ".blind",
         "usernameContainer": "[class*=\"_is_message_\"]",
         "popupProfileHeader": ".live_chatting_popup_profile_header__OWnnU",
-        "pointButton": ".live_chatting_power_button__Ov3eJ"
+        "pointButton": ".live_chatting_power_button__Ov3eJ",
+        "foldedClassSubstring": "_is_folded_"
       },
       "reactPropsPaths": {
         "live": {

@@ -38,6 +38,11 @@ export interface PlatformHostConfig {
 
         pointButton?: string;
         pointButtonContainer?: string;
+
+        /** chzzk 풀스크린 진입 시 aside-chatting에 추가되는 class의 substring.
+         *  예전엔 `live_chatting_is_folded` prefix였으나 신 패턴에선 `_is_folded_`.
+         *  `Array.classList.some(c => c.includes(foldedClassSubstring))` 식으로 사용. */
+        foldedClassSubstring?: string;
     };
 
     reactPropsPaths?: {

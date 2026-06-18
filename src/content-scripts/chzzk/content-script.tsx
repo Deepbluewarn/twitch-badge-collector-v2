@@ -63,8 +63,11 @@ async function bootstrap() {
 //  - is_folded 클래스 없음 = chzzk가 보이려 함 → 우리 override 제거, chzzk 정상 렌더
 function setupFullscreenKeepAlive() {
     const ASIDE_ID = 'aside-chatting';
-    // chzzk minified hash. 추후 OTA로 관리 가능.
-    const FOLDED_CLASS_PREFIX = 'live_chatting_is_folded';
+    // chzzk CSS-in-JS 패턴 변동 대응 — selector JSON에서 substring 읽음.
+    // 구 패턴: `live_chatting_is_folded_xxx` (prefix). 신 패턴: `_is_folded_xxx_n`.
+    // 둘 다 `includes`로 매칭되도록 substring 형태로 통일.
+    const FOLDED_SUBSTRING = getPlatformConfig('chzzk').selectors.foldedClassSubstring
+        ?? '_is_folded_';
     const HIDE_PROPS: Array<[string, string]> = [
         ['display', 'flex'],
         ['position', 'absolute'],
@@ -81,7 +84,7 @@ function setupFullscreenKeepAlive() {
     let overrideActive = false;
 
     function isFolded(aside: HTMLElement): boolean {
-        return Array.from(aside.classList).some(c => c.startsWith(FOLDED_CLASS_PREFIX));
+        return Array.from(aside.classList).some(c => c.includes(FOLDED_SUBSTRING));
     }
 
     function applyOverride(aside: HTMLElement) {
