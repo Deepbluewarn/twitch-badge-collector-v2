@@ -44,13 +44,33 @@ export default function useChatStream(
     onChatPassed: (chat: PassedChat) => void,
 ) {
     useEffect(() => {
-        // 같은 key는 한 번만 처리.
+        // 같은 key는 한 번만 처리 (extract/predicate/addChat).
         const seenKeys = new Set<string>();
+        // 처리 시점에 결정된 marker 색을 key별 캐시.
+        // chzzk가 virtual scroll로 chat element를 destroy/recreate하면 우리 class가
+        // 사라지므로 재출현 시 캐시된 색으로 다시 부여 — 추출/필터는 재실행 X.
+        const processedColors = new Map<string, string | undefined>();
+
+        function applyHighlight(key: string, color: string | undefined) {
+            if (!color) return;
+            try {
+                const all = document.querySelectorAll(`[${CHAT_ATTR.KEY}="${CSS.escape(key)}"]`);
+                all.forEach(orig => {
+                    if (orig.closest(`#tbc-clone__${adapter.type}ui`)) return;
+                    (orig as HTMLElement).style.setProperty('--tbc-marker-color', color);
+                    orig.classList.add(PROCESSED_CHAT_CLASS);
+                });
+            } catch { /* CSS.escape 미지원 등 */ }
+        }
 
         // 공통 처리 — element 받아서 adapter 통과 + onChatPassed 호출.
         // detached element도 OK (extract의 parent check를 위해 임시 wrapper에 attach).
         function processElement(element: HTMLElement, key: string, time: number, prevKey: string | null) {
-            if (seenKeys.has(key)) return;
+            if (seenKeys.has(key)) {
+                // virtual scroll 재출현 케이스 — adapter/filter 재실행 없이 highlight만 재적용.
+                applyHighlight(key, processedColors.get(key));
+                return;
+            }
 
             // adapter.extract이 parentElement.id 체크 — detached element면 임시 wrapper attach.
             if (element.parentElement?.id !== `tbc-${adapter.type}-chat-list-wrapper`) {
@@ -66,22 +86,11 @@ export default function useChatStream(
 
             adapter.prepareChatClone(element);
             seenKeys.add(key);
+            processedColors.set(key, result.markerColor);
 
-            // 원본 chzzk/twitch DOM의 같은 KEY 요소에 highlight 클래스 부여 — 사용자가
-            // 호스트 채팅창에서 "이 채팅이 수집됐구나" 시각 확인. CSS는 content style.css의
-            // `.tbcv2-highlight` 룰. 색상은 CSS 변수 --tbc-marker-color로 override.
-            // markerColor undefined면 highlight off (사용자 설정 또는 미매칭).
-            // 우리 컨테이너(#tbc-clone__*) 안 clone은 제외 — original만 표시.
-            if (result.markerColor) {
-                try {
-                    const all = document.querySelectorAll(`[${CHAT_ATTR.KEY}="${CSS.escape(key)}"]`);
-                    all.forEach(orig => {
-                        if (orig.closest(`#tbc-clone__${adapter.type}ui`)) return;
-                        (orig as HTMLElement).style.setProperty('--tbc-marker-color', result.markerColor!);
-                        orig.classList.add(PROCESSED_CHAT_CLASS);
-                    });
-                } catch { /* CSS.escape 미지원 등 — 표시만 못 함, 기능엔 영향 X */ }
-            }
+            // 원본 호스트 DOM에 highlight 클래스 부여 — 사용자가 채팅창에서 "수집됐구나"
+            // 시각 확인. CSS는 content style.css의 `.tbcv2-highlight`, 색은 CSS 변수 override.
+            applyHighlight(key, result.markerColor);
 
             onChatPassed({ clone: element, key, time, prevKey });
         }
@@ -110,13 +119,37 @@ export default function useChatStream(
             });
         }
 
+        // Phase 1b: chzzk(React)가 chat element를 reconcile하면서 우리 PROCESSED_CHAT_CLASS를
+        // 떼어내는 경우 대응. 가상 스크롤로 가려졌던 채팅이 다시 보일 때 자주 발생.
+        // wrapper subtree의 class 속성 변경을 감시 → 우리 class 빠진 key 매칭 element엔
+        // 캐시 색으로 재부여. classList.contains 체크로 무한 루프 차단.
+        let attrMo: MutationObserver | null = null;
+        if (wrapper) {
+            attrMo = new MutationObserver((records) => {
+                for (const r of records) {
+                    if (r.attributeName !== 'class') continue;
+                    const target = r.target as HTMLElement;
+                    if (!target.getAttribute) continue;
+                    const key = target.getAttribute(CHAT_ATTR.KEY);
+                    if (!key || !processedColors.has(key)) continue;
+                    if (target.classList.contains(PROCESSED_CHAT_CLASS)) continue;
+                    const color = processedColors.get(key);
+                    if (!color) continue;
+                    target.style.setProperty('--tbc-marker-color', color);
+                    target.classList.add(PROCESSED_CHAT_CLASS);
+                }
+            });
+            attrMo.observe(wrapper, { attributes: true, attributeFilter: ['class'], subtree: true });
+        }
+
         // Phase 2: 향후 inject.ts가 발행할 메시지 listen.
+        // seenKeys 체크는 processElement 내부에서 — virtual scroll로 재출현한 chat은
+        // 거기서 applyHighlight만 재호출함. handleMessage에서 short-circuit하면 그 경로 dead.
         function handleMessage(e: MessageEvent) {
             if (e.source !== window) return;
             const msg = e.data as TbcChatPassedMessage | undefined;
             if (msg?.action !== TBC_CHAT_PASSED_ACTION) return;
             if (!msg.key) return;
-            if (seenKeys.has(msg.key)) return;
 
             // inject.ts가 보낸 outerHTML 파싱 (host DOM은 virtual window로 unmount 가능).
             const tmpl = document.createElement('template');
@@ -128,6 +161,9 @@ export default function useChatStream(
         }
 
         window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
+        return () => {
+            window.removeEventListener('message', handleMessage);
+            attrMo?.disconnect();
+        };
     }, []);
 }

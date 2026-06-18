@@ -22,9 +22,10 @@ export function applyPosition(type: Platform, position: Position) {
 }
 
 export function applyRatio(type: Platform, ratio: number, position: Position) {
-    // 0/undefined/범위 밖 값은 default 30. 이전 회귀(handler가 미드래그 mouseup으로
-    // 0 저장)로 storage 깨진 사용자 자동 복구. drag-only path는 1..100만 생성.
-    if (!ratio || ratio < 1 || ratio > 100) ratio = 30;
+    // undefined/NaN/범위 밖만 default 30. 0은 사용자가 의도적으로 한쪽 100% 원하는
+    // 합법 값 (예: 모아보기만 전체, 원본만 전체). didDrag 가드(handler.tsx)로
+    // 사고성 0 저장 자체를 막았으니 0이 저장돼 있으면 사용자 의도로 신뢰.
+    if (typeof ratio !== 'number' || !isFinite(ratio) || ratio < 0 || ratio > 100) ratio = 30;
 
     let clone_size = parseFloat((ratio * 0.01).toFixed(2));
     let orig_size = parseFloat((1 - clone_size).toFixed(2));
