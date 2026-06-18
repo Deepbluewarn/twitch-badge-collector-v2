@@ -12,7 +12,9 @@
  */
 import { setManifest, getManifest, SelectorsManifest } from './host-selectors';
 
-const SELECTORS_URL = 'https://cdn.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@main/src/platform/bundled-selectors.json';
+// 저장소 기본 브랜치는 master. 이전엔 @main으로 박혀 있어 jsDelivr 404 → OTA가
+// 처음부터 동작 안 했음 (사용자 storage에 manifest 안 박힘). master로 수정.
+const SELECTORS_URL = 'https://cdn.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.json';
 const STORAGE_KEY = 'tbcv2-selectors-manifest';
 const FETCHED_AT_KEY = 'tbcv2-selectors-fetched-at';
 const TTL_MS = 6 * 60 * 60 * 1000; // 6시간

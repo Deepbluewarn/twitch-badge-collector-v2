@@ -6,7 +6,7 @@
 
 - 번들된 fallback: `src/platform/bundled-selectors.json` (확장에 포함).
 - 사용자측 SW가 깰 때마다 `fetchIfStale()` → jsDelivr CDN에서 같은 파일을 받음:
-  - `https://cdn.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@main/src/platform/bundled-selectors.json`
+  - `https://cdn.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.json`
 - 받은 manifest는 `browser.storage.local`에 저장. content-script는 `manifestReady` 후 init.
 - 6시간 stale 판정 + `rev` 비교. 활성 사용자는 SW wake가 잦아 ~수 시간 내 갱신.
 
@@ -18,7 +18,7 @@
 4. `main` 브랜치에 커밋 + 푸시.
 5. jsDelivr 캐시 갱신 대기 (수 분 ~ 12시간) — 긴급 시 수동 purge:
    ```
-   https://purge.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@main/src/platform/bundled-selectors.json
+   https://purge.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.json
    ```
 6. 사용자 측: 다음 SW wake 때 자동 갱신.
 
