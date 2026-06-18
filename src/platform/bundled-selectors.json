@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "rev": 5,
+  "rev": 6,
   "platforms": {
     "twitch": {
       "livePathRegex": "^/(?!videos/)",
@@ -35,7 +35,7 @@
       "vodPathRegex": "^/video/",
       "channelIdPathIndex": 2,
       "selectors": {
-        "chatRoomLive": "aside#aside-chatting > div:nth-child(3) > div:nth-child(1)",
+        "chatRoomLive": "aside#aside-chatting [class*=\"_wrapper_\"]:has(> [class*=\"_item_\"])",
         "chatRoomVod": "aside#vod-aside [class*=\"_list_\"]",
         "video": ".webplayer-internal-source-wrapper video",
         "displayName": "[class*=\"_is_message_\"] [class*=\"_text_\"]",
