@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "rev": 3,
+  "rev": 4,
   "platforms": {
     "twitch": {
       "livePathRegex": "^/(?!videos/)",
@@ -36,13 +36,13 @@
       "channelIdPathIndex": 2,
       "selectors": {
         "chatRoomLive": "aside#aside-chatting > div:nth-child(3) > div:nth-child(1)",
-        "chatRoomVod": ".vod_chatting_list__+LZHw",
-        "video": ".pzp-pc__video video.webplayer-internal-video",
+        "chatRoomVod": "aside#vod-aside [class*=\"_list_\"]",
+        "video": ".webplayer-internal-source-wrapper video",
         "displayName": "[class*=\"_is_message_\"] [class*=\"_text_\"]",
         "messageText": "[class*=\"_chatting_message_\"] > [class*=\"_text_\"]",
         "donationText": "[class*=\"_is_donation_\"] [class*=\"_text_\"]",
         "badge": "[class*=\"_container_1jo9t_\"]",
-        "verifiedIcon": ".name_icon__zdbVH",
+        "verifiedIcon": "[class*=\"_icon_dtc6c_\"]",
         "blindText": ".blind",
         "usernameContainer": "[class*=\"_is_message_\"]",
         "popupProfileHeader": ".live_chatting_popup_profile_header__OWnnU",
