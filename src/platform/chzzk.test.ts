@@ -96,7 +96,10 @@ describe('ChzzkAdapter — URL-derived methods', () => {
 
 describe('ChzzkAdapter — prepareChatClone', () => {
     const adapter = new ChzzkAdapter();
-    const USERNAME_CLASS = 'live_chatting_username_container__m1-i5 live_chatting_username_is_message__jvTvP';
+    // 신 chzzk CSS-in-JS 패턴에 맞춤. selectors.json의 usernameContainer는
+    // `[class*="_container_o04z9_"]` substring으로 일반 채팅(_is_message_) /
+    // 도네이션(_is_donation_) 두 변형 모두 매칭. 테스트 fixture는 일반 채팅 변형 사용.
+    const USERNAME_CLASS = '_container_o04z9_2 _is_message_o04z9_5';
 
     afterEach(() => {
         document.body.innerHTML = '';
@@ -156,15 +159,25 @@ describe('ChzzkAdapter — extract', () => {
 
         const chat = document.createElement('div');
 
+        // displayName 신 selector: `[class*="_container_o04z9_"] [class*="_text_"]`
+        // → username container 하위에 text element 배치.
+        const usernameContainer = document.createElement('span');
+        usernameContainer.className = '_container_o04z9_2 _is_message_o04z9_5';
         const nameEl = document.createElement('span');
-        nameEl.className = 'name_text__yQG50';
+        nameEl.className = '_text_dtc6c_2';
         nameEl.textContent = 'AliceNick';
-        chat.appendChild(nameEl);
+        usernameContainer.appendChild(nameEl);
+        chat.appendChild(usernameContainer);
 
+        // messageText 신 selector: `[class*="_chatting_message_"] > [class*="_text_"]`
+        // → message wrapper 직속 자식으로 text element 배치.
+        const messageWrapper = document.createElement('div');
+        messageWrapper.className = '_chatting_message_1s877_21';
         const textEl = document.createElement('span');
-        textEl.className = 'live_chatting_message_text__DyleH';
+        textEl.className = '_text_1s877_1';
         textEl.textContent = 'hello';
-        chat.appendChild(textEl);
+        messageWrapper.appendChild(textEl);
+        chat.appendChild(messageWrapper);
 
         wrapper.appendChild(chat);
         document.body.appendChild(wrapper);
