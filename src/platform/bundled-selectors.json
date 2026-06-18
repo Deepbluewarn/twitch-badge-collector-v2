@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "rev": 4,
+  "rev": 5,
   "platforms": {
     "twitch": {
       "livePathRegex": "^/(?!videos/)",
@@ -40,7 +40,7 @@
         "video": ".webplayer-internal-source-wrapper video",
         "displayName": "[class*=\"_is_message_\"] [class*=\"_text_\"]",
         "messageText": "[class*=\"_chatting_message_\"] > [class*=\"_text_\"]",
-        "donationText": "[class*=\"_is_donation_\"] [class*=\"_text_\"]",
+        "donationText": "[class*=\"_text_y6h6c_\"]",
         "badge": "[class*=\"_container_1jo9t_\"]",
         "verifiedIcon": "[class*=\"_icon_dtc6c_\"]",
         "blindText": ".blind",
