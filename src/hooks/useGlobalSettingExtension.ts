@@ -13,6 +13,8 @@ const SETTING_KEYS = [
     "collectedChatMarker",
     "jumpToBottomButton",
     "chatPersistence",
+    "displayMode",
+    "floatingBgColor",
 ] as const;
 
 /**

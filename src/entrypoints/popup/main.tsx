@@ -21,7 +21,7 @@ import DeleteSweepOutlinedIcon from "@mui/icons-material/DeleteSweepOutlined";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
-import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setJumpToBottomButton, setMaximumNumberChats, setPosition } from "@/reducer/setting";
+import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
 
 const PopupGlobalStyle = (
@@ -95,9 +95,59 @@ const router = createMemoryRouter(routes, {
   initialIndex: 1,
 });
 
+/**
+ * 색상 swatch + native picker. change 이벤트만 청취해 드래그 중 storage 폭주 방지.
+ * 빈 값은 "자동" 의미 — reset 버튼으로 비울 수 있음.
+ */
+function BgColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    const handler = (e: Event) => onChange((e.target as HTMLInputElement).value);
+    el.addEventListener('change', handler);
+    return () => el.removeEventListener('change', handler);
+  }, [onChange]);
+  return (
+    <Stack direction='row' spacing={0.5} alignItems='center'>
+      <Box
+        onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+        sx={{
+          width: 24, height: 24, borderRadius: '50%',
+          // 빈 값(자동)일 땐 체커보드 패턴으로 "색 미지정" 시각화 — 팝업 배경과 동화 방지.
+          backgroundColor: value || undefined,
+          backgroundImage: value ? 'none' : 'conic-gradient(rgba(255,255,255,0.15) 0deg 90deg, rgba(255,255,255,0.3) 90deg 180deg, rgba(255,255,255,0.15) 180deg 270deg, rgba(255,255,255,0.3) 270deg 360deg)',
+          border: `1px solid ${value ? 'rgba(128,128,128,0.4)' : 'rgba(128,128,128,0.6)'}`,
+          cursor: 'pointer',
+        }}
+      >
+        <input
+          ref={inputRef}
+          type='color'
+          defaultValue={value || '#2a2a30'}
+          style={{ position: 'absolute', visibility: 'hidden', width: 0, height: 0 }}
+        />
+      </Box>
+      {value && (
+        <Button size='small' variant='text' onClick={() => onChange('')} sx={{ minWidth: 0, p: 0.25, fontSize: '0.7rem' }}>
+          자동
+        </Button>
+      )}
+    </Stack>
+  );
+}
+
 function PopupSetting() {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
   const t = (k: string) => browser.i18n.getMessage(k as any);
+  const [otaInfo, setOtaInfo] = React.useState<{ rev: number | null; fetchedAt: number | null }>({ rev: null, fetchedAt: null });
+  useEffect(() => {
+    browser.storage.local.get(['tbcv2-selectors-manifest', 'tbcv2-selectors-fetched-at']).then((r) => {
+      const m = r['tbcv2-selectors-manifest'] as { rev?: number } | undefined;
+      const fa = r['tbcv2-selectors-fetched-at'] as number | undefined;
+      setOtaInfo({ rev: m?.rev ?? null, fetchedAt: fa ?? null });
+    });
+  }, []);
 
   return (
     <Stack spacing={1.5} sx={{ p: 1.5 }}>
@@ -199,6 +249,43 @@ function PopupSetting() {
           onChange={(e) => dispatchGlobalSetting(setChatPersistence(e.target.checked ? 'on' : 'off'))}
         />
       </SettingRow>
+
+      {/* 표시 방식 — inline(합치기) / floating(아이콘+팝오버). 새로고침 필요. */}
+      <SettingRow label={t('displayMode' as any)} hint={t('needRefresh')}>
+        <ToggleButtonGroup
+          value={globalSetting.displayMode ?? 'inline'}
+          exclusive
+          size='small'
+          onChange={(_e, v: SettingInterface['displayMode'] | null) => {
+            if (v) dispatchGlobalSetting(setDisplayMode(v));
+          }}
+          sx={{ '& .MuiToggleButton-root': { px: 1, py: 0.25, textTransform: 'none' } }}
+        >
+          <ToggleButton value='inline'>{t('displayModeInline' as any)}</ToggleButton>
+          <ToggleButton value='floating'>{t('displayModeFloating' as any)}</ToggleButton>
+        </ToggleButtonGroup>
+      </SettingRow>
+
+      {/* floating 팝오버 배경색 — 비어 있으면 자동 감지. 사용자가 chzzk 톤에 맞게 직접 지정 가능. */}
+      {globalSetting.displayMode === 'floating' && (
+        <SettingRow label={t('floatingBgColor' as any)} hint={t('needRefresh')}>
+          <BgColorPicker
+            value={globalSetting.floatingBgColor || ''}
+            onChange={(c) => dispatchGlobalSetting(setFloatingBgColor(c))}
+          />
+        </SettingRow>
+      )}
+
+      {/* OTA selector 버전 — 작은 caption으로 하단 표시. 문제 보고 시 참고용. */}
+      <Typography
+        variant='caption'
+        color='text.secondary'
+        sx={{ display: 'block', textAlign: 'right', mt: 0.5, fontSize: '0.65rem', lineHeight: 1.2 }}
+      >
+        {otaInfo.rev !== null
+          ? `OTA selectors rev ${otaInfo.rev}${otaInfo.fetchedAt ? ` (${new Date(otaInfo.fetchedAt).toLocaleString()})` : ''}`
+          : 'OTA selectors: 번들 기본값'}
+      </Typography>
     </Stack>
   );
 }

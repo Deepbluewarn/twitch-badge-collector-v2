@@ -80,6 +80,18 @@
   "chatPersistence" : {
     "message" : "Сохранять собранные сообщения"
   },
+  "displayMode" : {
+    "message" : "Режим отображения"
+  },
+  "displayModeInline" : {
+    "message" : "Встроенный"
+  },
+  "displayModeFloating" : {
+    "message" : "Плавающий"
+  },
+  "floatingBgColor" : {
+    "message" : "Цвет фона плавающего окна"
+  },
   "startCapture" : {
     "message" : "Начать захват чата"
   },

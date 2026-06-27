@@ -80,6 +80,18 @@
   "chatPersistence" : {
     "message" : "Keep collected chats across reloads"
   },
+  "displayMode" : {
+    "message" : "Display mode"
+  },
+  "displayModeInline" : {
+    "message" : "Inline"
+  },
+  "displayModeFloating" : {
+    "message" : "Floating"
+  },
+  "floatingBgColor" : {
+    "message" : "Floating background color"
+  },
   "startCapture" : {
     "message" : "Start chat capture"
   },

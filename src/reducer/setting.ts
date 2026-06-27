@@ -12,6 +12,8 @@ export const initialState: SettingInterface = {
     collectedChatMarker: 'on',
     jumpToBottomButton: 'on',
     chatPersistence: 'on',
+    displayMode: 'inline',
+    floatingBgColor: '',
 }
 
 // 액션 타입 정의
@@ -26,6 +28,8 @@ const actionTypes: SettingReducerActionTypes = {
     SET_COLLECTED_CHAT_MARKER: "SET_COLLECTED_CHAT_MARKER",
     SET_JUMP_TO_BOTTOM_BUTTON: "SET_JUMP_TO_BOTTOM_BUTTON",
     SET_CHAT_PERSISTENCE: "SET_CHAT_PERSISTENCE",
+    SET_DISPLAY_MODE: "SET_DISPLAY_MODE",
+    SET_FLOATING_BG_COLOR: "SET_FLOATING_BG_COLOR",
     SET_MULTIPLE: "SET_MULTIPLE"
 };
 
@@ -52,6 +56,10 @@ function settingsReducer(state: SettingInterface = initialState, action: Setting
             return { ...state, jumpToBottomButton: action.payload || 'on' };
         case actionTypes.SET_CHAT_PERSISTENCE:
             return { ...state, chatPersistence: action.payload || 'on' };
+        case actionTypes.SET_DISPLAY_MODE:
+            return { ...state, displayMode: action.payload || 'inline' };
+        case actionTypes.SET_FLOATING_BG_COLOR:
+            return { ...state, floatingBgColor: action.payload ?? '' };
         case actionTypes.SET_MULTIPLE: // 새로운 액션 타입 처리
             return { ...state, ...action.payload };
         default:
@@ -70,6 +78,8 @@ const setPlatform = (platform: SettingInterface['platform']) => ({ type: actionT
 const setCollectedChatMarker = (collectedChatMarker: SettingInterface['collectedChatMarker']) => ({ type: actionTypes.SET_COLLECTED_CHAT_MARKER, payload: collectedChatMarker });
 const setJumpToBottomButton = (jumpToBottomButton: SettingInterface['jumpToBottomButton']) => ({ type: actionTypes.SET_JUMP_TO_BOTTOM_BUTTON, payload: jumpToBottomButton });
 const setChatPersistence = (chatPersistence: SettingInterface['chatPersistence']) => ({ type: actionTypes.SET_CHAT_PERSISTENCE, payload: chatPersistence });
+const setDisplayMode = (displayMode: SettingInterface['displayMode']) => ({ type: actionTypes.SET_DISPLAY_MODE, payload: displayMode });
+const setFloatingBgColor = (floatingBgColor: SettingInterface['floatingBgColor']) => ({ type: actionTypes.SET_FLOATING_BG_COLOR, payload: floatingBgColor });
 const setMultipleSettings = (settings: SettingInterface) => ({ type: actionTypes.SET_MULTIPLE, payload: settings });
 
 export {
@@ -84,5 +94,7 @@ export {
     setCollectedChatMarker,
     setJumpToBottomButton,
     setChatPersistence,
+    setDisplayMode,
+    setFloatingBgColor,
     setMultipleSettings,
 };

@@ -69,7 +69,7 @@ export default defineBackground(() => {
       "position", "pointBoxAuto", "darkTheme",
       "chatTime", "maximumNumberChats", "advancedFilter",
       "platform", "containerRatio", "collectedChatMarker", "jumpToBottomButton",
-      "chatPersistence",
+      "chatPersistence", "displayMode", "floatingBgColor",
     ]
 
     const settings = await browser.storage.local.get(SETTING_LIST);
@@ -85,6 +85,8 @@ export default defineBackground(() => {
       collectedChatMarker: settings.collectedChatMarker ? settings.collectedChatMarker : "on",
       jumpToBottomButton: settings.jumpToBottomButton ? settings.jumpToBottomButton : "on",
       chatPersistence: settings.chatPersistence ? settings.chatPersistence : "on",
+      displayMode: settings.displayMode ? settings.displayMode : "inline",
+      floatingBgColor: settings.floatingBgColor ?? '',
     });
   });
 

@@ -12,6 +12,10 @@ export interface SettingInterface {
     jumpToBottomButton: 'on' | 'off';
     /** 새로고침/탭전환 후 수집된 채팅 복원 기능. default 'on'. off면 매번 빈 상태로 시작. */
     chatPersistence: 'on' | 'off';
+    /** 모아보기 표시 방식. inline=원본 채팅창과 합쳐 표시 (기본). floating=별도 아이콘+팝오버. */
+    displayMode: 'inline' | 'floating';
+    /** floating 모드 팝오버 배경색. 빈 문자열이면 자동 감지(다크/라이트). hex/rgba. */
+    floatingBgColor?: string;
 }
 
 export interface SettingReducerActionTypes {
@@ -25,6 +29,8 @@ export interface SettingReducerActionTypes {
     SET_COLLECTED_CHAT_MARKER: "SET_COLLECTED_CHAT_MARKER";
     SET_JUMP_TO_BOTTOM_BUTTON: "SET_JUMP_TO_BOTTOM_BUTTON";
     SET_CHAT_PERSISTENCE: "SET_CHAT_PERSISTENCE";
+    SET_DISPLAY_MODE: "SET_DISPLAY_MODE";
+    SET_FLOATING_BG_COLOR: "SET_FLOATING_BG_COLOR";
     SET_MULTIPLE: "SET_MULTIPLE";
 }
 

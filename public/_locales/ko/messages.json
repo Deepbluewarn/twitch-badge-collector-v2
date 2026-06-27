@@ -72,13 +72,25 @@
     "message" : "채팅 시간 표시"
   },
   "collectedChatMarker" : {
-    "message" : "수집된 채팅 표시"
+    "message" : "원본 채팅에 수집 표시"
   },
   "jumpToBottomButton" : {
     "message" : "맨 아래로 버튼"
   },
   "chatPersistence" : {
-    "message" : "수집된 채팅 유지"
+    "message" : "새로고침 후 채팅 유지"
+  },
+  "displayMode" : {
+    "message" : "표시 방식"
+  },
+  "displayModeInline" : {
+    "message" : "합치기"
+  },
+  "displayModeFloating" : {
+    "message" : "팝오버"
+  },
+  "floatingBgColor" : {
+    "message" : "팝오버 배경색"
   },
   "startCapture" : {
     "message" : "채팅 캡쳐 시작"

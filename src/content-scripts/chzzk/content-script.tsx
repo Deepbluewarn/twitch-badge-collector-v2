@@ -1,4 +1,5 @@
 import { BaseContainer } from "../base/container";
+import { FloatingContainer } from "../base/floatingContainer";
 import { Handle } from "../base/handler";
 import { addHistoryStateListener } from "../base/historyStateListener";
 import { Observer } from "../base/observer";
@@ -16,6 +17,10 @@ async function bootstrap() {
     const adapter = new ChzzkAdapter();
     const SEL = getPlatformConfig('chzzk').selectors;
 
+    // displayMode 읽기 — 'floating'이면 별도 컨테이너 사용 (chzzk live 한정).
+    const settingRes = await browser.storage.local.get('displayMode');
+    const displayMode = settingRes.displayMode === 'floating' ? 'floating' : 'inline';
+
     const liveContainer = new BaseContainer(
         adapter,
         new Handle(adapter, '#tbc-chzzk-chat-list-container'),
@@ -30,11 +35,16 @@ async function bootstrap() {
         '#tbc-clone__chzzkui',
     );
 
+    const floatingLive = new FloatingContainer(adapter, 'aside#aside-chatting');
+
     function init() {
         const mode = adapter.getPageMode();
-        console.log('init pageMode: ', mode);
+        console.log('init pageMode: ', mode, 'displayMode:', displayMode);
         if (mode === 'video') vodContainer.create();
-        else if (mode === 'live') liveContainer.create();
+        else if (mode === 'live') {
+            if (displayMode === 'floating') floatingLive.create();
+            else liveContainer.create();
+        }
     }
 
     init();
