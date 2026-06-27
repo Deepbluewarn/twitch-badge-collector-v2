@@ -94,9 +94,12 @@ export default function useChatStream(
 
             // 필터 통과한 chat 이벤트 broadcast — floating bar의 "최신 수집 채팅" preview에
             // 사용. inject postMessage(모든 chat)와 달리 *필터 통과한 것만* 발행.
+            // time 포함 — 가상 스크롤 등으로 과거 chat이 늦게 도착해도 구독자가 시간 비교로
+            // 진짜 최신만 채택 가능.
             window.dispatchEvent(new CustomEvent('tbc-filtered-chat', {
                 detail: {
                     key,
+                    time,
                     nickname: chat.nickName,
                     text: chat.textContents.filter(Boolean).join(' ').trim(),
                 },
