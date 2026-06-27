@@ -19,7 +19,10 @@ import { setManifest, getManifest, SelectorsManifest } from './host-selectors';
 const SELECTORS_URL = 'https://cdn.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.prod.json';
 const STORAGE_KEY = 'tbcv2-selectors-manifest';
 const FETCHED_AT_KEY = 'tbcv2-selectors-fetched-at';
-const TTL_MS = 6 * 60 * 60 * 1000; // 6시간
+// 1시간. jsDelivr CDN 자체 캐시가 ~12h라 너무 짧으면 어차피 stale 응답 받음.
+// 1h가 sweet spot: 활성 사용자는 1-2 SW wake 사이클로 갱신, CDN fetch 부담 작음.
+// 긴급 hotfix는 jsDelivr purge + 사용자측 forceFetch(selector 실패 감지) 경로 사용.
+const TTL_MS = 60 * 60 * 1000;
 
 export async function fetchAndApplyOta(): Promise<{ updated: boolean; rev?: number; error?: string }> {
     try {

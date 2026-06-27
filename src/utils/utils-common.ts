@@ -99,6 +99,9 @@ export const getRandomBooleanWithProbability = (probability: number) => {
   return Math.random() < probability;
 }
 
+// selector 매칭 실패 시 OTA 강제 갱신 트리거를 세션당 1회만 발화 — 중복 fetch 방지.
+let forceFetchTriggered = false;
+
 export function findElement(selector: string, cb: (elem: Element | null) => void) {
   let tryCount = 0;
   const loop = setInterval(() => {
@@ -108,6 +111,16 @@ export function findElement(selector: string, cb: (elem: Element | null) => void
       Logger('observe', `Cannot found elements for selector: ${selector}, exit.`)
       clearInterval(loop);
       return;
+    }
+
+    // 100 tries(=10초) 지나도 못 찾으면 chzzk가 selector 바꿨다고 추정 → background에
+    // 강제 OTA fetch 요청. 새 manifest 수신되면 다음 페이지 로드 시 적용됨.
+    if (!targetNode && tryCount === 100 && !forceFetchTriggered) {
+      forceFetchTriggered = true;
+      try {
+        browser.runtime.sendMessage({ type: 'tbc-force-ota-fetch' })
+          .catch(() => { /* background 없는 컨텍스트 — 무시 */ });
+      } catch { /* MAIN world 등 browser API 미접근 */ }
     }
 
     if (!targetNode) {

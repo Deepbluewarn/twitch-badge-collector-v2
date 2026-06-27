@@ -163,6 +163,12 @@ export default defineBackground(() => {
       handleDownload(msg.dataUrl, msg.filename).then(sendResponse);
       return true;
     }
+    if (msg?.type === 'tbc-force-ota-fetch') {
+      // content script가 selector 매칭 실패 감지 시 즉시 OTA fetch 요청.
+      // chzzk가 selector 깨뜨린 직후 자동 복구 경로.
+      fetchAndApplyOta().then(sendResponse);
+      return true;
+    }
     return false; // 다른 핸들러로 패스.
   });
 
