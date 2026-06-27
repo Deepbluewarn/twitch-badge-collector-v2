@@ -42,7 +42,9 @@ export class BaseContainer {
     this.cloneChatWrapperSelector = cloneChatWrapperSelector;
     this.position = 'up';
     this.currentPath = window.location.pathname;
-    this.observer = new Observer(origChatContainerSelector);
+    // temporal=false — chzzk React가 reconcile로 우리 handle/parent id 떼어낼 수 있어
+    // MO 유지하면서 매 mutation마다 setup 재확인 (복구 보장).
+    this.observer = new Observer(origChatContainerSelector, false);
     this.root = null;
     this.container = document.createElement('div');
     this.container.id = `${this.type}-container`;
@@ -61,8 +63,14 @@ export class BaseContainer {
         return;
       }
 
-      if (selectElement(`#${this.type}-container`)) {
-        Logger('BaseContainer create', 'container already exists.')
+      // chzzk React가 reconcile 시 우리 handle/parent.id를 떼어내는 경우가 있어
+      // 단일 indicator(chzzk-container 존재)만으로 dup 판정하면 부분 손상 상태가
+      // 복구 안 됨. 우리 setup의 핵심 3요소(container/handle/renamed parent id)
+      // 전부 있어야 skip — 하나라도 빠지면 idempotent하게 재부착.
+      const hasContainer = !!selectElement(`#${this.type}-container`);
+      const hasHandle = !!document.getElementById('handle-container');
+      const parentRenamed = parent.id === `tbc-${this.type}-chat-list-container`;
+      if (hasContainer && hasHandle && parentRenamed) {
         return;
       }
 
@@ -70,6 +78,7 @@ export class BaseContainer {
       const storageSetting = await browser.storage.local.get(["position", "containerRatio"])
 
       parent.id = `tbc-${this.type}-chat-list-container`;
+      // prepend는 같은 노드 재호출 시 이동(중복 X). 이미 있으면 no-op처럼 동작.
       parent.prepend(this.handle.getHandle())
       parent.prepend(this.container)
 
@@ -79,10 +88,11 @@ export class BaseContainer {
       if (!this.root) {
         this.root = createRoot(this.container);
       }
-      const uniqueKey = `app-${Date.now()}`;
+      // key를 stable로 — 매 fire마다 unique key였으면 React가 unmount/remount 반복.
+      // root.render() 자체는 props 같으면 reconcile만 → 비용 작음.
       this.root.render(
         <App
-          key={uniqueKey}
+          key={`app-${this.type}`}
           type={this.type}
           videoSelector={this.videoSelector}
           adapter={this.adapter}
