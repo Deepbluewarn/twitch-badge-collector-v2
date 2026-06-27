@@ -12,9 +12,11 @@
  */
 import { setManifest, getManifest, SelectorsManifest } from './host-selectors';
 
-// 저장소 기본 브랜치는 master. 이전엔 @main으로 박혀 있어 jsDelivr 404 → OTA가
-// 처음부터 동작 안 했음 (사용자 storage에 manifest 안 박힘). master로 수정.
-const SELECTORS_URL = 'https://cdn.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.json';
+// OTA target은 bundled-selectors.prod.json (production 검증된 selector).
+// master `bundled-selectors.json`은 옛 빌드 호환용으로만 유지 (그쪽은 v2.18.15 이전
+// 사용자가 fetch하는 URL). 신 빌드(이 코드 포함)는 .prod.json만 참조하므로 master
+// 파일 자유 편집해도 신 사용자에 영향 X.
+const SELECTORS_URL = 'https://cdn.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.prod.json';
 const STORAGE_KEY = 'tbcv2-selectors-manifest';
 const FETCHED_AT_KEY = 'tbcv2-selectors-fetched-at';
 const TTL_MS = 6 * 60 * 60 * 1000; // 6시간

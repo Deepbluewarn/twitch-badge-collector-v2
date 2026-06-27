@@ -4,23 +4,43 @@
 
 ## 어떻게 동작하나
 
-- 번들된 fallback: `src/platform/bundled-selectors.json` (확장에 포함).
-- 사용자측 SW가 깰 때마다 `fetchIfStale()` → jsDelivr CDN에서 같은 파일을 받음:
-  - `https://cdn.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.json`
+**v2.18.16+ 빌드 (신):**
+- 번들 fallback: `src/platform/bundled-selectors.prod.json` (확장에 포함, build-time).
+- OTA target: `https://cdn.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.prod.json`
+- → master의 `bundled-selectors.json`은 dev 작업 공간(자유 편집). 신 사용자 영향 X.
+
+**v2.18.15 이전 빌드 (구):**
+- 번들 fallback + OTA target = `bundled-selectors.json` (단일 파일).
+- 옛 코드가 박힌 URL이라 변경 불가. master `bundled-selectors.json` 푸시 = 옛 사용자에게 즉시 배포됨. **신중히.**
+
+**공통:**
+- 사용자측 SW가 깰 때마다 `fetchIfStale()` → jsDelivr CDN에서 fetch.
 - 받은 manifest는 `browser.storage.local`에 저장. content-script는 `manifestReady` 후 init.
 - 6시간 stale 판정 + `rev` 비교. 활성 사용자는 SW wake가 잦아 ~수 시간 내 갱신.
 
 ## 평소 사용법 (selector 한 줄 갱신)
 
+### 신 빌드 사용자 (v2.18.16+) 대상
+
 1. DevTools로 새 selector 확인.
-2. `src/platform/bundled-selectors.json` 수정 (예: `chzzk.selectors.chatRoomLive`).
-3. **`rev` 값 +1** (필수, strict monotonic — 같거나 작으면 사용자측 `setManifest`가 reject).
-4. `main` 브랜치에 커밋 + 푸시.
-5. jsDelivr 캐시 갱신 대기 (수 분 ~ 12시간) — 긴급 시 수동 purge:
+2. (선택) `src/platform/bundled-selectors.json`에서 먼저 실험 — dev 빌드는 이걸 안 봄.
+   하지만 옛 사용자에겐 즉시 전파됨 (구 빌드 OTA target이라). 신중히.
+3. 검증되면 같은 변경을 `src/platform/bundled-selectors.prod.json`에 적용.
+4. **`rev` 값 +1** (필수, strict monotonic).
+5. master에 커밋 + 푸시.
+6. jsDelivr 캐시 갱신 대기 (수 분 ~ 12시간) — 긴급 시 수동 purge:
    ```
-   https://purge.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.json
+   https://purge.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.prod.json
    ```
-6. 사용자 측: 다음 SW wake 때 자동 갱신.
+7. 사용자 측: 다음 SW wake 때 자동 갱신.
+
+### 구 빌드 사용자 (v2.18.15 이하) 대상
+
+`bundled-selectors.json` (확장자 .prod 없음) 수정 + 같은 절차. 두 파일 다 동기화 유지 권장
+(옛 사용자 + 신 사용자 모두 같은 selector 받도록).
+
+옛 사용자 비율이 충분히 낮아지면 `bundled-selectors.json`을 dev playground로 전환 가능
+— 그땐 자유 편집해도 사용자 영향 X.
 
 ## 주의사항
 

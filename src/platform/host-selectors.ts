@@ -13,7 +13,10 @@
  *  - 우리 확장이 inject한 element ID — 우리 통제
  *  - 도메인 무관한 logic (drag ratio 계산, badge URL 변환 알고리즘 등)
  */
-import bundled from './bundled-selectors.json';
+// bundled-selectors.prod.json = production용 selector. 새 빌드는 이걸 fallback으로 사용.
+// 옛 bundled-selectors.json은 v2.18.15 이전 사용자의 OTA target으로만 남겨두고
+// 신 빌드는 .prod.json만 참조 (master 파일 자유 편집해도 신 빌드 영향 X).
+import bundled from './bundled-selectors.prod.json';
 
 export interface PlatformHostConfig {
     livePathRegex: string;
