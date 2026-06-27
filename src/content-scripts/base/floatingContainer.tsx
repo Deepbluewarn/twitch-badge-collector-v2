@@ -5,6 +5,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import App from "@/components/Extension/App";
 import { PlatformAdapter } from "@/platform";
 import { SettingInterface } from "@/interfaces/setting";
+import { Observer } from "./observer";
 
 /**
  * Floating mode — inline 합치는 대신 별도 아이콘 + 팝오버로 표시.
@@ -20,38 +21,42 @@ export class FloatingContainer {
     adapter: PlatformAdapter;
     type: SettingInterface['platform'];
     anchorSelector: string;
+    private observer: Observer;
     private rootEl: HTMLDivElement | null = null;
     private reactRoot: Root | null = null;
-    private retryTimer: number | null = null;
     private parentObserver: MutationObserver | null = null;
 
-    constructor(adapter: PlatformAdapter, anchorSelector: string) {
+    /**
+     * @param anchorSelector mount 대상 부모 (chzzk: aside#aside-chatting)
+     * @param readinessSelector chzzk가 chat 패널 렌더 완료했음을 알리는 selector.
+     *   채널 이동 직후 anchor만 있고 children 미렌더 상태일 수 있어 이 selector
+     *   매칭이 chat ready 신호. Observer가 초기 match + subsequent mutation 모두에서
+     *   callback 발화 — readiness 대기 + 후속 reconcile 복구 동시 수행.
+     */
+    constructor(adapter: PlatformAdapter, anchorSelector: string, readinessSelector: string) {
         this.adapter = adapter;
         this.type = adapter.type;
         this.anchorSelector = anchorSelector;
+        // temporal=false — readiness selector 매칭 후 chzzk가 후속 reconcile해도
+        // 계속 callback 발화 → 위치 재정렬 가능.
+        this.observer = new Observer(readinessSelector, false);
     }
 
     create() {
-        const tryMount = () => {
+        this.observer.observe(() => {
             const anchor = document.querySelector(this.anchorSelector) as HTMLElement | null;
-            if (!anchor) {
-                this.retryTimer = window.setTimeout(tryMount, 500);
-                return;
-            }
-            // 이미 같은 anchor 안에 있으면 OK.
+            if (!anchor) return;
             if (this.rootEl && anchor.contains(this.rootEl)) return;
 
             if (this.rootEl) {
-                // 채널 이동 등으로 aside 교체됨 → 기존 React tree 살리고 DOM만 새 anchor로 이동.
-                // MO도 새 anchor에 재부착.
+                // 채널 이동으로 aside 교체됨 → React tree 살리고 DOM만 이동.
                 this.parentObserver?.disconnect();
                 this.insertIntoAnchor(anchor, this.rootEl);
                 this.attachParentObserver(anchor);
             } else {
                 this.mount(anchor);
             }
-        };
-        tryMount();
+        });
     }
 
     private attachParentObserver(anchor: HTMLElement) {
@@ -90,7 +95,6 @@ export class FloatingContainer {
     }
 
     destroy() {
-        if (this.retryTimer !== null) window.clearTimeout(this.retryTimer);
         this.parentObserver?.disconnect();
         this.parentObserver = null;
         this.reactRoot?.unmount();

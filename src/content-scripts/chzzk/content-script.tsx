@@ -35,7 +35,9 @@ async function bootstrap() {
         '#tbc-clone__chzzkui',
     );
 
-    const floatingLive = new FloatingContainer(adapter, 'aside#aside-chatting');
+    // readiness = chatRoomLive — chzzk가 chat 패널 렌더 완료 후에야 매칭.
+    // 채널 이동 시 SPA 미완 DOM에 mount 시도 막아줌.
+    const floatingLive = new FloatingContainer(adapter, 'aside#aside-chatting', SEL.chatRoomLive);
 
     function init() {
         const mode = adapter.getPageMode();
@@ -48,6 +50,8 @@ async function bootstrap() {
     }
 
     init();
+    // SPA 채널 이동 시 init 재호출. floatingLive.create()는 readinessSelector
+    // (chatRoomLive) 매칭까지 자체 대기 — 별도 timing 로직 불필요.
     addHistoryStateListener('chzzk.naver.com', init);
     setupFullscreenKeepAlive();
 

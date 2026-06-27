@@ -25,6 +25,12 @@ export class Observer {
             if (!elem) return;
             if (!this.observer) return;
 
+            // selector 매칭 발생 시점에 즉시 1회 callback 호출 — DOM 준비 신호.
+            // 호출자가 dup check로 idempotent하게 처리한다는 전제.
+            callback(elem, undefined);
+
+            // 이후 mutation도 감시 — chzzk reconcile 등 후속 변경 대응.
+            // temporal=true면 첫 mutation에 disconnect, false면 계속.
             this.observer.observe(elem, {
                 childList: true,
                 subtree: true,
