@@ -92,6 +92,16 @@ export default function useChatStream(
             // 시각 확인. CSS는 content style.css의 `.tbcv2-highlight`, 색은 CSS 변수 override.
             applyHighlight(key, result.markerColor);
 
+            // 필터 통과한 chat 이벤트 broadcast — floating bar의 "최신 수집 채팅" preview에
+            // 사용. inject postMessage(모든 chat)와 달리 *필터 통과한 것만* 발행.
+            window.dispatchEvent(new CustomEvent('tbc-filtered-chat', {
+                detail: {
+                    key,
+                    nickname: chat.nickName,
+                    text: chat.textContents.filter(Boolean).join(' ').trim(),
+                },
+            }));
+
             onChatPassed({ clone: element, key, time, prevKey });
         }
 
