@@ -17,10 +17,6 @@ async function bootstrap() {
     const adapter = new ChzzkAdapter();
     const SEL = getPlatformConfig('chzzk').selectors;
 
-    // displayMode 읽기 — 'floating'이면 별도 컨테이너 사용 (chzzk live 한정).
-    const settingRes = await browser.storage.local.get('displayMode');
-    const displayMode = settingRes.displayMode === 'floating' ? 'floating' : 'inline';
-
     const liveContainer = new BaseContainer(
         adapter,
         new Handle(adapter, '#tbc-chzzk-chat-list-container'),
@@ -39,9 +35,22 @@ async function bootstrap() {
     // 채널 이동 시 SPA 미완 DOM에 mount 시도 막아줌.
     const floatingLive = new FloatingContainer(adapter, 'aside#aside-chatting', SEL.chatRoomLive);
 
-    function init() {
+    // displayMode가 closure에 박혀 setting 변경이 채널 이동만으로 반영 안 되던 문제 대응.
+    // 매 init() 호출마다 storage에서 재조회. 모드 변경 감지 시 페이지 reload로 clean slate
+    // (양쪽 container destroy/swap 복잡성 회피).
+    let lastDisplayMode: 'inline' | 'floating' | null = null;
+    async function init() {
         const mode = adapter.getPageMode();
+        const setting = await browser.storage.local.get('displayMode');
+        const displayMode: 'inline' | 'floating' = setting.displayMode === 'floating' ? 'floating' : 'inline';
         console.log('init pageMode: ', mode, 'displayMode:', displayMode);
+
+        if (lastDisplayMode !== null && lastDisplayMode !== displayMode) {
+            window.location.reload();
+            return;
+        }
+        lastDisplayMode = displayMode;
+
         if (mode === 'video') vodContainer.create();
         else if (mode === 'live') {
             if (displayMode === 'floating') floatingLive.create();
