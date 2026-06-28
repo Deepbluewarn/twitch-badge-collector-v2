@@ -205,15 +205,17 @@ function FloatingShell({ adapter, type, anchor }: ShellProps) {
     return (
         <Box sx={{ position: 'relative' }}>
             {/* Bar — in-flow. aside 자식이라 chzzk 콘텐츠가 자연스럽게 아래로 밀림.
-                  색상은 chzzk 테마(다크/라이트) luminance로 자동 감지. */}
+                  색상은 chzzk 테마(다크/라이트) luminance로 자동 감지.
+                  수집된 chat이 한 건도 없을 땐 bar 자체를 숨김 — chzzk 콘텐츠 영역을 32px
+                  덜 가져감. 첫 수집 시점에 등장. */}
             <Box
                 ref={barRef}
                 onClick={toggle}
                 sx={{
+                    display: latestChat ? 'flex' : 'none',
                     height: 32,
                     bgcolor: colors.barBg,
                     color: colors.barText,
-                    display: 'flex',
                     alignItems: 'center',
                     gap: 1,
                     px: 1.5,
