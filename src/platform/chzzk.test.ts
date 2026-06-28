@@ -27,21 +27,21 @@ describe('ChzzkAdapter — pure methods', () => {
     });
 
     describe('computeDragRatio', () => {
-        // Chzzk는 위/아래 고정 UI를 빼고 계산: usable = height - 77 - 62 = height - 139
-        const rect = { y: 0, height: 539 } as DOMRect; // usable = 400
-        const HEADER = 77;
+        // bundled-selectors.prod.json constants.dragHeaderOffset = 0,
+        // dragFooterOffset = 0 (2026-06 chzzk 개편 후 padding 옛 값 무효화).
+        // usable = height - 0 - 0 = height.
+        const rect = { y: 0, height: 400 } as DOMRect;
 
-        it('returns ~100 when cursor at top of usable region (clientY === HEADER)', () => {
-            // (1 - (77 - 0 - 77) / 400) * 100 = 100
-            expect(adapter.computeDragRatio(rect, HEADER)).toBe(100);
+        it('returns ~100 when cursor at top (clientY === 0)', () => {
+            expect(adapter.computeDragRatio(rect, 0)).toBe(100);
         });
 
-        it('returns ~0 at bottom of usable region (clientY === HEADER + usable)', () => {
-            expect(adapter.computeDragRatio(rect, HEADER + 400)).toBe(0);
+        it('returns ~0 at bottom (clientY === height)', () => {
+            expect(adapter.computeDragRatio(rect, 400)).toBe(0);
         });
 
-        it('returns ~50 at midpoint of usable region', () => {
-            expect(adapter.computeDragRatio(rect, HEADER + 200)).toBe(50);
+        it('returns ~50 at midpoint', () => {
+            expect(adapter.computeDragRatio(rect, 200)).toBe(50);
         });
 
         it('clamps below 0 to 0', () => {
