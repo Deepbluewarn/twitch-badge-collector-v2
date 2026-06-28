@@ -177,8 +177,18 @@ function FloatingShell({ adapter, type, anchor }: ShellProps) {
             setLatestChat(detail);
             if (!open) setUnreadCount(n => n + 1);
         };
+        // 사용자가 popup의 "저장된 채팅 초기화" 누르면 useFilteredChatBuffer.clear가
+        // tbc-chats-cleared broadcast — 우리 latestChat/unreadCount도 함께 reset.
+        const onCleared = () => {
+            setLatestChat(null);
+            setUnreadCount(0);
+        };
         window.addEventListener('tbc-filtered-chat', onChat);
-        return () => window.removeEventListener('tbc-filtered-chat', onChat);
+        window.addEventListener('tbc-chats-cleared', onCleared);
+        return () => {
+            window.removeEventListener('tbc-filtered-chat', onChat);
+            window.removeEventListener('tbc-chats-cleared', onCleared);
+        };
     }, [open]);
 
     // 외부 클릭으로 닫기. setTimeout으로 같은 click 이벤트 사이클은 건너뜀.

@@ -228,6 +228,9 @@ export default function useFilteredChatBuffer(
         if (persistenceKey && hasSessionStorage) {
             void browser.storage.session.remove(persistenceKey).catch(() => {});
         }
+        // 외부 구독자(floating bar의 latestChat 등)에게 초기화 broadcast — 별도 state로
+        // 관리되는 곳도 함께 reset.
+        window.dispatchEvent(new CustomEvent('tbc-chats-cleared'));
     }, [persistenceKey]);
 
     // 렌더용 ReactElement 매핑. SavedChat.html을 DOMPurify로 sanitize 후
