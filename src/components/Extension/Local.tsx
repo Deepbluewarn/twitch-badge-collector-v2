@@ -38,7 +38,15 @@ export default function Local({
     const maxNumChats = globalSetting.maximumNumberChats
         ?? (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
 
-    const channelId = adapter.getCurrentChannelId();
+    // channelId를 React state로 관리 — SPA 채널 이동은 URL만 바꾸고 우리 트리를
+    // remount 안 함. content-script가 tbc-channel-changed 발화 → 여기서 state
+    // 갱신 → persistenceKey 변경 → useFilteredChatBuffer 재초기화 유도.
+    const [channelId, setChannelId] = useState(adapter.getCurrentChannelId());
+    useEffect(() => {
+        const onNav = () => setChannelId(adapter.getCurrentChannelId());
+        window.addEventListener('tbc-channel-changed', onNav);
+        return () => window.removeEventListener('tbc-channel-changed', onNav);
+    }, [adapter]);
 
     // 채팅 유지: Adapter가 지원하고 라이브 모드 + 사용자 설정 on일 때만. 채널 단위 scope.
     const persistenceKey = (

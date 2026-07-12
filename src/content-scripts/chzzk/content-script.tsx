@@ -61,7 +61,12 @@ async function bootstrap() {
     init();
     // SPA 채널 이동 시 init 재호출. floatingLive.create()는 readinessSelector
     // (chatRoomLive) 매칭까지 자체 대기 — 별도 timing 로직 불필요.
-    addHistoryStateListener('chzzk.naver.com', init);
+    // 추가로 tbc-channel-changed 발화 — React 트리는 remount 안 되므로 이 신호로
+    // Local/useFilteredChatBuffer가 channelId 재조회 + persistenceKey 갱신.
+    addHistoryStateListener('chzzk.naver.com', () => {
+        init();
+        window.dispatchEvent(new CustomEvent('tbc-channel-changed'));
+    });
     setupFullscreenKeepAlive();
 
     if (SEL.pointButton) {

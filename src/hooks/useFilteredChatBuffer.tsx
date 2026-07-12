@@ -126,23 +126,50 @@ export default function useFilteredChatBuffer(
         });
     }, [capture?.captureMode, maxChats, adapter.chatOrder]);
 
-    // 마운트 시: persistenceKey 있으면 storage에서 load + restored=true로 hydrate.
+    // 마운트 시 + persistenceKey 변경 시(=채널 이동) storage에서 load.
+    // 채널 이동 케이스는 prev = 옛 채널 chat들이라 반드시 clear 후 load. 그렇지 않으면
+    // 옛 채널 chat이 새 채널 뷰에 잔류. 초기 mount 케이스는 prev=[] 또는 로드 중
+    // 들어온 신규 live chat이라 병합 대상.
+    const prevPersistenceKeyRef = useRef<string | undefined>(undefined);
     useEffect(() => {
         if (!persistenceKey) {
             isHydratedRef.current = true;
+            prevPersistenceKeyRef.current = undefined;
             return;
         }
+        const isChannelSwitch = prevPersistenceKeyRef.current !== undefined
+            && prevPersistenceKeyRef.current !== persistenceKey;
+        prevPersistenceKeyRef.current = persistenceKey;
+
+        if (isChannelSwitch) {
+            // 옛 채널 chat 즉시 비움. 이후 loadPersisted가 새 채널 것으로 채움.
+            setSavedChats([]);
+            isHydratedRef.current = false;
+            // floating bar preview 등 외부 state도 reset — clear()와 같은 신호.
+            window.dispatchEvent(new CustomEvent('tbc-chats-cleared'));
+        }
+
         let cancelled = false;
         loadPersisted(persistenceKey).then(loaded => {
             if (cancelled) return;
-            const trimmed = loaded.length > maxChats
-                ? loaded.slice(loaded.length - maxChats)
-                : loaded;
-            setSavedChats(trimmed);
+            setSavedChats(prev => {
+                const trimmed = loaded.length > maxChats
+                    ? loaded.slice(loaded.length - maxChats)
+                    : loaded;
+                if (prev.length === 0) return trimmed;
+                // prev = 로드 중 addChat이 넣은 신규 live chat (채널 switch 케이스는
+                // 이미 clear됐으므로 여긴 신규 live만 남음). key dedup.
+                const loadedKeys = new Set(trimmed.map(c => c.key));
+                const newLiveChats = prev.filter(c => !loadedKeys.has(c.key));
+                if (newLiveChats.length === 0) return trimmed;
+                return adapter.chatOrder === 'newest-top'
+                    ? [...newLiveChats, ...trimmed]
+                    : [...trimmed, ...newLiveChats];
+            });
             isHydratedRef.current = true;
         });
         return () => { cancelled = true; };
-    }, [persistenceKey, maxChats]);
+    }, [persistenceKey, maxChats, adapter.chatOrder]);
 
     // savedChats 변경 시: persistenceKey 있으면 debounced save.
     useEffect(() => {
