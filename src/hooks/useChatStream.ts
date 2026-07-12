@@ -17,6 +17,9 @@ export interface PassedChat {
     time: number;
     /** host DOM 안에서 이 chat 직전 chat의 key. null이면 host DOM 맨 앞. buffer 삽입 위치 결정용. */
     prevKey: string | null;
+    /** bar preview 등 파생 뷰용 — buffer 안에서 latest 재emit 위해 함께 전달. */
+    nickname: string;
+    text: string;
 }
 
 /**
@@ -92,20 +95,11 @@ export default function useChatStream(
             // 시각 확인. CSS는 content style.css의 `.tbcv2-highlight`, 색은 CSS 변수 override.
             applyHighlight(key, result.markerColor);
 
-            // 필터 통과한 chat 이벤트 broadcast — floating bar의 "최신 수집 채팅" preview에
-            // 사용. inject postMessage(모든 chat)와 달리 *필터 통과한 것만* 발행.
-            // time 포함 — 가상 스크롤 등으로 과거 chat이 늦게 도착해도 구독자가 시간 비교로
-            // 진짜 최신만 채택 가능.
-            window.dispatchEvent(new CustomEvent('tbc-filtered-chat', {
-                detail: {
-                    key,
-                    time,
-                    nickname: chat.nickName,
-                    text: chat.textContents.filter(Boolean).join(' ').trim(),
-                },
-            }));
-
-            onChatPassed({ clone: element, key, time, prevKey });
+            // bar preview event는 useFilteredChatBuffer.addChat/loadPersisted에서 emit —
+            // 팝오버 목록과 완전 같은 진입점 = 두 뷰 어긋날 여지 없음 (persistence 복원 포함).
+            const nickname = chat.nickName;
+            const text = chat.textContents.filter(Boolean).join(' ').trim();
+            onChatPassed({ clone: element, key, time, prevKey, nickname, text });
         }
 
         // Phase 1: mount 시점에 이미 chzzk DOM에 있는 chats를 retroactive 스캔.

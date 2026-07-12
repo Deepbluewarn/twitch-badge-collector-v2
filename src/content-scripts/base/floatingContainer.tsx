@@ -7,6 +7,26 @@ import { PlatformAdapter } from "@/platform";
 import { SettingInterface } from "@/interfaces/setting";
 import { Observer } from "./observer";
 
+// FloatingShell(parent) useEffect는 useChatStream(child)의 Phase 1 스캔 뒤에 실행 →
+// 그 사이 dispatch된 tbc-filtered-chat 유실 (bar preview 첫 신규 채팅까지 null).
+// Module load 시점에 window listener 부착 + latest snapshot 보관 → mount 시 useState
+// 초기값으로 소비. Phase 2 이후는 여기 latest도 갱신되고 React 구독자에게도 전달.
+interface FilteredChatDetail { nickname: string; text: string; time?: number }
+let latestFilteredChat: FilteredChatDetail | null = null;
+const latestListeners = new Set<(c: FilteredChatDetail | null) => void>();
+if (typeof window !== 'undefined') {
+    window.addEventListener('tbc-filtered-chat', (e: Event) => {
+        const d = (e as CustomEvent).detail as FilteredChatDetail | undefined;
+        if (!d) return;
+        latestFilteredChat = d;
+        latestListeners.forEach(fn => fn(d));
+    });
+    window.addEventListener('tbc-chats-cleared', () => {
+        latestFilteredChat = null;
+        latestListeners.forEach(fn => fn(null));
+    });
+}
+
 /**
  * Floating mode — inline 합치는 대신 별도 아이콘 + 팝오버로 표시.
  *
@@ -118,7 +138,8 @@ function FloatingShell({ adapter, type, anchor }: ShellProps) {
     // 팝오버 닫힌 동안 들어온 미확인 채팅 개수. 열리면 0으로 reset.
     const [unreadCount, setUnreadCount] = useState(0);
     // 가장 최근 *필터 통과한* 채팅 preview — bar에 표시.
-    const [latestChat, setLatestChat] = useState<{ nickname: string; text: string } | null>(null);
+    // 초기값 = module snapshot. useChatStream Phase 1이 mount 전 dispatch한 EVT도 캐치됨.
+    const [latestChat, setLatestChat] = useState<FilteredChatDetail | null>(() => latestFilteredChat);
     const barRef = useRef<HTMLDivElement>(null);
     const popRef = useRef<HTMLDivElement>(null);
 
@@ -168,27 +189,23 @@ function FloatingShell({ adapter, type, anchor }: ShellProps) {
         });
     }, [anchor]);
 
-    // 필터 통과한 chat 이벤트 listen — useChatStream에서 broadcast.
-    // 닫힌 동안에만 카운트 증가. 최신 chat preview는 open 무관 항상 갱신.
+    // Module snapshot 구독. window listener는 module load 시점 이미 부착 →
+    // buffer/persistence 어느 시점에 emit해도 module엔 항상 최신 반영.
+    // fanout listener는 이 컴포넌트가 mount된 뒤에 붙으므로, 그 사이 emit된 값은
+    // module엔 있어도 React state 초기값(null)엔 없음 → 부착 직후 catch-up.
     useEffect(() => {
-        const onChat = (e: Event) => {
-            const detail = (e as CustomEvent).detail as { nickname: string; text: string };
-            if (!detail) return;
+        const listener = (detail: FilteredChatDetail | null) => {
+            if (detail === null) {
+                setLatestChat(null);
+                setUnreadCount(0);
+                return;
+            }
             setLatestChat(detail);
             if (!open) setUnreadCount(n => n + 1);
         };
-        // 사용자가 popup의 "저장된 채팅 초기화" 누르면 useFilteredChatBuffer.clear가
-        // tbc-chats-cleared broadcast — 우리 latestChat/unreadCount도 함께 reset.
-        const onCleared = () => {
-            setLatestChat(null);
-            setUnreadCount(0);
-        };
-        window.addEventListener('tbc-filtered-chat', onChat);
-        window.addEventListener('tbc-chats-cleared', onCleared);
-        return () => {
-            window.removeEventListener('tbc-filtered-chat', onChat);
-            window.removeEventListener('tbc-chats-cleared', onCleared);
-        };
+        latestListeners.add(listener);
+        if (latestFilteredChat) setLatestChat(latestFilteredChat);
+        return () => { latestListeners.delete(listener); };
     }, [open]);
 
     // 외부 클릭으로 닫기. setTimeout으로 같은 click 이벤트 사이클은 건너뜀.

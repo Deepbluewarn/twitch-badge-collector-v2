@@ -31,11 +31,28 @@ export interface SavedChat {
     time: number;
     html: string;
     restored: boolean;
+    /** bar preview용 파생값 — html에서 매번 파싱하는 비용 회피. */
+    nickname: string;
+    text: string;
+    /** 디버그용 — 이 chat이 어느 채널(persistenceKey)에서 수집됐는지. hover tooltip. */
+    channel?: string;
 }
 
 interface PersistedPayload {
     version: 1;
-    chats: Pick<SavedChat, 'key' | 'time' | 'html'>[];
+    chats: Pick<SavedChat, 'key' | 'time' | 'html' | 'nickname' | 'text' | 'channel'>[];
+}
+
+/**
+ * Bar preview 소스 = savedChats 배열의 최신 원소. Event는 순수 전달 채널.
+ * Buffer가 savedChats 변경 시 자동으로 latest 도출 → 발행. addChat/loadPersisted 등
+ * 개별 지점에서 emit 신경 쓸 필요 없음. 배열이 진실, event는 파생.
+ */
+function emitPreview(detail: { nickname: string; text: string; time: number }) {
+    window.dispatchEvent(new CustomEvent('tbc-filtered-chat', { detail }));
+}
+function emitPreviewCleared() {
+    window.dispatchEvent(new CustomEvent('tbc-chats-cleared'));
 }
 
 const PERSIST_DEBOUNCE_MS = 500;
@@ -73,7 +90,15 @@ async function loadPersisted(key: string): Promise<SavedChat[]> {
     const res = await browser.storage.session.get(key);
     const payload = res[key] as PersistedPayload | undefined;
     if (!payload || payload.version !== 1) return [];
-    return payload.chats.map(c => ({ ...c, restored: true }));
+    // v1 payload에 nickname/text 없던 시절 데이터도 있을 수 있음 — 없으면 빈 문자열로 채워
+    // preview에 최소한의 뷰 유지 (다음 신규 chat이 곧 갱신).
+    return payload.chats.map(c => ({
+        ...c,
+        restored: true,
+        nickname: c.nickname ?? '',
+        text: c.text ?? '',
+        channel: c.channel ?? key,
+    }));
 }
 
 /**
@@ -145,8 +170,7 @@ export default function useFilteredChatBuffer(
             // 옛 채널 chat 즉시 비움. 이후 loadPersisted가 새 채널 것으로 채움.
             setSavedChats([]);
             isHydratedRef.current = false;
-            // floating bar preview 등 외부 state도 reset — clear()와 같은 신호.
-            window.dispatchEvent(new CustomEvent('tbc-chats-cleared'));
+            emitPreviewCleared();
         }
 
         let cancelled = false;
@@ -157,8 +181,6 @@ export default function useFilteredChatBuffer(
                     ? loaded.slice(loaded.length - maxChats)
                     : loaded;
                 if (prev.length === 0) return trimmed;
-                // prev = 로드 중 addChat이 넣은 신규 live chat (채널 switch 케이스는
-                // 이미 clear됐으므로 여긴 신규 live만 남음). key dedup.
                 const loadedKeys = new Set(trimmed.map(c => c.key));
                 const newLiveChats = prev.filter(c => !loadedKeys.has(c.key));
                 if (newLiveChats.length === 0) return trimmed;
@@ -167,9 +189,29 @@ export default function useFilteredChatBuffer(
                     : [...trimmed, ...newLiveChats];
             });
             isHydratedRef.current = true;
+            // preview는 아래 useEffect [savedChats]가 자동 도출/발행.
         });
         return () => { cancelled = true; };
     }, [persistenceKey, maxChats, adapter.chatOrder]);
+
+    // savedChats 변경 시: bar preview용 latest 도출 후 발행.
+    // 소스는 배열 자체 — 어떤 경로(addChat/loadPersisted/trim)로 배열이 바뀌든
+    // 항상 배열 최신단으로 발행. 이벤트 발화 지점 개별로 관리 안 함.
+    // 첫 렌더에 배열이 빈 채로 시작하지만, 이땐 굳이 cleared 발행 안 함 — clear()나
+    // channel switch 경로가 명시적으로 cleared 발행 담당.
+    const prevLatestKeyRef = useRef<string | null>(null);
+    useEffect(() => {
+        const latest = adapter.chatOrder === 'newest-top'
+            ? savedChats[0]
+            : savedChats[savedChats.length - 1];
+        if (!latest) {
+            prevLatestKeyRef.current = null;
+            return;
+        }
+        if (prevLatestKeyRef.current === latest.key) return;
+        prevLatestKeyRef.current = latest.key;
+        emitPreview({ nickname: latest.nickname, text: latest.text, time: latest.time });
+    }, [savedChats, adapter.chatOrder]);
 
     // savedChats 변경 시: persistenceKey 있으면 debounced save.
     useEffect(() => {
@@ -180,7 +222,7 @@ export default function useFilteredChatBuffer(
         persistTimerRef.current = window.setTimeout(() => {
             const payload: PersistedPayload = {
                 version: 1,
-                chats: savedChats.map(({ key, time, html }) => ({ key, time, html })),
+                chats: savedChats.map(({ key, time, html, nickname, text, channel }) => ({ key, time, html, nickname, text, channel })),
             };
             void saveWithEviction(persistenceKey, payload);
         }, PERSIST_DEBOUNCE_MS);
@@ -191,7 +233,7 @@ export default function useFilteredChatBuffer(
         };
     }, [savedChats, persistenceKey]);
 
-    const addChat = useCallback(({ clone, key, time, prevKey }: PassedChat) => {
+    const addChat = useCallback(({ clone, key, time, prevKey, nickname, text }: PassedChat) => {
         setSavedChats(prev => {
             // dedupe: 같은 세션은 key로(안정적인 React key 또는 동일 채팅 재발화 방지).
             // cross-session backfill은 time으로(서버 timestamp — 같은 채팅엔 같은 값).
@@ -210,7 +252,7 @@ export default function useFilteredChatBuffer(
             // time/sort 안 씀. chzzk의 time이 도착 순서와 어긋나는 경우 있어 신뢰 불가.
             // host DOM 순서는 항상 진실이므로 그걸 미러링.
             // 기존 buffer 요소의 순서는 절대 변경 안 함 — 새 chat의 자리만 찾아 splice.
-            const newEntry = { key, time, html: clone.outerHTML, restored: false };
+            const newEntry: SavedChat = { key, time, html: clone.outerHTML, restored: false, nickname, text, channel: persistenceKey };
             let next: SavedChat[];
             if (prevKey === null) {
                 next = [newEntry, ...prev];
@@ -255,9 +297,7 @@ export default function useFilteredChatBuffer(
         if (persistenceKey && hasSessionStorage) {
             void browser.storage.session.remove(persistenceKey).catch(() => {});
         }
-        // 외부 구독자(floating bar의 latestChat 등)에게 초기화 broadcast — 별도 state로
-        // 관리되는 곳도 함께 reset.
-        window.dispatchEvent(new CustomEvent('tbc-chats-cleared'));
+        emitPreviewCleared();
     }, [persistenceKey]);
 
     // 렌더용 ReactElement 매핑. SavedChat.html을 DOMPurify로 sanitize 후
@@ -271,6 +311,13 @@ export default function useFilteredChatBuffer(
             if (node) {
                 if (capture?.captureMode) node.classList.add(CAPTURE_MODE_CLASS);
                 if (capture?.selectedKeys.has(c.key)) node.classList.add(CAPTURE_SELECTED_CLASS);
+                // 디버그: hover 시 이 chat이 수집된 채널 표시. channel = persistenceKey
+                // (`chatHistory:{type}:{channelId}:live`) — id만 뽑아 tooltip에.
+                if (c.channel) {
+                    const parts = c.channel.split(':');
+                    const channelId = parts[2] ?? c.channel;
+                    node.setAttribute('title', `채널: ${channelId}${c.restored ? ' (복원)' : ''}`);
+                }
             }
             const content = node ? convertToJSX(node) : null;
             return React.createElement(
