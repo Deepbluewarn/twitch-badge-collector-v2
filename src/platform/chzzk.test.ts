@@ -97,9 +97,9 @@ describe('ChzzkAdapter — URL-derived methods', () => {
 describe('ChzzkAdapter — prepareChatClone', () => {
     const adapter = new ChzzkAdapter();
     // 신 chzzk CSS-in-JS 패턴에 맞춤. selectors.json의 usernameContainer는
-    // `[class*="_container_o04z9_"]` substring으로 일반 채팅(_is_message_) /
+    // `[class*="_container_zw6kq_"]` substring으로 일반 채팅(_is_message_) /
     // 도네이션(_is_donation_) 두 변형 모두 매칭. 테스트 fixture는 일반 채팅 변형 사용.
-    const USERNAME_CLASS = '_container_o04z9_2 _is_message_o04z9_5';
+    const USERNAME_CLASS = '_container_zw6kq_2 _is_message_o04z9_5';
 
     afterEach(() => {
         document.body.innerHTML = '';
@@ -159,10 +159,10 @@ describe('ChzzkAdapter — extract', () => {
 
         const chat = document.createElement('div');
 
-        // displayName 신 selector: `[class*="_container_o04z9_"] [class*="_text_"]`
+        // displayName 신 selector: `[class*="_container_zw6kq_"] [class*="_text_"]`
         // → username container 하위에 text element 배치.
         const usernameContainer = document.createElement('span');
-        usernameContainer.className = '_container_o04z9_2 _is_message_o04z9_5';
+        usernameContainer.className = '_container_zw6kq_2 _is_message_o04z9_5';
         const nameEl = document.createElement('span');
         nameEl.className = '_text_dtc6c_2';
         nameEl.textContent = 'AliceNick';

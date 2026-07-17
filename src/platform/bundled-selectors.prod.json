@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "rev": 11,
+  "rev": 13,
   "platforms": {
     "twitch": {
       "livePathRegex": "^/(?!videos/)",
@@ -38,13 +38,13 @@
         "chatRoomLive": "aside#aside-chatting [class*=\"_wrapper_\"]:has(> [class*=\"_list_bottom_\"])",
         "chatRoomVod": "aside#vod-aside [class*=\"_list_\"]",
         "video": ".webplayer-internal-source-wrapper video",
-        "displayName": "[class*=\"_container_o04z9_\"] [class*=\"_text_\"]",
+        "displayName": "[class*=\"_container_zw6kq_\"] [class*=\"_text_\"]",
         "messageText": "[class*=\"_chatting_message_\"] > [class*=\"_text_\"]",
         "donationText": "[class*=\"_text_y6h6c_\"]",
-        "badge": "[class*=\"_container_1jo9t_\"]",
+        "badge": "[class*=\"_container_1nwpy_\"]",
         "verifiedIcon": "[class*=\"_icon_dtc6c_\"]",
         "blindText": ".blind",
-        "usernameContainer": "[class*=\"_container_o04z9_\"]",
+        "usernameContainer": "[class*=\"_container_zw6kq_\"]",
         "popupProfileHeader": ".live_chatting_popup_profile_header__OWnnU",
         "pointButton": ".live_chatting_power_button__Ov3eJ",
         "foldedClassSubstring": "_is_folded_"
