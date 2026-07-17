@@ -1,7 +1,7 @@
 {
   "pageMode": "live",
-  "capturedAt": "2026-07-17T06:28:52.171Z",
-  "url": "https://chzzk.naver.com/live/c7ded8ea6b0605d3c78e18650d2df83b",
+  "capturedAt": "2026-07-17T08:39:29.981Z",
+  "url": "https://chzzk.naver.com/live/59cbccdbc14b3e9318e0d477a35c64c5",
   "selectors": [
     {
       "name": "chatRoomLive",
@@ -22,14 +22,16 @@
     {
       "name": "video",
       "selector": ".webplayer-internal-source-wrapper video",
-      "count": 0,
+      "count": 1,
       "required": false,
-      "matchedClasses": null
+      "matchedClasses": [
+        "webplayer-internal-video"
+      ]
     },
     {
       "name": "displayName",
       "selector": "[class*=\"_container_zw6kq_\"] [class*=\"_text_\"]",
-      "count": 15,
+      "count": 13,
       "required": true,
       "matchedClasses": [
         "_text_1iatj_2"
@@ -38,7 +40,7 @@
     {
       "name": "messageText",
       "selector": "[class*=\"_chatting_message_\"] > [class*=\"_text_\"]",
-      "count": 15,
+      "count": 13,
       "required": true,
       "matchedClasses": [
         "_text_ca0ha_1"
@@ -70,7 +72,7 @@
     {
       "name": "blindText",
       "selector": ".blind",
-      "count": 34,
+      "count": 69,
       "required": false,
       "matchedClasses": [
         "blind"
@@ -79,7 +81,7 @@
     {
       "name": "usernameContainer",
       "selector": "[class*=\"_container_zw6kq_\"]",
-      "count": 15,
+      "count": 13,
       "required": true,
       "matchedClasses": [
         "_container_zw6kq_2",
@@ -110,24 +112,24 @@
     }
   ],
   "anchorLayer": "L1",
-  "sampleSkeleton": "<div class=\"_item_8lqsk_7\"><div class=\"_container_ca0ha_1\"><div class=\"_chatting_message_ca0ha_21\"><button type=\"button\" class=\"_nickname_ca0ha_37\" aria-haspopup=\"true\" aria-expanded=\"false\"><span class=\"_container_zw6kq_2 _is_message_zw6kq_5 _is_ellipsis_zw6kq_86\" style=\"margin-right: 4px;\"><span class=\"_wrapper_zw6kq_23\"><span class=\"_icon_zw6kq_15\" style=\"width: 18px; height: 18px;\"><span class=\"_container_1nwpy_2\"><img src=\"https://ssl.pstatic.net/static/nng/glive/badge/fan_03.png\" alt=\"\" width=\"18\" height=\"18\"></span></span></span><span class=\"_nickname_zw6kq_57\" style=\"color: rgb(238, 160, 93);\"><span class=\"_ellipsis_1iatj_6\"><span class=\"_text_1iatj_2\"></span></span></span></span></button><span class=\"_text_ca0ha_1\"><button type=\"button\" class=\"_button_ca0ha_18\"><img alt=\"\" width=\"24\" height=\"24\" src=\"https://ssl.pstatic.net/static/nng/glive/icon/b_19.gif\"></button><button type=\"button\" class=\"_button_ca0ha_18\"><img alt=\"\" width=\"24\" height=\"24\" src=\"https://ssl.pstatic.net/static/nng/glive/icon/b_19.gif\"></button><button type=\"button\" class=\"_button_ca0ha_18\"><img alt=\"\" width=\"24\" height=\"24\" src=\"https://ssl.pstatic.net/static/nng/glive/icon/b_19.gif\"></button><button type=\"button\" class=\"_button_ca0ha_18\"><img alt=\"\" width=\"24\" height=\"24\" src=\"https://ssl.pstatic.net/static/nng/glive/icon/b_19.gif\"></button><button type=\"button\" class=\"_button_ca0ha_18\"><img alt=\"\" width=\"24\" height=\"24\" src=\"https://ssl.pstatic.net/static/nng/glive/icon/b_19.gif\"></button></span></div></div></div>",
+  "sampleSkeleton": "<div class=\"_item_8lqsk_7 _big_padding_8lqsk_53\"><div class=\"_container_s1cb2_1 _default_s1cb2_10\"><div class=\"_inner_s1cb2_15\"><p class=\"_title_s1cb2_57\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" class=\"_title_icon_s1cb2_57\"><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M11.228 2.843a1.9 1.9 0 0 1 1.544 0l7.6 3.378A1.9 1.9 0 0 1 21.5 7.957v8.087a1.9 1.9 0 0 1-1.128 1.736l-7.6 3.377a1.9 1.9 0 0 1-1.544 0l-7.6-3.377A1.9 1.9 0 0 1 2.5 16.044V7.957a1.9 1.9 0 0 1 1.128-1.736l7.6-3.378ZM5.27 7.133l6.568-2.919a.4.4 0 0 1 .325 0l6.567 2.92-6.73 2.99-6.73-2.99ZM4 8.21v7.834a.4.4 0 0 0 .238.365l7.012 3.117v-8.094L4 8.21Zm8.75 11.316 7.012-3.117a.4.4 0 0 0 .238-.365v-3.976l-2.063.917v1.143a.38.38 0 0 1-.225.348l-2.224.988a.285.285 0 0 1-.4-.26v-.952l-2.338 1.039v4.235Zm0-5.877L20 10.427V8.21l-7.25 3.222v2.217Z\" clip-rule=\"evenodd\"></path></svg></p><p class=\"_description_s1cb2_156\"></p><button type=\"button\" class=\"_link_s1cb2_66\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"8\" height=\"16\" viewBox=\"0 0 8 16\" fill=\"none\" class=\"_icon_arrow_s1cb2_63\"><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M1.8 2.8a.567.567 0 0 1 .801 0l4.8 4.8a.567.567 0 0 1 0 .8l-4.8 4.8a.567.567 0 1 1-.8-.8L6.198 8 1.8 3.6a.567.567 0 0 1 0-.8Z\" clip-rule=\"evenodd\"></path></svg></button></div></div></div>",
   "manifestRev": 13,
   "channelsVisited": 5,
   "channelStatuses": [
     {
-      "url": "https://chzzk.naver.com/live/c7ded8ea6b0605d3c78e18650d2df83b",
+      "url": "https://chzzk.naver.com/live/4e10683fd32d6fb6d38924cb9bf483a3",
+      "requiredPass": false,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/59cbccdbc14b3e9318e0d477a35c64c5",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/17aa057a8248b53affe30512a91481f5",
-      "requiredPass": false,
-      "anchorLayer": "L2"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/5b16ddd2a88d50b746affdfaa1e50ab0",
-      "requiredPass": false,
-      "anchorLayer": "L2"
+      "url": "https://chzzk.naver.com/live/8a59b34b46271960c1bf172bb0fac758",
+      "requiredPass": true,
+      "anchorLayer": "L1"
     },
     {
       "url": "https://chzzk.naver.com/live/b5ed5db484d04faf4d150aedd362f34b",
@@ -135,7 +137,7 @@
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/bb382c2c0cc9fa7c86ab3b037fb5799c",
+      "url": "https://chzzk.naver.com/live/c7ded8ea6b0605d3c78e18650d2df83b",
       "requiredPass": true,
       "anchorLayer": "L1"
     }
