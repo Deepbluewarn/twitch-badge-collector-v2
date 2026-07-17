@@ -1,0 +1,66 @@
+name: chzzk canary
+
+# 정기적으로 chzzk 라이브/VOD 페이지 열어 selector 매칭 확인. 이전 스냅샷과 diff.
+# 변화 감지 시 Discord 알림 + auto-fix 가능한 경우 rev bump PR (draft) 자동 생성.
+
+on:
+  schedule:
+    # 6시간마다 (UTC) — 사용자 리포트 전에 감지 목표. 필요 시 주기 조정.
+    - cron: '0 */6 * * *'
+  workflow_dispatch: {}  # 수동 실행
+  push:
+    # bundled-selectors.prod.json 변경 시 즉시 검증
+    paths:
+      - 'src/platform/bundled-selectors.prod.json'
+      - 'scripts/canary/**'
+
+jobs:
+  chzzk-live:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # snapshot 갱신 커밋용
+      pull-requests: write   # auto-fix PR 생성용
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run chzzk canary (live)
+        env:
+          CANARY_MODE: live
+          DISCORD_CANARY_WEBHOOK: ${{ secrets.DISCORD_CANARY_WEBHOOK }}
+        run: npm run canary:chzzk
+        continue-on-error: true
+        id: canary
+
+      - name: Commit updated snapshot (if changed)
+        run: |
+          if [ -n "$(git status --porcelain snapshots/)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add snapshots/
+            git commit -m "chore(canary): chzzk snapshot 갱신 [skip ci]"
+            git push
+          fi
+
+      - name: Open auto-fix PR (if candidate exists)
+        if: ${{ hashFiles('canary-autofix.json') != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "auto-fix 후보 발견 — draft PR 생성"
+          node scripts/canary/open-fix-pr.mjs
+
+      - name: Fail if required selector broken
+        if: steps.canary.outcome == 'failure'
+        run: exit 1

@@ -27,3 +27,6 @@ web-ext.config.ts
 
 .env
 plan.md
+
+# canary 봇이 실행마다 만드는 임시 auto-fix 후보 파일 (workflow 안에서만 소비)
+canary-autofix.json
