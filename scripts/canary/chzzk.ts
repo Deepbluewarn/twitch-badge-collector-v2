@@ -32,19 +32,26 @@ const BADGE_INVENTORY_FILE = join(SNAPSHOT_DIR, 'chzzk-badges.json');
 
 async function fetchTopLiveChannels(limit: number): Promise<string[]> {
     try {
-        const res = await fetch(`https://api.chzzk.naver.com/service/v1/lives?size=${limit * 2}&sortType=POPULAR`, {
+        const url = `https://api.chzzk.naver.com/service/v1/lives?size=${limit * 2}&sortType=POPULAR`;
+        const res = await fetch(url, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
                 'Accept': 'application/json',
             },
         });
-        if (!res.ok) return [];
+        console.log(`[canary] chzzk API status=${res.status}`);
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            console.warn(`[canary] chzzk API non-OK body: ${text.slice(0, 300)}`);
+            return [];
+        }
         const json = await res.json() as {
             content?: {
                 data?: Array<{ channelId?: string; channel?: { channelId?: string }; concurrentUserCount?: number }>
             }
         };
         const items = json?.content?.data ?? [];
+        console.log(`[canary] API returned ${items.length} items`);
         return items
             .filter(it => (it.concurrentUserCount ?? 0) > 0)
             .sort((a, b) => (b.concurrentUserCount ?? 0) - (a.concurrentUserCount ?? 0))
@@ -52,8 +59,42 @@ async function fetchTopLiveChannels(limit: number): Promise<string[]> {
             .filter(Boolean)
             .slice(0, limit);
     } catch (e) {
-        console.warn(`[canary] chzzk lives API fail: ${String(e).slice(0, 100)}`);
+        console.warn(`[canary] chzzk lives API fail: ${String(e).slice(0, 200)}`);
         return [];
+    }
+}
+
+/**
+ * API 실패/차단 시 fallback — Playwright로 chzzk 홈 열어 라이브 카드 링크 수집.
+ * 정렬은 chzzk 홈이 이미 인기순으로 렌더한 순서 그대로 씀. viewer 파싱 없음.
+ */
+async function fetchLiveChannelsFromHome(context: import('@playwright/test').BrowserContext, limit: number): Promise<string[]> {
+    const page = await context.newPage();
+    try {
+        await page.goto('https://chzzk.naver.com/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+        try {
+            await page.waitForSelector('a[href*="/live/"]', { timeout: 15000 });
+        } catch {
+            console.warn('[canary] 홈에 라이브 링크 없음 (라이브 방송 자체 없거나 마크업 변경)');
+            return [];
+        }
+        const ids = await page.evaluate((max) => {
+            (globalThis as unknown as { __name?: (fn: unknown) => unknown }).__name ??= (fn) => fn;
+            const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[href*="/live/"]'));
+            const seen = new Set<string>();
+            for (const a of links) {
+                const m = a.getAttribute('href')?.match(/^\/live\/([a-f0-9]{20,})/);
+                if (m && !seen.has(m[1])) {
+                    seen.add(m[1]);
+                    if (seen.size >= max) break;
+                }
+            }
+            return Array.from(seen);
+        }, limit);
+        console.log(`[canary] 홈에서 ${ids.length}개 라이브 링크 수집 (viewer 정보 없음)`);
+        return ids;
+    } finally {
+        await page.close();
     }
 }
 
@@ -177,15 +218,6 @@ async function notifyDiscord(content: string) {
 }
 
 async function main() {
-    // 상위 채널 목록 — API에서 최대 TOTAL개 요청. 실제로는 chzzk API 상한(30-40) 걸릴 수 있음.
-    const channelIds = await fetchTopLiveChannels(TOTAL);
-    if (channelIds.length === 0) {
-        console.error('[canary] 방문할 라이브 채널 없음 — API 실패거나 라이브 방송 자체 없음');
-        process.exit(2);
-    }
-    const totalBatches = Math.ceil(channelIds.length / PARALLEL);
-    console.log(`[canary] ${channelIds.length}개 채널 (batch of ${PARALLEL}, 총 ${totalBatches} batches, delay ${BATCH_DELAY_MS}ms)`);
-
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
@@ -193,6 +225,19 @@ async function main() {
     });
 
     try {
+        // 상위 채널 목록. API 우선, 실패/빈 응답 시 Playwright로 홈 스크레이핑.
+        let channelIds = await fetchTopLiveChannels(TOTAL);
+        if (channelIds.length === 0) {
+            console.warn('[canary] API 빈 응답 — 홈 스크레이핑 fallback');
+            channelIds = await fetchLiveChannelsFromHome(context, TOTAL);
+        }
+        if (channelIds.length === 0) {
+            console.error('[canary] 방문할 라이브 채널 없음 — API + 홈 모두 실패');
+            process.exit(2);
+        }
+        const totalBatches = Math.ceil(channelIds.length / PARALLEL);
+        console.log(`[canary] ${channelIds.length}개 채널 (batch of ${PARALLEL}, 총 ${totalBatches} batches, delay ${BATCH_DELAY_MS}ms)`);
+
         const selectors = bundledManifest.platforms.chzzk.selectors;
         const requiredList = MODE === 'live'
             ? ['chatRoomLive', 'displayName', 'messageText', 'usernameContainer', 'badge']
