@@ -172,8 +172,17 @@ function loadBadgeInventory(): BadgeInventory {
     if (!existsSync(BADGE_INVENTORY_FILE)) {
         return { version: 1, updatedAt: new Date().toISOString(), entries: {} };
     }
-    try { return JSON.parse(readFileSync(BADGE_INVENTORY_FILE, 'utf-8')) as BadgeInventory; }
-    catch { return { version: 1, updatedAt: new Date().toISOString(), entries: {} }; }
+    try {
+        const inv = JSON.parse(readFileSync(BADGE_INVENTORY_FILE, 'utf-8')) as BadgeInventory;
+        // 옛 실행에서 들어간 구독 배지(`/glive/subscription/`) purge — 채널별 자산이라 대상 X.
+        // 다음 saveBadgeInventory 시점에 자동으로 파일 정리됨.
+        for (const url of Object.keys(inv.entries)) {
+            if (url.includes('/glive/subscription/')) delete inv.entries[url];
+        }
+        return inv;
+    } catch {
+        return { version: 1, updatedAt: new Date().toISOString(), entries: {} };
+    }
 }
 
 function saveBadgeInventory(inv: BadgeInventory) {

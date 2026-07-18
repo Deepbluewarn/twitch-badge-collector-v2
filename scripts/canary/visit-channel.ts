@@ -73,13 +73,17 @@ export async function visitChannel(context: BrowserContext, opts: VisitOpts): Pr
                 results.push({ name, selector: value, count, required: requiredNames.has(name), matchedClasses });
             }
 
-            // 배지 URL 수집: badge selector 매칭된 element 안의 <img> 전부
+            // 배지 URL 수집: badge selector 매칭된 element 안의 <img> 전부.
+            // 구독 배지(`/glive/subscription/`)는 채널별 개별 자산이라 인벤토리 대상 X —
+            // 우리가 관리하는 건 "chzzk 공용/글로벌 배지" 리스트임.
             const badgeUrls = new Set<string>();
             try {
                 const badgeContainers = document.querySelectorAll(badgeSel);
                 for (const c of Array.from(badgeContainers)) {
                     const img = c.querySelector('img');
-                    if (img && img.src) badgeUrls.add(img.src);
+                    if (!img || !img.src) continue;
+                    if (img.src.includes('/glive/subscription/')) continue;
+                    badgeUrls.add(img.src);
                 }
             } catch { /* invalid selector */ }
 
