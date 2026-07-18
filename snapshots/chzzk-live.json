@@ -1,7 +1,7 @@
 {
   "pageMode": "live",
-  "capturedAt": "2026-07-17T18:26:41.506Z",
-  "url": "https://chzzk.naver.com/live/1b0561f3051c10a24b9d8ec9a6cb3374",
+  "capturedAt": "2026-07-18T00:36:52.723Z",
+  "url": "https://chzzk.naver.com/live/effe648202c8f7fba081c2f2aeea1979",
   "selectors": [
     {
       "name": "chatRoomLive",
@@ -31,7 +31,7 @@
     {
       "name": "displayName",
       "selector": "[class*=\"_container_zw6kq_\"] [class*=\"_text_\"]",
-      "count": 15,
+      "count": 11,
       "required": true,
       "matchedClasses": [
         "_text_1iatj_2"
@@ -40,7 +40,7 @@
     {
       "name": "messageText",
       "selector": "[class*=\"_chatting_message_\"] > [class*=\"_text_\"]",
-      "count": 15,
+      "count": 11,
       "required": true,
       "matchedClasses": [
         "_text_ca0ha_1"
@@ -56,7 +56,7 @@
     {
       "name": "badge",
       "selector": "[class*=\"_container_1nwpy_\"]",
-      "count": 23,
+      "count": 10,
       "required": true,
       "matchedClasses": [
         "_container_1nwpy_2"
@@ -72,7 +72,7 @@
     {
       "name": "blindText",
       "selector": ".blind",
-      "count": 35,
+      "count": 42,
       "required": false,
       "matchedClasses": [
         "blind"
@@ -81,7 +81,7 @@
     {
       "name": "usernameContainer",
       "selector": "[class*=\"_container_zw6kq_\"]",
-      "count": 15,
+      "count": 11,
       "required": true,
       "matchedClasses": [
         "_container_zw6kq_2",
@@ -112,27 +112,27 @@
     }
   ],
   "anchorLayer": "L1",
-  "sampleSkeleton": "<div class=\"_item_8lqsk_7\"><div class=\"_container_ca0ha_1\"><div class=\"_chatting_message_ca0ha_21\"><button type=\"button\" class=\"_nickname_ca0ha_37\" aria-haspopup=\"true\" aria-expanded=\"false\"><span class=\"_container_zw6kq_2 _is_message_zw6kq_5 _is_ellipsis_zw6kq_86\" style=\"margin-right: 4px;\"><span class=\"_nickname_zw6kq_57\" style=\"color: rgb(170, 214, 194);\"><span class=\"_ellipsis_1iatj_6\"><span class=\"_text_1iatj_2\"></span></span></span></span></button><span class=\"_text_ca0ha_1\"></span></div></div></div>",
+  "sampleSkeleton": "<div class=\"_item_1d9q7_34\"><i class=\"_icon_ranking_1d9q7_34\"><span class=\"blind\"></span></i><div class=\"_information_1d9q7_51\"><span class=\"_nickname_1d9q7_42\"><span class=\"_ellipsis_1iatj_6\"><span class=\"_text_1iatj_2\"></span></span></span><span class=\"_money_1d9q7_4\"><i class=\"_icon_cheese_1d9q7_47\"><span class=\"blind\"></span></i><span class=\"_number_1d9q7_43\"></span></span></div></div>",
   "manifestRev": 13,
   "channelsVisited": 4,
   "channelStatuses": [
     {
-      "url": "https://chzzk.naver.com/live/1b0561f3051c10a24b9d8ec9a6cb3374",
+      "url": "https://chzzk.naver.com/live/effe648202c8f7fba081c2f2aeea1979",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/8fd39bb8de623317de90654718638b10",
+      "url": "https://chzzk.naver.com/live/a9ab391cdd3faef4ca2ee782e96e5c59",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/0a0a0b83c6af289507ef57a5f3d623c0",
+      "url": "https://chzzk.naver.com/live/e14259667937be6e561d28ab156718be",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/0de024a1ca4a64f1a23a95ff9eeee5a5",
+      "url": "https://chzzk.naver.com/live/458f6ec20b034f49e0fc6d03921646d2",
       "requiredPass": true,
       "anchorLayer": "L1"
     }
