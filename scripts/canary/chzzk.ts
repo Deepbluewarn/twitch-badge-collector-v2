@@ -1,22 +1,23 @@
 /**
- * Chzzk canary — chzzk 상위 라이브(또는 VOD) 여러 채널 병렬 방문.
- *  - selector 매칭 다수결로 대표 스냅샷 산출 (한 채널 특이 케이스 노이즈 제거)
- *  - 배지 URL 인벤토리 union 병합 → 신규 배지 감지 → Discord 알림
+ * Chzzk selector canary — 라이브 여러 채널 병렬 방문 → 다수결로 selector 매칭 검증.
  *  - class hash rotation 감지 시 auto-fix draft PR 후보 기록
  *
- * 실행 환경: Node (tsx). CI or 로컬. env:
+ * 배지 인벤토리는 관심사 분리로 별도 스크립트(badges.ts)에서 처리.
+ *
+ * env:
  *  - DISCORD_CANARY_WEBHOOK
  *  - CANARY_MODE=live|vod
- *  - CANARY_PARALLEL=5 (기본)
+ *  - CANARY_TOTAL, CANARY_PARALLEL, CANARY_BATCH_DELAY_MS
  */
 import { chromium } from '@playwright/test';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import bundledManifest from '../../src/platform/bundled-selectors.prod.json' with { type: 'json' };
-import type { CanarySnapshot, SelectorSample, ChannelVisitResult, BadgeInventory } from './snapshot-types.ts';
+import type { CanarySnapshot, SelectorSample, ChannelVisitResult } from './snapshot-types.ts';
 import { diffSnapshots } from './diff.ts';
 import { visitChannel } from './visit-channel.ts';
+import { discoverChannels } from './discover-channels.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -28,75 +29,6 @@ const PARALLEL = Math.max(1, parseInt(process.env.CANARY_PARALLEL ?? '8', 10));
 const TOTAL = Math.max(1, parseInt(process.env.CANARY_TOTAL ?? '50', 10));
 const BATCH_DELAY_MS = Math.max(0, parseInt(process.env.CANARY_BATCH_DELAY_MS ?? '3000', 10));
 const SNAPSHOT_FILE = join(SNAPSHOT_DIR, `chzzk-${MODE === 'live' ? 'live' : 'vod'}.json`);
-const BADGE_INVENTORY_FILE = join(SNAPSHOT_DIR, 'chzzk-badges.json');
-
-async function fetchTopLiveChannels(limit: number): Promise<string[]> {
-    try {
-        const url = `https://api.chzzk.naver.com/service/v1/lives?size=${limit * 2}&sortType=POPULAR`;
-        const res = await fetch(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-                'Accept': 'application/json',
-            },
-        });
-        console.log(`[canary] chzzk API status=${res.status}`);
-        if (!res.ok) {
-            const text = await res.text().catch(() => '');
-            console.warn(`[canary] chzzk API non-OK body: ${text.slice(0, 300)}`);
-            return [];
-        }
-        const json = await res.json() as {
-            content?: {
-                data?: Array<{ channelId?: string; channel?: { channelId?: string }; concurrentUserCount?: number }>
-            }
-        };
-        const items = json?.content?.data ?? [];
-        console.log(`[canary] API returned ${items.length} items`);
-        return items
-            .filter(it => (it.concurrentUserCount ?? 0) > 0)
-            .sort((a, b) => (b.concurrentUserCount ?? 0) - (a.concurrentUserCount ?? 0))
-            .map(it => it.channelId ?? it.channel?.channelId ?? '')
-            .filter(Boolean)
-            .slice(0, limit);
-    } catch (e) {
-        console.warn(`[canary] chzzk lives API fail: ${String(e).slice(0, 200)}`);
-        return [];
-    }
-}
-
-/**
- * API 실패/차단 시 fallback — Playwright로 chzzk 홈 열어 라이브 카드 링크 수집.
- * 정렬은 chzzk 홈이 이미 인기순으로 렌더한 순서 그대로 씀. viewer 파싱 없음.
- */
-async function fetchLiveChannelsFromHome(context: import('@playwright/test').BrowserContext, limit: number): Promise<string[]> {
-    const page = await context.newPage();
-    try {
-        await page.goto('https://chzzk.naver.com/', { waitUntil: 'domcontentloaded', timeout: 30000 });
-        try {
-            await page.waitForSelector('a[href*="/live/"]', { timeout: 15000 });
-        } catch {
-            console.warn('[canary] 홈에 라이브 링크 없음 (라이브 방송 자체 없거나 마크업 변경)');
-            return [];
-        }
-        const ids = await page.evaluate((max) => {
-            (globalThis as unknown as { __name?: (fn: unknown) => unknown }).__name ??= (fn) => fn;
-            const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[href*="/live/"]'));
-            const seen = new Set<string>();
-            for (const a of links) {
-                const m = a.getAttribute('href')?.match(/^\/live\/([a-f0-9]{20,})/);
-                if (m && !seen.has(m[1])) {
-                    seen.add(m[1]);
-                    if (seen.size >= max) break;
-                }
-            }
-            return Array.from(seen);
-        }, limit);
-        console.log(`[canary] 홈에서 ${ids.length}개 라이브 링크 수집 (viewer 정보 없음)`);
-        return ids;
-    } finally {
-        await page.close();
-    }
-}
 
 /**
  * 여러 채널 결과에서 대표 스냅샷 선정.
@@ -168,49 +100,6 @@ function saveSnapshot(snap: CanarySnapshot) {
     writeFileSync(SNAPSHOT_FILE, JSON.stringify(snap, null, 2) + '\n', 'utf-8');
 }
 
-function loadBadgeInventory(): BadgeInventory {
-    if (!existsSync(BADGE_INVENTORY_FILE)) {
-        return { version: 1, updatedAt: new Date().toISOString(), entries: {} };
-    }
-    try {
-        const inv = JSON.parse(readFileSync(BADGE_INVENTORY_FILE, 'utf-8')) as BadgeInventory;
-        // 옛 실행에서 들어간 구독 배지(`/glive/subscription/`) purge — 채널별 자산이라 대상 X.
-        // 다음 saveBadgeInventory 시점에 자동으로 파일 정리됨.
-        for (const url of Object.keys(inv.entries)) {
-            if (url.includes('/glive/subscription/')) delete inv.entries[url];
-        }
-        return inv;
-    } catch {
-        return { version: 1, updatedAt: new Date().toISOString(), entries: {} };
-    }
-}
-
-function saveBadgeInventory(inv: BadgeInventory) {
-    if (!existsSync(SNAPSHOT_DIR)) mkdirSync(SNAPSHOT_DIR, { recursive: true });
-    writeFileSync(BADGE_INVENTORY_FILE, JSON.stringify(inv, null, 2) + '\n', 'utf-8');
-}
-
-/**
- * 관찰된 배지 URL 리스트로 인벤토리 update. 새 URL은 firstSeenAt 기록. 있는 URL은 lastSeenAt/count 갱신.
- * 반환: 이번 관찰에서 처음 등장한 URL 리스트.
- */
-function updateBadgeInventory(inv: BadgeInventory, observedUrls: Set<string>): string[] {
-    const now = new Date().toISOString();
-    const newlyAdded: string[] = [];
-    for (const url of observedUrls) {
-        const existing = inv.entries[url];
-        if (existing) {
-            existing.lastSeenAt = now;
-            existing.seenCount += 1;
-        } else {
-            inv.entries[url] = { firstSeenAt: now, lastSeenAt: now, seenCount: 1 };
-            newlyAdded.push(url);
-        }
-    }
-    inv.updatedAt = now;
-    return newlyAdded;
-}
-
 async function notifyDiscord(content: string) {
     const url = process.env.DISCORD_CANARY_WEBHOOK;
     if (!url) {
@@ -234,14 +123,10 @@ async function main() {
     });
 
     try {
-        // 상위 채널 목록. API 우선, 실패/빈 응답 시 Playwright로 홈 스크레이핑.
-        let channelIds = await fetchTopLiveChannels(TOTAL);
+        // 여러 소스 union으로 채널 pool 확보
+        const channelIds = await discoverChannels(context, { max: TOTAL });
         if (channelIds.length === 0) {
-            console.warn('[canary] API 빈 응답 — 홈 스크레이핑 fallback');
-            channelIds = await fetchLiveChannelsFromHome(context, TOTAL);
-        }
-        if (channelIds.length === 0) {
-            console.error('[canary] 방문할 라이브 채널 없음 — API + 홈 모두 실패');
+            console.error('[canary] 방문할 라이브 채널 없음 — discovery 실패');
             process.exit(2);
         }
         const totalBatches = Math.ceil(channelIds.length / PARALLEL);
@@ -281,15 +166,6 @@ async function main() {
         const snapshot = mergeToSnapshot(results, MODE);
         const requiredFailInSnapshot = snapshot.selectors.filter(s => s.required && s.count === 0);
 
-        // 배지 인벤토리 병합
-        const allBadgeUrls = new Set<string>();
-        for (const r of results) for (const u of r.badgeUrls) allBadgeUrls.add(u);
-        const inventory = loadBadgeInventory();
-        const inventoryHadEntries = Object.keys(inventory.entries).length > 0;
-        const newBadges = updateBadgeInventory(inventory, allBadgeUrls);
-        saveBadgeInventory(inventory);
-        console.log(`[canary] 배지 관찰 ${allBadgeUrls.size}개 (신규 ${newBadges.length}개, 인벤토리 총 ${Object.keys(inventory.entries).length}개)`);
-
         // 첫 실행 == baseline 없음
         const baseline = loadBaseline();
         if (baseline === null) {
@@ -300,17 +176,13 @@ async function main() {
             }
             saveSnapshot(snapshot);
             console.log('[canary] baseline 저장 (첫 실행)');
-            // 첫 실행이라도 인벤토리가 처음이면 신규 알림 skip — 초기 벌크 등록이라 노이즈만.
-            if (inventoryHadEntries && newBadges.length > 0) {
-                await notifyDiscord(`🆕 chzzk 신규 배지 ${newBadges.length}개 감지 (초기 실행):\n${newBadges.slice(0, 10).map(u => `- ${u}`).join('\n')}`);
-            }
             return;
         }
 
         // Diff
         const diff = diffSnapshots(baseline, snapshot);
 
-        if (diff.brokenRequired.length === 0 && diff.alerts.length === 0 && newBadges.length === 0) {
+        if (diff.brokenRequired.length === 0 && diff.alerts.length === 0) {
             saveSnapshot(snapshot);
             console.log('[canary] 정상 — 스냅샷 갱신');
             return;
@@ -335,11 +207,6 @@ async function main() {
             }
             for (const a of diff.alerts) lines.push(`- ${a}`);
         }
-        if (newBadges.length > 0) {
-            lines.push(`🆕 신규 배지 ${newBadges.length}개:`);
-            for (const u of newBadges.slice(0, 10)) lines.push(`- ${u}`);
-            if (newBadges.length > 10) lines.push(`… +${newBadges.length - 10}`);
-        }
         await notifyDiscord(lines.join('\n'));
 
         // auto-fix 후보 있으면 workflow 소비용 파일 생성
@@ -351,11 +218,6 @@ async function main() {
                 url: snapshot.url,
             }, null, 2));
             console.log('[canary] auto-fix 후보 canary-autofix.json에 기록');
-        }
-
-        // 배지 신규만이면 스냅샷 갱신 (selector 문제 없음)
-        if (diff.brokenRequired.length === 0 && diff.alerts.length === 0) {
-            saveSnapshot(snapshot);
         }
 
         if (diff.brokenRequired.length > 0) process.exit(1);

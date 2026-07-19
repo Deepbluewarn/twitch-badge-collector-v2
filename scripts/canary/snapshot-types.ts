@@ -52,11 +52,38 @@ export interface ChannelVisitResult {
 }
 
 /**
- * chzzk 배지 인벤토리. url → 처음 관찰된 시각(ISO).
- * canary가 매 실행마다 union 병합. 없어진 배지는 지우지 않음 — 그 스트리머가 지금
- * 방송 안 할 뿐일 수 있음.
+ * chzzk 배지 인벤토리 v2. **이미지 컨텐츠(sha256) 기반** — URL만 다르면 같은 이미지
+ * 재fetch 안 하고 같은 배지로 인식. 채널별 자산(subscription/*)은 수집 대상 X.
+ *
+ * v1 (URL 기반)에서 마이그레이션 자동. 처음 배지 canary 돌 때 옛 파일 있으면 재해싱 후 v2로 덮음.
  */
 export interface BadgeInventory {
+    version: 2;
+    updatedAt: string;
+    /** sha256 hex → 그 이미지 hash를 가진 배지 정보 */
+    badges: Record<string, BadgeEntry>;
+}
+
+export interface BadgeUrlHistory {
+    url: string;
+    firstSeenAt: string;
+    lastSeenAt: string;
+}
+
+export interface BadgeEntry {
+    firstSeenAt: string;
+    lastSeenAt: string;
+    seenCount: number;
+    /** UI/디버그용 — 가장 최근 관찰된 URL */
+    latestUrl: string;
+    /** 같은 hash로 등장한 모든 URL 이력 (분석용) */
+    urls: BadgeUrlHistory[];
+}
+
+/**
+ * v1 → v2 마이그레이션용 옛 스키마 타입. 로드 시점에 detect 후 재해싱.
+ */
+export interface BadgeInventoryV1 {
     version: 1;
     updatedAt: string;
     entries: Record<string, { firstSeenAt: string; lastSeenAt: string; seenCount: number }>;
