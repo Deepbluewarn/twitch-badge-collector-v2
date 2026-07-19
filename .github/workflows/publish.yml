@@ -77,11 +77,13 @@ jobs:
         run: npm run zip
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          WXT_PUBLIC_REPORT_WEBHOOK_URL: ${{ secrets.WXT_PUBLIC_REPORT_WEBHOOK_URL }}
 
       - name: Build & zip (Firefox + sources)
         run: npm run zip:firefox
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          WXT_PUBLIC_REPORT_WEBHOOK_URL: ${{ secrets.WXT_PUBLIC_REPORT_WEBHOOK_URL }}
 
       - name: Lint Firefox build (web-ext)
         # web-ext lint는 Firefox 전용 도구 — Chrome 빌드 검증 시 FF 요구사항 위반으로 무조건 fail.

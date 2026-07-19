@@ -5,7 +5,7 @@ import Selector from "@/components/Selector";
 import SocialFooter from "@/components/SocialFooter";
 import { GlobalSettingContext, useGlobalSettingContext } from "@/context/GlobalSetting";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
-import { Box, Button, Chip, IconButton, Stack, Switch, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Switch, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import GlobalStyles from "@mui/material/GlobalStyles";
 import { styled, ThemeProvider } from "@mui/material/styles";
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
@@ -147,7 +147,102 @@ function PopupSetting() {
       const fa = r['tbcv2-selectors-fetched-at'] as number | undefined;
       setOtaInfo({ rev: m?.rev ?? null, fetchedAt: fa ?? null });
     });
+    // 제보 cooldown 초기 조회 — popup 열 때마다 남은 시간 표시.
+    import('@/platform/report').then(m => m.getReportCooldownRemainingMs()).then(ms => {
+      if (ms > 0) setCooldownMin(Math.ceil(ms / 60000));
+    });
   }, []);
+
+  // 진단: active tab의 content-script에 TBC_DIAGNOSE 보냄 → selector 매칭 카운트 +
+  // 샘플 chat extract 결과 리포트 받음. popup 좁으니 리포트 자체는 안 그리고, 요약
+  // 한 줄 + "복사"/"제보" 버튼.
+  type DiagState =
+    | { kind: 'idle' }
+    | { kind: 'running' }
+    | { kind: 'error'; message: string }
+    | { kind: 'done'; report: import('@/platform/diagnose').DiagnoseReport; passCount: number; failCount: number };
+  const [diag, setDiag] = React.useState<DiagState>({ kind: 'idle' });
+  const [copyState, setCopyState] = React.useState<'idle' | 'copied'>('idle');
+  const [submitState, setSubmitState] = React.useState<'idle' | 'submitting' | 'submitted' | 'failed'>('idle');
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [consentDialog, setConsentDialog] = React.useState<{ open: boolean; preview: string }>({ open: false, preview: '' });
+  const [cooldownMin, setCooldownMin] = React.useState<number>(0);
+
+  const runDiagnose = async () => {
+    setDiag({ kind: 'running' });
+    setCopyState('idle');
+    try {
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const id = tabs[0]?.id;
+      if (id == null) { setDiag({ kind: 'error', message: '활성 탭 없음' }); return; }
+      const res = await browser.tabs.sendMessage(id, { type: 'tbc-diagnose' }) as
+        { ok: true; report: import('@/platform/diagnose').DiagnoseReport } | { ok: false; error: string } | undefined;
+      if (!res || !res.ok) {
+        setDiag({ kind: 'error', message: res && !res.ok ? res.error : '응답 없음 (치지직/트위치 페이지에서 실행)' });
+        return;
+      }
+      // required=true인 selector 중 count=0만 진짜 실패로 카운트.
+      // 나머지(도네/인증/풀스크린 등)는 지금 조건에 없어서 0인 게 정상.
+      const required = res.report.selectorResults.filter(r => r.required);
+      const failCount = required.filter(r => r.count === 0).length;
+      const passCount = required.length - failCount;
+      setDiag({ kind: 'done', report: res.report, passCount, failCount });
+    } catch {
+      setDiag({ kind: 'error', message: '치지직/트위치 페이지에서 실행하세요' });
+    }
+  };
+
+  const copyReport = async () => {
+    if (diag.kind !== 'done') return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(diag.report, null, 2));
+      setCopyState('copied');
+      setTimeout(() => setCopyState('idle'), 2000);
+    } catch { /* 클립보드 실패 — silent */ }
+  };
+
+  const doSubmit = async () => {
+    if (diag.kind !== 'done') return;
+    const { submitReport } = await import('@/platform/report');
+    setSubmitState('submitting');
+    setSubmitError(null);
+    try {
+      await submitReport(diag.report);
+      setSubmitState('submitted');
+      setTimeout(() => setSubmitState('idle'), 3000);
+      setCooldownMin(60);
+    } catch (e) {
+      setSubmitState('failed');
+      setSubmitError(String(e).replace('Error: ', ''));
+      setTimeout(() => setSubmitState('idle'), 4000);
+    }
+  };
+
+  const onSubmitClick = async () => {
+    if (diag.kind !== 'done') return;
+    const { REPORT_CONSENT_STORAGE_KEY, sanitizeReport, getReportCooldownRemainingMs } = await import('@/platform/report');
+    const cooldown = await getReportCooldownRemainingMs();
+    if (cooldown > 0) {
+      setCooldownMin(Math.ceil(cooldown / 60000));
+      return;
+    }
+    const r = await browser.storage.local.get(REPORT_CONSENT_STORAGE_KEY);
+    if (r[REPORT_CONSENT_STORAGE_KEY]) {
+      // 동의 이미 있음 — 바로 전송
+      doSubmit();
+      return;
+    }
+    // 첫 사용 — 미리보기 다이얼로그
+    const preview = JSON.stringify(sanitizeReport(diag.report), null, 2);
+    setConsentDialog({ open: true, preview });
+  };
+
+  const onConsentAccept = async () => {
+    const { REPORT_CONSENT_STORAGE_KEY } = await import('@/platform/report');
+    await browser.storage.local.set({ [REPORT_CONSENT_STORAGE_KEY]: true });
+    setConsentDialog({ open: false, preview: '' });
+    doSubmit();
+  };
 
   return (
     <Stack spacing={1.5} sx={{ p: 1.5 }}>
@@ -276,16 +371,111 @@ function PopupSetting() {
         </SettingRow>
       )}
 
-      {/* OTA selector 버전 — 작은 caption으로 하단 표시. 문제 보고 시 참고용. */}
-      <Typography
-        variant='caption'
-        color='text.secondary'
-        sx={{ display: 'block', textAlign: 'right', mt: 0.5, fontSize: '0.65rem', lineHeight: 1.2 }}
+      {/* OTA selector 버전 + 진단 — 하단 caption row. 문제 보고 시 참고용. */}
+      <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={1} sx={{ mt: 0.5 }}>
+        <Typography
+          variant='caption'
+          color='text.secondary'
+          sx={{ flex: 1, fontSize: '0.65rem', lineHeight: 1.2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}
+        >
+          {otaInfo.rev !== null
+            ? `OTA selectors rev ${otaInfo.rev}${otaInfo.fetchedAt ? ` (${new Date(otaInfo.fetchedAt).toLocaleString()})` : ''}`
+            : 'OTA selectors: 번들 기본값'}
+        </Typography>
+        <Stack direction='row' spacing={0.5} alignItems='center'>
+          {diag.kind === 'done' && (
+            <Typography variant='caption' color={diag.failCount > 0 ? 'error' : 'success.main'} sx={{ fontSize: '0.65rem' }}>
+              {diag.failCount > 0 ? `실패 ${diag.failCount} / ${diag.passCount + diag.failCount}` : `OK ${diag.passCount}`}
+            </Typography>
+          )}
+          {diag.kind === 'error' && (
+            <Typography variant='caption' color='error' sx={{ fontSize: '0.65rem' }}>{diag.message}</Typography>
+          )}
+          <Button
+            size='small'
+            variant='text'
+            onClick={runDiagnose}
+            disabled={diag.kind === 'running'}
+            sx={{ minWidth: 0, px: 0.75, py: 0, fontSize: '0.65rem', lineHeight: 1.4 }}
+          >
+            {diag.kind === 'running' ? '진단중...' : '진단'}
+          </Button>
+          {diag.kind === 'done' && (
+            <Button
+              size='small'
+              variant='text'
+              onClick={copyReport}
+              sx={{ minWidth: 0, px: 0.75, py: 0, fontSize: '0.65rem', lineHeight: 1.4 }}
+            >
+              {copyState === 'copied' ? '복사됨' : '복사'}
+            </Button>
+          )}
+          {diag.kind === 'done' && (() => {
+            // Discord webhook 미설정 시 렌더 자체 X.
+            const url: string | undefined = (import.meta as unknown as { env?: Record<string, string> }).env?.WXT_PUBLIC_REPORT_WEBHOOK_URL;
+            if (!url) return null;
+            const disabled = submitState === 'submitting' || cooldownMin > 0;
+            const label =
+              submitState === 'submitted' ? '제보됨' :
+              submitState === 'submitting' ? '제보중...' :
+              submitState === 'failed' ? '실패' :
+              cooldownMin > 0 ? `${cooldownMin}m` :
+              '제보';
+            return (
+              <Button
+                size='small'
+                variant='text'
+                onClick={onSubmitClick}
+                disabled={disabled}
+                sx={{ minWidth: 0, px: 0.75, py: 0, fontSize: '0.65rem', lineHeight: 1.4 }}
+              >
+                {label}
+              </Button>
+            );
+          })()}
+        </Stack>
+      </Stack>
+      {submitError && (
+        <Typography variant='caption' color='error' sx={{ fontSize: '0.65rem', textAlign: 'right' }}>
+          {submitError}
+        </Typography>
+      )}
+      {/* 첫 제보 시 동의 다이얼로그 — sanitize된 실 payload 미리보기 후 승인. */}
+      <Dialog
+        open={consentDialog.open}
+        onClose={() => setConsentDialog({ open: false, preview: '' })}
+        maxWidth='sm'
+        fullWidth
+        PaperProps={{ sx: { m: 1, maxHeight: 'calc(100% - 16px)' } }}
       >
-        {otaInfo.rev !== null
-          ? `OTA selectors rev ${otaInfo.rev}${otaInfo.fetchedAt ? ` (${new Date(otaInfo.fetchedAt).toLocaleString()})` : ''}`
-          : 'OTA selectors: 번들 기본값'}
-      </Typography>
+        <DialogTitle sx={{ fontSize: '0.9rem', py: 1 }}>Discord로 진단 데이터 전송</DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', p: 2, gap: 1 }}>
+          <Typography variant='caption' color='text.secondary'>
+            아래의 익명 데이터가 개발자에게 전송됩니다.
+          </Typography>
+          <Box
+            component='pre'
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              fontSize: '0.6rem',
+              overflow: 'auto',
+              bgcolor: 'action.hover',
+              p: 1,
+              borderRadius: 1,
+              m: 0,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-all',
+            }}
+          >
+            {consentDialog.preview}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button size='small' onClick={() => setConsentDialog({ open: false, preview: '' })}>취소</Button>
+          <Button size='small' variant='contained' onClick={onConsentAccept}>동의하고 전송</Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

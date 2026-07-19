@@ -26,6 +26,8 @@ web-ext.config.ts
 *.sw?
 
 .env
+.env.local
+.env.*.local
 plan.md
 
 # canary 봇이 실행마다 만드는 임시 auto-fix 후보 파일 (workflow 안에서만 소비)

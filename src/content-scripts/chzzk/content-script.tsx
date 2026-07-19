@@ -9,12 +9,14 @@ import {
     getPlatformConfig, manifestReady, getManifest,
     SELECTORS_MESSAGE_TYPE,
 } from "@/platform/host-selectors";
+import { registerDiagnoseListener } from "@/platform/diagnose";
 
 async function bootstrap() {
     await manifestReady;
     window.postMessage({ type: SELECTORS_MESSAGE_TYPE, manifest: getManifest() }, '*');
 
     const adapter = new ChzzkAdapter();
+    registerDiagnoseListener(adapter, 'chzzk');
     const SEL = getPlatformConfig('chzzk').selectors;
 
     const liveContainer = new BaseContainer(

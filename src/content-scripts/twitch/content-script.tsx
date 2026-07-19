@@ -8,6 +8,7 @@ import {
     getPlatformConfig, manifestReady, getManifest,
     SELECTORS_MESSAGE_TYPE,
 } from "@/platform/host-selectors";
+import { registerDiagnoseListener } from "@/platform/diagnose";
 
 async function bootstrap() {
     // Manifest(OTA 또는 bundled) 적용 완료까지 대기 후 observer 부착.
@@ -18,6 +19,7 @@ async function bootstrap() {
     window.postMessage({ type: SELECTORS_MESSAGE_TYPE, manifest: getManifest() }, '*');
 
     const adapter = new TwitchAdapter();
+    registerDiagnoseListener(adapter, 'twitch');
     const SEL = getPlatformConfig('twitch').selectors;
 
     const liveContainer = new BaseContainer(
