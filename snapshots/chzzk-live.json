@@ -1,7 +1,7 @@
 {
   "pageMode": "live",
-  "capturedAt": "2026-07-20T07:15:31.164Z",
-  "url": "https://chzzk.naver.com/live/65c3035bdc598c81f15a8fe0e958b3ce",
+  "capturedAt": "2026-07-20T12:51:34.416Z",
+  "url": "https://chzzk.naver.com/live/3497a9a7221cc3ee5d3f95991d9f95e9",
   "selectors": [
     {
       "name": "chatRoomLive",
@@ -31,7 +31,7 @@
     {
       "name": "displayName",
       "selector": "[class*=\"_container_zw6kq_\"] [class*=\"_text_\"]",
-      "count": 14,
+      "count": 15,
       "required": true,
       "matchedClasses": [
         "_text_1iatj_2"
@@ -40,7 +40,7 @@
     {
       "name": "messageText",
       "selector": "[class*=\"_chatting_message_\"] > [class*=\"_text_\"]",
-      "count": 14,
+      "count": 15,
       "required": true,
       "matchedClasses": [
         "_text_ca0ha_1"
@@ -56,7 +56,7 @@
     {
       "name": "badge",
       "selector": "[class*=\"_container_1nwpy_\"]",
-      "count": 7,
+      "count": 5,
       "required": true,
       "matchedClasses": [
         "_container_1nwpy_2"
@@ -72,7 +72,7 @@
     {
       "name": "blindText",
       "selector": ".blind",
-      "count": 37,
+      "count": 35,
       "required": false,
       "matchedClasses": [
         "blind"
@@ -81,7 +81,7 @@
     {
       "name": "usernameContainer",
       "selector": "[class*=\"_container_zw6kq_\"]",
-      "count": 14,
+      "count": 15,
       "required": true,
       "matchedClasses": [
         "_container_zw6kq_2",
@@ -112,67 +112,37 @@
     }
   ],
   "anchorLayer": "L1",
-  "sampleSkeleton": "<div class=\"_item_8lqsk_7\"><div class=\"_container_ca0ha_1\"><div class=\"_chatting_message_ca0ha_21\"><button type=\"button\" class=\"_nickname_ca0ha_37\" aria-haspopup=\"true\" aria-expanded=\"false\"><span class=\"_container_zw6kq_2 _is_message_zw6kq_5 _is_ellipsis_zw6kq_86\" style=\"margin-right: 4px;\"><span class=\"_nickname_zw6kq_57\" style=\"color: rgb(228, 129, 174);\"><span class=\"_ellipsis_1iatj_6\"><span class=\"_text_1iatj_2\"></span></span></span></span></button><span class=\"_text_ca0ha_1\"></span></div></div></div>",
+  "sampleSkeleton": "<div class=\"_item_8lqsk_7\"><div class=\"_container_ca0ha_1\"><div class=\"_chatting_message_ca0ha_21\"><button type=\"button\" class=\"_nickname_ca0ha_37\" aria-haspopup=\"true\" aria-expanded=\"false\"><span class=\"_container_zw6kq_2 _is_message_zw6kq_5 _is_ellipsis_zw6kq_86\" style=\"margin-right: 4px;\"><span class=\"_nickname_zw6kq_57\" style=\"color: rgb(233, 129, 88);\"><span class=\"_ellipsis_1iatj_6\"><span class=\"_text_1iatj_2\"></span></span></span></span></button><span class=\"_text_ca0ha_1\"></span></div></div></div>",
   "manifestRev": 13,
   "channelsVisited": 50,
   "channelStatuses": [
     {
-      "url": "https://chzzk.naver.com/live/65c3035bdc598c81f15a8fe0e958b3ce",
+      "url": "https://chzzk.naver.com/live/3497a9a7221cc3ee5d3f95991d9f95e9",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/c0d9723cbb75dc223c6aa8a9d4f56002",
+      "url": "https://chzzk.naver.com/live/64d76089fba26b180d9c9e48a32600d9",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/dcd75ef0f2c664e3270de18696ad43bf",
+      "url": "https://chzzk.naver.com/live/0dad8baf12a436f722faa8e5001c5011",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/0d027498b18371674fac3ed17247e6b8",
+      "url": "https://chzzk.naver.com/live/4de764d9dad3b25602284be6db3ac647",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/dff5fc9706f8260682ce6eb93acaad64",
+      "url": "https://chzzk.naver.com/live/4325b1d5bbc321fad3042306646e2e50",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/8a59b34b46271960c1bf172bb0fac758",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/a9b3377345a2a37e68a6072ba5e77fec",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/45e71a76e949e16a34764deb962f9d9f",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/798e100206987b59805cfb75f927e965",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/5ead7124638ac4c568f2cde0224b3b6b",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/dc7fb0d085cfbbe90e11836e3b85b784",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/19e3b97ca1bca954d1ac84cf6862e0dc",
+      "url": "https://chzzk.naver.com/live/516937b5f85cbf2249ce31b0ad046b0f",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
@@ -182,67 +152,42 @@
       "anchorLayer": "L2"
     },
     {
-      "url": "https://chzzk.naver.com/live/089185efc29a8fbe14ea294dc85f9661",
+      "url": "https://chzzk.naver.com/live/4d812b586ff63f8a2946e64fa860bbf5",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/b82e8bc2505e37156b2d1140ba1fc05c",
+      "url": "https://chzzk.naver.com/live/a67b328bcc8eea4451ccfa754bc19ae1",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/09f2c3d669fb6ef362f2d78029fc4300",
+      "url": "https://chzzk.naver.com/live/0dcec72cd1033032a77dfced6c0c91f8",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/f39c3d74e33a81ab3080356b91bb8de5",
+      "url": "https://chzzk.naver.com/live/feb20a676694b1163fed010da0848303",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/bee4b42475b5937226b8b7ccbe2eb2dc",
+      "url": "https://chzzk.naver.com/live/bb382c2c0cc9fa7c86ab3b037fb5799c",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/8a933cb3a86c52aadb2483aa4eed72aa",
+      "url": "https://chzzk.naver.com/live/4515b179f86b67b4981e16190817c580",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/941ea3807ba8b9b7dddb1670e3e7e5af",
+      "url": "https://chzzk.naver.com/live/8803cee946a9e610a76fbdee98d98c61",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/dbd6e0689ff9debf8bb00a415786654c",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/9351fb8417f73405c84e0846409e3263",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/16b84d7efd83808926a8b2afb5ccfc2f",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/fc00d47a77ed2d1156cd5997eba30310",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/effe648202c8f7fba081c2f2aeea1979",
-      "requiredPass": true,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/769efbb252d48296224621451c6a1d9a",
+      "url": "https://chzzk.naver.com/live/0076a519f147ee9fd0959bf02f9571ca",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
@@ -252,117 +197,172 @@
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/f3228c570a0b3b1f0f8306e3479ea46b",
+      "url": "https://chzzk.naver.com/live/e19e8f5605a67e7a6b165c82445dc9c6",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/f3b204dd3fd6925835ca1848cd4b6d3c",
+      "url": "https://chzzk.naver.com/live/e50c2707807bd8b9fe7cf4f353aaac0b",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/f00f6d46ecc6d735b96ecf376b9e5212",
+      "url": "https://chzzk.naver.com/live/912b559dcdd9c9ea1fe97864925738bf",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/e14259667937be6e561d28ab156718be",
+      "url": "https://chzzk.naver.com/live/a9b3377345a2a37e68a6072ba5e77fec",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/554e99695decc451d57788b1fd5d5c07",
+      "url": "https://chzzk.naver.com/live/c100f81959d1c17044be0541eed56f5b",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/66d99407a0ad3df28903321ed999954d",
+      "url": "https://chzzk.naver.com/live/083c66a5cfce51967bcad5c1b0b86e5d",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/ed0ef5729a1cce903c72638cd8062512",
+      "url": "https://chzzk.naver.com/live/089185efc29a8fbe14ea294dc85f9661",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/9d4f299325b38f9183bdb90b8849d912",
+      "url": "https://chzzk.naver.com/live/c0d9723cbb75dc223c6aa8a9d4f56002",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/431d19e0eeeb5ecc1cd9628dc0840c9e",
+      "url": "https://chzzk.naver.com/live/a9a343510e132ea3026ff3cf682820b5",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/26253bf7ed6b95832c40f4f43f6d049d",
+      "url": "https://chzzk.naver.com/live/17d8605fc37fb5ef49f5f67ae786fe4e",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/c8adce2ff4a3618931e07c327e1fa070",
+      "url": "https://chzzk.naver.com/live/dae2de8eaa005a59163f2e4c045e1aa1",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/0f4d9f20aa461c5da5c68e4e65d35ff9",
+      "url": "https://chzzk.naver.com/live/8a59b34b46271960c1bf172bb0fac758",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/58c857c619dbc62110f025c382265abe",
+      "url": "https://chzzk.naver.com/live/0de8f1807076169b7eb9218137e99c51",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/3e9272616070e9f66cc4afd9e69753c2",
+      "url": "https://chzzk.naver.com/live/3c9fe16c70cf2f4a5274fa69307f0f89",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/14780be344c96ad0c272b51d0605dedb",
+      "url": "https://chzzk.naver.com/live/8a933cb3a86c52aadb2483aa4eed72aa",
       "requiredPass": false,
       "anchorLayer": "L2"
     },
     {
-      "url": "https://chzzk.naver.com/live/7792c631f74f66e92ae25949a3a11abb",
+      "url": "https://chzzk.naver.com/live/d2fb83a5db130bf4d273c981b82ca41f",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/17a4bfff01d96ffad065f641ce90bdde",
+      "url": "https://chzzk.naver.com/live/dc7fb0d085cfbbe90e11836e3b85b784",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/95dce22a7af42be99eaaef19619ebf25",
+      "url": "https://chzzk.naver.com/live/798e100206987b59805cfb75f927e965",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/8a5fc0dec74718540f517aa1219d8a72",
-      "requiredPass": false,
-      "anchorLayer": "L1"
-    },
-    {
-      "url": "https://chzzk.naver.com/live/4cb41aa1c9b698b138bc865c3323fe2f",
+      "url": "https://chzzk.naver.com/live/affa78deac0b23d2046b8ed4856c1e62",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/aef0c98592271de9ec4906eca2987e05",
+      "url": "https://chzzk.naver.com/live/d6fc3283fe0938bca8d65093e4c2bb94",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/6892b715aabd2a03987dc7abce8fa329",
+      "url": "https://chzzk.naver.com/live/29f20622463916fa48ad735057b145ce",
       "requiredPass": true,
       "anchorLayer": "L1"
     },
     {
-      "url": "https://chzzk.naver.com/live/dc740d5bb5680666b6bf2ebc58a8203f",
+      "url": "https://chzzk.naver.com/live/475313e6c26639d5763628313b4c130e",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/7efa5b40ee1729ac57d3adbebf3ddb3c",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/f26f5a2d1336f15cb2f3bc9513ab2501",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/93fe884808459fb4e4a3c7d64f0eef03",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/b33c957eac9335d38e4043c3dca97675",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/aed9d6557bebfb21ab3d081b862cdd2d",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/47c49bff55111a6cfd30bb299e9d2e5d",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/a048127622edd6c3ee8e477471a1d823",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/19e3b97ca1bca954d1ac84cf6862e0dc",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/effe648202c8f7fba081c2f2aeea1979",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/fc00d47a77ed2d1156cd5997eba30310",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/fbdae0fabcf5e7f2bab4449e4aafae15",
+      "requiredPass": true,
+      "anchorLayer": "L1"
+    },
+    {
+      "url": "https://chzzk.naver.com/live/e4b12ad6a22d3e8d1dd8a79522cca667",
       "requiredPass": true,
       "anchorLayer": "L1"
     }
