@@ -220,6 +220,12 @@ async function main() {
             console.log('[canary] auto-fix 후보 canary-autofix.json에 기록');
         }
 
+        // brokenRequired 없는 케이스(알림만) → 스냅샷 갱신해서 같은 변화 반복 알림 방지.
+        // brokenRequired 있으면 baseline 유지 → 사람이 fix 후 정상 상태에서 재저장 유도.
+        if (diff.brokenRequired.length === 0) {
+            saveSnapshot(snapshot);
+        }
+
         if (diff.brokenRequired.length > 0) process.exit(1);
     } finally {
         await context.close();

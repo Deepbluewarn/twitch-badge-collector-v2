@@ -45,6 +45,18 @@ export function diffSnapshots(baseline: CanarySnapshot | null, current: CanarySn
         alerts.push(`anchor layer 하락: ${baseline.anchorLayer} → ${current.anchorLayer}`);
     }
 
+    // sample skeleton의 chzzk-style hash class fingerprint diff — required selector가
+    // 안 깨졌어도 chzzk가 컴포넌트 추가/개편했는지 감지. ponytail: 샘플 chat 종류
+    // (배지 유무 등) 따라 fingerprint가 흔들려 노이즈 여지. 노이즈 크면 채널별 union으로 업그레이드.
+    const baseFp = hashClassSet(baseline.sampleSkeleton);
+    const curFp = hashClassSet(current.sampleSkeleton);
+    const added = [...curFp].filter(c => !baseFp.has(c));
+    const removed = [...baseFp].filter(c => !curFp.has(c));
+    if (added.length > 0 || removed.length > 0) {
+        const preview = [...added.map(c => `+${c}`), ...removed.map(c => `-${c}`)].slice(0, 6).join(' ');
+        alerts.push(`sample skeleton class 변화 (+${added.length}/-${removed.length}): ${preview}`);
+    }
+
     // selector별 pass→fail 감지
     const byName = new Map(baseline.selectors.map(s => [s.name, s]));
     for (const cur of current.selectors) {
@@ -66,6 +78,18 @@ export function diffSnapshots(baseline: CanarySnapshot | null, current: CanarySn
 
     const changed = brokenRequired.length > 0 || autoFixCandidates.length > 0 || alerts.length > 0;
     return { changed, brokenRequired, autoFixCandidates, alerts };
+}
+
+/**
+ * skeleton HTML 안에서 chzzk-style CSS-in-JS 해시 클래스만 뽑음.
+ * 예: `_container_zw6kq_2`, `_chatting_message_ca0ha_21`. utility/우리 클래스는 배제.
+ */
+function hashClassSet(skeleton: string | null): Set<string> {
+    if (!skeleton) return new Set();
+    const set = new Set<string>();
+    const re = /_[a-z]+_[a-z0-9]{4,}_\d+/gi;
+    for (const m of skeleton.matchAll(re)) set.add(m[0]);
+    return set;
 }
 
 /**
