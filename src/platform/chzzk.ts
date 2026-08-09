@@ -8,12 +8,13 @@ import { getPlatformConfig, detectPageMode, extractChannelId } from "./host-sele
 const cfg = () => getPlatformConfig('chzzk');
 
 function checkVerifiedBadge(chat_clone: Element): boolean {
+    // ponytail: verifiedIcon class hash 롤링에 매번 selector 갱신하지 말고
+    // aria/accessibility 라벨 '인증 마크' 텍스트로 직접 검사. chzzk가 이 라벨
+    // 바꾸면 여기 텍스트 하나 갱신. selector 하나 없애서 rev bump 부담도 감소.
     const sel = cfg().selectors;
-    if (!sel.verifiedIcon || !sel.blindText) return false;
-    const verifiedBadge = chat_clone.querySelector<HTMLElement>(sel.verifiedIcon);
-    if (!verifiedBadge) return false;
-    const text = verifiedBadge.querySelector(sel.blindText)?.textContent;
-    return text === '인증 마크';
+    if (!sel.blindText) return false;
+    return Array.from(chat_clone.querySelectorAll(sel.blindText))
+        .some(b => b.textContent === '인증 마크');
 }
 
 export class ChzzkAdapter implements PlatformAdapter {
