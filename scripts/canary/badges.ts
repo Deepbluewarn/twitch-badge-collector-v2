@@ -125,8 +125,23 @@ async function loadInventory(): Promise<BadgeInventory> {
 
 function saveInventory(inv: BadgeInventory) {
     if (!existsSync(SNAPSHOT_DIR)) mkdirSync(SNAPSHOT_DIR, { recursive: true });
-    inv.updatedAt = new Date().toISOString();
-    writeFileSync(INVENTORY_FILE, JSON.stringify(inv, null, 2) + '\n', 'utf-8');
+    // volatile 필드(updatedAt/lastSeenAt/seenCount 등) 제외 → 신규 배지 없으면
+    // 파일 bit-identical → 커밋 안 됨.
+    const durable = {
+        version: inv.version,
+        badges: Object.fromEntries(
+            Object.entries(inv.badges).map(([hash, e]) => {
+                const urlSet = new Set<string>();
+                for (const u of e.urls) urlSet.add(typeof u === 'string' ? u : u.url);
+                return [hash, {
+                    firstSeenAt: e.firstSeenAt,
+                    latestUrl: e.latestUrl,
+                    urls: [...urlSet].sort(),
+                }];
+            })
+        ),
+    };
+    writeFileSync(INVENTORY_FILE, JSON.stringify(durable, null, 2) + '\n', 'utf-8');
 }
 
 async function notifyDiscord(content: string) {
@@ -200,15 +215,13 @@ async function main() {
                 };
                 newHashes.push(hash);
             } else {
-                entry.seenCount += 1;
-                entry.lastSeenAt = now;
-                entry.latestUrl = url;
-                const urlHistory = entry.urls.find(u => u.url === url);
-                if (urlHistory) {
-                    urlHistory.lastSeenAt = now;
-                } else {
+                // 알려진 URL 재관찰 = no-op (volatile 필드 mutation 없이 diff 없음).
+                // 새 URL 별칭만 반영 — 진짜 변화.
+                const known = entry.urls.some(u => (typeof u === 'string' ? u : u.url) === url);
+                if (!known) {
                     entry.urls.push({ url, firstSeenAt: now, lastSeenAt: now });
-                    urlAliasCount += 1; // 같은 배지의 새 URL 발견
+                    entry.latestUrl = url;
+                    urlAliasCount += 1;
                 }
             }
         }

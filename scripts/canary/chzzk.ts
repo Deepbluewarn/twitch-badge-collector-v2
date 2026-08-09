@@ -97,7 +97,16 @@ function loadBaseline(): CanarySnapshot | null {
 
 function saveSnapshot(snap: CanarySnapshot) {
     if (!existsSync(SNAPSHOT_DIR)) mkdirSync(SNAPSHOT_DIR, { recursive: true });
-    writeFileSync(SNAPSHOT_FILE, JSON.stringify(snap, null, 2) + '\n', 'utf-8');
+    // volatile 필드(capturedAt/url/channelStatuses 등) 제외 → DOM 변화 없으면
+    // 파일 bit-identical → git diff 빈 → 커밋 안 됨. 커밋 스팸 방지.
+    const durable = {
+        pageMode: snap.pageMode,
+        anchorLayer: snap.anchorLayer,
+        selectors: snap.selectors,
+        sampleSkeleton: snap.sampleSkeleton,
+        manifestRev: snap.manifestRev,
+    };
+    writeFileSync(SNAPSHOT_FILE, JSON.stringify(durable, null, 2) + '\n', 'utf-8');
 }
 
 async function notifyDiscord(content: string) {
