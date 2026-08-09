@@ -225,6 +225,31 @@ describe('ChzzkAdapter — extract', () => {
         const text = document.createTextNode('plain');
         expect(adapter.extract(text)).toBeUndefined();
     });
+
+    it('appends verifiedBadgeImageUrl to badges when ".blind" text is "인증 마크"', () => {
+        const node = buildChatFixture();
+        // 인증 마크 blind label 추가 — icon container hash와 무관하게 잡혀야 함
+        const blind = document.createElement('span');
+        blind.className = 'blind';
+        blind.textContent = '인증 마크';
+        node.appendChild(blind);
+
+        const info = adapter.extract(node);
+        expect(info).toBeDefined();
+        expect(info!.badges).toContain('https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png');
+    });
+
+    it('does NOT append verifiedBadgeImageUrl when no "인증 마크" blind label exists', () => {
+        const node = buildChatFixture();
+        // 다른 blind 텍스트만 있을 때 오탐 없어야 함
+        const blind = document.createElement('span');
+        blind.className = 'blind';
+        blind.textContent = '구독 배지';
+        node.appendChild(blind);
+
+        const info = adapter.extract(node);
+        expect(info!.badges).not.toContain('https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png');
+    });
 });
 
 // ----- fetchBadges --------------------------------------------------------
