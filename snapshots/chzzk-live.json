@@ -4,113 +4,69 @@
   "selectors": [
     {
       "name": "chatRoomLive",
-      "selector": "aside#aside-chatting [class*=\"_wrapper_\"]:has(> [class*=\"_list_bottom_\"])",
-      "count": 1,
       "required": true,
-      "matchedClasses": [
-        "_wrapper_8lqsk_25"
-      ]
+      "present": true
     },
     {
       "name": "chatRoomVod",
-      "selector": "aside#vod-aside [class*=\"_list_\"]",
-      "count": 0,
       "required": false,
-      "matchedClasses": null
+      "present": false
     },
     {
       "name": "video",
-      "selector": ".webplayer-internal-source-wrapper video",
-      "count": 1,
       "required": false,
-      "matchedClasses": [
-        "webplayer-internal-video"
-      ]
+      "present": true
     },
     {
       "name": "displayName",
-      "selector": "[class*=\"_container_zw6kq_\"] [class*=\"_text_\"]",
-      "count": 18,
       "required": true,
-      "matchedClasses": [
-        "_text_1iatj_2"
-      ]
+      "present": true
     },
     {
       "name": "messageText",
-      "selector": "[class*=\"_chatting_message_\"] > [class*=\"_text_\"]",
-      "count": 17,
       "required": true,
-      "matchedClasses": [
-        "_text_1y6kj_1"
-      ]
+      "present": true
     },
     {
       "name": "donationText",
-      "selector": "[class*=\"_text_y6h6c_\"]",
-      "count": 0,
       "required": false,
-      "matchedClasses": null
+      "present": false
     },
     {
       "name": "badge",
-      "selector": "[class*=\"_container_1nwpy_\"]",
-      "count": 13,
       "required": true,
-      "matchedClasses": [
-        "_container_1nwpy_2"
-      ]
+      "present": true
     },
     {
       "name": "verifiedIcon",
-      "selector": "[class*=\"_icon_dtc6c_\"]",
-      "count": 0,
       "required": false,
-      "matchedClasses": null
+      "present": false
     },
     {
       "name": "blindText",
-      "selector": ".blind",
-      "count": 34,
       "required": false,
-      "matchedClasses": [
-        "blind"
-      ]
+      "present": true
     },
     {
       "name": "usernameContainer",
-      "selector": "[class*=\"_container_zw6kq_\"]",
-      "count": 18,
       "required": true,
-      "matchedClasses": [
-        "_container_zw6kq_2",
-        "_is_mission_zw6kq_5",
-        "_is_ellipsis_zw6kq_86",
-        "_type_bold_zw6kq_110"
-      ]
+      "present": true
     },
     {
       "name": "popupProfileHeader",
-      "selector": ".live_chatting_popup_profile_header__OWnnU",
-      "count": 0,
       "required": false,
-      "matchedClasses": null
+      "present": false
     },
     {
       "name": "pointButton",
-      "selector": ".live_chatting_power_button__Ov3eJ",
-      "count": 0,
       "required": false,
-      "matchedClasses": null
+      "present": false
     },
     {
       "name": "foldedClassSubstring",
-      "selector": "_is_folded_",
-      "count": 0,
       "required": false,
-      "matchedClasses": null
+      "present": false
     }
   ],
-  "sampleSkeleton": "<div class=\"_item_faoew_106\"><div class=\"_container_16ttf_2 _is_fixed_16ttf_138\"><div class=\"_wrapper_16ttf_10\"><div class=\"_gauge_16ttf_61\" style=\"width: calc(46.2602%);\"></div><div class=\"_header_16ttf_197\"><div class=\"_inner_16ttf_257\"><div class=\"_username_16ttf_22\"><span class=\"_container_zw6kq_2 _is_mission_zw6kq_5 _is_ellipsis_zw6kq_86 _type_bold_zw6kq_110\" style=\"margin-right: 0px;\"><span class=\"_nickname_zw6kq_57\"><span class=\"_ellipsis_1iatj_6 _-nemony_ellipsis_1iatj_136\"><span class=\"_text_1iatj_2\"></span></span></span></span></div><span class=\"_count_16ttf_58\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"8\" height=\"10\" viewBox=\"0 0 8 10\" fill=\"none\" aria-hidden=\"true\" class=\"_icon_person_16ttf_317\"><circle cx=\"4\" cy=\"2.75\" r=\"2.25\" fill=\"currentColor\"></circle><path fill=\"currentColor\" d=\"M4 5C1.79 5 0 6.583 0 8.536c0 1.952 8 1.952 8 0C8 6.583 6.21 5 4 5Z\"></path></svg></span></div><div class=\"_time_16ttf_41\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"13\" height=\"13\" viewBox=\"0 0 13 14\" fill=\"none\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M10.479 10.338a5.174 5.174 0 1 0-7.899 0l-1.096 1.096a.438.438 0 0 0 .618.619L3.2 10.956a5.14 5.14 0 0 0 6.661 0l1.097 1.097a.415.415 0 0 0 .31.128.43.43 0 0 0 .308-.128.437.437 0 0 0 0-.619l-1.096-1.096ZM8.29 8.774a.583.583 0 0 1-.822 0L5.946 7.252V4.3a.583.583 0 1 1 1.167 0v2.468L8.28 7.934a.583.583 0 0 1 .011.84ZM11.6 3.058a.46.46 0 0 1-.31-.129L9.943 1.576a.432.432 0 0 1 0-.618.437.437 0 0 1 .618 0l1.377 1.33a.438.438 0 0 1 0 .618.461.461 0 0 1-.338.152Zm-10.162 0a.437.437 0 0 1-.31-.747L2.482.958a.437.437 0 1 1 .619.618L1.746 2.929a.438.438 0 0 1-.309.129Z\"></path></svg><span class=\"blind\"></span><div class=\"_container_hxaro_1\"><span class=\"_box_hxaro_10\" style=\"transform: translateY(calc(-189px));\"><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span></span><span class=\"_box_hxaro_10\" style=\"transform: translateY(calc(-216px));\"><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span></span><span></span><span class=\"_box_hxaro_10\" style=\"transform: translateY(calc(-27px));\"><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span></span><span class=\"_box_hxaro_10 _is_zero_hxaro_23\" style=\"transform: translateY(calc(-270px));\"><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span></span><span></span><span class=\"_box_hxaro_10 _seconds_first_hxaro_17\" style=\"transform: translateY(calc(-54px));\"><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span><span class=\"_number_hxaro_28\"></span></span><span class=\"_box_hxaro_10 ",
   "manifestRev": 13
 }
