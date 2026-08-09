@@ -45,25 +45,15 @@ export function diffSnapshots(baseline: CanarySnapshot | null, current: CanarySn
         alerts.push(`anchor layer 하락: ${baseline.anchorLayer} → ${current.anchorLayer}`);
     }
 
-    // sample skeleton의 chzzk-style hash class fingerprint diff — required selector가
-    // 안 깨졌어도 chzzk가 컴포넌트 추가/개편했는지 감지. ponytail: 샘플 chat 종류
-    // (배지 유무 등) 따라 fingerprint가 흔들려 노이즈 여지. 노이즈 크면 채널별 union으로 업그레이드.
-    const baseFp = hashClassSet(baseline.sampleSkeleton);
-    const curFp = hashClassSet(current.sampleSkeleton);
-    const added = [...curFp].filter(c => !baseFp.has(c));
-    const removed = [...baseFp].filter(c => !curFp.has(c));
-    if (added.length > 0 || removed.length > 0) {
-        const preview = [...added.map(c => `+${c}`), ...removed.map(c => `-${c}`)].slice(0, 6).join(' ');
-        alerts.push(`sample skeleton class 변화 (+${added.length}/-${removed.length}): ${preview}`);
-    }
-
-    // selector별 pass→fail 감지
+    // selector별 pass→fail 감지. baseline엔 count 대신 present(boolean)만 있을 수 있음
+    // (persist 시 strip). 옛 baseline과 호환 위해 둘 다 지원.
     const byName = new Map(baseline.selectors.map(s => [s.name, s]));
     for (const cur of current.selectors) {
         const base = byName.get(cur.name);
         if (!base) continue;
-        // required이면서 이전엔 >0 지금 0
-        if (cur.required && base.count > 0 && cur.count === 0) {
+        const wasPresent = base.present !== undefined ? base.present : (base.count ?? 0) > 0;
+        // required이면서 이전엔 present 지금 0
+        if (cur.required && wasPresent && cur.count === 0) {
             brokenRequired.push(cur);
             // auto-fix 후보 탐지: selector string 내 class hash 후보 뽑아
             // 현재 스냅샷의 matchedClasses나 sampleSkeleton에서 같은 "base word"를 찾음
@@ -81,18 +71,6 @@ export function diffSnapshots(baseline: CanarySnapshot | null, current: CanarySn
 }
 
 /**
- * skeleton HTML 안에서 chzzk-style CSS-in-JS 해시 클래스만 뽑음.
- * 예: `_container_zw6kq_2`, `_chatting_message_ca0ha_21`. utility/우리 클래스는 배제.
- */
-function hashClassSet(skeleton: string | null): Set<string> {
-    if (!skeleton) return new Set();
-    const set = new Set<string>();
-    const re = /_[a-z]+_[a-z0-9]{4,}_\d+/gi;
-    for (const m of skeleton.matchAll(re)) set.add(m[0]);
-    return set;
-}
-
-/**
  * 깨진 selector에서 class hash pattern (`_word_hash_`)을 뽑아, 현재 스냅샷의 sample
  * skeleton 안에서 같은 word로 시작하지만 hash가 다른 클래스를 찾음.
  * 정확히 하나 있으면 auto-fix 후보.
@@ -102,16 +80,19 @@ function tryAutoFix(
     _baseline: SelectorSample,
     currentSnap: CanarySnapshot,
 ): AutoFixCandidate | null {
+    // broken = current run에서 왔으니 selector string 항상 존재. 타입만 optional.
+    const brokenSelector = broken.selector;
+    if (!brokenSelector) return null;
     // selector string에서 `_word_hash_` 패턴 추출
     // 예: `[class*="_container_o04z9_"]` → base=`_container_`, hash=`o04z9`
     const hashRe = /_([a-z]+)_([a-z0-9]{4,})_/gi;
-    const oldMatches = Array.from(broken.selector.matchAll(hashRe));
+    const oldMatches = Array.from(brokenSelector.matchAll(hashRe));
     if (oldMatches.length === 0) return null;
 
     if (!currentSnap.sampleSkeleton) return null;
 
     // 각 old (word, hash) 페어에 대해 skeleton에서 같은 word + 다른 hash 찾기
-    let newSelector = broken.selector;
+    let newSelector = brokenSelector;
     const substitutions: Array<{ from: string; to: string; word: string }> = [];
 
     for (const m of oldMatches) {
@@ -132,7 +113,7 @@ function tryAutoFix(
 
     return {
         selectorName: broken.name,
-        oldSelector: broken.selector,
+        oldSelector: brokenSelector,
         newSelector,
         reason: substitutions.map(s => `${s.from} → ${s.to}`).join(', '),
     };

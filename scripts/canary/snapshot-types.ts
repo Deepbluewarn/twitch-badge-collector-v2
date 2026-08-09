@@ -7,13 +7,15 @@
 
 export interface SelectorSample {
     name: string;
-    selector: string;
-    /** 현재 DOM에서 매칭된 개수 */
-    count: number;
+    selector?: string;
+    /** 현재 DOM에서 매칭된 개수. persist 시 strip. */
+    count?: number;
     /** required 여부. false면 count=0을 실패로 안 침. */
     required: boolean;
-    /** 매칭된 element들의 class 리스트 (첫 매칭 하나만). fingerprint용. */
-    matchedClasses: string[] | null;
+    /** 매칭된 element들의 class 리스트 (첫 매칭 하나만). persist 시 strip. */
+    matchedClasses?: string[] | null;
+    /** persist 후 로드에서만 세팅 — count>0이었는지 (diff에 사용). */
+    present?: boolean;
 }
 
 export interface CanarySnapshot {
@@ -27,8 +29,8 @@ export interface CanarySnapshot {
     selectors: SelectorSample[];
     /** 채팅창 못 찾아 fallback layer 사용했는지 */
     anchorLayer: 'L1' | 'L2' | 'L3' | 'L4' | 'none';
-    /** 채팅 wrapper 안 첫 chat element의 텍스트 제거 outerHTML (구조 뼈대) */
-    sampleSkeleton: string | null;
+    /** 채팅 wrapper 안 첫 chat element의 텍스트 제거 outerHTML (구조 뼈대). persist 시 strip. */
+    sampleSkeleton?: string | null;
     /** 스냅샷 뜰 때 봇이 봤던 chzzk manifest.rev (봇에 박힌 최신 bundled) */
     manifestRev: number;
     /** 병렬 방문 시 스냅샷 만드는 데 참여한 채널 수 (대표 스냅샷 선정 근거). */

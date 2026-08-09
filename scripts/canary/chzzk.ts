@@ -61,7 +61,7 @@ function mergeToSnapshot(results: ChannelVisitResult[], mode: 'live' | 'video'):
     // 채널별 required pass 여부
     const withScore = ok.map(r => {
         const req = r.selectors.filter(s => s.required);
-        const passed = req.filter(s => s.count > 0).length;
+        const passed = req.filter(s => (s.count ?? 0) > 0).length;
         return { result: r, requiredTotal: req.length, requiredPassed: passed };
     });
 
@@ -97,13 +97,17 @@ function loadBaseline(): CanarySnapshot | null {
 
 function saveSnapshot(snap: CanarySnapshot) {
     if (!existsSync(SNAPSHOT_DIR)) mkdirSync(SNAPSHOT_DIR, { recursive: true });
-    // volatile 필드(capturedAt/url/channelStatuses 등) 제외 → DOM 변화 없으면
-    // 파일 bit-identical → git diff 빈 → 커밋 안 됨. 커밋 스팸 방지.
+    // 진짜 durable만 persist. count/matchedClasses/sampleSkeleton은 매 run 대표 채널이
+    // 달라 흔들리는 값이라 저장 X → chat 종류 스왑 노이즈 → 파일 churn 제거.
+    // present만 남겨 다음 run에서 "이전엔 있었나" 판정 가능.
     const durable = {
         pageMode: snap.pageMode,
         anchorLayer: snap.anchorLayer,
-        selectors: snap.selectors,
-        sampleSkeleton: snap.sampleSkeleton,
+        selectors: snap.selectors.map(s => ({
+            name: s.name,
+            required: s.required,
+            present: (s.count ?? 0) > 0,
+        })),
         manifestRev: snap.manifestRev,
     };
     writeFileSync(SNAPSHOT_FILE, JSON.stringify(durable, null, 2) + '\n', 'utf-8');
@@ -167,7 +171,7 @@ async function main() {
         // 로그
         for (const r of results) {
             const req = r.selectors.filter(s => s.required);
-            const passed = req.filter(s => s.count > 0).map(s => s.name).join(',');
+            const passed = req.filter(s => (s.count ?? 0) > 0).map(s => s.name).join(',');
             const failed = req.filter(s => s.count === 0).map(s => s.name).join(',');
             console.log(`[canary] ${r.url}: ok=${r.ok} anchor=${r.anchorLayer} pass=${passed || 'none'} fail=${failed || 'none'} badges=${r.badgeUrls.length}`);
         }
