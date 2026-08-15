@@ -73,10 +73,13 @@ async function loadInventory(): Promise<BadgeInventory> {
     catch { return emptyV2(); }
 
     if (isV2(raw)) {
-        // v2도 옛 subscription entry 남아있을 수 있음 → filter
+        // urls는 string[] (신) 또는 {url,...}[] (구) — 둘 다 처리.
         for (const hash of Object.keys(raw.badges)) {
             const e = raw.badges[hash];
-            e.urls = e.urls.filter(u => !u.url.includes('/glive/subscription/'));
+            e.urls = (e.urls as unknown[]).filter(u => {
+                const url = typeof u === 'string' ? u : (u as { url?: string }).url ?? '';
+                return !url.includes('/glive/subscription/');
+            }) as never;
             if (e.urls.length === 0) delete raw.badges[hash];
         }
         return raw;
