@@ -48,15 +48,10 @@ export default function Local({
         return () => window.removeEventListener('tbc-channel-changed', onNav);
     }, [adapter]);
 
-    // 채팅 유지: Adapter가 지원하고 라이브 모드 + 사용자 설정 on일 때만. 채널 단위 scope.
-    const persistenceKey = (
-        adapter.supportsChatPersistence
-        && channelId
-        && adapter.getPageMode() === 'live'
-        && globalSetting.chatPersistence !== 'off'
-    )
-        ? `chatHistory:${type}:${channelId}:live`
-        : undefined;
+    // ponytail: 채팅 저장 기능 임시 제거 — storage.local quota + save race 이슈로
+    // 옛 채널 chat 잔류/설정 저장 실패 유발. 재작업 후 복원. 복원 시 위 4-조건 복구 +
+    // storage 사용량 관리 + write rejection 로그 필수.
+    const persistenceKey: string | undefined = undefined;
 
     // 캡쳐 모드: 사용자가 채팅을 클릭으로 선택 → 한 번에 PNG 다운로드.
     const [captureMode, setCaptureMode] = useState(false);
