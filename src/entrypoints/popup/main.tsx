@@ -21,7 +21,7 @@ import DeleteSweepOutlinedIcon from "@mui/icons-material/DeleteSweepOutlined";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
-import { setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition } from "@/reducer/setting";
+import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
 
 const PopupGlobalStyle = (
@@ -337,9 +337,15 @@ function PopupSetting() {
         />
       </SettingRow>
 
-      {/* ponytail: 채팅 저장 기능 UI 숨김 — 기능 임시 제거. 복원 시 여기 되살림. */}
+      {/* 새로고침/탭전환 후 수집된 채팅 유지 */}
+      <SettingRow label={t('chatPersistence' as any)}>
+        <Switch
+          checked={globalSetting.chatPersistence !== 'off'}
+          onChange={(e) => dispatchGlobalSetting(setChatPersistence(e.target.checked ? 'on' : 'off'))}
+        />
+      </SettingRow>
 
-{/* 표시 방식 — inline(합치기) / floating(아이콘+팝오버). 새로고침 필요. */}
+      {/* 표시 방식 — inline(합치기) / floating(아이콘+팝오버). 새로고침 필요. */}
       <SettingRow label={t('displayMode' as any)} hint={t('needRefresh')}>
         <ToggleButtonGroup
           value={globalSetting.displayMode ?? 'inline'}
