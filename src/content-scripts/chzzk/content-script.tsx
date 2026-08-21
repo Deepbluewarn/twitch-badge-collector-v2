@@ -69,6 +69,15 @@ async function bootstrap() {
         init();
         window.dispatchEvent(new CustomEvent('tbc-channel-changed'));
     });
+    // Chromium Navigation API — pushState 발화 즉시 감지. background webNavigation
+    // round trip(수 ms~수 100 ms) 우회 → savedChats에 옛 채널 chat 스치는 창 축소.
+    // Firefox엔 없음, addHistoryStateListener가 여전히 fallback.
+    const nav = (window as unknown as { navigation?: EventTarget }).navigation;
+    if (nav && typeof nav.addEventListener === 'function') {
+        nav.addEventListener('navigatesuccess', () => {
+            window.dispatchEvent(new CustomEvent('tbc-channel-changed'));
+        });
+    }
     setupFullscreenKeepAlive();
 
     if (SEL.pointButton) {

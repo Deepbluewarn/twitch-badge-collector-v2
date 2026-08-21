@@ -220,6 +220,9 @@ export default function useFilteredChatBuffer(
             window.clearTimeout(persistTimerRef.current);
         }
         persistTimerRef.current = window.setTimeout(() => {
+            // fire 시점 URL 재확인 — 디바운스 중 채널 이동했으면 옛 key로 저장 X (corruption 방지).
+            // persistenceKey = `chatHistory:${type}:${channelId}:live` — 3번째 세그먼트가 channelId.
+            if (adapter.getCurrentChannelId() !== persistenceKey.split(':')[2]) return;
             const payload: PersistedPayload = {
                 version: 1,
                 chats: savedChats.map(({ key, time, html, nickname, text, channel }) => ({ key, time, html, nickname, text, channel })),
