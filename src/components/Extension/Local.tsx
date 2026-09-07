@@ -43,9 +43,17 @@ export default function Local({
     // 갱신 → persistenceKey 변경 → useFilteredChatBuffer 재초기화 유도.
     const [channelId, setChannelId] = useState(adapter.getCurrentChannelId());
     useEffect(() => {
-        const onNav = () => setChannelId(adapter.getCurrentChannelId());
-        window.addEventListener('tbc-channel-changed', onNav);
-        return () => window.removeEventListener('tbc-channel-changed', onNav);
+        const sync = () => setChannelId(adapter.getCurrentChannelId());
+        window.addEventListener('tbc-channel-changed', sync);
+        // 이벤트 유실 대비 안전망. content script의 두 감지 경로(background webNavigation
+        // 메시지 / Chromium Navigation API)가 모두 놓치면 channelId가 옛 값에 머물고
+        // 채널 이동 시 버퍼 clear가 아예 안 돈다. 값이 같으면 React가 bail out하므로
+        // 비용은 문자열 비교 1회/초.
+        const timer = window.setInterval(sync, 1000);
+        return () => {
+            window.removeEventListener('tbc-channel-changed', sync);
+            window.clearInterval(timer);
+        };
     }, [adapter]);
 
     // 채팅 유지: Adapter가 지원하고 라이브 모드 + 사용자 설정 on일 때만. 채널 단위 scope.
@@ -70,7 +78,7 @@ export default function Local({
     const captureView = useMemo(() => ({ captureMode, selectedKeys }), [captureMode, selectedKeys]);
 
     const { chats, addChat, clear, savedChats } = useFilteredChatBuffer(
-        adapter, maxNumChats, persistenceKey, captureView,
+        adapter, maxNumChats, channelId, persistenceKey, captureView,
     );
 
     // savedChats 트림으로 사라진 키를 selectedKeys에서 제거 — 카운트가 실제 선택된

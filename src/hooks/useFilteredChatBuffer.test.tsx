@@ -108,4 +108,56 @@ describe('useFilteredChatBuffer', () => {
         act(() => result.current.clear());
         expect(result.current.chats).toEqual([]);
     });
+    // 채널 이동 시 옛 채널 채팅 잔류 회귀 방지. 이전 구현은 switch 감지를
+    // persistenceKey로 했는데, 그 key는 chatPersistence off / non-live 페이지에서
+    // undefined라 (a) 설정 off면 영영 안 비워지고 (b) live→non-live→live 경유 시
+    // 직전 채널 기억이 날아가 감지 자체를 놓쳤다.
+    describe('channel switch', () => {
+        const renderWithChannel = (initial: string | null) => renderHook(
+            ({ ch }: { ch: string | null }) => useFilteredChatBuffer(makeAdapter('newest-top'), 100, ch),
+            { initialProps: { ch: initial } },
+        );
+
+        it('clears the buffer on channel switch even with persistence disabled', () => {
+            const { result, rerender } = renderWithChannel('aaa');
+
+            act(() => result.current.addChat(passed({ key: 'a', time: 1 })));
+            act(() => result.current.addChat(passed({ key: 'b', time: 2 })));
+            expect(result.current.chats).toHaveLength(2);
+
+            rerender({ ch: 'bbb' });
+            expect(result.current.chats).toEqual([]);
+        });
+
+        it('still detects the switch when a non-live page is passed through', () => {
+            const { result, rerender } = renderWithChannel('aaa');
+
+            act(() => result.current.addChat(passed({ key: 'a', time: 1 })));
+            // 채널 홈/검색 등 channelId 미확정 구간 — 여기선 비우지 않고 기억만 유지.
+            rerender({ ch: null });
+            expect(result.current.chats).toHaveLength(1);
+
+            rerender({ ch: 'bbb' });
+            expect(result.current.chats).toEqual([]);
+        });
+
+        it('keeps chats when the same channel id re-renders', () => {
+            const { result, rerender } = renderWithChannel('aaa');
+
+            act(() => result.current.addChat(passed({ key: 'a', time: 1 })));
+            rerender({ ch: 'aaa' });
+
+            expect(result.current.chats).toHaveLength(1);
+        });
+
+        it('keeps chats when the channel id resolves for the first time', () => {
+            const { result, rerender } = renderWithChannel(null);
+
+            // mount 직후 URL 파싱 전에 들어온 채팅 — 첫 확정은 이동이 아니므로 보존.
+            act(() => result.current.addChat(passed({ key: 'a', time: 1 })));
+            rerender({ ch: 'aaa' });
+
+            expect(result.current.chats).toHaveLength(1);
+        });
+    });
 });

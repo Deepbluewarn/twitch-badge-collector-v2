@@ -122,6 +122,7 @@ interface CaptureViewState {
 export default function useFilteredChatBuffer(
     adapter: PlatformAdapter,
     maxChats: number,
+    channelId?: string | null,
     persistenceKey?: string,
     capture?: CaptureViewState,
 ) {
@@ -151,28 +152,33 @@ export default function useFilteredChatBuffer(
         });
     }, [capture?.captureMode, maxChats, adapter.chatOrder]);
 
-    // 마운트 시 + persistenceKey 변경 시(=채널 이동) storage에서 load.
-    // 채널 이동 케이스는 prev = 옛 채널 chat들이라 반드시 clear 후 load. 그렇지 않으면
-    // 옛 채널 chat이 새 채널 뷰에 잔류. 초기 mount 케이스는 prev=[] 또는 로드 중
-    // 들어온 신규 live chat이라 병합 대상.
-    const prevPersistenceKeyRef = useRef<string | undefined>(undefined);
+    // 채널 이동 감지는 channelId 기준. persistenceKey로 감지하면 안 됨 — 이 key는
+    // chatPersistence 설정이 off거나 pageMode가 live가 아니면 undefined라서:
+    //  - 설정 off면 key가 늘 undefined → 채널 이동을 영영 못 잡고 옛 채널 chat이 계속 누적
+    //  - live A → 채널 홈/검색 등 non-live 페이지 → live B로 경유하면 중간에 key가
+    //    undefined로 떨어져 "직전 채널" 기억이 날아가고, B에서도 A의 chat이 잔류
+    // 그래서 채널 미확정(falsy) 구간에선 직전 channelId 기억을 유지하고, 실제로 다른
+    // 채널로 확정 이동한 순간에만 비운다. persistence 지원 안 하는 어댑터(Twitch)도 동일.
+    const prevChannelIdRef = useRef<string | null | undefined>(undefined);
+    useEffect(() => {
+        if (!channelId) return;
+        const prev = prevChannelIdRef.current;
+        prevChannelIdRef.current = channelId;
+        if (prev === undefined || prev === channelId) return;
+        // 옛 채널 chat 즉시 비움. persistence 켜져 있으면 아래 load가 새 채널 것으로 채움.
+        setSavedChats([]);
+        isHydratedRef.current = false;
+        emitPreviewCleared();
+    }, [channelId]);
+
+    // 마운트 시 + persistenceKey 변경 시 storage에서 load.
+    // 채널 이동으로 인한 clear는 위 effect가 (선언 순서상) 먼저 처리 → 여기서 보는 prev는
+    // 초기 mount의 [] 또는 로드 중 들어온 신규 live chat뿐이라 병합 대상.
     useEffect(() => {
         if (!persistenceKey) {
             isHydratedRef.current = true;
-            prevPersistenceKeyRef.current = undefined;
             return;
         }
-        const isChannelSwitch = prevPersistenceKeyRef.current !== undefined
-            && prevPersistenceKeyRef.current !== persistenceKey;
-        prevPersistenceKeyRef.current = persistenceKey;
-
-        if (isChannelSwitch) {
-            // 옛 채널 chat 즉시 비움. 이후 loadPersisted가 새 채널 것으로 채움.
-            setSavedChats([]);
-            isHydratedRef.current = false;
-            emitPreviewCleared();
-        }
-
         let cancelled = false;
         loadPersisted(persistenceKey).then(loaded => {
             if (cancelled) return;
