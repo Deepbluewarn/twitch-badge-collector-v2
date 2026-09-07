@@ -32,3 +32,6 @@ plan.md
 
 # canary 봇이 실행마다 만드는 임시 auto-fix 후보 파일 (workflow 안에서만 소비)
 canary-autofix.json
+
+# Claude Code 로컬 설정 (권한 allowlist 등) — 개인 환경 경로 포함
+.claude/
