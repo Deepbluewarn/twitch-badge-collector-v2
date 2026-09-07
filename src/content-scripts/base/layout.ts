@@ -30,7 +30,10 @@ export function applyRatio(type: Platform, ratio: number, position: Position) {
     let clone_size = parseFloat((ratio * 0.01).toFixed(2));
     let orig_size = parseFloat((1 - clone_size).toFixed(2));
 
-    if (position === "up") {
+    // "down"만 명시적으로 갈라냄 — applyPosition도 down 아니면 up 레이아웃으로 두므로
+    // position이 undefined일 때 여기서 up으로 안 접으면 DOM은 up인데 크기만 뒤집혀
+    // 저장된 비율이 반전 적용된다 ("새로고침하면 비율이 안 먹는" 증상).
+    if (position !== "down") {
         [orig_size, clone_size] = [clone_size, orig_size];
     }
 

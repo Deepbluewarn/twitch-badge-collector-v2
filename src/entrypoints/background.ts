@@ -26,37 +26,89 @@ export default defineBackground(() => {
   fetchIfStale();
 
 
-  browser.runtime.onInstalled.addListener(async function (details) {
-    if (details.reason === "install") {
-      await browser.storage.local.set({ filter: defaultFilter });
+  // 설정 기본값 채우기 — 없는 key만 write. 몇 번 호출해도 안전(idempotent).
+  //
+  // onInstalled 본문에 인라인으로 두지 않는 이유:
+  //  1) 예전엔 chzzk 배지 fetch 뒤에 있어서, 그 fetch가 실패하면(오프라인 설치,
+  //     API 장애, 차단기/브라우저의 요청 차단) listener가 그 자리에서 reject →
+  //     기본값 write가 통째로 스킵됐다. filter만 있고 position/containerRatio는
+  //     없는 반쪽 상태가 되고, position이 없으면 applyRatio가 비율을 반전 적용해
+  //     "새로고침하면 조정한 비율이 안 먹는다"로 드러난다.
+  //  2) 이미 그 상태로 설치된 사용자는 재설치 전엔 복구가 안 되므로 SW wake마다
+  //     한 번 더 돌려 자가 복구시킨다 (fetchIfStale과 같은 패턴).
+  async function ensureDefaultSettings() {
+    const DEFAULTS: Record<string, unknown> = {
+      position: "up",
+      pointBoxAuto: "on",
+      darkTheme: "system",
+      chatTime: "off",
+      maximumNumberChats: (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
+      advancedFilter: "off",
+      platform: "chzzk",
+      containerRatio: 30,
+      collectedChatMarker: "on",
+      jumpToBottomButton: "on",
+      chatPersistence: "on",
+      displayMode: "inline",
+      floatingBgColor: '',
+    };
+
+    const keys = Object.keys(DEFAULTS);
+    const stored = await browser.storage.local.get(keys);
+
+    // truthy 체크(||)가 아니라 undefined 체크 — containerRatio 0은 "한쪽 100%"를
+    // 뜻하는 합법 값이고 floatingBgColor ''도 "자동 감지"라는 의미 있는 값이다.
+    // ||로 덮으면 업데이트마다 사용자 설정이 default로 되돌아간다.
+    const missing: Record<string, unknown> = {};
+    for (const key of keys) {
+      if (stored[key] === undefined || stored[key] === null) {
+        missing[key] = DEFAULTS[key];
+      }
     }
 
-    let updatedFilter: CompositeFilterElement[] = [];
+    // 채울 게 없으면 write 생략 — 불필요한 onChanged broadcast 방지.
+    if (Object.keys(missing).length === 0) return;
+
+    await browser.storage.local.set(missing);
+  }
+
+  // 구버전 필터엔 platform 필드가 없음 → twitch로 간주. 네트워크 불필요.
+  async function normalizeFilterPlatform() {
     const filter: CompositeFilterElement[] = (await browser.storage.local.get('filter')).filter;
-    const chzzkBadgeList = await fetch('https://api.badgecollector.dev/chzzk/badges', { method: 'GET' }).then(res => res.json());
-    const chzzkBadgeMap = new Map();
+
+    const updatedFilter = filter ? filter.map((f) => {
+      f.platform = !f.platform ? 'twitch' : f.platform;
+      return f;
+    }) : defaultFilter;
+
+    await browser.storage.local.set({ filter: updatedFilter });
+  }
+
+  // chzzk 배지 이미지 URL은 서버에서 바뀔 수 있어 install/update마다 재동기화.
+  // 실패는 치명적이지 않음 — 배지 아이콘만 옛 URL로 남고 필터 매칭은 이름 기준이라 동작.
+  async function syncChzzkBadgeImages() {
+    const res = await fetch('https://api.badgecollector.dev/chzzk/badges', { method: 'GET' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const chzzkBadgeList = await res.json();
+    if (!Array.isArray(chzzkBadgeList)) throw new Error('unexpected badge list shape');
+
+    const chzzkBadgeMap = new Map<string, string>();
     chzzkBadgeList.forEach((b: any) => {
       chzzkBadgeMap.set(b.name, b.image);
-    })
+    });
 
-    updatedFilter = filter ? (
-      filter.map((f) => {
-        f.platform = !f.platform ? 'twitch' : f.platform;
-        return f;
-      })
-    ) : (
-      defaultFilter
-    )
+    const filter: CompositeFilterElement[] = (await browser.storage.local.get('filter')).filter ?? [];
 
-    updatedFilter = updatedFilter.map(filterObj => {
+    const updatedFilter = filter.map(filterObj => {
       if (filterObj.platform !== 'chzzk') {
         return filterObj;
       }
       filterObj.filters = filterObj.filters.map(f => {
         const name = f.badgeName?.split(':')[1]?.trim();
 
-        if (chzzkBadgeMap.has(name) && f.category === 'badge') {
-          f.value = chzzkBadgeMap.get(name);
+        if (name && f.category === 'badge' && chzzkBadgeMap.has(name)) {
+          f.value = chzzkBadgeMap.get(name)!;
         }
 
         return f;
@@ -65,29 +117,26 @@ export default defineBackground(() => {
     })
 
     await browser.storage.local.set({ filter: updatedFilter });
-    const SETTING_LIST = [
-      "position", "pointBoxAuto", "darkTheme",
-      "chatTime", "maximumNumberChats", "advancedFilter",
-      "platform", "containerRatio", "collectedChatMarker", "jumpToBottomButton",
-      "chatPersistence", "displayMode", "floatingBgColor",
-    ]
+  }
 
-    const settings = await browser.storage.local.get(SETTING_LIST);
-    await browser.storage.local.set({
-      position: settings.position ? settings.position : "up",
-      pointBoxAuto: settings.pointBoxAuto ? settings.pointBoxAuto : "on",
-      darkTheme: settings.darkTheme ? settings.darkTheme : "system",
-      chatTime: settings.chatTime ? settings.chatTime : "off",
-      maximumNumberChats: settings.maximumNumberChats ? settings.maximumNumberChats : (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
-      advancedFilter: settings.advancedFilter ? settings.advancedFilter : "off",
-      platform: settings.platform ? settings.platform : "chzzk",
-      containerRatio: settings.containerRatio ? settings.containerRatio : 30,
-      collectedChatMarker: settings.collectedChatMarker ? settings.collectedChatMarker : "on",
-      jumpToBottomButton: settings.jumpToBottomButton ? settings.jumpToBottomButton : "on",
-      chatPersistence: settings.chatPersistence ? settings.chatPersistence : "on",
-      displayMode: settings.displayMode ? settings.displayMode : "inline",
-      floatingBgColor: settings.floatingBgColor ?? '',
-    });
+  // 기본값은 네트워크와 무관하게 항상. SW wake마다 불리지만 위 조기 return 덕에
+  // 정상 상태에선 storage read 1회로 끝난다.
+  ensureDefaultSettings().catch(e => console.warn('[tbcv2 bg] ensureDefaultSettings failed', e));
+
+  browser.runtime.onInstalled.addListener(async function (details) {
+    if (details.reason === "install") {
+      await browser.storage.local.set({ filter: defaultFilter });
+    }
+
+    // 네트워크 없이 되는 것부터 — 아래 fetch가 죽어도 설정/필터는 유효한 상태로 남는다.
+    await ensureDefaultSettings();
+    await normalizeFilterPlatform();
+
+    try {
+      await syncChzzkBadgeImages();
+    } catch (e) {
+      console.warn('[tbcv2 bg] chzzk badge sync skipped', e);
+    }
   });
 
   // 채팅 이미지 캡쳐: 호스트 페이지의 fetch는 CORS 막혀서 배지/이모트 이미지 못 읽음.

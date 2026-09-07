@@ -523,12 +523,17 @@ function Popup() {
   }
 
   useEffect(() => {
-    addStorageUpdateListener((key, newValue) => {
-      if (key === "position") {
+    addStorageUpdateListener((key, newValue, oldValue) => {
+      // 위/아래를 뒤집었으면 비율도 같이 뒤집어야 화면상 경계가 그대로 유지된다.
+      //
+      // oldValue === undefined는 "사용자가 토글했다"가 아니라 "position 키가 방금
+      // 처음 생겼다" — background ensureDefaultSettings의 backfill이다. 이걸
+      // 토글로 오해하면 self-heal 되는 순간 사용자가 맞춰둔 비율이 한 번 뒤집힌다.
+      if (key === "position" && oldValue !== undefined) {
         browser.storage.local.get("containerRatio").then((res) => {
-          let cr = res.containerRatio;
-          cr = 100 - cr;
-          browser.storage.local.set({ containerRatio: cr });
+          // 미초기화 storage면 100 - undefined = NaN이 저장돼 이후 비율이 영구히 깨진다.
+          const current = typeof res.containerRatio === 'number' ? res.containerRatio : 30;
+          browser.storage.local.set({ containerRatio: 100 - current });
         });
       }
     })
