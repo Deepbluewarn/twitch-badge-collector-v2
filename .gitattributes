@@ -1,0 +1,8 @@
+# 줄바꿈은 저장소와 작업트리 모두 LF 로 통일.
+# eol=lf 를 명시해야 Windows 체크아웃에서도 CRLF 로 변환되지 않는다
+# (core.autocrlf 개인 설정보다 .gitattributes 가 우선).
+* text=auto eol=lf
+
+# 바이너리는 줄바꿈 변환/diff 대상에서 제외.
+*.png binary
+*.gif binary
