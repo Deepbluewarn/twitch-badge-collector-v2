@@ -111,7 +111,14 @@ export class TwitchAdapter implements PlatformAdapter {
     }
 
     computeDragRatio(rect: DOMRect, clientY: number): number {
+        // 높이 0(레이아웃 전)이면 0으로 나눠 ±Infinity가 되고, clamp가 그걸 0이나
+        // 100으로 접어 사용자가 고른 값처럼 저장된다. NaN으로 "계산 불가"를 알려
+        // 호출측이 이 프레임을 버리게 한다.
+        if (!(rect.height > 0)) return NaN;
+
         const ratio = (1 - (clientY - rect.y) / rect.height) * 100;
+        if (!Number.isFinite(ratio)) return NaN;
+
         return Math.max(0, Math.min(100, Math.round(ratio)));
     }
 

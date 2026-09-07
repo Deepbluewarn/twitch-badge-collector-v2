@@ -51,6 +51,33 @@ describe('ChzzkAdapter — pure methods', () => {
         it('clamps above 100 to 100', () => {
             expect(adapter.computeDragRatio(rect, -9999)).toBe(100);
         });
+
+        // 높이 0(레이아웃 전 DOM)에서 예전엔 0으로 나눠 -Infinity → clamp가 0으로
+        // 접었고, 그 0이 "사용자가 고른 한쪽 100%"로 저장돼 컨테이너가 깨졌다.
+        it('높이 0이면 NaN — 호출측이 버리도록', () => {
+            expect(adapter.computeDragRatio({ y: 0, height: 0 } as DOMRect, 100)).toBeNaN();
+        });
+
+        // constants는 OTA로 통째로 바뀔 수 있어 누락 가능. 예전엔 undefined가
+        // 산술에 섞여 NaN이 됐고 clamp가 NaN을 통과시켜 그대로 저장됐다.
+        it('OTA manifest에 constants가 없어도 offset 0으로 계산된다', async () => {
+            const { setManifest, getManifest } = await import('./host-selectors');
+            const current = getManifest();
+            const stripped = JSON.parse(JSON.stringify(current));
+            delete stripped.platforms.chzzk.constants;
+            stripped.rev = current.rev + 1;
+
+            expect(setManifest(stripped)).toBe(true);
+            try {
+                expect(adapter.computeDragRatio(rect, 200)).toBe(50);
+            } finally {
+                // manifest는 모듈 전역 — 되돌리지 않으면 뒤 테스트가 constants 없는
+                // 상태를 물려받는다. setManifest는 rev 단조 증가만 받으므로 +2.
+                const restored = JSON.parse(JSON.stringify(current));
+                restored.rev = current.rev + 2;
+                setManifest(restored);
+            }
+        });
     });
 });
 

@@ -76,7 +76,15 @@ export class Handle {
 
         if (chatListContainer) {
             const rect = chatListContainer.getBoundingClientRect();
-            this.ratio = this.adapter.computeDragRatio(rect, clientY);
+            const next = this.adapter.computeDragRatio(rect, clientY);
+
+            // 계산이 실패하면(NaN/Infinity) 이 프레임을 통째로 버린다 — 화면 반영도
+            // 저장도 안 하고 didDrag도 안 세운다. 호스트 DOM이 아직 높이 0이거나
+            // OTA config에서 drag offset이 빠지면 여기로 온다. NaN을 그대로 저장하면
+            // storage가 null로 직렬화해서 사용자에겐 "비율이 저장이 안 된다"로 보인다.
+            if (!Number.isFinite(next)) return;
+
+            this.ratio = next;
             this.didDrag = true;
             applyRatio(this.type, this.ratio, this.position);
         }
@@ -92,9 +100,15 @@ export class Handle {
             console.warn('[tbcv2] endDrag freeze cleanup failed', e);
         }
 
-        if (this.didDrag) {
+        // didDrag만으론 부족 — doDrag가 걸러도 여기서 한 번 더 확인. 저장은 유일한
+        // 영속 경로라 잘못된 값이 들어가면 새로고침 이후까지 깨진 채로 남는다.
+        if (this.didDrag && Number.isFinite(this.ratio)) {
+            // storage.local.set은 Promise를 reject하지 정적 throw를 하지 않는다.
+            // try/catch만 두면 quota 초과 등 실제 실패가 unhandled rejection으로
+            // 새어나가 조용히 묻힌다 — .catch로 받아야 로그에 남는다.
             try {
-                browser.storage.local.set({ containerRatio: this.ratio });
+                browser.storage.local.set({ containerRatio: this.ratio })
+                    .catch((e) => console.warn('[tbcv2] endDrag storage write rejected', e));
             } catch (e) {
                 console.warn('[tbcv2] endDrag storage write failed', e);
             }

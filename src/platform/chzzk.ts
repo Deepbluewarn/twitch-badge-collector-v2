@@ -84,8 +84,22 @@ export class ChzzkAdapter implements PlatformAdapter {
     }
 
     computeDragRatio(rect: DOMRect, clientY: number): number {
-        const usableHeight = rect.height - (cfg().constants?.dragHeaderOffset as number) - (cfg().constants?.dragFooterOffset as number);
-        const ratio = (1 - (clientY - rect.y - (cfg().constants?.dragHeaderOffset as number)) / usableHeight) * 100;
+        // constants는 OTA로 갈아끼워지는 값 — manifest에서 통째로 빠질 수 있고,
+        // 그러면 undefined가 산술에 섞여 결과가 NaN이 된다. clamp의 Math.max/min은
+        // NaN을 통과시키므로 여기서 막지 않으면 NaN이 그대로 저장까지 흘러간다.
+        const headerOffset = Number(cfg().constants?.dragHeaderOffset ?? 0) || 0;
+        const footerOffset = Number(cfg().constants?.dragFooterOffset ?? 0) || 0;
+
+        const usableHeight = rect.height - headerOffset - footerOffset;
+
+        // 채팅창이 아직 레이아웃 전(높이 0)이거나 offset이 높이보다 클 때. 0으로 나누면
+        // ±Infinity가 되고 clamp가 그걸 0이나 100으로 접어서, 사용자가 "한쪽 100%"를
+        // 고른 것처럼 저장된다. NaN을 돌려 호출측(doDrag)이 이 프레임을 버리게 한다.
+        if (!(usableHeight > 0)) return NaN;
+
+        const ratio = (1 - (clientY - rect.y - headerOffset) / usableHeight) * 100;
+        if (!Number.isFinite(ratio)) return NaN;
+
         return Math.max(0, Math.min(100, Math.round(ratio)));
     }
 
