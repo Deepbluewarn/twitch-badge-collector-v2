@@ -113,8 +113,6 @@
         "channel_setting": "Channel Setting",
         "save_chat": "Save Chats As Image",
         "login_with_twitch": "Login with Twitch",
-        
-        
         "darkmode": "Dark Mode",
         "font_size": "Font Size",
         "font_size_options": {
@@ -140,5 +138,12 @@
         "filter_mode": {
             "advanced": "Advenced Settings"
         }
+    },
+    "selector_health": {
+        "title": "Chat collection has stopped",
+        "body": "The site's layout changed, so chats can't be read. An automatic recovery was requested — please refresh the page.",
+        "partial": "Only part of each chat can be read ({{fields}}). Filters using those fields are paused.",
+        "refresh": "Refresh",
+        "dismiss": "Dismiss"
     }
 }

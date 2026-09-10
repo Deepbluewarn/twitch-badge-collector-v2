@@ -15,6 +15,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..', '..');
 const AUTOFIX_FILE = join(REPO_ROOT, 'canary-autofix.json');
 const MANIFEST_FILE = join(REPO_ROOT, 'src/platform/bundled-selectors.prod.json');
+// v2.18.15 이전 빌드의 OTA target. docs/ota-selectors.md 권고대로 두 파일을 같이
+// 갱신해야 옛 사용자도 같은 fix를 받는다 — 여기서 빼먹으면 옛 사용자는 계속 깨진 채다.
+const LEGACY_MANIFEST_FILE = join(REPO_ROOT, 'src/platform/bundled-selectors.json');
 
 if (!existsSync(AUTOFIX_FILE)) {
     console.log('canary-autofix.json 없음 — skip');
@@ -48,6 +51,23 @@ if (applied.length === 0) {
 
 writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2) + '\n');
 
+// legacy manifest에도 같은 치환을 적용. rev는 각 파일이 독립적으로 monotonic이면
+// 되므로 prod와 같은 값으로 맞춘다 (legacy가 더 낮은 rev에 머물러 있어도 증가는 보장).
+const legacyApplied = [];
+if (existsSync(LEGACY_MANIFEST_FILE)) {
+    const legacy = JSON.parse(readFileSync(LEGACY_MANIFEST_FILE, 'utf-8'));
+    const legacySel = legacy.platforms?.chzzk?.selectors ?? {};
+    for (const c of applied) {
+        if (legacySel[c.selectorName] === c.oldSelector) {
+            legacySel[c.selectorName] = c.newSelector;
+            legacyApplied.push(c.selectorName);
+        }
+    }
+    legacy.rev = Math.max(Number(legacy.rev ?? 0) + 1, manifest.rev);
+    writeFileSync(LEGACY_MANIFEST_FILE, JSON.stringify(legacy, null, 2) + '\n');
+    console.log(`legacy manifest rev ${legacy.rev}, 치환 ${legacyApplied.length}건`);
+}
+
 const branch = `canary/autofix-rev${manifest.rev}`;
 const runCmd = (cmd) => {
     console.log(`$ ${cmd}`);
@@ -57,7 +77,7 @@ const runCmd = (cmd) => {
 runCmd('git config user.name "github-actions[bot]"');
 runCmd('git config user.email "41898282+github-actions[bot]@users.noreply.github.com"');
 runCmd(`git checkout -b ${branch}`);
-runCmd('git add src/platform/bundled-selectors.prod.json');
+runCmd('git add src/platform/bundled-selectors.prod.json src/platform/bundled-selectors.json');
 const commitMsg = `chore(canary): chzzk selector auto-fix rev ${manifest.rev}\n\n` +
     applied.map(c => `- ${c.selectorName}: ${c.reason}`).join('\n');
 runCmd(`git commit -m ${JSON.stringify(commitMsg)}`);
@@ -70,6 +90,8 @@ const prBody = [
     '',
     '### 적용된 치환',
     ...applied.map(c => `- \`${c.selectorName}\`\n  - reason: ${c.reason}\n  - new selector: \`${c.newSelector}\``),
+    '',
+    `legacy manifest(\`bundled-selectors.json\`) 동시 갱신: ${legacyApplied.length}건 (${legacyApplied.join(', ') || '없음'})`,
     '',
     `**URL**: ${autofix.url}`,
     `**capturedAt**: ${autofix.capturedAt}`,

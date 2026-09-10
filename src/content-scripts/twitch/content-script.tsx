@@ -9,6 +9,7 @@ import {
     SELECTORS_MESSAGE_TYPE,
 } from "@/platform/host-selectors";
 import { registerDiagnoseListener } from "@/platform/diagnose";
+import { startSelectorHealthWatch } from "@/platform/selector-health";
 
 async function bootstrap() {
     // Manifest(OTA 또는 bundled) 적용 완료까지 대기 후 observer 부착.
@@ -20,6 +21,12 @@ async function bootstrap() {
 
     const adapter = new TwitchAdapter();
     registerDiagnoseListener(adapter, 'twitch');
+
+    // host가 class hash를 롤링해 required selector가 전멸하면 (1) 즉시 OTA fetch를
+    // 요청하고 (2) Container에 배너를 띄우도록 이벤트를 쏜다. Container mount 여부와
+    // 무관하게 돌아야 하므로 React 밖 — content-script bootstrap에 둔다.
+    let stopHealthWatch = startSelectorHealthWatch(adapter, 'twitch');
+
     const SEL = getPlatformConfig('twitch').selectors;
 
     const liveContainer = new BaseContainer(
@@ -48,6 +55,9 @@ async function bootstrap() {
 
     addHistoryStateListener('www.twitch.tv', init);
     addHistoryStateListener('www.twitch.tv', () => {
+        // 채널 이동 = 새 DOM. 옛 페이지 기준 판정을 버리고 다시 검사.
+        stopHealthWatch();
+        stopHealthWatch = startSelectorHealthWatch(adapter, 'twitch');
         window.postMessage({ action: 'tbc-historyUpdated' });
     });
 

@@ -49,6 +49,26 @@ The same enum (`include`/`exclude`/`sleep`) plays two roles depending on whether
 
 The atomic-level `exclude` is what lets a single composite express both presence and absence — e.g. `(NOT has 스트리머-badge) AND (has 매니저-badge)` is one composite with two atomics, the first set to `exclude`, the second to `include`.
 
+**확정되지 않은 필드 (unavailable)**:
+Host page 구조가 바뀌어 **Platform Adapter**가 어떤 필드를 못 뽑았을 때, 그 사실을
+`ChatInfo.unavailable`에 실어 보낸다. "값이 빈 문자열"과 "값을 모른다"는 다른 상태다.
+
+`evaluateFilterGroup`은 unavailable에 실린 **Filter Category**를 참조하는 composite
+**Filter Element**를 평가에서 **완전히 제외**한다 (composite 레벨 `sleep`과 같은 관측 결과).
+atomic 레벨에서 false로 떨구면 안 된다 — atomic `exclude`가 그 false를 부정해 true가 되고,
+"이 사람 제외" 같은 조건이 전원 매칭으로 뒤집힌다.
+
+판정 기준:
+- `name` — 작성자 없는 채팅은 없으므로 채팅 단위 부재로 바로 확정.
+- `badge` / `keyword` — 배지 없는 채팅, 이모티콘만 있는 채팅이 정상 존재하므로 채팅 단위
+  부재로는 판정 불가. `selector-health`의 **페이지 단위** 판정(required selector가 페이지
+  전체에서 0건)에만 의존한다.
+
+이 설계의 목적은 selector 하나가 깨졌을 때 채팅 수집이 100%가 아니라 부분만 손실되게
+하는 것이다. 2026-09-10 chzzk가 username class hash를 롤링했을 때(`_container_zw6kq_` →
+`_container_1mc5x_`) `displayName` 하나 때문에 모든 채팅이 필터 평가 전에 폐기됐다.
+_Avoid_: missing, empty, null 필드.
+
 **Filter Category**:
 Which chat property an atomic Filter Element checks. One of `badge`, `name`, `keyword`.
 
@@ -76,6 +96,8 @@ An optional restriction on a composite Filter Element making it fire only when t
 - **Filter validation**: [src/filter/validate.ts](src/filter/validate.ts) — `validateFilterList(filter)` returns `{valid:true}` or `{valid:false, error: FilterValidationError}` (error code, not localized string).
 - **Container layout**: [src/content-scripts/base/layout.ts](src/content-scripts/base/layout.ts) — `applyPosition`, `applyRatio`. Owns the 3 element ID convention, `order`/`height` rules.
 - **Platform adapters**: [src/platform/](src/platform/) — `PlatformAdapter` interface + `TwitchAdapter`/`ChzzkAdapter` impls. Each carries `extract`, `getCurrentChannelId`, `getPageMode`, `computeDragRatio`.
+- **Selector 건강 검사**: [src/platform/selector-health.ts](src/platform/selector-health.ts) — `inspectSelectors` / `startSelectorHealthWatch`. required selector 매칭 0을 감지해 (1) host-selectors의 broken 레지스트리에 게시 → Adapter가 `unavailable` 채움 (2) background에 즉시 OTA fetch 요청 (stale TTL 무시) (3) `tbc-selector-health` 이벤트 발화 → Container 배너. Container mount 여부와 무관해야 하므로 React 밖 content-script bootstrap에서 시작한다.
+- **Selector 문법 헬퍼**: [src/platform/selector-syntax.ts](src/platform/selector-syntax.ts) — `splitSelectorBranches` / `extractClassHashes`. 의존성 0이라 확장 런타임과 canary 스크립트가 공유. rev 14부터 fragile selector는 콤마 selector list로 이중화되어 있고, branch 하나가 죽어도 전체는 매칭되므로 branch 단위로 쪼개 봐야 조기 감지가 된다.
 - **Chat attribute contract**: [src/interfaces/chat-attributes.ts](src/interfaces/chat-attributes.ts) — `CHAT_ATTR` 상수 객체와 `PROCESSED_CHAT_CLASS`. inject 스크립트가 host page 채팅 노드에 박는 `data-tbc-chat-*` 속성과, useChatStream의 *처리됨* 마킹 클래스를 한 곳에 명시. inject ↔ Adapter.extract / useChatStream가 모두 이 상수를 참조해 컴파일 타임 sync.
 - **GlobalSetting cross-entrypoint sync**: [src/hooks/useGlobalSettingExtension.ts](src/hooks/useGlobalSettingExtension.ts) — `browser.storage.local`이 source of truth. 4개 entrypoint(popup/setting/welcome/Container)가 각자 hook을 호출하지만 `storage.onChanged` 리스너로 다른 entrypoint의 변경을 자기 state에 자동 반영. 자기 변경의 echo는 비교 후 no-op이라 루프 없음.
 

@@ -107,6 +107,15 @@ function saveSnapshot(snap: CanarySnapshot) {
             name: s.name,
             required: s.required,
             present: (s.count ?? 0) > 0,
+            // branch별 생존 여부도 durable. 이게 없으면 "이미 알고 있던 branch 사망"을
+            // 구분할 수 없어 매 run 같은 알림이 반복된다.
+            ...(s.branchCounts && s.branchCounts.length > 1
+                ? {
+                    branchPresence: Object.fromEntries(
+                        s.branchCounts.map(b => [b.selector, b.count > 0]),
+                    ),
+                }
+                : {}),
         })),
         manifestRev: snap.manifestRev,
     };
@@ -210,6 +219,16 @@ async function main() {
             lines.push(`- 채널 다수결: ${snapshot.channelStatuses?.filter(c => c.requiredPass).length ?? 0}/${snapshot.channelsVisited ?? 0} required pass`);
             if (diff.brokenRequired.length > 0) {
                 lines.push(`- 깨진 required selector: ${diff.brokenRequired.map(s => s.name).join(', ')}`);
+                // auto-fix로 못 올린 경우에도 검증된 후보는 보여준다 — 사람이 손으로
+                // 고칠 때 바로 붙여넣을 수 있게. (옛 알림은 "후보 못 찾음"만 남겼다.)
+                for (const b of diff.brokenRequired) {
+                    const probes = b.candidates ?? [];
+                    if (probes.length === 0) continue;
+                    lines.push(`  - \`${b.name}\` 검증된 후보 ${probes.length}개:`);
+                    for (const c of probes.slice(0, 3)) {
+                        lines.push(`    - ${c.replaced} · 점수 ${c.score.toFixed(2)} · 문서 ${c.docCount}건`);
+                    }
+                }
             }
             if (diff.autoFixCandidates.length > 0) {
                 lines.push(`- auto-fix 후보 ${diff.autoFixCandidates.length}개:`);
@@ -221,6 +240,24 @@ async function main() {
             for (const a of diff.alerts) lines.push(`- ${a}`);
         }
         await notifyDiscord(lines.join('\n'));
+
+        // 사람이 봐야 하는 상태면 workflow가 GitHub Issue를 열 수 있게 본문을 남긴다.
+        // Discord webhook만으로는 놓친다 — rev 13 사고에서 알림은 갔지만 18시간 동안
+        // 아무 조치가 없었고, 저장소엔 흔적이 남지 않아 추적도 안 됐다.
+        if (diff.brokenRequired.length > 0) {
+            writeFileSync(join(REPO_ROOT, 'canary-alert.json'), JSON.stringify({
+                mode: MODE,
+                title: `chzzk canary: required selector ${diff.brokenRequired.map(s => s.name).join(', ')} 깨짐`,
+                body: lines.join('\n'),
+                brokenRequired: diff.brokenRequired.map(s => ({
+                    name: s.name, selector: s.selector, candidates: s.candidates ?? [],
+                })),
+                autoFixCandidates: diff.autoFixCandidates,
+                url: snapshot.url,
+                capturedAt: snapshot.capturedAt,
+            }, null, 2));
+            console.log('[canary] 알림 요약 canary-alert.json에 기록');
+        }
 
         // auto-fix 후보 있으면 workflow 소비용 파일 생성
         if (diff.autoFixCandidates.length > 0) {

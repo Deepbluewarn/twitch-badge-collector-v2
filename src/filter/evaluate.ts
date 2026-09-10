@@ -38,9 +38,19 @@ export function evaluateFilterGroup(
     let res = false;
     let lastIncludeColor: string | undefined;
 
+    // host DOM에서 값을 못 뽑은 Category. 해당 Category를 참조하는 composite는
+    // 평가 자체에서 빠진다 — atomic 레벨에서 false로 떨구면 exclude atomic이
+    // 그걸 부정해 true가 되어 필터 의미가 뒤집히기 때문 (chat.unavailable 주석 참고).
+    const unavailable = chat.unavailable;
+
     for (let composite of filterGroup) {
         if (composite.filterChannelId && composite.filterChannelId !== channelId) {
             // 채널 전용 필터는 채널 ID 값이 일치해야 함.
+            continue;
+        }
+        if (unavailable && unavailable.length > 0
+            && composite.filters.some(f => unavailable.includes(f.category))) {
+            // 확정 못 한 필드에 의존하는 composite → verdict에 영향 없음 (sleep과 동일 효과).
             continue;
         }
         const filterMatched = composite.filters.every((filter) => {

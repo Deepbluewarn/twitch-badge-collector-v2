@@ -1,9 +1,9 @@
-import { BadgeInterface, ChatInfo } from "@/interfaces/chat";
+import { BadgeInterface, ChatInfo, UnavailableChatField } from "@/interfaces/chat";
 import type { PlatformAdapter } from "./";
 import { msToTime } from "@/utils/utils-common";
 import { createChzzkAPI, ChzzkAPI } from "@/api/chzzk";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
-import { getPlatformConfig, detectPageMode, extractChannelId } from "./host-selectors";
+import { getPlatformConfig, detectPageMode, extractChannelId, getBrokenSelectors } from "./host-selectors";
 
 const cfg = () => getPlatformConfig('chzzk');
 
@@ -42,24 +42,41 @@ export class ChzzkAdapter implements PlatformAdapter {
 
         const chat_clone = nodeElement.cloneNode(true) as Element;
 
+        // selector 하나가 깨져도 전량 폐기하지 않는다. 못 뽑은 필드만 unavailable로
+        // 표시해 넘기면 evaluateFilterGroup이 그 필드를 쓰는 composite만 건너뛴다.
+        // rev 13에서 displayName(username class hash) 하나 때문에 채팅이 100% 유실된
+        // 사고를 부분 유실로 완화하는 경로.
+        const unavailable: UnavailableChatField[] = [];
+
         const display_name = chat_clone.querySelector(sel.displayName);
-        if (!display_name) return;
-
-        let loginName: string = "";
-        let nickName: string = "";
-
-        if (display_name) {
-            loginName = display_name.textContent!;
-            nickName = display_name.textContent!;
-        }
-
         const badges = chat_clone.querySelectorAll(sel.badge);
         const textContents = chat_clone.querySelectorAll(sel.messageText);
         const donationTextContents = sel.donationText
             ? chat_clone.querySelectorAll(sel.donationText)
             : [];
 
-        const badgeArr = Array.from(badges).map((badge) => badge.getElementsByTagName("img")[0].src);
+        // 채팅이 아닌 노드(list_bottom marker, padding item, popup 등)는 아무 필드도
+        // 안 잡힌다. 그건 "selector 깨짐"이 아니라 "채팅이 아님" 이므로 여기서 걸러야
+        // 한다 — unavailable을 잔뜩 달아 흘려보내면 필터 로그가 쓰레기로 찬다.
+        if (!display_name && textContents.length === 0 && donationTextContents.length === 0) return;
+
+        const nameText = display_name?.textContent ?? "";
+        if (!display_name) unavailable.push('name');
+
+        // 배지/본문은 per-chat 부재가 "selector 깨짐"을 뜻하지 않는다 — 배지 없는 채팅,
+        // 이모티콘만 있는 채팅이 정상적으로 존재한다. 그래서 이 둘은 페이지 단위 판정
+        // (selector-health가 채우는 broken 레지스트리)에만 의존한다. 반면 작성자가 없는
+        // 채팅은 없으므로 name은 per-chat 부재로 바로 확정할 수 있다.
+        const broken = getBrokenSelectors();
+        if (broken.has('badge')) unavailable.push('badge');
+        if (broken.has('messageText')) unavailable.push('keyword');
+
+        // selector를 hash 없는 형태로 넓히면 <img> 없는 노드를 잡을 여지가 생긴다.
+        // 예전 코드는 `getElementsByTagName("img")[0].src`로 바로 접근해서 그 순간
+        // TypeError가 나고 extract 전체가 죽었다. img 없는 매칭은 그냥 버린다.
+        const badgeArr = Array.from(badges)
+            .map((badge) => badge.getElementsByTagName("img")[0]?.src)
+            .filter((src): src is string => !!src);
         const textArr = Array.from(textContents).map((text) => text.textContent);
         const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
 
@@ -70,8 +87,9 @@ export class ChzzkAdapter implements PlatformAdapter {
         return {
             badges: [...badgeArr],
             textContents: [...textArr, ...donationTextArr],
-            loginName: loginName,
-            nickName: nickName,
+            loginName: nameText,
+            nickName: nameText,
+            ...(unavailable.length > 0 ? { unavailable } : {}),
         } as ChatInfo;
     }
 

@@ -56,15 +56,23 @@ function stripTextNodes(node: Node) {
     }
 }
 
+function sanitizeSample(sample: DiagnoseReport['sample']): DiagnoseReport['sample'] {
+    return {
+        ...sample,
+        outerHTML: sample.outerHTML ? sanitizeOuterHTML(sample.outerHTML) : null,
+        extractedNickname: null,
+        extractedText: null,
+    };
+}
+
 export function sanitizeReport(report: DiagnoseReport): DiagnoseReport {
+    // samples는 sample과 같은 원본 텍스트를 담는다 — 하나만 sanitize하면 나머지로
+    // nickname/발화가 그대로 Discord에 흘러간다. 전부 통과시킨다.
+    const samples = (report.samples ?? []).map(sanitizeSample);
     return {
         ...report,
-        sample: {
-            ...report.sample,
-            outerHTML: report.sample.outerHTML ? sanitizeOuterHTML(report.sample.outerHTML) : null,
-            extractedNickname: null,
-            extractedText: null,
-        },
+        sample: sanitizeSample(report.sample),
+        samples,
     };
 }
 
@@ -75,7 +83,7 @@ export function sanitizeReport(report: DiagnoseReport): DiagnoseReport {
 const SELECTOR_CATEGORIES: Record<string, string[]> = {
     '채팅방/컨테이너': ['chatRoomLive', 'chatRoomVod', 'video'],
     '닉네임/메시지': ['displayName', 'messageText', 'usernameContainer', 'chatterName'],
-    '배지/인증': ['badge', 'verifiedIcon', 'blindText'],
+    '배지/인증': ['badge', 'blindText'],
     '도네이션': ['donationText'],
     '포인트 박스': ['pointButton', 'pointButtonContainer'],
     '기타': ['popupProfileHeader', 'foldedClassSubstring'],
@@ -116,17 +124,33 @@ function buildMarkdown(r: DiagnoseReport): string {
         })
         .join(' · ');
 
-    const extractLabel =
-        r.sample.extract === 'pass' ? '✅ pass'
-        : r.sample.extract === 'fail-undefined' ? '❌ undefined (selector 미매칭)'
-        : r.sample.extract === 'fail-throw' ? '❌ throw'
+    const labelOf = (v: DiagnoseReport['sample']['extract']) =>
+        v === 'pass' ? '✅ pass'
+        : v === 'fail-undefined' ? '❌ undefined (selector 미매칭)'
+        : v === 'fail-throw' ? '❌ throw'
         : '⚠️ 샘플 없음';
+
+    // 샘플 하나가 하필 전이 상태였을 때 전체가 깨진 것처럼 보이지 않도록 N개 집계.
+    const samples = r.samples && r.samples.length > 0 ? r.samples : [r.sample];
+    const passCount = samples.filter(x => x.extract === 'pass').length;
+    const extractLabel = samples.length > 1
+        ? `${labelOf(samples[0].extract)} (샘플 ${passCount}/${samples.length} pass)`
+        : labelOf(samples[0].extract);
+
+    // 부분 수집 상태 — 어떤 필드를 못 뽑았는지.
+    const unavailableUnion = Array.from(new Set(samples.flatMap(x => x.unavailable ?? [])));
+
+    // selector list 중 죽은 branch — 전체는 아직 매칭되므로 실패 목록엔 안 잡힌다.
+    const degraded = r.health?.degraded ?? [];
 
     const lines: string[] = [];
     lines.push(`## TBC 진단 리포트 — \`${r.platform}\` rev ${r.manifest.rev} (${r.manifest.source})`);
     lines.push('');
     lines.push(`**추출**: ${extractLabel}`);
     lines.push(`**Inject wrapper**: ${r.injectWrapper.exists ? `exists, chats ${r.injectWrapper.chatsWithKeyAttr}/${r.injectWrapper.chatCountInside}` : '**없음**'}`);
+    if (unavailableUnion.length > 0) {
+        lines.push(`**부분 수집**: 확정 못 한 필드 \`${unavailableUnion.join(', ')}\` — 해당 필드를 쓰는 필터는 평가에서 제외됨`);
+    }
     lines.push(`**필터**: 전체 ${r.filters.totalGroupCount} · 플랫폼 대상 ${r.filters.currentPlatformGroupCount}`);
     if (r.filters.firstGroupSummary) {
         lines.push(`  - 첫 그룹: \`${r.filters.firstGroupSummary.slice(0, 120)}\``);
@@ -146,6 +170,14 @@ function buildMarkdown(r: DiagnoseReport): string {
         lines.push('');
     } else {
         lines.push('### 필수 selector: 전부 통과');
+        lines.push('');
+    }
+    if (degraded.length > 0) {
+        lines.push('### ⚠️ 죽은 selector branch (기능은 정상)');
+        lines.push('_selector list 중 일부만 사망 — 남은 branch가 받치고 있다. 다음 롤링 전 교체 권장._');
+        for (const d of degraded) {
+            lines.push(`- \`${d.name}\`: ${d.deadBranches.map(b => `\`${b}\``).join(' , ')}`);
+        }
         lines.push('');
     }
     if (optionalEmpty.length > 0) {

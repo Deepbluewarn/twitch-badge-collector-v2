@@ -1,0 +1,657 @@
+<title>치지직 필터 정지 사고</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper:      #F7F9F8;
+    --surface:    #FFFFFF;
+    --ink:        #10171A;
+    --ink-soft:   #3D4C51;
+    --muted:      #6B7B80;
+    --rule:       #DCE4E2;
+    --rule-soft:  #EAF0EE;
+    --accent:     #00875A;
+    --accent-dim: #E2F1EB;
+    --critical:   #B33A28;
+    --critical-dim:#F8E7E3;
+    --warn:       #9A6800;
+    --warn-dim:   #FBF0DA;
+
+    --f-sans: "IBM Plex Sans KR", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+    --pad: clamp(20px, 5vw, 56px);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #0D1214;
+      --surface:    #141B1E;
+      --ink:        #E7EEEB;
+      --ink-soft:   #B6C4C1;
+      --muted:      #83938F;
+      --rule:       #263134;
+      --rule-soft:  #1B2427;
+      --accent:     #35C99B;
+      --accent-dim: #102A22;
+      --critical:   #E8806E;
+      --critical-dim:#2C1815;
+      --warn:       #D9A63C;
+      --warn-dim:   #2A2110;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:      #0D1214;
+    --surface:    #141B1E;
+    --ink:        #E7EEEB;
+    --ink-soft:   #B6C4C1;
+    --muted:      #83938F;
+    --rule:       #263134;
+    --rule-soft:  #1B2427;
+    --accent:     #35C99B;
+    --accent-dim: #102A22;
+    --critical:   #E8806E;
+    --critical-dim:#2C1815;
+    --warn:       #D9A63C;
+    --warn-dim:   #2A2110;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--f-sans);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: calc(var(--measure) + var(--pad) * 2);
+    margin: 0 auto;
+    padding: clamp(36px, 7vw, 80px) var(--pad) 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 52px;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead { display: flex; flex-direction: column; gap: 18px; }
+
+  .kicker {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  .kicker .sep { color: var(--rule); }
+  .kicker .plain { color: var(--muted); }
+
+  h1 {
+    font-size: clamp(30px, 5.5vw, 44px);
+    line-height: 1.18;
+    font-weight: 600;
+    letter-spacing: -0.022em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 60ch;
+  }
+
+  /* ---------- verdict strip ---------- */
+  .verdict {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .verdict > div {
+    padding: 16px 18px;
+    border-right: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .verdict > div:last-child { border-right: 0; }
+  .verdict dt {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0;
+  }
+  .verdict dd {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .verdict dd small { font-size: 13px; font-weight: 400; color: var(--muted); }
+
+  /* ---------- sections ---------- */
+  section { display: flex; flex-direction: column; gap: 16px; }
+
+  h2 {
+    font-size: 13px;
+    font-family: var(--f-mono);
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  h3 {
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 14px 0 0;
+    text-wrap: balance;
+  }
+
+  p { margin: 0; max-width: var(--measure); }
+  p + p { margin-top: 12px; }
+
+  strong { font-weight: 600; }
+  em { font-style: normal; background: var(--accent-dim); color: var(--ink); padding: 0 4px; border-radius: 2px; }
+
+  code {
+    font-family: var(--f-mono);
+    font-size: 0.855em;
+    background: var(--rule-soft);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 0.08em 0.34em;
+    word-break: break-word;
+  }
+
+  /* ---------- analogy callout ---------- */
+  .analogy {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 2px;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .analogy .lead {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* ---------- before/after ---------- */
+  .swap { display: flex; flex-direction: column; gap: 14px; }
+  .swap-item {
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .swap-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .swap-name { color: var(--ink); font-weight: 600; }
+  .swap-row { display: flex; gap: 12px; padding: 11px 14px; align-items: flex-start; }
+  .swap-row + .swap-row { border-top: 1px dashed var(--rule); }
+  .swap-tag {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .tag-dead { background: var(--critical-dim); color: var(--critical); }
+  .tag-live { background: var(--accent-dim); color: var(--accent); }
+  .swap-sel {
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    word-break: break-all;
+    min-width: 0;
+  }
+  .swap-sel .hash { color: var(--critical); font-weight: 600; }
+  .swap-sel .anchor { color: var(--accent); font-weight: 600; }
+
+  /* ---------- timeline ---------- */
+  .timeline { display: flex; flex-direction: column; border-left: 2px solid var(--rule); padding-left: 0; margin: 0; list-style: none; }
+  .timeline li {
+    position: relative;
+    padding: 0 0 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .timeline li:last-child { padding-bottom: 0; }
+  .timeline li::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 9px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 2px solid var(--rule);
+  }
+  .timeline li.hit::before { border-color: var(--critical); background: var(--critical); }
+  .timeline li.fix::before { border-color: var(--accent); background: var(--accent); }
+  .t-when {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .t-what { font-size: 15.5px; line-height: 1.55; }
+  .t-note { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+  /* ---------- tables ---------- */
+  .tw { overflow-x: auto; border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 460px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+  thead th {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ok { color: var(--accent); font-weight: 600; }
+  .bad { color: var(--critical); font-weight: 600; }
+
+  /* ---------- layers ---------- */
+  .layers { display: flex; flex-direction: column; gap: 0; counter-reset: layer; }
+  .layer {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 0 16px;
+    padding: 20px 0;
+    border-top: 1px solid var(--rule);
+    align-items: start;
+  }
+  .layer:last-child { border-bottom: 1px solid var(--rule); }
+  .layer-n {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    padding-top: 4px;
+  }
+  .layer-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .layer-title { font-size: 17px; font-weight: 600; letter-spacing: -0.012em; margin: 0; }
+  .layer-meta {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+  .layer-body p { font-size: 15px; line-height: 1.7; color: var(--ink-soft); }
+  .layer-body ul { margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.7; color: var(--ink-soft); display: flex; flex-direction: column; gap: 5px; }
+
+  /* ---------- next steps ---------- */
+  .steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 9px; font-size: 15.5px; }
+
+  .footnote {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.7;
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    max-width: var(--measure);
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    a { transition: opacity .15s ease; }
+    a:hover { opacity: .75; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="kicker">
+      <span>사고 기록</span><span class="sep">/</span>
+      <span class="plain">2026-09-10 → 09-11</span><span class="sep">/</span>
+      <span class="plain">manifest rev 13 → 14</span>
+    </div>
+    <h1>닉네임을 못 읽어서<br>필터가 통째로 멈췄다</h1>
+    <p class="standfirst">
+      치지직이 화면 코드의 이름표를 바꿨습니다. 확장 프로그램은 그중 <strong>닉네임 하나</strong>를
+      못 찾게 됐고, 그 한 줄 때문에 채팅이 필터에 도달하기도 전에 전부 버려졌습니다.
+      원인을 실제 방송 화면에서 확인하고, 같은 일이 또 일어나도 이 정도로 무너지지 않도록 5겹으로 고쳤습니다.
+    </p>
+  </header>
+
+  <dl class="verdict">
+    <div>
+      <dt>진짜 원인</dt>
+      <dd>이름표 변경<br><small>필터 로직은 무죄</small></dd>
+    </div>
+    <div>
+      <dt>채팅 손실</dt>
+      <dd class="bad">100%<br><small>→ 앞으로는 부분 손실</small></dd>
+    </div>
+    <div>
+      <dt>감지 → 조치</dt>
+      <dd>18시간<br><small>알림은 갔지만 방치</small></dd>
+    </div>
+    <div>
+      <dt>복구 방법</dt>
+      <dd>OTA 푸시<br><small>재배포 불필요</small></dd>
+    </div>
+  </dl>
+
+  <section>
+    <h2>무슨 일이 있었나</h2>
+
+    <div class="analogy">
+      <span class="lead">한 문장으로</span>
+      <p>
+        확장 프로그램은 치지직 화면에서 <strong>“이 이름표가 붙은 자리에 닉네임이 있다”</strong>는 약속을 보고
+        채팅을 읽습니다. 치지직이 그 이름표를 <code>_container_zw6kq_</code>에서
+        <code>_container_1mc5x_</code>로 바꿨고, 확장은 약속된 자리에 아무것도 없다고 판단했습니다.
+      </p>
+    </div>
+
+    <p>
+      이름표가 바뀌는 건 치지직 잘못이 아닙니다. 이 이름은 사이트를 새로 빌드할 때마다 자동으로 생성되는
+      값이라서, 치지직 입장에선 그냥 평소대로 배포한 것뿐입니다. 실제로 이 이름은
+      <code>o04z9</code> → <code>zw6kq</code> → <code>1mc5x</code>로 <strong>최소 세 번</strong> 바뀌었고,
+      바뀔 때마다 확장이 멈췄습니다.
+    </p>
+
+    <h3>왜 “필터가 죽은” 것처럼 보였나</h3>
+    <p>
+      채팅 한 줄을 처리하는 순서는 <strong>읽기 → 필터 판정 → 보여주기</strong>입니다.
+      문제는 첫 단계인 ‘읽기’에서 났습니다. 닉네임을 못 찾으면 그 채팅을 통째로 버리는 코드였기 때문에,
+      채팅은 <em>필터 판정에 도달조차 하지 못했습니다</em>. 사용자 눈에는 필터가 고장 난 것처럼 보이지만
+      필터는 애초에 호출되지 않았던 겁니다.
+    </p>
+  </section>
+
+  <section>
+    <h2>확인한 사실</h2>
+    <p>
+      추측을 남기지 않으려고 실제 방송 페이지를 브라우저로 열어 측정했습니다. 채팅 노드 하나하나를 세었고,
+      제보에 나온 그 채널(둥그레)을 포함해 여러 채널에서 같은 결과가 나왔습니다.
+    </p>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>확인한 것</th><th>결과</th><th>의미</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>기존 닉네임 selector</td>
+            <td class="num bad">0건</td>
+            <td>완전히 죽음 — 사고의 직접 원인</td>
+          </tr>
+          <tr>
+            <td>이름표만 교체했을 때</td>
+            <td class="num ok">채팅당 1건</td>
+            <td>구조는 그대로, 이름만 바뀐 게 확실</td>
+          </tr>
+          <tr>
+            <td>제보의 “빈 텍스트”</td>
+            <td class="num">67건 중 0건</td>
+            <td>재현 안 됨 — 일회성이었음</td>
+          </tr>
+          <tr>
+            <td>도네이션 채팅 본문</td>
+            <td class="num bad">0건</td>
+            <td>따로 깨져 있었음 (조용히 유실 중)</td>
+          </tr>
+          <tr>
+            <td>이모티콘만 있는 채팅</td>
+            <td class="num">20건 중 2~3건</td>
+            <td>본문이 비는 건 정상 — 설계에 반영</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      제보 데이터의 샘플 한 건이 닉네임·본문 모두 비어 있어서 처음엔 “치지직이 텍스트를 아예
+      다른 방식으로 그리기 시작한 것 아닌가”를 의심했습니다. 혼잡한 채널에서 2분간 지켜보고,
+      채팅이 화면에 꽂히는 바로 그 순간의 HTML을 67건 잡아본 결과 <strong>전부 정상</strong>이었습니다.
+      그 샘플은 우연히 전이 상태의 노드였고, 구조적인 문제가 아니었습니다.
+    </p>
+  </section>
+
+  <section>
+    <h2>타임라인</h2>
+    <ol class="timeline">
+      <li>
+        <span class="t-when">09-09 20:33 UTC</span>
+        <span class="t-what">감시 봇(canary) 마지막 정상 통과</span>
+      </li>
+      <li class="hit">
+        <span class="t-when">09-10 03:27 UTC</span>
+        <span class="t-what">감시 봇이 최초로 실패 — 방문한 모든 채널에서 닉네임 selector 0건</span>
+        <span class="t-note">감지는 제대로 됐다. 문제는 그다음이었다.</span>
+      </li>
+      <li>
+        <span class="t-when">09-10 09:56 · 15:56 · 20:29</span>
+        <span class="t-what">같은 실패 3회 더 반복</span>
+        <span class="t-note">자동 수정 PR은 만들어지지 않았고, 저장소에는 아무 흔적도 남지 않았다.</span>
+      </li>
+      <li class="hit">
+        <span class="t-when">09-10 21:37 UTC</span>
+        <span class="t-what">사용자 진단 리포트 도착 — “필터 기능이 완전히 죽었어”</span>
+        <span class="t-note">최초 감지로부터 18시간.</span>
+      </li>
+      <li class="fix">
+        <span class="t-when">09-11</span>
+        <span class="t-what">원인 확정, rev 14 배포 + 5개 계층 보강</span>
+      </li>
+    </ol>
+
+    <h3>감시 봇은 잡았는데 왜 아무 일도 안 일어났나</h3>
+    <p>
+      자동 수정 로직이 <strong>“후보가 여럿이면 헷갈리니 포기”</strong>하도록 되어 있었습니다.
+      그런데 하필 이번에 바뀐 이름의 앞부분(<code>_container_</code>)은 화면 곳곳에 쓰이는 아주 흔한
+      단어라, 후보가 항상 여러 개입니다. 즉 이 로직은 <em>가장 자주 깨지는 자리에서 항상 실패하도록</em>
+      만들어져 있었습니다. 남은 건 디스코드 알림 하나뿐이었고, 그건 묻혔습니다.
+    </p>
+  </section>
+
+  <section>
+    <h2>selector 교체 — 이름표 대신 구조를 붙잡기</h2>
+    <p>
+      바뀐 이름으로 갈아끼우면 지금은 고쳐지지만 다음 빌드에 또 죽습니다. 그래서 <strong>빌드마다 바뀌는
+      해시를 아예 쓰지 않는 형태</strong>로 바꾸고, 성격이 다른 두 개의 기준을 콤마로 나란히 걸어
+      한쪽이 죽어도 다른 쪽이 받치게 했습니다.
+    </p>
+
+    <div class="swap">
+      <div class="swap-item">
+        <div class="swap-head"><span class="swap-name">displayName</span><span style="color:var(--muted)">닉네임</span></div>
+        <div class="swap-row">
+          <span class="swap-tag tag-dead">이전</span>
+          <span class="swap-sel">[class*="<span class="hash">_container_zw6kq_</span>"] [class*="_text_"]</span>
+        </div>
+        <div class="swap-row">
+          <span class="swap-tag tag-live">rev 14</span>
+          <span class="swap-sel"><span class="anchor">button[aria-haspopup="true"]</span> [class*="_text_"], [class*="<span class="anchor">_nickname_</span>"] [class*="_text_"]</span>
+        </div>
+      </div>
+
+      <div class="swap-item">
+        <div class="swap-head"><span class="swap-name">badge</span><span style="color:var(--muted)">배지</span></div>
+        <div class="swap-row">
+          <span class="swap-tag tag-dead">이전</span>
+          <span class="swap-sel">[class*="<span class="hash">_container_1nwpy_</span>"]</span>
+        </div>
+        <div class="swap-row">
+          <span class="swap-tag tag-live">rev 14</span>
+          <span class="swap-sel">[class*="_icon_"] &gt; [class*="_container_"]<span class="anchor">:has(&gt; img)</span>, [class*="_container_1nwpy_"]:has(&gt; img)</span>
+        </div>
+      </div>
+
+      <div class="swap-item">
+        <div class="swap-head"><span class="swap-name">donationText</span><span style="color:var(--muted)">도네이션 본문</span></div>
+        <div class="swap-row">
+          <span class="swap-tag tag-dead">이전</span>
+          <span class="swap-sel">[class*="<span class="hash">_text_y6h6c_</span>"] — 이미 사망, 본문이 조용히 유실 중이었음</span>
+        </div>
+        <div class="swap-row">
+          <span class="swap-tag tag-live">rev 14</span>
+          <span class="swap-sel"><span class="anchor">p</span>[class*="_text_"]</span>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      <code>aria-haspopup</code>은 “클릭하면 프로필 창이 뜬다”는 <strong>기능</strong>에서 나오는 속성이라
+      디자인을 새로 빌드해도 따라 바뀌지 않습니다. <code>_nickname_</code>은 이름표에서 해시만 뺀 부분이라
+      역시 롤링에 면역입니다. 성격이 다른 두 축이라 함께 죽을 이유가 없습니다.
+    </p>
+    <p>
+      실제 검증에서 놓칠 뻔한 것도 있었습니다. 도네이션 채팅은 일반 채팅과 구조가 달라서
+      (버튼 이름이 다르고, 닉네임을 감싸는 껍데기가 하나 없음) 처음 세웠던 후보로는
+      <strong>도네이션 닉네임이 안 잡혔습니다.</strong> 실제 도네이션 샘플을 6건 잡아 검증하고 나서야
+      두 경우 모두 통과하는 형태를 골랐습니다.
+    </p>
+  </section>
+
+  <section>
+    <h2>5개 계층으로 보강</h2>
+
+    <div class="layers">
+      <div class="layer">
+        <span class="layer-n">L1</span>
+        <div class="layer-body">
+          <h3 class="layer-title">해시 의존 제거</h3>
+          <div class="layer-meta"><span>코드 배포 불필요</span><span>즉시 복구</span></div>
+          <p>빌드마다 바뀌는 이름 대신 기능·구조 기준으로 교체. 라이브 3개 채널에서 필수 항목이 모두 채팅당 정확히 1건씩 잡히는 것을 확인했습니다.</p>
+        </div>
+      </div>
+
+      <div class="layer">
+        <span class="layer-n">L2</span>
+        <div class="layer-body">
+          <h3 class="layer-title">두 갈래로 이중화</h3>
+          <div class="layer-meta"><span>코드 변경 0줄</span></div>
+          <p>콤마로 두 후보를 나란히 걸면 브라우저가 알아서 둘 다 시도합니다. 한쪽이 죽어도 기능은 유지됩니다.</p>
+          <p>단, 이러면 <strong>절반 죽어도 조용해진다</strong>는 부작용이 생깁니다. 그래서 감시 봇과 진단 도구가 갈래별로 따로 세도록 만들었습니다 — 한쪽이 죽는 순간 알림이 갑니다.</p>
+        </div>
+      </div>
+
+      <div class="layer">
+        <span class="layer-n">L3</span>
+        <div class="layer-body">
+          <h3 class="layer-title">전량 폐기 대신 부분 수집</h3>
+          <div class="layer-meta"><span>100% 손실 → 부분 손실</span></div>
+          <p>닉네임을 못 읽어도 채팅을 버리지 않고, <strong>“이 항목은 값을 모른다”</strong>고 표시해서 넘깁니다. 배지·키워드 필터는 그대로 동작합니다.</p>
+          <p>여기에 함정이 하나 있었습니다. 모르는 값을 그냥 “빈 값”으로 두면, <code>제외</code> 조건이 그걸 뒤집어 참이 되어 <strong>“이 사람 제외” 필터가 전원 매칭으로 변합니다.</strong> 그래서 값을 모르는 항목을 쓰는 조건은 아예 평가에서 빼도록 했고, 이 함정을 그대로 재현하는 테스트를 남겼습니다.</p>
+        </div>
+      </div>
+
+      <div class="layer">
+        <span class="layer-n">L4</span>
+        <div class="layer-body">
+          <h3 class="layer-title">감시 봇이 실제로 조치하게</h3>
+          <div class="layer-meta"><span>이번 사고의 진짜 미스</span></div>
+          <ul>
+            <li>후보를 <strong>실제 방송 페이지에서 직접 돌려보고</strong> 채점 — “채팅당 정확히 1건”처럼 원래 하던 일을 그대로 하는지로 오답을 걸러냅니다. 이번 건은 정답 하나만 통과합니다.</li>
+            <li>자동 수정 시 <strong>구버전용 파일까지 같이</strong> 갱신 (지금까지 빠져 있어 옛 사용자는 계속 깨진 상태였습니다).</li>
+            <li>자동으로 못 고치면 <strong>GitHub 이슈 생성</strong> — 디스코드 알림만으로는 놓칩니다.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="layer">
+        <span class="layer-n">L5</span>
+        <div class="layer-body">
+          <h3 class="layer-title">사용자에게 보이게 + 자가 복구</h3>
+          <div class="layer-meta"><span>지금까지 완전히 무성이었음</span></div>
+          <p>필수 항목이 하나도 안 잡히면 곧바로 최신 설정을 내려받고(평소 1시간 대기 규칙 무시), 채팅창 위에 배너를 띄워 새로고침을 안내합니다. 사용자가 “왜 안 되지”로 시간을 버리지 않게 하는 게 목적입니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>덤으로 같이 고친 것</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>발견</th><th>영향</th></tr></thead>
+        <tbody>
+          <tr><td>도네이션 본문 selector가 이미 죽어 있었음</td><td>도네이션 메시지 본문이 조용히 유실 중 — 키워드 필터에 안 걸림</td></tr>
+          <tr><td>진단 리포트가 샘플을 1건만 담음</td><td>전이 상태 노드 하나가 페이지 전체를 잘못 대표 → 이번에 실제로 오진 유발. 3건으로 늘림</td></tr>
+          <tr><td>진단 리포트 개인정보 처리 누락</td><td>샘플을 여러 개로 늘리면서 <strong>닉네임·발화가 디스코드로 샐 뻔한 것</strong>을 함께 차단</td></tr>
+          <tr><td>배지에 이미지가 없으면 즉사</td><td>selector를 넓히면 터질 수 있는 자리 — 방어 코드 + 테스트 추가</td></tr>
+          <tr><td>트위치 닉네임 속성 누락 시 즉사</td><td>같은 종류의 잠재 크래시 — 함께 방어</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>남은 일</h2>
+    <ol class="steps">
+      <li><strong>jsDelivr 캐시 퍼지</strong> — 이게 있어야 기존 사용자에게 rev 14가 빨리 전달됩니다. <code>purge.jsdelivr.net</code>에서 두 selector 파일 모두.</li>
+      <li><strong>감시 봇 재실행</strong> — 통과하면 스냅샷이 갱신되고 4회 연속 실패 상태가 해제됩니다.</li>
+      <li><strong>실제 브라우저에서 최종 확인</strong> — 배지 필터, 닉네임 필터, 도네이션 키워드 필터 각각 한 번씩.</li>
+    </ol>
+    <p class="footnote">
+      검증 규모: 라이브 채널 5개, 채팅 노드 100건 이상, 삽입 순간 캡처 67건, 도네이션 실물 샘플 6건.
+      테스트 119개 통과, 타입 검사·빌드 통과. 자세한 selector 작성 원칙은
+      <code>docs/ota-selectors.md</code>, 도메인 규칙은 <code>CONTEXT.md</code>에 정리했습니다.
+    </p>
+  </section>
+
+</div>

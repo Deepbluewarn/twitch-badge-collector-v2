@@ -60,9 +60,129 @@ export async function visitChannel(context: BrowserContext, opts: VisitOpts): Pr
             (globalThis as unknown as { __name?: (fn: unknown) => unknown }).__name ??= (fn) => fn;
             const requiredNames = new Set(requiredList);
 
-            const results: Array<{ name: string; selector: string; count: number; required: boolean; matchedClasses: string[] | null }> = [];
+            // ── helpers ───────────────────────────────────────────────────────────
+            const countOf = (s: string): number => {
+                try { return document.querySelectorAll(s).length; } catch { return -1; }
+            };
+
+            // selector list를 top-level 콤마로 분리. `:has(a, b)` / `[x="a,b"]` 안의
+            // 콤마는 건너뛴다 — 단순 split(',')은 그런 selector를 조각내 invalid로 만든다.
+            const splitBranches = (selector: string): string[] => {
+                const out: string[] = [];
+                let depth = 0, quote: string | null = null, start = 0;
+                for (let i = 0; i < selector.length; i++) {
+                    const ch = selector[i];
+                    if (quote) {
+                        if (ch === '\\') i++;
+                        else if (ch === quote) quote = null;
+                        continue;
+                    }
+                    if (ch === '"' || ch === "'") { quote = ch; continue; }
+                    if (ch === '(' || ch === '[') { depth++; continue; }
+                    if (ch === ')' || ch === ']') { depth = Math.max(0, depth - 1); continue; }
+                    if (ch === ',' && depth === 0) { out.push(selector.slice(start, i).trim()); start = i + 1; }
+                }
+                out.push(selector.slice(start).trim());
+                return out.filter(b => b.length > 0);
+            };
+
+            // 채팅 item 목록 — 후보 검증 점수의 분모. selector가 깨진 상황에서도 잡히도록
+            // 구조 앵커 여러 개를 OR로 쓴다 (일반 채팅 / 도네이션 둘 다 커버).
+            const chatArea = document.querySelector('aside#aside-chatting, aside#vod-aside');
+            const chatItems: Element[] = chatArea
+                ? Array.from(chatArea.querySelectorAll('[class*="_item_"]'))
+                    .filter(el => el.querySelector('[class*="_chatting_message_"], p[class*="_text_"], button[aria-haspopup="true"]'))
+                : [];
+
+            /**
+             * 깨진 selector의 대체 후보를 라이브 DOM에서 만들어 직접 검증한다.
+             *
+             * 옛 auto-fix는 "같은 word를 가진 hash 후보가 2개 이상이면 애매하니 포기"
+             * 였다. `_container_`처럼 흔한 word에선 항상 여러 개라서 사실상 영구 실패였고,
+             * 실제로 rev 13 사고에서 canary가 감지는 했는데 PR을 못 냈다.
+             * 여기서는 후보를 전부 만들어 cardinality로 채점해 오답을 걸러낸다.
+             */
+            const probeCandidates = (name: string, selector: string) => {
+                const tokenRe = /_([a-z]+)_([a-z0-9]{4,})_/gi;
+                const tokens = Array.from(selector.matchAll(tokenRe));
+                if (tokens.length === 0) return [];
+
+                // 페이지에 실제로 존재하는 class 전체
+                const classes = new Set<string>();
+                document.querySelectorAll('[class]').forEach(e => {
+                    const cn = (e as HTMLElement).className;
+                    if (typeof cn !== 'string') return;
+                    cn.split(/\s+/).forEach(c => { if (c) classes.add(c); });
+                });
+
+                const built: Array<{ selector: string; replaced: string }> = [];
+                for (const m of tokens) {
+                    const token = m[0], word = m[1], oldHash = m[2];
+                    const re = new RegExp('^_' + word + '_([a-z0-9]{4,})', 'i');
+                    const hashes = new Set<string>();
+                    for (const c of classes) {
+                        const hm = c.match(re);
+                        if (hm && hm[1] !== oldHash) hashes.add(hm[1]);
+                    }
+                    for (const h of hashes) {
+                        built.push({
+                            selector: selector.split(token).join(`_${word}_${h}_`),
+                            replaced: `${token} → _${word}_${h}_`,
+                        });
+                    }
+                }
+
+                // 기대 cardinality — "원래 그 selector가 하던 일"의 형태.
+                const CARD: Record<string, 'one' | 'atLeastOne' | 'anyDoc' | 'imgDoc'> = {
+                    displayName: 'one',
+                    usernameContainer: 'one',
+                    messageText: 'atLeastOne',
+                    chatRoomLive: 'anyDoc',
+                    chatRoomVod: 'anyDoc',
+                    badge: 'imgDoc',
+                };
+                const rule = CARD[name] ?? 'anyDoc';
+
+                const scored = built.map(b => {
+                    const docCount = countOf(b.selector);
+                    let score = 0;
+                    if (docCount > 0) {
+                        if (rule === 'anyDoc') {
+                            score = 1;
+                        } else if (rule === 'imgDoc') {
+                            // 모든 매칭이 <img>를 품어야 배지 selector로 쓸 수 있다.
+                            let nodes: Element[] = [];
+                            try { nodes = Array.from(document.querySelectorAll(b.selector)); } catch { /* skip */ }
+                            score = nodes.length > 0 && nodes.every(n => !!n.getElementsByTagName('img')[0]) ? 1 : 0;
+                        } else if (chatItems.length > 0) {
+                            const per = chatItems.map(it => {
+                                try { return it.querySelectorAll(b.selector).length; } catch { return -1; }
+                            });
+                            const ok = rule === 'one'
+                                ? per.filter(c => c === 1).length
+                                : per.filter(c => c >= 1).length;
+                            score = ok / chatItems.length;
+                        }
+                    }
+                    return { selector: b.selector, replaced: b.replaced, docCount, score };
+                });
+
+                // 0.9 미만은 오답으로 간주하고 버린다. 남은 것만 점수 내림차순.
+                return scored.filter(x => x.score >= 0.9).sort((a, b) => b.score - a.score);
+            };
+
+            const results: Array<{
+                name: string; selector: string; count: number; required: boolean;
+                matchedClasses: string[] | null;
+                branchCounts: Array<{ selector: string; count: number }> | null;
+                candidates: Array<{ selector: string; replaced: string; docCount: number; score: number }> | null;
+            }> = [];
+
             for (const [name, value] of Object.entries(sel)) {
                 if (typeof value !== 'string') continue;
+                // foldedClassSubstring은 selector가 아니라 class substring — 매칭 대상 X.
+                if (name === 'foldedClassSubstring') continue;
+
                 let count = 0;
                 let matchedClasses: string[] | null = null;
                 try {
@@ -70,7 +190,16 @@ export async function visitChannel(context: BrowserContext, opts: VisitOpts): Pr
                     count = nodes.length;
                     if (nodes[0]) matchedClasses = Array.from((nodes[0] as Element).classList);
                 } catch { /* invalid selector */ }
-                results.push({ name, selector: value, count, required: requiredNames.has(name), matchedClasses });
+
+                const branches = splitBranches(value);
+                const branchCounts = branches.length > 1
+                    ? branches.map(b => ({ selector: b, count: countOf(b) }))
+                    : null;
+
+                const required = requiredNames.has(name);
+                const candidates = (required && count === 0) ? probeCandidates(name, value) : null;
+
+                results.push({ name, selector: value, count, required, matchedClasses, branchCounts, candidates });
             }
 
             // 배지 URL 수집: badge selector 매칭된 element 안의 <img> 전부.
@@ -110,6 +239,7 @@ export async function visitChannel(context: BrowserContext, opts: VisitOpts): Pr
                 selectors: results,
                 sampleSkeleton,
                 badgeUrls: Array.from(badgeUrls),
+                chatItemCount: chatItems.length,
             };
         }, {
             sel: opts.selectors,
@@ -124,6 +254,7 @@ export async function visitChannel(context: BrowserContext, opts: VisitOpts): Pr
             selectors: result.selectors as SelectorSample[],
             sampleSkeleton: result.sampleSkeleton,
             badgeUrls: result.badgeUrls,
+            chatItemCount: result.chatItemCount,
         };
     } catch (e) {
         return {

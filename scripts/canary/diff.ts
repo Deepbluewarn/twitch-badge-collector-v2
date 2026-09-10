@@ -66,6 +66,28 @@ export function diffSnapshots(baseline: CanarySnapshot | null, current: CanarySn
         }
     }
 
+    // selector list(콤마) branch 단위 사망 감지.
+    //
+    // rev 14부터 fragile selector는 여러 후보를 콤마로 나열해 이중화했다. 덕분에 한쪽이
+    // 죽어도 기능은 살아있지만, 그래서 brokenRequired에 안 잡히고 canary가 조용해진다.
+    // 남은 branch까지 깨지는 날 한꺼번에 터지므로, branch가 죽은 시점에 알린다.
+    for (const cur of current.selectors) {
+        if (!cur.branchCounts || cur.branchCounts.length < 2) continue;
+        const dead = cur.branchCounts.filter(b => b.count === 0);
+        // 전멸은 위에서 brokenRequired로 이미 잡혔거나 optional — 여기선 부분 사망만.
+        if (dead.length === 0 || dead.length === cur.branchCounts.length) continue;
+
+        const knownDead = byName.get(cur.name)?.branchPresence;
+        const newlyDead = dead.filter(b => !knownDead || knownDead[b.selector] !== false);
+        if (newlyDead.length === 0) continue; // 이미 알고 있던 사망 → 매 run 재알림 X
+
+        alerts.push(
+            `selector "${cur.name}" branch 사망 (전체는 아직 매칭 — 기능 정상): `
+            + newlyDead.map(b => `\`${b.selector}\``).join(' | ')
+            + ' → 다음 롤링 전 교체 권장',
+        );
+    }
+
     const changed = brokenRequired.length > 0 || autoFixCandidates.length > 0 || alerts.length > 0;
     return { changed, brokenRequired, autoFixCandidates, alerts };
 }
@@ -80,30 +102,44 @@ function tryAutoFix(
     _baseline: SelectorSample,
     currentSnap: CanarySnapshot,
 ): AutoFixCandidate | null {
-    // broken = current run에서 왔으니 selector string 항상 존재. 타입만 optional.
+    // 1순위: 봇이 라이브 DOM에서 직접 검증한 후보. cardinality 채점을 통과한 것만
+    // 실려 오므로 "매칭은 되는데 엉뚱한 노드" 오답이 이미 걸러진 상태다.
+    const probes = broken.candidates ?? [];
+    if (probes.length > 0 && broken.selector) {
+        const best = probes[0];
+        // 최고점이 유일하지 않으면(동점 복수) 사람이 봐야 한다 — 자동 치환은 위험.
+        const tied = probes.filter(p => p.score === best.score);
+        if (tied.length === 1) {
+            return {
+                selectorName: broken.name,
+                oldSelector: broken.selector,
+                newSelector: best.selector,
+                reason: `${best.replaced} (라이브 검증: 문서 ${best.docCount}건, 점수 ${best.score.toFixed(2)})`,
+            };
+        }
+        return null;
+    }
+
+    // 2순위(구 경로): 후보 probe가 없는 스냅샷 — skeleton에서 hash만 유추.
+    // 같은 word의 hash 후보가 여러 개면 판단 불가라 포기한다.
     const brokenSelector = broken.selector;
     if (!brokenSelector) return null;
-    // selector string에서 `_word_hash_` 패턴 추출
-    // 예: `[class*="_container_o04z9_"]` → base=`_container_`, hash=`o04z9`
     const hashRe = /_([a-z]+)_([a-z0-9]{4,})_/gi;
     const oldMatches = Array.from(brokenSelector.matchAll(hashRe));
     if (oldMatches.length === 0) return null;
-
     if (!currentSnap.sampleSkeleton) return null;
 
-    // 각 old (word, hash) 페어에 대해 skeleton에서 같은 word + 다른 hash 찾기
     let newSelector = brokenSelector;
     const substitutions: Array<{ from: string; to: string; word: string }> = [];
 
     for (const m of oldMatches) {
         const [, word, oldHash] = m;
-        // skeleton class attribute 안에서 `_{word}_{someHash}_` 찾기
         const skeletonRe = new RegExp(`_${word}_([a-z0-9]{4,})_`, 'gi');
         const candidates = new Set<string>();
         for (const km of currentSnap.sampleSkeleton.matchAll(skeletonRe)) {
             if (km[1] !== oldHash) candidates.add(km[1]);
         }
-        if (candidates.size !== 1) continue; // 0개거나 여러 개면 애매 → skip
+        if (candidates.size !== 1) continue;
         const newHash = candidates.values().next().value!;
         substitutions.push({ from: `_${word}_${oldHash}_`, to: `_${word}_${newHash}_`, word });
         newSelector = newSelector.split(`_${word}_${oldHash}_`).join(`_${word}_${newHash}_`);

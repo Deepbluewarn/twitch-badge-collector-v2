@@ -223,3 +223,88 @@ describe('evaluateFilterGroup — atomic badge channel scope', () => {
         expect(evaluateFilterGroup(chat({ badges: ['sub/0'] /* no channelLogin */ }), fg).pass).toBe(true);
     });
 });
+
+// ----- unavailable 필드 (부분 수집) --------------------------------------
+
+describe('evaluateFilterGroup — unavailable 필드', () => {
+    it('name이 unavailable이면 name include composite가 발화하지 않는다', () => {
+        const group = [composite({
+            filterType: 'include',
+            filters: [atom({ category: 'name', type: 'include', value: 'alice' })],
+        })];
+        // 값을 못 뽑았을 뿐인데 빈 문자열이 'alice'와 다르다고 판단하면 조용히 누락된다.
+        // 어차피 include는 pass=false로 같지만, 아래 exclude 케이스와 대칭을 맞춰 명시.
+        expect(evaluateFilterGroup(chat({ unavailable: ['name'] }), group).pass).toBe(false);
+    });
+
+    it('name이 unavailable이면 name exclude atomic이 전원 매칭으로 뒤집히지 않는다', () => {
+        // 이것이 Layer 3의 핵심 이유.
+        // `NOT name=alice` AND `badge=streamer` 를 include로 묶은 composite에서
+        // 닉네임을 못 뽑았다고 name atomic을 그냥 false로 두면, exclude가 그걸 부정해
+        // true가 되고 배지만 맞는 모든 채팅이 통과한다 — 사용자가 만든 조건과 다르다.
+        const group = [composite({
+            filterType: 'include',
+            filters: [
+                atom({ id: 'a1', category: 'name', type: 'exclude', value: 'alice' }),
+                atom({ id: 'a2', category: 'badge', type: 'include', value: 'streamer' }),
+            ],
+        })];
+
+        const known = chat({ nickName: 'bob', loginName: 'bob', badges: ['streamer'] });
+        expect(evaluateFilterGroup(known, group).pass).toBe(true);
+
+        const unknownName = chat({ nickName: '', loginName: '', badges: ['streamer'], unavailable: ['name'] });
+        expect(evaluateFilterGroup(unknownName, group).pass).toBe(false);
+    });
+
+    it('name이 unavailable이면 name exclude composite가 채팅을 전량 드롭하지 않는다', () => {
+        // exclude composite는 매칭 시 Filter Group 전체를 단락시킨다. 확정 못 한 필드로
+        // 그게 발화하면 수집이 통째로 멈춘다.
+        const group = [
+            composite({
+                id: 'inc',
+                filterType: 'include',
+                filters: [atom({ id: 'b', category: 'badge', type: 'include', value: 'streamer' })],
+            }),
+            composite({
+                id: 'exc',
+                filterType: 'exclude',
+                filters: [atom({ id: 'n', category: 'name', type: 'exclude', value: 'alice' })],
+            }),
+        ];
+
+        const unknownName = chat({ badges: ['streamer'], unavailable: ['name'] });
+        // exclude composite는 건너뛰고 include만 평가 → 배지 필터는 계속 동작.
+        expect(evaluateFilterGroup(unknownName, group).pass).toBe(true);
+    });
+
+    it('badge가 unavailable이면 badge를 쓰는 composite만 빠지고 나머지는 동작한다', () => {
+        const group = [
+            composite({
+                id: 'byBadge',
+                filterType: 'include',
+                filters: [atom({ id: 'b', category: 'badge', type: 'include', value: 'streamer' })],
+            }),
+            composite({
+                id: 'byKeyword',
+                filterType: 'include',
+                filters: [atom({ id: 'k', category: 'keyword', type: 'include', value: 'hello' })],
+            }),
+        ];
+
+        const noBadge = chat({ textContents: ['hello world'], badges: [], unavailable: ['badge'] });
+        expect(evaluateFilterGroup(noBadge, group).pass).toBe(true);
+
+        const noBadgeNoKeyword = chat({ textContents: ['nope'], badges: [], unavailable: ['badge'] });
+        expect(evaluateFilterGroup(noBadgeNoKeyword, group).pass).toBe(false);
+    });
+
+    it('빈 unavailable 배열은 정상 채팅과 동일하게 평가된다', () => {
+        const group = [composite({
+            filterType: 'include',
+            filters: [atom({ category: 'name', type: 'include', value: 'alice' })],
+        })];
+        const c = chat({ nickName: 'alice', loginName: 'alice', unavailable: [] });
+        expect(evaluateFilterGroup(c, group).pass).toBe(true);
+    });
+});

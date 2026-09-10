@@ -16,6 +16,39 @@ export interface SelectorSample {
     matchedClasses?: string[] | null;
     /** persist 후 로드에서만 세팅 — count>0이었는지 (diff에 사용). */
     present?: boolean;
+    /**
+     * selector list(콤마) branch별 매칭 수. rev 14부터 fragile selector는 여러 후보를
+     * 콤마로 나열한다 — branch 하나가 죽어도 전체는 계속 매칭되므로 total만 보면
+     * canary가 조용해진다. branch별로 봐야 "절반 죽음"을 조기에 잡는다.
+     */
+    branchCounts?: Array<{ selector: string; count: number }> | null;
+    /** persist용 — branch selector 문자열 → count>0이었는지. */
+    branchPresence?: Record<string, boolean>;
+    /**
+     * 이 selector가 깨졌을 때 봇이 라이브 DOM에서 직접 검증해본 대체 후보들.
+     * hash만 치환한 문자열을 실제로 querySelectorAll 해보고 cardinality까지 확인한
+     * 결과 — "후보가 여러 개라 애매함"으로 포기하지 않고 auto-fix를 낼 근거.
+     */
+    candidates?: AutoFixProbe[] | null;
+}
+
+/**
+ * 대체 selector 후보 1개의 라이브 검증 결과.
+ */
+export interface AutoFixProbe {
+    /** 치환해서 만든 후보 selector 전체 문자열 */
+    selector: string;
+    /** 어떤 치환을 했는지 (예: `_container_zw6kq_` → `_container_1mc5x_`) */
+    replaced: string;
+    /** 문서 전체 매칭 수 */
+    docCount: number;
+    /**
+     * 기대 cardinality를 만족한 채팅 item 비율 (0~1). 1에 가까울수록 "원래 그 selector가
+     * 하던 일"을 그대로 한다는 뜻. 예: displayName은 채팅당 정확히 1개여야 하는데,
+     * `_container_w9pvh_`로 치환하면 채팅당 2개가 잡혀 점수가 떨어진다 — 이 점수가
+     * 없으면 단순히 "매칭 수가 많은" 오답이 auto-fix로 올라간다.
+     */
+    score: number;
 }
 
 export interface CanarySnapshot {
@@ -51,6 +84,8 @@ export interface ChannelVisitResult {
     sampleSkeleton: string | null;
     /** 이 채널 방문 중 관찰된 배지 이미지 URL 집합. */
     badgeUrls: string[];
+    /** 이 페이지에서 인식한 채팅 item 수 — 후보 검증 점수의 분모. */
+    chatItemCount?: number;
 }
 
 /**

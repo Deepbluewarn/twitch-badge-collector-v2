@@ -10,6 +10,8 @@
  */
 import { PlatformAdapter } from './index';
 import { getPlatformConfig, getManifest } from './host-selectors';
+import { getRequiredSelectorNames, inspectSelectors } from './selector-health';
+import { splitSelectorBranches } from './selector-syntax';
 import { SettingInterface } from '@/interfaces/setting';
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
 
@@ -25,6 +27,23 @@ export interface DiagnoseSelectorResult {
      * "실패 N개" 요약은 required만 셈.
      */
     required: boolean;
+    /**
+     * selector list(콤마)의 branch별 매칭 수. branch가 2개 이상일 때만 채워진다.
+     * 전체 count>0 이어도 여기 0인 branch가 있으면 그 branch는 이미 사망 — 남은
+     * branch까지 깨지기 전에 교체해야 한다는 신호.
+     */
+    branchCounts?: Array<{ selector: string; count: number; error?: string }>;
+}
+
+export interface DiagnoseSample {
+    source: 'inject-wrapper' | 'chatRoomLive' | 'none';
+    outerHTML: string | null;
+    extract: 'pass' | 'fail-undefined' | 'fail-throw' | 'no-sample';
+    extractedNickname: string | null;
+    extractedText: string | null;
+    extractError: string | null;
+    /** extract가 "값을 확정 못 함"으로 표시한 필드 — 부분 수집 상태 확인용. */
+    unavailable: string[] | null;
 }
 
 export interface DiagnoseReport {
@@ -44,13 +63,18 @@ export interface DiagnoseReport {
         chatCountInside: number;
         chatsWithKeyAttr: number;
     };
-    sample: {
-        source: 'inject-wrapper' | 'chatRoomLive' | 'none';
-        outerHTML: string | null;
-        extract: 'pass' | 'fail-undefined' | 'fail-throw' | 'no-sample';
-        extractedNickname: string | null;
-        extractedText: string | null;
-        extractError: string | null;
+    /** samples[0]과 동일 — 기존 리포트 포맷 호환용. */
+    sample: DiagnoseSample;
+    /**
+     * 샘플 여러 개. 하나만 뜨면 그 노드가 하필 전이 상태(삽입 직후/삭제 직전)일 때
+     * 페이지 전체가 깨진 것처럼 보인다. 실제로 rev 13 사고 리포트에서 단일 샘플의
+     * 텍스트가 비어 나와 오진을 유발했다 — 여러 개를 담아 그런 오독을 막는다.
+     */
+    samples: DiagnoseSample[];
+    /** required selector 매칭 0 / 일부 branch 사망 요약 (selector-health와 동일 판정). */
+    health: {
+        broken: string[];
+        degraded: Array<{ name: string; deadBranches: string[] }>;
     };
     filters: {
         totalGroupCount: number;
@@ -76,11 +100,26 @@ export async function runDiagnose(
         const required = requiredNames.has(name);
         try {
             const count = document.querySelectorAll(value).length;
-            selectorResults.push({ name, selector: value, count, required });
+            // selector list(콤마)는 branch 하나만 살아도 전체가 매칭된다. 그래서 total만
+            // 보면 "절반 죽은" 상태를 놓친다 — branch별로도 세서 다음 롤링 전에 갈아둘
+            // 근거를 남긴다. branch가 1개면 total과 같으니 생략.
+            const branches = splitSelectorBranches(value);
+            const branchCounts = branches.length > 1
+                ? branches.map(b => {
+                    try { return { selector: b, count: document.querySelectorAll(b).length }; }
+                    catch (e) { return { selector: b, count: 0, error: String(e) }; }
+                })
+                : undefined;
+            selectorResults.push({ name, selector: value, count, required, branchCounts });
         } catch (e) {
             selectorResults.push({ name, selector: value, count: 0, error: String(e), required });
         }
     }
+
+    // 1b) selector-health와 같은 판정으로 broken/degraded 요약.
+    // 부수 효과로 broken 레지스트리가 갱신되어 아래 extract 시도가 Adapter의
+    // 부분 수집 경로(unavailable 표시)를 실제 런타임과 같은 조건에서 타게 된다.
+    const health = inspectSelectors(adapter, platform);
 
     // 2) inject.ts가 만드는 wrapper 상태
     const wrapperId = `tbc-${adapter.type}-chat-list-wrapper`;
@@ -93,59 +132,73 @@ export async function runDiagnose(
         chatsWithKeyAttr: chatsWithKey,
     };
 
-    // 3) 샘플 chat outerHTML — 배지 있는 chat 우선 (badge selector 깨졌는지 판별 위해).
-    // 없으면 첫 chat. (chzzk의 inject wrapper엔 list_bottom marker 등 non-chat 자식도 섞임.)
-    let sampleSource: DiagnoseReport['sample']['source'] = 'none';
-    let sampleEl: HTMLElement | null = null;
+    // 3) 샘플 chat 여러 개 — 배지 있는 chat을 앞에 두고(badge selector 판별용) 최신 순.
+    // (chzzk의 inject wrapper엔 list_bottom marker 등 non-chat 자식도 섞임.)
+    const MAX_SAMPLES = 3;
     const allChats = wrapper ? Array.from(wrapper.querySelectorAll<HTMLElement>(`[${CHAT_ATTR.KEY}]`)) : [];
-    const chatWithBadge = allChats.find(el => {
-        const raw = el.getAttribute('data-tbc-chat-badges');
-        return raw && raw !== '[]' && raw !== 'null';
-    });
-    const chatWithKey = chatWithBadge ?? allChats[0];
-    if (chatWithKey) {
-        sampleEl = chatWithKey;
-        sampleSource = 'inject-wrapper';
-    } else {
+    const hasBadgeAttr = (el: HTMLElement) => {
+        const raw = el.getAttribute(CHAT_ATTR.BADGES);
+        return !!raw && raw !== '[]' && raw !== 'null';
+    };
+    // 배지 보유 chat 우선, 그 뒤 나머지. 둘 다 DOM 순서 유지.
+    const ordered = [...allChats.filter(hasBadgeAttr), ...allChats.filter(el => !hasBadgeAttr(el))];
+
+    let sampleEls: Array<{ el: HTMLElement; source: DiagnoseSample['source'] }> =
+        ordered.slice(0, MAX_SAMPLES).map(el => ({ el, source: 'inject-wrapper' as const }));
+
+    if (sampleEls.length === 0) {
         const chatRoom = document.querySelector(cfg.selectors.chatRoomLive);
-        const firstChild = chatRoom?.firstElementChild as HTMLElement | undefined;
-        if (firstChild) {
-            sampleEl = firstChild;
-            sampleSource = 'chatRoomLive';
-        }
+        const children = chatRoom ? Array.from(chatRoom.children).slice(0, MAX_SAMPLES) : [];
+        sampleEls = children.map(el => ({ el: el as HTMLElement, source: 'chatRoomLive' as const }));
     }
-    const outerHTML = sampleEl?.outerHTML.slice(0, 3000) ?? null;
 
     // 4) adapter.extract 시도 — selector가 잘 나와도 extract 로직에서 nickname/text 못 뽑으면
-    // 결국 chat 수집 안 됨. 여기서 pass/fail 판정.
-    let extract: DiagnoseReport['sample']['extract'] = 'no-sample';
-    let extractedNickname: string | null = null;
-    let extractedText: string | null = null;
-    let extractError: string | null = null;
-    if (sampleEl) {
+    // 결국 chat 수집 안 됨. 샘플별로 pass/fail 판정.
+    const emptySample: DiagnoseSample = {
+        source: 'none',
+        outerHTML: null,
+        extract: 'no-sample',
+        extractedNickname: null,
+        extractedText: null,
+        extractError: null,
+        unavailable: null,
+    };
+
+    const samples: DiagnoseSample[] = sampleEls.map(({ el, source }) => {
+        const out: DiagnoseSample = {
+            source,
+            outerHTML: el.outerHTML.slice(0, 3000),
+            extract: 'no-sample',
+            extractedNickname: null,
+            extractedText: null,
+            extractError: null,
+            unavailable: null,
+        };
         try {
             // extract가 wrapper 직속 child 여부 체크하므로, 필요 시 임시 wrapper attach.
-            let target = sampleEl;
-            if (sampleEl.parentElement?.id !== wrapperId) {
+            let target = el;
+            if (el.parentElement?.id !== wrapperId) {
                 const tmp = document.createElement('div');
                 tmp.id = wrapperId;
-                const cloned = sampleEl.cloneNode(true) as HTMLElement;
+                const cloned = el.cloneNode(true) as HTMLElement;
                 tmp.appendChild(cloned);
                 target = cloned;
             }
             const info = adapter.extract(target);
             if (info) {
-                extract = 'pass';
-                extractedNickname = info.nickName ?? null;
-                extractedText = info.textContents.filter(Boolean).join(' ').trim() || null;
+                out.extract = 'pass';
+                out.extractedNickname = info.nickName ?? null;
+                out.extractedText = info.textContents.filter(Boolean).join(' ').trim() || null;
+                out.unavailable = info.unavailable && info.unavailable.length > 0 ? [...info.unavailable] : null;
             } else {
-                extract = 'fail-undefined';
+                out.extract = 'fail-undefined';
             }
         } catch (e) {
-            extract = 'fail-throw';
-            extractError = String(e);
+            out.extract = 'fail-throw';
+            out.extractError = String(e);
         }
-    }
+        return out;
+    });
 
     // 5) 필터 그룹 상태 — extract 되어도 predicate가 false면 채팅 수집 안 됨.
     // 사용자가 필터 세팅 안 했거나 platform 미스매치로 걸리는 케이스 판별용.
@@ -194,29 +247,15 @@ export async function runDiagnose(
         },
         selectorResults,
         injectWrapper,
-        sample: {
-            source: sampleSource,
-            outerHTML,
-            extract,
-            extractedNickname,
-            extractedText,
-            extractError,
+        sample: samples[0] ?? emptySample,
+        samples,
+        health: {
+            broken: health.broken,
+            degraded: health.degraded,
         },
         filters,
         userAgent: navigator.userAgent,
     };
-}
-
-/**
- * 페이지 컨텍스트별 필수 selector 이름. 없으면 채팅 수집 자체가 안 됨.
- * 나머지는 상황별 optional — 화면에 도네가 없으면 donationText가 0인 게 당연.
- * required 판정은 카테고리 요약에서 "진짜 실패"만 골라내는 데 사용.
- */
-function getRequiredSelectorNames(pageMode: string): Set<string> {
-    const common = new Set(['displayName', 'messageText', 'usernameContainer', 'badge']);
-    if (pageMode === 'live') common.add('chatRoomLive');
-    else if (pageMode === 'video') common.add('chatRoomVod');
-    return common;
 }
 
 export const TBC_DIAGNOSE_MESSAGE_TYPE = 'tbc-diagnose';

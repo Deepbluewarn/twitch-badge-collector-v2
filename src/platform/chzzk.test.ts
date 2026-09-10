@@ -123,10 +123,22 @@ describe('ChzzkAdapter — URL-derived methods', () => {
 
 describe('ChzzkAdapter — prepareChatClone', () => {
     const adapter = new ChzzkAdapter();
-    // 신 chzzk CSS-in-JS 패턴에 맞춤. selectors.json의 usernameContainer는
-    // `[class*="_container_zw6kq_"]` substring으로 일반 채팅(_is_message_) /
-    // 도네이션(_is_donation_) 두 변형 모두 매칭. 테스트 fixture는 일반 채팅 변형 사용.
-    const USERNAME_CLASS = '_container_zw6kq_2 _is_message_o04z9_5';
+    // rev 14 usernameContainer는 `button[aria-haspopup="true"] > [class*="_container_"]`
+    // 또는 `[class*="_nickname_"] > [class*="_container_"]` — 즉 container만 있으면
+    // 안 되고 부모 앵커가 필요하다. 실 DOM과 같은 형태로 만든다.
+    const USERNAME_CLASS = '_container_1mc5x_2 _is_message_1mc5x_5';
+
+    /** clone > button[aria-haspopup] > span._container_ 구조를 만들어 container를 반환. */
+    function attachUsernameContainer(clone: HTMLElement): HTMLElement {
+        const button = document.createElement('button');
+        button.className = '_nickname_w9pvh_33';
+        button.setAttribute('aria-haspopup', 'true');
+        const usernameElem = document.createElement('span');
+        usernameElem.setAttribute('class', USERNAME_CLASS);
+        button.appendChild(usernameElem);
+        clone.appendChild(button);
+        return usernameElem;
+    }
 
     afterEach(() => {
         document.body.innerHTML = '';
@@ -136,10 +148,7 @@ describe('ChzzkAdapter — prepareChatClone', () => {
         const clone = document.createElement('div');
         clone.setAttribute(CHAT_ATTR.TIME, String(new Date('2025-01-01T12:34:56Z').getTime()));
 
-        const usernameElem = document.createElement('div');
-        // setAttribute보다 className에 정확히 둘 다 setting
-        usernameElem.setAttribute('class', USERNAME_CLASS);
-        clone.appendChild(usernameElem);
+        const usernameElem = attachUsernameContainer(clone);
 
         adapter.prepareChatClone(clone);
 
@@ -154,9 +163,7 @@ describe('ChzzkAdapter — prepareChatClone', () => {
         clone.setAttribute(CHAT_ATTR.TIME, '125000'); // 2분 5초
         clone.setAttribute(CHAT_ATTR.REPLAY_CHAT, 'true');
 
-        const usernameElem = document.createElement('div');
-        usernameElem.setAttribute('class', USERNAME_CLASS);
-        clone.appendChild(usernameElem);
+        attachUsernameContainer(clone);
 
         adapter.prepareChatClone(clone);
 
@@ -180,32 +187,129 @@ describe('ChzzkAdapter — prepareChatClone', () => {
 describe('ChzzkAdapter — extract', () => {
     const adapter = new ChzzkAdapter();
 
-    function buildChatFixture(): HTMLElement {
+    /**
+     * 실제 chzzk 라이브 DOM 구조를 축약한 픽스처 (2026-09 라이브 실측 기준).
+     *
+     * rev 14 selector가 기대하는 앵커를 그대로 담는다:
+     *   - `button[aria-haspopup="true"]` 안에 username container
+     *   - username container > `_nickname_` > (`_ellipsis_`) > `_text_` 에 닉네임
+     *   - `_chatting_message_` 직속 자식 `_text_` 에 본문
+     *   - 배지는 `_icon_` > `_container_` > img
+     * class hash는 일부러 실측값(1mc5x/1iatj/w9pvh)을 써 hash 의존이 남아 있으면 드러나게.
+     */
+    function buildChatFixture(opts?: {
+        withNickname?: boolean;
+        withMessage?: boolean;
+        withBadge?: boolean;
+        badgeWithoutImg?: boolean;
+    }): HTMLElement {
+        const {
+            withNickname = true, withMessage = true, withBadge = false, badgeWithoutImg = false,
+        } = opts ?? {};
+
         const wrapper = document.createElement('div');
         wrapper.id = 'tbc-chzzk-chat-list-wrapper';
 
         const chat = document.createElement('div');
+        chat.className = '_item_8lqsk_7';
 
-        // displayName 신 selector: `[class*="_container_zw6kq_"] [class*="_text_"]`
-        // → username container 하위에 text element 배치.
-        const usernameContainer = document.createElement('span');
-        usernameContainer.className = '_container_zw6kq_2 _is_message_o04z9_5';
-        const nameEl = document.createElement('span');
-        nameEl.className = '_text_dtc6c_2';
-        nameEl.textContent = 'AliceNick';
-        usernameContainer.appendChild(nameEl);
-        chat.appendChild(usernameContainer);
-
-        // messageText 신 selector: `[class*="_chatting_message_"] > [class*="_text_"]`
-        // → message wrapper 직속 자식으로 text element 배치.
+        const container = document.createElement('div');
+        container.className = '_container_w9pvh_1';
         const messageWrapper = document.createElement('div');
-        messageWrapper.className = '_chatting_message_1s877_21';
-        const textEl = document.createElement('span');
-        textEl.className = '_text_1s877_1';
-        textEl.textContent = 'hello';
-        messageWrapper.appendChild(textEl);
-        chat.appendChild(messageWrapper);
+        messageWrapper.className = '_chatting_message_w9pvh_21';
 
+        const button = document.createElement('button');
+        button.className = '_nickname_w9pvh_33';
+        button.setAttribute('aria-haspopup', 'true');
+
+        const usernameContainer = document.createElement('span');
+        usernameContainer.className = '_container_1mc5x_2 _is_message_1mc5x_5';
+
+        if (withBadge) {
+            const badgeWrap = document.createElement('span');
+            badgeWrap.className = '_wrapper_1mc5x_30';
+            const icon = document.createElement('span');
+            icon.className = '_icon_1mc5x_15';
+            const badgeContainer = document.createElement('span');
+            badgeContainer.className = '_container_1nwpy_2';
+            if (!badgeWithoutImg) {
+                const img = document.createElement('img');
+                img.src = 'https://ssl.pstatic.net/static/nng/glive/badge/fan_03.png';
+                badgeContainer.appendChild(img);
+            }
+            icon.appendChild(badgeContainer);
+            badgeWrap.appendChild(icon);
+            usernameContainer.appendChild(badgeWrap);
+        }
+
+        if (withNickname) {
+            const nick = document.createElement('span');
+            nick.className = '_nickname_1mc5x_80';
+            const ellipsis = document.createElement('span');
+            ellipsis.className = '_ellipsis_1iatj_6';
+            const nameEl = document.createElement('span');
+            nameEl.className = '_text_1iatj_2';
+            nameEl.textContent = 'AliceNick';
+            ellipsis.appendChild(nameEl);
+            nick.appendChild(ellipsis);
+            usernameContainer.appendChild(nick);
+        }
+
+        button.appendChild(usernameContainer);
+        messageWrapper.appendChild(button);
+
+        if (withMessage) {
+            const textEl = document.createElement('span');
+            textEl.className = '_text_w9pvh_1';
+            textEl.textContent = 'hello';
+            messageWrapper.appendChild(textEl);
+        }
+
+        container.appendChild(messageWrapper);
+        chat.appendChild(container);
+        wrapper.appendChild(chat);
+        document.body.appendChild(wrapper);
+        return chat;
+    }
+
+    /** 도네이션 채팅 — 버튼 class가 `_profile_button_`이고 본문이 <p>. */
+    function buildDonationFixture(): HTMLElement {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'tbc-chzzk-chat-list-wrapper';
+
+        const chat = document.createElement('div');
+        chat.className = '_item_8lqsk_7 _small_padding_8lqsk_57';
+
+        const container = document.createElement('div');
+        container.className = '_container_gb6rb_1 _level0_gb6rb_10';
+        const header = document.createElement('div');
+        header.className = '_header_gb6rb_35';
+
+        const button = document.createElement('button');
+        button.className = '_profile_button_gb6rb_45';
+        button.setAttribute('aria-haspopup', 'true');
+
+        const usernameContainer = document.createElement('span');
+        usernameContainer.className = '_container_1mc5x_2 _is_donation_1mc5x_5';
+        const nick = document.createElement('span');
+        nick.className = '_nickname_1mc5x_80';
+        const plain = document.createElement('span'); // 도네는 _ellipsis_ 래퍼가 없다
+        const nameEl = document.createElement('span');
+        nameEl.className = '_text_1iatj_2';
+        nameEl.textContent = '익명의 후원자';
+        plain.appendChild(nameEl);
+        nick.appendChild(plain);
+        usernameContainer.appendChild(nick);
+        button.appendChild(usernameContainer);
+        header.appendChild(button);
+
+        const body = document.createElement('p');
+        body.className = '_text_gb6rb_36';
+        body.textContent = '치즈 감사합니다';
+
+        container.appendChild(header);
+        container.appendChild(body);
+        chat.appendChild(container);
         wrapper.appendChild(chat);
         document.body.appendChild(wrapper);
         return chat;
@@ -222,6 +326,52 @@ describe('ChzzkAdapter — extract', () => {
         expect(info!.loginName).toBe('AliceNick');
         expect(info!.nickName).toBe('AliceNick');
         expect(info!.textContents).toEqual(['hello']);
+    });
+
+    it('extracts nickname and badge from a chat carrying a badge', () => {
+        const node = buildChatFixture({ withBadge: true });
+        const info = adapter.extract(node);
+        expect(info!.nickName).toBe('AliceNick');
+        expect(info!.badges).toEqual([
+            'https://ssl.pstatic.net/static/nng/glive/badge/fan_03.png',
+        ]);
+        expect(info!.unavailable).toBeUndefined();
+    });
+
+    it('extracts donation nickname and <p> body (도네이션 구조)', () => {
+        // 도네이션은 버튼 class가 `_profile_button_`이라 `_nickname_ > _container_`
+        // branch로는 안 잡힌다 — aria branch가 받쳐야 한다.
+        const node = buildDonationFixture();
+        const info = adapter.extract(node);
+        expect(info).toBeDefined();
+        expect(info!.nickName).toBe('익명의 후원자');
+        expect(info!.textContents).toContain('치즈 감사합니다');
+        expect(info!.unavailable).toBeUndefined();
+    });
+
+    it('마킹만 하고 채팅을 버리지 않는다 — 닉네임 selector가 깨진 경우', () => {
+        // rev 13 사고 재현: 이름을 못 뽑아도 본문/배지로 필터를 계속 돌려야 한다.
+        const node = buildChatFixture({ withNickname: false, withBadge: true });
+        const info = adapter.extract(node);
+        expect(info).toBeDefined();
+        expect(info!.nickName).toBe('');
+        expect(info!.unavailable).toEqual(['name']);
+        expect(info!.textContents).toEqual(['hello']);
+        expect(info!.badges).toHaveLength(1);
+    });
+
+    it('img 없는 badge 매칭에서 죽지 않는다', () => {
+        // selector를 hash 없는 형태로 넓히면 img 없는 노드를 잡을 여지가 생긴다.
+        // 예전 코드는 img[0].src 직접 접근으로 TypeError를 냈다.
+        const node = buildChatFixture({ withBadge: true, badgeWithoutImg: true });
+        expect(() => adapter.extract(node)).not.toThrow();
+        const info = adapter.extract(node);
+        expect(info!.badges).toEqual([]);
+    });
+
+    it('returns undefined when neither name nor text is present (채팅이 아닌 노드)', () => {
+        const node = buildChatFixture({ withNickname: false, withMessage: false });
+        expect(adapter.extract(node)).toBeUndefined();
     });
 
     it('returns undefined when node parent is NOT the chat list wrapper', () => {

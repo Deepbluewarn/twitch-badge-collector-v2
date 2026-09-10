@@ -1,9 +1,9 @@
-import { BadgeInterface, ChatInfo } from "@/interfaces/chat";
+import { BadgeInterface, ChatInfo, UnavailableChatField } from "@/interfaces/chat";
 import type { PlatformAdapter } from "./";
 import { createTwitchAPI, TwitchAPI } from "@/api/twitch";
 import { Version } from "@/interfaces/api/twitchAPI";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
-import { getPlatformConfig, detectPageMode, extractChannelId } from "./host-selectors";
+import { getPlatformConfig, detectPageMode, extractChannelId, getBrokenSelectors } from "./host-selectors";
 
 const TWITCH_BADGE_CDN = 'https://static-cdn.jtvnw.net/badges/v1';
 const TWITCH_DENSITY_TO_PATH = { '1x': '1', '2x': '2', '4x': '3' } as const;
@@ -60,7 +60,19 @@ export class TwitchAdapter implements PlatformAdapter {
             ? chat_clone.querySelector(sel.chatterName)
             : null;
 
-        if (!display_name && !chatter_name) return;
+        const textContents = chat_clone.querySelectorAll<HTMLSpanElement>(sel.messageText);
+
+        // chzzk와 같은 정책 — selector 하나가 깨졌다고 채팅을 전량 버리지 않는다.
+        // 이름도 본문도 못 잡히면 애초에 채팅 노드가 아니므로 그때만 폐기.
+        if (!display_name && !chatter_name && textContents.length === 0) return;
+
+        const unavailable: UnavailableChatField[] = [];
+        if (!display_name && !chatter_name) unavailable.push('name');
+        // 배지/본문은 per-chat 부재가 정상 케이스(배지 없는 유저, 이모트만 있는 메시지)라
+        // 페이지 단위 판정에만 의존한다.
+        const broken = getBrokenSelectors();
+        if (broken.has('badge')) unavailable.push('badge');
+        if (broken.has('messageText')) unavailable.push('keyword');
 
         let loginName: string = "";
         let nickName: string = "";
@@ -68,8 +80,10 @@ export class TwitchAdapter implements PlatformAdapter {
         let subNickname: string = "";
 
         if (display_name) {
-            loginName = display_name.getAttribute("data-a-user")?.toLowerCase()!;
-            nickName = display_name.textContent?.toLowerCase()!;
+            // non-null assertion을 쓰면 data-a-user가 빠진 순간 undefined가 그대로
+            // ChatInfo에 들어가고, evaluate의 loginName.toLowerCase()에서 터진다.
+            loginName = display_name.getAttribute("data-a-user")?.toLowerCase() ?? "";
+            nickName = display_name.textContent?.toLowerCase() ?? "";
         }
         if (chatter_name) {
             subLoginName = chatter_name.textContent!;
@@ -80,7 +94,6 @@ export class TwitchAdapter implements PlatformAdapter {
         loginName = loginName ? loginName : subLoginName;
         nickName = nickName ? nickName : subNickname;
 
-        const textContents = chat_clone.querySelectorAll<HTMLSpanElement>(sel.messageText);
         const badgeElements = chat_clone.querySelectorAll<HTMLImageElement>(sel.badge);
         const dataBadges: string[] = JSON.parse(chat_clone.getAttribute(CHAT_ATTR.BADGES) || '[]');
         const fallbackBadges = Array.from(badgeElements)
@@ -96,6 +109,7 @@ export class TwitchAdapter implements PlatformAdapter {
             nickName: nickName,
             channelLogin: channel,
             channelId: channelId,
+            ...(unavailable.length > 0 ? { unavailable } : {}),
         } as ChatInfo;
     }
 

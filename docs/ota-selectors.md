@@ -42,6 +42,58 @@
 옛 사용자 비율이 충분히 낮아지면 `bundled-selectors.json`을 dev playground로 전환 가능
 — 그땐 자유 편집해도 사용자 영향 X.
 
+## selector 작성 원칙 (rev 14+)
+
+### class hash에 의존하지 말 것
+
+chzzk는 CSS-module hash를 빌드마다 재생성한다. `_container_` 하나만 봐도
+`o04z9` → `zw6kq` → `1mc5x` 로 세 번 롤링했고, 매번 확장이 통째로 죽었다.
+
+**hash 대신 구조/동작 앵커를 쓴다:**
+
+| 앵커 종류 | 예 | 안정성 |
+|---|---|---|
+| aria/role 등 동작 유래 속성 | `button[aria-haspopup="true"]` | 높음 — 기능이 바뀌지 않으면 유지 |
+| CSS-module의 *로컬 이름* 부분 매칭 | `[class*="_nickname_"]` | 중간 — hash만 빠지므로 롤링에 면역 |
+| 태그 + 구조 | `p[class*="_text_"]` | 중간 |
+| hash 전체 | `[class*="_container_1mc5x_"]` | **낮음 — 신규 사용 금지** |
+
+### 콤마 selector list로 이중화
+
+`querySelectorAll("A, B")`는 이미 OR이다. **성격이 다른 두 앵커**를 콤마로 이어붙이면
+코드 변경 없이 이중화된다:
+
+```json
+"displayName": "button[aria-haspopup=\"true\"] [class*=\"_text_\"], [class*=\"_nickname_\"] [class*=\"_text_\"]"
+```
+
+주의사항:
+- `extract`는 `querySelector`(첫 매치)를 쓴다. 두 branch가 **같은 노드**를 가리켜야 안전하다.
+  다른 노드를 가리키면 문서 순서에 따라 결과가 달라진다.
+- 같은 축의 변형을 나열하는 건 이중화가 아니다. 둘 다 같은 명명 규칙에 의존하면 함께 죽는다.
+- 도네이션 채팅은 일반 채팅과 구조가 다르다 (버튼 class가 `_profile_button_`, 본문이 `<p>`,
+  닉네임에 `_ellipsis_` 래퍼 없음). 두 케이스 모두 검증해야 한다.
+- 배지 selector에는 `:has(> img)`를 붙인다. selector를 넓히면 `<img>` 없는 노드를 잡을
+  수 있고, `extract`가 그 안의 img에 접근하기 때문이다.
+
+### branch 사망은 조용하다 — canary가 본다
+
+이중화의 대가로 한쪽 branch가 죽어도 전체는 계속 매칭되어 아무 알림이 없다. canary는
+`branchCounts`로 branch별 매칭을 따로 세고, "전체는 살아있지만 branch 하나 사망"이면
+알림을 보낸다. 이 알림을 받으면 **남은 branch까지 깨지기 전에** 죽은 branch를 교체한다.
+사용자 진단 리포트에도 `branchCounts` / `health.degraded`로 같은 정보가 실린다.
+
+## 사고 대응 자동화
+
+| 계층 | 무엇 | 어디 |
+|---|---|---|
+| 감지 | 6시간마다 라이브 채널 다수 방문, required selector 검증 | `.github/workflows/canary.yml` |
+| 후보 도출 | 깨진 selector의 hash 치환 후보를 **라이브 DOM에서 직접 검증** (cardinality 채점) | `scripts/canary/visit-channel.ts` |
+| 자동 수정 | 검증 통과 후보가 유일하면 rev bump + draft PR (prod/legacy 두 manifest 동시) | `scripts/canary/open-fix-pr.mjs` |
+| 추적 | 자동 수정 못 하면 GitHub Issue 생성 (열린 이슈 있으면 코멘트) | `scripts/canary/open-alert-issue.mjs` |
+| 사용자측 자가복구 | required selector 0 감지 → 즉시 OTA fetch (stale TTL 무시) + Container 배너 | `src/platform/selector-health.ts` |
+| 부분 수집 | 못 뽑은 필드만 `unavailable` 표시 → 해당 필드 쓰는 필터만 제외 | `src/platform/{chzzk,twitch}.ts`, `src/filter/evaluate.ts` |
+
 ## 주의사항
 
 ### rev는 strictly monotonic
