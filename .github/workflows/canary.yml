@@ -65,6 +65,15 @@ jobs:
           echo "auto-fix 후보 발견 — draft PR 생성"
           node scripts/canary/open-fix-pr.mjs
 
+      # Discord webhook만으로는 놓친다 — rev 13 사고에서 알림은 갔지만 18시간 동안
+      # 아무 조치가 없었고 저장소엔 흔적도 안 남았다. 이슈로 남겨 추적 가능하게 하고,
+      # 이미 열린 이슈가 있으면 코멘트만 붙여 스팸을 막는다.
+      - name: Open or update tracking issue (if required selector broken)
+        if: ${{ hashFiles('canary-alert.json') != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/canary/open-alert-issue.mjs
+
       - name: Fail if required selector broken
         if: steps.canary.outcome == 'failure'
         run: exit 1
