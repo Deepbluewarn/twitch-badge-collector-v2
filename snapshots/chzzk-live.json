@@ -20,7 +20,11 @@
     {
       "name": "displayName",
       "required": true,
-      "present": true
+      "present": true,
+      "branchPresence": {
+        "button[aria-haspopup=\"true\"] [class*=\"_text_\"]": true,
+        "[class*=\"_nickname_\"] [class*=\"_text_\"]": true
+      }
     },
     {
       "name": "messageText",
@@ -35,12 +39,11 @@
     {
       "name": "badge",
       "required": true,
-      "present": true
-    },
-    {
-      "name": "verifiedIcon",
-      "required": false,
-      "present": false
+      "present": true,
+      "branchPresence": {
+        "[class*=\"_icon_\"] > [class*=\"_container_\"]:has(> img)": true,
+        "[class*=\"_container_1nwpy_\"]:has(> img)": true
+      }
     },
     {
       "name": "blindText",
@@ -50,7 +53,11 @@
     {
       "name": "usernameContainer",
       "required": true,
-      "present": true
+      "present": true,
+      "branchPresence": {
+        "button[aria-haspopup=\"true\"] > [class*=\"_container_\"]": true,
+        "[class*=\"_nickname_\"] > [class*=\"_container_\"]": true
+      }
     },
     {
       "name": "popupProfileHeader",
@@ -61,12 +68,7 @@
       "name": "pointButton",
       "required": false,
       "present": false
-    },
-    {
-      "name": "foldedClassSubstring",
-      "required": false,
-      "present": false
     }
   ],
-  "manifestRev": 13
+  "manifestRev": 14
 }
