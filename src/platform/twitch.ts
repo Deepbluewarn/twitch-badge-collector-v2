@@ -1,9 +1,9 @@
-import { BadgeInterface, ChatInfo, UnavailableChatField } from "@/interfaces/chat";
+import { BadgeInterface, ChatInfo } from "@/interfaces/chat";
 import type { PlatformAdapter } from "./";
 import { createTwitchAPI, TwitchAPI } from "@/api/twitch";
 import { Version } from "@/interfaces/api/twitchAPI";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
-import { getPlatformConfig, detectPageMode, extractChannelId, getBrokenSelectors } from "./host-selectors";
+import { getPlatformConfig, detectPageMode, extractChannelId } from "./host-selectors";
 
 const TWITCH_BADGE_CDN = 'https://static-cdn.jtvnw.net/badges/v1';
 const TWITCH_DENSITY_TO_PATH = { '1x': '1', '2x': '2', '4x': '3' } as const;
@@ -60,19 +60,11 @@ export class TwitchAdapter implements PlatformAdapter {
             ? chat_clone.querySelector(sel.chatterName)
             : null;
 
-        const textContents = chat_clone.querySelectorAll<HTMLSpanElement>(sel.messageText);
-
-        // chzzk와 같은 정책 — selector 하나가 깨졌다고 채팅을 전량 버리지 않는다.
-        // 이름도 본문도 못 잡히면 애초에 채팅 노드가 아니므로 그때만 폐기.
-        if (!display_name && !chatter_name && textContents.length === 0) return;
-
-        const unavailable: UnavailableChatField[] = [];
-        if (!display_name && !chatter_name) unavailable.push('name');
-        // 배지/본문은 per-chat 부재가 정상 케이스(배지 없는 유저, 이모트만 있는 메시지)라
-        // 페이지 단위 판정에만 의존한다.
-        const broken = getBrokenSelectors();
-        if (broken.has('badge')) unavailable.push('badge');
-        if (broken.has('messageText')) unavailable.push('keyword');
+        // 부분 수집(ChatInfo.unavailable)은 chzzk에만 적용한다.
+        // 사고가 난 건 chzzk였고, 여기 같은 정책을 넣으면 조기 반환 조건이 느슨해져
+        // 이름 없이 본문만 있는 노드(구독 알림, 레이드 공지 등 트위치 시스템 메시지)가
+        // 새로 통과한다. 라이브 트위치에서 그 영향을 확인하기 전엔 건드리지 않는다.
+        if (!display_name && !chatter_name) return;
 
         let loginName: string = "";
         let nickName: string = "";
@@ -94,6 +86,7 @@ export class TwitchAdapter implements PlatformAdapter {
         loginName = loginName ? loginName : subLoginName;
         nickName = nickName ? nickName : subNickname;
 
+        const textContents = chat_clone.querySelectorAll<HTMLSpanElement>(sel.messageText);
         const badgeElements = chat_clone.querySelectorAll<HTMLImageElement>(sel.badge);
         const dataBadges: string[] = JSON.parse(chat_clone.getAttribute(CHAT_ATTR.BADGES) || '[]');
         const fallbackBadges = Array.from(badgeElements)
@@ -109,7 +102,6 @@ export class TwitchAdapter implements PlatformAdapter {
             nickName: nickName,
             channelLogin: channel,
             channelId: channelId,
-            ...(unavailable.length > 0 ? { unavailable } : {}),
         } as ChatInfo;
     }
 

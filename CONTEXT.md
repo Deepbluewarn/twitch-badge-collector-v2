@@ -53,6 +53,12 @@ The atomic-level `exclude` is what lets a single composite express both presence
 Host page 구조가 바뀌어 **Platform Adapter**가 어떤 필드를 못 뽑았을 때, 그 사실을
 `ChatInfo.unavailable`에 실어 보낸다. "값이 빈 문자열"과 "값을 모른다"는 다른 상태다.
 
+현재 **`ChzzkAdapter`만** 이걸 채운다. `TwitchAdapter`는 예전처럼 이름을 못 뽑으면
+채팅을 버린다 — 트위치에서 조기 반환 조건을 느슨하게 하면 이름 없이 본문만 있는
+노드(구독 알림, 레이드 공지 등 시스템 메시지)가 새로 통과하는데, 그 영향을 라이브
+트위치에서 확인하지 않았기 때문이다. `evaluateFilterGroup`의 처리는 플랫폼 무관이므로
+트위치에서는 해당 분기가 실행되지 않을 뿐이다.
+
 `evaluateFilterGroup`은 unavailable에 실린 **Filter Category**를 참조하는 composite
 **Filter Element**를 평가에서 **완전히 제외**한다 (composite 레벨 `sleep`과 같은 관측 결과).
 atomic 레벨에서 false로 떨구면 안 된다 — atomic `exclude`가 그 false를 부정해 true가 되고,
