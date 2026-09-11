@@ -91,8 +91,10 @@ chzzk는 CSS-module hash를 빌드마다 재생성한다. `_container_` 하나�
 | 후보 도출 | 깨진 selector의 hash 치환 후보를 **라이브 DOM에서 직접 검증** (cardinality 채점) | `scripts/canary/visit-channel.ts` |
 | 자동 수정 | 검증 통과 후보가 유일하면 rev bump + draft PR (prod/legacy 두 manifest 동시) | `scripts/canary/open-fix-pr.mjs` |
 | 추적 | 자동 수정 못 하면 GitHub Issue 생성 (열린 이슈 있으면 코멘트) | `scripts/canary/open-alert-issue.mjs` |
-| 사용자측 자가복구 | required selector 0 감지 → 즉시 OTA fetch (stale TTL 무시) + Container 배너 | `src/platform/selector-health.ts` |
-| 부분 수집 | 못 뽑은 필드만 `unavailable` 표시 → 해당 필드 쓰는 필터만 제외 | `src/platform/{chzzk,twitch}.ts`, `src/filter/evaluate.ts` |
+| 부분 수집 | required selector 0을 페이지 단위로 판정 → 못 뽑은 필드만 `unavailable` 표시 → 해당 필드 쓰는 필터만 제외 | `src/platform/selector-health.ts`, `src/platform/{chzzk,twitch}.ts`, `src/filter/evaluate.ts` |
+| 사용자측 자가복구 | 채팅창 앵커를 10초간 못 찾으면 세션당 1회 강제 OTA fetch. 그 외에는 평소 경로(SW wake + 1h TTL) | `src/utils/utils-common.ts` (`findElement`) |
+
+**사용자 알림은 하지 않는다.** 배너 + 즉시 OTA fetch를 만들어봤다가 걷어냈다 — 채팅 필터가 잠깐 안 되는 건 긴급 상황이 아니고, 확장이 알아서 띄우는 알림이 좁은 채팅창을 가리는 비용이 이득보다 크다. 결정적으로 "required selector 0 = 깨짐" 판정에 오탐이 있어(채팅이 아직 없는 조용한 채널) 멀쩡한 사용자의 필터를 확장이 스스로 꺼버리는 사고가 났다. 감지 자체는 남겨두되 그 결과는 필터 안전(`unavailable`)에만 쓴다.
 
 ## 주의사항
 

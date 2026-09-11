@@ -15,7 +15,6 @@ import { PlatformAdapter } from "@/platform";
 import { Logger } from "@/utils/logger";
 import { captureChats } from "@/utils/captureChat";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
-import SelectorHealthBanner from "./SelectorHealthBanner";
 
 const Wrapper = styled('div')({
     height: '100%',
@@ -392,12 +391,6 @@ export default function Local({
                 .tbcv2-capture-mode:hover { outline: 1px dashed rgba(255,193,7,0.6); outline-offset: -1px; }
                 .tbcv2-capture-selected { background-color: rgba(255,193,7,0.18) !important; outline: 2px solid #FFC107; outline-offset: -2px; }
             `}</style>
-
-            {/* host 구조 변경으로 수집이 멈춘 경우만 렌더. 채팅 영역 height 계산에 끼어들지
-                않도록 overlay로 띄운다 (Wrapper가 position:relative). */}
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
-                <SelectorHealthBanner />
-            </div>
 
             <div
                 id={`tbc-clone__${type}ui`}

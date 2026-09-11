@@ -19,9 +19,10 @@ async function bootstrap() {
     const adapter = new ChzzkAdapter();
     registerDiagnoseListener(adapter, 'chzzk');
 
-    // host가 class hash를 롤링해 required selector가 전멸하면 (1) 즉시 OTA fetch를
-    // 요청하고 (2) Container에 배너를 띄우도록 이벤트를 쏜다. Container mount 여부와
-    // 무관하게 돌아야 하므로 React 밖 — content-script bootstrap에 둔다.
+    // required selector가 전멸했는지 조용히 관찰해 broken 레지스트리를 채운다.
+    // Adapter.extract가 이걸 읽어 ChatInfo.unavailable을 세팅 → 확정 못 한 필드를 쓰는
+    // 필터만 평가에서 빠진다. UI도 네트워크 요청도 없다 (selector-health 상단 주석 참고).
+    // Container mount 여부와 무관해야 하므로 React 밖 — content-script bootstrap에 둔다.
     let stopHealthWatch = startSelectorHealthWatch(adapter, 'chzzk');
 
     const SEL = getPlatformConfig('chzzk').selectors;

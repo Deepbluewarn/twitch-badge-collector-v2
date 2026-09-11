@@ -1,28 +1,25 @@
 /**
- * 런타임 selector 건강 검사 (Layer 5).
+ * Selector 건강 검사 — host page에서 required selector가 하나도 안 잡히는지 본다.
  *
- * host page가 class hash를 롤링하면 required selector가 전부 0이 되고 채팅 수집이
- * 멈춘다. 지금까지 이건 *조용히* 일어났다 — 사용자는 "필터가 죽었다"만 알 수 있었고
- * OTA는 최대 1시간 stale 판정을 기다렸다. 여기서:
+ * 용도는 하나다: **필터 의미가 뒤집히는 것을 막기 위한 판정 근거 제공.**
  *
- *  1. required selector 매칭 0 감지
- *  2. 결과를 host-selectors의 broken 레지스트리에 게시 → Adapter.extract가 ChatInfo
- *     .unavailable을 채워 필터 의미가 뒤집히지 않게 한다 (Layer 3)
- *  3. background에 즉시 OTA fetch 요청 (stale TTL 무시)
- *  4. Container가 배너를 띄울 수 있도록 window 이벤트 발화
+ * 채팅 하나만 보면 "배지 없는 유저"와 "badge selector 깨짐"이 구별되지 않는다(둘 다 0).
+ * 후자인데 구별을 못 하면 `chat.badges`가 빈 배열로 흘러가고, `exclude` atomic이 그걸
+ * 부정해 true가 되어 "이 배지 제외" 필터가 전원 매칭으로 뒤집힌다. 페이지 전체에 채팅이
+ * 있는데도 badge selector가 0건이면 후자로 확정할 수 있고, 그때 broken 레지스트리에
+ * 올려 Adapter가 ChatInfo.unavailable을 채우게 한다 (src/filter/evaluate.ts 참고).
  *
- * OTA로 새 manifest가 적용되어도 현재 페이지의 observer는 옛 selector로 attach된
- * 상태다. 그래서 배너는 "새로고침" 을 안내한다 — mid-session 갱신은 안 한다는
- * host-selectors의 기존 계약을 그대로 유지.
+ * 사용자에게 알리거나 복구를 앞당기는 기능은 **의도적으로 넣지 않았다.** 한때 배너 +
+ * 즉시 OTA fetch까지 있었는데, (1) 채팅 필터가 잠깐 안 되는 건 긴급 상황이 아니고
+ * (2) 확장이 알아서 띄우는 배너가 좁은 채팅창을 가리는 비용이 이득보다 크고
+ * (3) 판정 오탐이 곧바로 사용자 필터를 꺼버리는 사고로 이어졌기 때문에 걷어냈다.
+ * selector가 깨지면 평소 OTA 경로(SW wake + 1시간 TTL)로 복구된다.
  */
 import { PlatformAdapter } from './index';
 import { getPlatformConfig, setBrokenSelectors } from './host-selectors';
 import { splitSelectorBranches } from './selector-syntax';
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
 import { SettingInterface } from '@/interfaces/setting';
-
-export const SELECTOR_HEALTH_EVENT = 'tbc-selector-health';
-export const FORCE_OTA_MESSAGE_TYPE = 'tbc-force-ota-fetch';
 
 /**
  * 판정 결과. `unknown`이 핵심 — "멀쩡함"과 "판단 근거가 없음"은 다르다.
@@ -130,17 +127,18 @@ export function inspectSelectors(
 }
 
 /**
- * 검사를 반복하며 감시한다.
+ * 검사를 반복하며 broken 레지스트리를 갱신한다. 조용히 돈다 — UI도 네트워크 요청도 없다.
  *
  * 두 가지를 기다린다:
  *
  *  1. **판정 근거** — 채팅이 한 개도 없으면 채팅 의존 selector는 판정할 수 없다
  *     (verdict 'unknown'). 시청자 적은 채널은 몇 분간 채팅이 없을 수 있어서, 고정
  *     횟수로 끊지 않고 채팅이 나타날 때까지 기다린다.
- *  2. **연속 확인** — 한 번 broken이 나왔다고 바로 배너를 띄우지 않는다. host의
- *     리렌더 순간에 스친 상태일 수 있어서, 연속 2회 같은 결과일 때만 확정한다.
+ *  2. **연속 확인** — 한 번 broken이 나왔다고 바로 확정하지 않는다. host의 리렌더
+ *     순간에 스친 상태일 수 있어서, 연속 2회 같은 결과일 때만 레지스트리에 올린다.
  *
- * 확정 전까지는 window 이벤트에 'unknown'/'ok'만 흘러가므로 배너는 뜨지 않는다.
+ * 확정 전에는 레지스트리를 비워둔다 — 근거 없는 판정이 필터를 꺼버리는 게 가장 나쁜
+ * 실패 모드다. 있는 필터를 잠시 못 고치는 것보다, 없는 문제로 필터를 끄는 쪽이 해롭다.
  *
  * @returns cleanup 함수
  */
@@ -165,7 +163,6 @@ export function startSelectorHealthWatch(
     let brokenStreak = 0;
     let timer: number | undefined;
     let cancelled = false;
-    let otaRequested = false;
 
     const run = () => {
         if (cancelled) return;
@@ -176,25 +173,14 @@ export function startSelectorHealthWatch(
         if (health.verdict === 'broken') brokenStreak++;
         else brokenStreak = 0;
 
-        const confirmed = health.verdict === 'broken' && brokenStreak >= confirmCount;
-
-        // 확정 전에는 broken을 감춘 채로 알린다 — 구독자(배너)가 스친 상태에 반응하지 않게.
-        window.dispatchEvent(new CustomEvent<SelectorHealth>(SELECTOR_HEALTH_EVENT, {
-            detail: confirmed ? health : { ...health, verdict: health.verdict === 'broken' ? 'unknown' : health.verdict, broken: [] },
-        }));
-
-        if (confirmed) {
+        // 연속 confirmCount회 전에는 레지스트리에 올리지 않는다.
+        if (health.verdict === 'broken' && brokenStreak < confirmCount) {
+            setBrokenSelectors([]);
+        } else if (health.verdict === 'broken') {
             console.warn(
                 `[selector-health] required selector 매칭 0 (연속 ${brokenStreak}회, 채팅 ${health.chatCount}개):`,
                 health.broken.join(', '),
             );
-
-            // OTA는 한 번만 요청 — 재시도마다 CDN 때리지 않는다.
-            if (!otaRequested) {
-                otaRequested = true;
-                browser.runtime.sendMessage({ type: FORCE_OTA_MESSAGE_TYPE })
-                    .catch(() => { /* SW 부재 등 — 무시 */ });
-            }
         }
         if (health.degraded.length > 0) {
             console.warn('[selector-health] selector branch 일부 사망 (기능은 정상):',
