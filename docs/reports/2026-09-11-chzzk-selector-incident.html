@@ -535,9 +535,9 @@
           “고쳐졌지만 다음에도 여전히 전부 아니면 전무”입니다.</p>
       </div>
       <div class="status-row">
-        <span class="pill pill-wait">푸시 대기</span>
-        <p><strong>L4 이슈 자동 생성</strong> — 스크립트는 올라갔지만 이를 호출하는 워크플로 파일이
-          토큰 권한(<code>workflow</code> 스코프) 때문에 아직 로컬에 있습니다.</p>
+        <span class="pill pill-live">적용됨</span>
+        <p><strong>L4 감시 봇 자동 조치</strong> — 후보 라이브 검증, 구버전 파일 동시 갱신,
+          자동 수정 불가 시 이슈 생성까지 모두 master에 있습니다.</p>
       </div>
     </div>
   </div>
@@ -828,12 +828,11 @@
         <span class="layer-n">L4</span>
         <div class="layer-body">
           <h3 class="layer-title">감시 봇이 실제로 조치하게</h3>
-          <div class="layer-meta"><span class="pill pill-ci">CI · 일부 대기</span><span>이번 사고의 진짜 미스</span></div>
+          <div class="layer-meta"><span class="pill pill-live">적용됨</span><span>이번 사고의 진짜 미스</span></div>
           <ul>
             <li>후보를 <strong>실제 방송 페이지에서 직접 돌려보고</strong> 채점 — “채팅당 정확히 1건”처럼 원래 하던 일을 그대로 하는지로 오답을 걸러냅니다. 이번 건은 정답 하나만 통과합니다.</li>
             <li>자동 수정 시 <strong>구버전용 파일까지 같이</strong> 갱신 (지금까지 빠져 있어 옛 사용자는 계속 깨진 상태였습니다).</li>
-            <li>자동으로 못 고치면 <strong>GitHub 이슈 생성</strong> — 디스코드 알림만으로는 놓칩니다.
-              <em>이 항목만 아직 비활성</em>입니다 (워크플로 파일 푸시 대기).</li>
+            <li>자동으로 못 고치면 <strong>GitHub 이슈 생성</strong> — 디스코드 알림만으로는 놓칩니다.</li>
           </ul>
         </div>
       </div>
@@ -869,17 +868,13 @@
   <section>
     <h2>남은 일</h2>
     <p>
-      selector 배포(CDN 퍼지)와 감시 봇 재실행은 완료했습니다. 남은 것은 <strong>코드를 사용자에게 보내는 일</strong>입니다.
+      selector 배포(CDN 퍼지), 감시 봇 재실행, 감시 봇 자동 조치 배포는 모두 완료했습니다.
+      남은 것은 <strong>확장 코드를 사용자에게 보내는 일</strong>뿐입니다.
     </p>
     <ol class="steps">
       <li>
         <strong>v2.19.5 릴리스</strong> — 이게 있어야 L3(부분 수집)과 L5(배너)가 사용자에게 갑니다.
         지금은 selector만 고쳐진 상태라, 다음 사고가 나면 다시 채팅 100% 손실 + 아무 안내 없음으로 돌아갑니다.
-      </li>
-      <li>
-        <strong>워크플로 파일 푸시</strong> — <code>gh auth refresh -s workflow</code> 후 푸시.
-        토큰에 <code>workflow</code> 권한이 없어 거부된 커밋 하나가 로컬에 남아 있습니다.
-        이게 붙으면 L4의 “자동 수정 못 할 때 이슈 생성”이 활성화됩니다.
       </li>
       <li>
         <strong>실제 브라우저에서 최종 확인</strong> — 배지 필터, 닉네임 필터, 도네이션 키워드 필터 각각 한 번씩.
