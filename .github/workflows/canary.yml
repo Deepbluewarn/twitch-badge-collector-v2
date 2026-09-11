@@ -24,6 +24,10 @@ jobs:
     permissions:
       contents: write   # snapshot 갱신 커밋용
       pull-requests: write   # auto-fix PR 생성용
+      # permissions 블록을 쓰면 나열하지 않은 권한은 전부 none이 된다. 이게 없으면
+      # open-alert-issue.mjs의 label create / issue list·comment·create가 전부 403으로
+      # 죽는다 — 그것도 실제 사고가 나서 꼭 필요한 순간에만.
+      issues: write   # 감지 실패 시 추적 이슈 생성용
     steps:
       - uses: actions/checkout@v4
         with:
