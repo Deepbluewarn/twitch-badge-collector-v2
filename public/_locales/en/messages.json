@@ -172,5 +172,14 @@
   },
   "selectorHealthDismiss": {
     "message": "Dismiss"
+  },
+  "selectorHealthPartialShort": {
+    "message": "Partial collection ($FIELDS$)",
+    "placeholders": {
+      "fields": {
+        "content": "$1",
+        "example": "name, badge"
+      }
+    }
   }
 }

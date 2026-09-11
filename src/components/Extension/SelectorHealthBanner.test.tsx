@@ -48,7 +48,12 @@ beforeEach(() => {
         i18n: { getMessage },
         storage: {
             local: {
-                get: (key: string) => Promise.resolve({ [key]: store[key] }),
+                get: (key: string | string[]) => Promise.resolve(
+                    Array.isArray(key)
+                        ? Object.fromEntries(key.map(k => [k, store[k]]))
+                        : { [key]: store[key] },
+                ),
+                set: (obj: Record<string, unknown>) => { Object.assign(store, obj); return Promise.resolve(); },
                 onChanged: { addListener: (cb: (typeof listeners)[number]) => { listeners.push(cb); } },
             },
         },
@@ -57,7 +62,10 @@ beforeEach(() => {
 
 afterEach(() => cleanup());
 
-const health = (broken: string[]): SelectorHealth => ({ broken, degraded: [], checkedAt: Date.now() });
+const health = (broken: string[]): SelectorHealth => ({
+    verdict: broken.length > 0 ? 'broken' : 'ok',
+    broken, degraded: [], chatCount: 20, checkedAt: Date.now(),
+});
 
 describe('SelectorHealthBanner', () => {
     it('정상 상태에서는 아무것도 렌더하지 않는다', () => {
@@ -71,7 +79,6 @@ describe('SelectorHealthBanner', () => {
             detail: health(['displayName', 'messageText']),
         }));
         await waitFor(() => expect(screen.getByText('채팅 수집이 중단됐어요')).toBeTruthy());
-        // MUI Button은 라벨을 중첩 노드로 렌더하므로 role로 집는다.
         expect(screen.getByRole('button', { name: '새로고침' })).toBeTruthy();
         expect(screen.getByRole('button', { name: '닫기' })).toBeTruthy();
     });
@@ -92,7 +99,7 @@ describe('SelectorHealthBanner', () => {
     it('필요한 메시지 키가 세 언어 모두에 있다', () => {
         const keys = [
             'selectorHealthTitle', 'selectorHealthBody', 'selectorHealthPartial',
-            'selectorHealthRefresh', 'selectorHealthDismiss',
+            'selectorHealthRefresh', 'selectorHealthDismiss', 'selectorHealthPartialShort',
         ];
         for (const lang of ['ko', 'en', 'ru']) {
             const msgs = JSON.parse(readFileSync(`public/_locales/${lang}/messages.json`, 'utf-8'));
@@ -111,15 +118,60 @@ describe('SelectorHealthBanner', () => {
         store[DEBUG_KEY] = 'partial';
         render(<SelectorHealthBanner />);
         // 닉네임만 못 읽는 상태 → name 필드만 들어가야 하고, $1이 남아 있으면 안 된다.
-        await waitFor(() => expect(screen.getByText(/일부 정보만 읽고 있어요 \(name\)/)).toBeTruthy());
+        await waitFor(() => expect(screen.getByText(/일부 정보만 수집 중 \(name\)/)).toBeTruthy());
         expect(document.body.textContent).not.toContain('$1');
+    });
+
+    it("verdict가 'unknown'이면 아무것도 띄우지 않는다", async () => {
+        // 판정 근거가 없는 상태 — 조용한 채널에서 배너가 뜨면 안 된다.
+        const { container } = render(<SelectorHealthBanner />);
+        window.dispatchEvent(new CustomEvent(SELECTOR_HEALTH_EVENT, {
+            detail: { verdict: 'unknown', broken: [], degraded: [], chatCount: 0, checkedAt: Date.now() },
+        }));
+        await waitFor(() => expect(container.textContent).toBe(''));
+    });
+
+    it('닫으면 그 rev를 storage에 기억한다', async () => {
+        store[DEBUG_KEY] = 'stopped';
+        render(<SelectorHealthBanner />);
+        await waitFor(() => expect(screen.getByRole('button', { name: '닫기' })).toBeTruthy());
+
+        screen.getByRole('button', { name: '닫기' }).click();
+
+        // 세션 state로만 닫으면 새로고침마다 다시 뜬다 — rev를 저장해야 한다.
+        await waitFor(() => expect(typeof store['tbcv2-health-dismissed-rev']).toBe('number'));
+        await waitFor(() => expect(screen.queryByRole('button', { name: '닫기' })).toBeNull());
+    });
+
+    it('같은 rev를 이미 닫았다면 처음부터 뜨지 않는다', async () => {
+        const { getManifest } = await import('@/platform/host-selectors');
+        store[DEBUG_KEY] = 'stopped';
+        store['tbcv2-health-dismissed-rev'] = getManifest().rev;
+
+        const { container } = render(<SelectorHealthBanner />);
+        // 잠깐 기다려도 계속 비어 있어야 한다.
+        await new Promise(r => setTimeout(r, 30));
+        expect(container.textContent).toBe('');
     });
 
     it('디버그 스위치 stopped — 실제 감지 없이 중단 배너를 띄운다', async () => {
         store[DEBUG_KEY] = 'stopped';
         render(<SelectorHealthBanner />);
         await waitFor(() => expect(screen.getByText('채팅 수집이 중단됐어요')).toBeTruthy());
-        expect(screen.getByText(/자동 복구를 요청했습니다/)).toBeTruthy();
+        // 긴 설명은 한 줄 바를 넘치지 않게 tooltip으로만 둔다.
+        expect(screen.getByRole('status').getAttribute('title')).toMatch(/자동 복구를 요청했습니다/);
+    });
+
+    it('한 줄 높이를 넘지 않는다', async () => {
+        // 사용자가 켠 UI가 아니라 확장이 알아서 띄우는 것이므로 채팅을 가려선 안 된다.
+        store[DEBUG_KEY] = 'stopped';
+        render(<SelectorHealthBanner />);
+        const bar = await waitFor(() => screen.getByRole('status'));
+        // MUI sx의 height: 26 → 인라인이 아니라 emotion class로 들어가므로 스타일시트에서 확인.
+        const css = Array.from(document.querySelectorAll('style'))
+            .map(el => el.textContent ?? '').join('');
+        expect(css).toMatch(/height:\s*26px/);
+        expect(bar.textContent).not.toMatch(/해당 항목을 쓰는 필터는/); // 긴 문구는 본문에 없음
     });
 
     it('디버그 스위치를 콘솔에서 켜면 새로고침 없이 반영된다', async () => {

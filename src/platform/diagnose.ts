@@ -71,10 +71,18 @@ export interface DiagnoseReport {
      * 텍스트가 비어 나와 오진을 유발했다 — 여러 개를 담아 그런 오독을 막는다.
      */
     samples: DiagnoseSample[];
-    /** required selector 매칭 0 / 일부 branch 사망 요약 (selector-health와 동일 판정). */
+    /** selector-health와 동일한 판정. */
     health: {
+        /**
+         * 'unknown'은 "멀쩡함"이 아니라 "판단 근거 없음" — 채팅이 0개인 페이지에서는
+         * 채팅 의존 selector를 판정할 수 없다. 이 구분이 없으면 조용한 채널의 리포트를
+         * 보고 selector가 깨진 것으로 오진한다.
+         */
+        verdict: 'ok' | 'broken' | 'unknown';
         broken: string[];
         degraded: Array<{ name: string; deadBranches: string[] }>;
+        /** 판정 근거로 쓴 채팅 노드 수 */
+        chatCount: number;
     };
     filters: {
         totalGroupCount: number;
@@ -250,8 +258,10 @@ export async function runDiagnose(
         sample: samples[0] ?? emptySample,
         samples,
         health: {
+            verdict: health.verdict,
             broken: health.broken,
             degraded: health.degraded,
+            chatCount: health.chatCount,
         },
         filters,
         userAgent: navigator.userAgent,

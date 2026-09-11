@@ -172,5 +172,14 @@
   },
   "selectorHealthDismiss": {
     "message": "닫기"
+  },
+  "selectorHealthPartialShort": {
+    "message": "일부 정보만 수집 중 ($FIELDS$)",
+    "placeholders": {
+      "fields": {
+        "content": "$1",
+        "example": "name, badge"
+      }
+    }
   }
 }

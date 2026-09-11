@@ -172,5 +172,14 @@
   },
   "selectorHealthDismiss": {
     "message": "Закрыть"
+  },
+  "selectorHealthPartialShort": {
+    "message": "Частичный сбор ($FIELDS$)",
+    "placeholders": {
+      "fields": {
+        "content": "$1",
+        "example": "name, badge"
+      }
+    }
   }
 }

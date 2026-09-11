@@ -148,6 +148,14 @@ function buildMarkdown(r: DiagnoseReport): string {
     lines.push('');
     lines.push(`**추출**: ${extractLabel}`);
     lines.push(`**Inject wrapper**: ${r.injectWrapper.exists ? `exists, chats ${r.injectWrapper.chatsWithKeyAttr}/${r.injectWrapper.chatCountInside}` : '**없음**'}`);
+    if (r.health) {
+        // verdict=unknown은 "정상"이 아니라 "채팅이 없어서 판정 못 함". 이걸 안 적으면
+        // 조용한 채널 리포트를 보고 selector가 깨진 것으로 오진한다.
+        const vLabel = r.health.verdict === 'ok' ? '✅ ok'
+            : r.health.verdict === 'broken' ? '❌ broken'
+            : '⚠️ unknown (채팅이 없어 판정 보류)';
+        lines.push(`**Selector 판정**: ${vLabel} · 근거 채팅 ${r.health.chatCount}개`);
+    }
     if (unavailableUnion.length > 0) {
         lines.push(`**부분 수집**: 확정 못 한 필드 \`${unavailableUnion.join(', ')}\` — 해당 필드를 쓰는 필터는 평가에서 제외됨`);
     }
