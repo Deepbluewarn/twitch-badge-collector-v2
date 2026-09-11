@@ -3,7 +3,7 @@ import type { PlatformAdapter } from "./";
 import { msToTime } from "@/utils/utils-common";
 import { createChzzkAPI, ChzzkAPI } from "@/api/chzzk";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
-import { getPlatformConfig, detectPageMode, extractChannelId, getBrokenSelectors } from "./host-selectors";
+import { getPlatformConfig, detectPageMode, extractChannelId } from "./host-selectors";
 
 const cfg = () => getPlatformConfig('chzzk');
 
@@ -63,20 +63,27 @@ export class ChzzkAdapter implements PlatformAdapter {
         const nameText = display_name?.textContent ?? "";
         if (!display_name) unavailable.push('name');
 
-        // 배지/본문은 per-chat 부재가 "selector 깨짐"을 뜻하지 않는다 — 배지 없는 채팅,
-        // 이모티콘만 있는 채팅이 정상적으로 존재한다. 그래서 이 둘은 페이지 단위 판정
-        // (selector-health가 채우는 broken 레지스트리)에만 의존한다. 반면 작성자가 없는
-        // 채팅은 없으므로 name은 per-chat 부재로 바로 확정할 수 있다.
-        const broken = getBrokenSelectors();
-        if (broken.has('badge')) unavailable.push('badge');
-        if (broken.has('messageText')) unavailable.push('keyword');
+        // 배지는 출처를 둘로 둔다 — selector 하나에 매달리지 않기 위해서다.
+        //  1. inject가 React props(displayBadgeList)에서 읽어 박아둔 data 속성
+        //  2. selector로 긁은 <img src>
+        // 실측 3개 채널 38건에서 두 값이 완전히 일치했고, 필터가 저장하는 값도 같은
+        // 이미지 URL이다. 어느 한쪽이 깨져도 배지 필터는 계속 동작한다 (TwitchAdapter가
+        // 이미 쓰던 방식). 이 덕분에 "배지 selector가 깨졌나"를 판정할 필요 자체가 없다.
+        //
+        // 중복은 무해하다 — evaluate는 badges.some()으로만 본다.
+        const dataBadges: string[] = (() => {
+            try { return JSON.parse(chat_clone.getAttribute(CHAT_ATTR.BADGES) || '[]'); }
+            catch { return []; }
+        })();
 
         // selector를 hash 없는 형태로 넓히면 <img> 없는 노드를 잡을 여지가 생긴다.
         // 예전 코드는 `getElementsByTagName("img")[0].src`로 바로 접근해서 그 순간
         // TypeError가 나고 extract 전체가 죽었다. img 없는 매칭은 그냥 버린다.
-        const badgeArr = Array.from(badges)
+        const selectorBadges = Array.from(badges)
             .map((badge) => badge.getElementsByTagName("img")[0]?.src)
             .filter((src): src is string => !!src);
+
+        const badgeArr = Array.from(new Set([...dataBadges, ...selectorBadges]));
         const textArr = Array.from(textContents).map((text) => text.textContent);
         const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
 

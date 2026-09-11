@@ -191,29 +191,6 @@ export function extractChannelId(
     return pathname.split('/')[config.channelIdPathIndex] ?? null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 런타임 selector 건강 상태
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * 이 페이지에서 "매칭 0" 으로 확인된 selector 이름들. selector-health가 채우고
- * Adapter.extract가 읽는다.
- *
- * 왜 필요한가: 배지는 "이 채팅에 배지가 없음"과 "badge selector가 깨짐"이 per-chat
- * 으로는 구별 불가다 (둘 다 매칭 0). 페이지 전체에 채팅이 있는데도 badge selector가
- * 하나도 안 잡히면 후자로 확정할 수 있고, 그때 ChatInfo.unavailable에 'badge'를
- * 실어야 exclude 배지 필터가 전원 매칭으로 뒤집히는 걸 막는다.
- */
-let BROKEN_SELECTORS: ReadonlySet<string> = new Set();
-
-export function setBrokenSelectors(names: Iterable<string>): void {
-    BROKEN_SELECTORS = new Set(names);
-}
-
-export function getBrokenSelectors(): ReadonlySet<string> {
-    return BROKEN_SELECTORS;
-}
-
 /** Storage / postMessage broadcast용 key */
 export const SELECTORS_STORAGE_KEY = 'tbcv2-selectors-manifest';
 export const SELECTORS_MESSAGE_TYPE = 'tbcv2-selectors-manifest';

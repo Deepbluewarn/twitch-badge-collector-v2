@@ -360,6 +360,43 @@ describe('ChzzkAdapter — extract', () => {
         expect(info!.badges).toHaveLength(1);
     });
 
+    it('배지를 data 속성과 selector 두 출처에서 읽는다', () => {
+        // selector가 깨져도 React props 유래 속성이 배지 필터를 살린다.
+        const node = buildChatFixture({ withBadge: true });
+        node.setAttribute(CHAT_ATTR.BADGES, JSON.stringify([
+            'https://ssl.pstatic.net/static/nng/glive/icon/streamer.png',
+        ]));
+        const info = adapter.extract(node);
+        expect(info!.badges).toContain('https://ssl.pstatic.net/static/nng/glive/icon/streamer.png');
+        expect(info!.badges).toContain('https://ssl.pstatic.net/static/nng/glive/badge/fan_03.png');
+    });
+
+    it('두 출처가 같은 배지를 주면 중복되지 않는다', () => {
+        const node = buildChatFixture({ withBadge: true });
+        node.setAttribute(CHAT_ATTR.BADGES, JSON.stringify([
+            'https://ssl.pstatic.net/static/nng/glive/badge/fan_03.png',
+        ]));
+        const info = adapter.extract(node);
+        expect(info!.badges).toEqual(['https://ssl.pstatic.net/static/nng/glive/badge/fan_03.png']);
+    });
+
+    it('badge selector가 깨져도 data 속성으로 배지를 읽는다', () => {
+        // selector를 못 쓰는 상황을 만든다 — 배지 DOM 없이 속성만 있는 채팅.
+        const node = buildChatFixture({ withBadge: false });
+        node.setAttribute(CHAT_ATTR.BADGES, JSON.stringify([
+            'https://ssl.pstatic.net/static/nng/glive/icon/streamer.png',
+        ]));
+        const info = adapter.extract(node);
+        expect(info!.badges).toEqual(['https://ssl.pstatic.net/static/nng/glive/icon/streamer.png']);
+    });
+
+    it('깨진 data 속성에서 죽지 않는다', () => {
+        const node = buildChatFixture({ withBadge: true });
+        node.setAttribute(CHAT_ATTR.BADGES, '{not json');
+        expect(() => adapter.extract(node)).not.toThrow();
+        expect(adapter.extract(node)!.badges).toHaveLength(1);
+    });
+
     it('img 없는 badge 매칭에서 죽지 않는다', () => {
         // selector를 hash 없는 형태로 넓히면 img 없는 노드를 잡을 여지가 생긴다.
         // 예전 코드는 img[0].src 직접 접근으로 TypeError를 냈다.

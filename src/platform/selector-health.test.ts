@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { inspectSelectors, getRequiredSelectorNames } from './selector-health';
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
-import { getBrokenSelectors, setBrokenSelectors, setManifest, getManifest } from './host-selectors';
+import { setManifest, getManifest } from './host-selectors';
 import type { PlatformAdapter } from './index';
 
 /** getPageMode만 쓰는 최소 adapter 스텁. */
@@ -39,15 +39,8 @@ describe('getRequiredSelectorNames', () => {
 });
 
 describe('inspectSelectors', () => {
-    beforeEach(() => {
-        document.body.innerHTML = '';
-        setBrokenSelectors([]);
-    });
-
-    afterEach(() => {
-        document.body.innerHTML = '';
-        setBrokenSelectors([]);
-    });
+    beforeEach(() => { document.body.innerHTML = ''; });
+    afterEach(() => { document.body.innerHTML = ''; });
 
     /** 채팅이 존재한다는 증거(inject가 박는 data 속성)를 만들어 준다. */
     const withChats = (n: number) =>
@@ -67,8 +60,6 @@ describe('inspectSelectors', () => {
         const health = inspectSelectors(adapterStub('live'), 'chzzk');
         expect(health.verdict).toBe('broken');
         expect(health.broken).toEqual(['displayName']);
-        // 레지스트리에도 게시되어 Adapter.extract가 unavailable을 채울 수 있어야 한다.
-        expect(getBrokenSelectors().has('displayName')).toBe(true);
     });
 
     it('채팅이 0개면 채팅 의존 selector를 판정하지 않는다 (조용한 채널)', () => {
@@ -90,8 +81,6 @@ describe('inspectSelectors', () => {
         expect(health.verdict).toBe('unknown');
         expect(health.broken).toEqual([]);
         expect(health.chatCount).toBe(0);
-        // L3로 새어나가지 않아야 한다 — 필터가 멈추면 안 된다.
-        expect(getBrokenSelectors().size).toBe(0);
     });
 
     it('채팅이 0개여도 채팅과 무관한 chatRoomLive는 판정한다', () => {

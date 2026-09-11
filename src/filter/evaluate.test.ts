@@ -227,14 +227,25 @@ describe('evaluateFilterGroup — atomic badge channel scope', () => {
 // ----- unavailable 필드 (부분 수집) --------------------------------------
 
 describe('evaluateFilterGroup — unavailable 필드', () => {
-    it('name이 unavailable이면 name include composite가 발화하지 않는다', () => {
+    it('include atomic은 unavailable이어도 평소대로 평가된다', () => {
+        // 값을 모르면 매칭이 안 될 뿐이고, 그건 정직한 결과다. composite를 건너뛰면
+        // 판정이 틀렸을 때 멀쩡히 동작하던 include 필터까지 같이 꺼진다.
         const group = [composite({
             filterType: 'include',
             filters: [atom({ category: 'name', type: 'include', value: 'alice' })],
         })];
-        // 값을 못 뽑았을 뿐인데 빈 문자열이 'alice'와 다르다고 판단하면 조용히 누락된다.
-        // 어차피 include는 pass=false로 같지만, 아래 exclude 케이스와 대칭을 맞춰 명시.
         expect(evaluateFilterGroup(chat({ unavailable: ['name'] }), group).pass).toBe(false);
+    });
+
+    it('판정이 틀려도 include 필터는 계속 동작한다', () => {
+        // 오탐 시나리오: badge를 못 읽는다고 잘못 판단했지만 실제로는 잘 채워져 있다.
+        // include 배지 필터는 영향을 받지 않아야 한다.
+        const group = [composite({
+            filterType: 'include',
+            filters: [atom({ category: 'badge', type: 'include', value: 'streamer' })],
+        })];
+        const c = chat({ badges: ['streamer'], unavailable: ['badge'] });
+        expect(evaluateFilterGroup(c, group).pass).toBe(true);
     });
 
     it('name이 unavailable이면 name exclude atomic이 전원 매칭으로 뒤집히지 않는다', () => {
@@ -278,7 +289,7 @@ describe('evaluateFilterGroup — unavailable 필드', () => {
         expect(evaluateFilterGroup(unknownName, group).pass).toBe(true);
     });
 
-    it('badge가 unavailable이면 badge를 쓰는 composite만 빠지고 나머지는 동작한다', () => {
+    it('exclude가 아닌 한 badge unavailable은 composite를 막지 않는다', () => {
         const group = [
             composite({
                 id: 'byBadge',
@@ -297,6 +308,23 @@ describe('evaluateFilterGroup — unavailable 필드', () => {
 
         const noBadgeNoKeyword = chat({ textContents: ['nope'], badges: [], unavailable: ['badge'] });
         expect(evaluateFilterGroup(noBadgeNoKeyword, group).pass).toBe(false);
+    });
+
+    it('exclude atomic만 건너뛴다 — 같은 composite의 다른 atomic은 평가된다', () => {
+        // `NOT name=alice AND badge=streamer` 에서 name을 못 읽으면 composite 전체를
+        // 건너뛴다. 부정 연산 하나 때문에 composite의 의미가 이미 무너졌기 때문.
+        const group = [composite({
+            filterType: 'include',
+            filters: [
+                atom({ id: 'n', category: 'name', type: 'exclude', value: 'alice' }),
+                atom({ id: 'b', category: 'badge', type: 'include', value: 'streamer' }),
+            ],
+        })];
+        expect(evaluateFilterGroup(chat({ badges: ['streamer'], unavailable: ['name'] }), group).pass)
+            .toBe(false);
+        // name을 읽을 수 있으면 정상 평가
+        expect(evaluateFilterGroup(chat({ nickName: 'bob', loginName: 'bob', badges: ['streamer'] }), group).pass)
+            .toBe(true);
     });
 
     it('빈 unavailable 배열은 정상 채팅과 동일하게 평가된다', () => {

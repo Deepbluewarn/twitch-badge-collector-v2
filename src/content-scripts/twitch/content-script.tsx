@@ -9,7 +9,6 @@ import {
     SELECTORS_MESSAGE_TYPE,
 } from "@/platform/host-selectors";
 import { registerDiagnoseListener } from "@/platform/diagnose";
-import { startSelectorHealthWatch } from "@/platform/selector-health";
 
 async function bootstrap() {
     // Manifest(OTA 또는 bundled) 적용 완료까지 대기 후 observer 부착.
@@ -21,12 +20,6 @@ async function bootstrap() {
 
     const adapter = new TwitchAdapter();
     registerDiagnoseListener(adapter, 'twitch');
-
-    // required selector가 전멸했는지 조용히 관찰해 broken 레지스트리를 채운다.
-    // Adapter.extract가 이걸 읽어 ChatInfo.unavailable을 세팅 → 확정 못 한 필드를 쓰는
-    // 필터만 평가에서 빠진다. UI도 네트워크 요청도 없다 (selector-health 상단 주석 참고).
-    // Container mount 여부와 무관해야 하므로 React 밖 — content-script bootstrap에 둔다.
-    let stopHealthWatch = startSelectorHealthWatch(adapter, 'twitch');
 
     const SEL = getPlatformConfig('twitch').selectors;
 
@@ -56,9 +49,6 @@ async function bootstrap() {
 
     addHistoryStateListener('www.twitch.tv', init);
     addHistoryStateListener('www.twitch.tv', () => {
-        // 채널 이동 = 새 DOM. 옛 페이지 기준 판정을 버리고 다시 검사.
-        stopHealthWatch();
-        stopHealthWatch = startSelectorHealthWatch(adapter, 'twitch');
         window.postMessage({ action: 'tbc-historyUpdated' });
     });
 

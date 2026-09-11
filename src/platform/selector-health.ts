@@ -1,22 +1,22 @@
 /**
- * Selector 건강 검사 — host page에서 required selector가 하나도 안 잡히는지 본다.
+ * Selector 건강 검사 — 진단 리포트 전용.
  *
- * 용도는 하나다: **필터 의미가 뒤집히는 것을 막기 위한 판정 근거 제공.**
+ * required selector가 이 페이지에서 하나도 안 잡히는지 세어, 사용자가 popup에서 뜨는
+ * 진단 리포트에 판정을 담는다. **런타임 동작에는 영향을 주지 않는다** — 필터를 끄거나
+ * UI를 띄우거나 네트워크를 때리지 않는다.
  *
- * 채팅 하나만 보면 "배지 없는 유저"와 "badge selector 깨짐"이 구별되지 않는다(둘 다 0).
- * 후자인데 구별을 못 하면 `chat.badges`가 빈 배열로 흘러가고, `exclude` atomic이 그걸
- * 부정해 true가 되어 "이 배지 제외" 필터가 전원 매칭으로 뒤집힌다. 페이지 전체에 채팅이
- * 있는데도 badge selector가 0건이면 후자로 확정할 수 있고, 그때 broken 레지스트리에
- * 올려 Adapter가 ChatInfo.unavailable을 채우게 한다 (src/filter/evaluate.ts 참고).
+ * 한때 이 판정으로 ChatInfo.unavailable을 채우고 배너까지 띄웠는데 전부 걷어냈다:
+ *  - 배너/즉시 OTA — 채팅 필터가 잠깐 안 되는 건 긴급 상황이 아니고, 확장이 알아서
+ *    띄우는 알림이 좁은 채팅창을 가리는 비용이 이득보다 컸다.
+ *  - 필터 차단 — "배지 selector가 0건"은 배지 단 사람이 아무도 없을 때도 성립한다.
+ *    그 오탐이 멀쩡한 사용자의 배지 필터를 통째로 꺼버렸다. 지금은 배지를 React props와
+ *    selector 두 출처에서 읽으므로(ChzzkAdapter.extract) 애초에 판정할 필요가 없다.
  *
- * 사용자에게 알리거나 복구를 앞당기는 기능은 **의도적으로 넣지 않았다.** 한때 배너 +
- * 즉시 OTA fetch까지 있었는데, (1) 채팅 필터가 잠깐 안 되는 건 긴급 상황이 아니고
- * (2) 확장이 알아서 띄우는 배너가 좁은 채팅창을 가리는 비용이 이득보다 크고
- * (3) 판정 오탐이 곧바로 사용자 필터를 꺼버리는 사고로 이어졌기 때문에 걷어냈다.
- * selector가 깨지면 평소 OTA 경로(SW wake + 1시간 TTL)로 복구된다.
+ * 남은 규칙: 채팅이 0개면 채팅 의존 selector는 판정하지 않는다('unknown'). "멀쩡함"과
+ * "판단 근거 없음"은 다르고, 리포트를 읽는 사람이 그걸 구별해야 오진하지 않는다.
  */
 import { PlatformAdapter } from './index';
-import { getPlatformConfig, setBrokenSelectors } from './host-selectors';
+import { getPlatformConfig } from './host-selectors';
 import { splitSelectorBranches } from './selector-syntax';
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
 import { SettingInterface } from '@/interfaces/setting';
@@ -119,84 +119,5 @@ export function inspectSelectors(
         ? 'broken'
         : unresolved ? 'unknown' : 'ok';
 
-    // 'unknown'에서는 레지스트리를 비운다 — 근거 없는 판정이 L3로 새어나가
-    // 배지/키워드 필터를 멈추게 하는 걸 막는다.
-    setBrokenSelectors(verdict === 'broken' ? broken : []);
-
     return { verdict, broken: verdict === 'broken' ? broken : [], degraded, chatCount, checkedAt: Date.now() };
-}
-
-/**
- * 검사를 반복하며 broken 레지스트리를 갱신한다. 조용히 돈다 — UI도 네트워크 요청도 없다.
- *
- * 두 가지를 기다린다:
- *
- *  1. **판정 근거** — 채팅이 한 개도 없으면 채팅 의존 selector는 판정할 수 없다
- *     (verdict 'unknown'). 시청자 적은 채널은 몇 분간 채팅이 없을 수 있어서, 고정
- *     횟수로 끊지 않고 채팅이 나타날 때까지 기다린다.
- *  2. **연속 확인** — 한 번 broken이 나왔다고 바로 확정하지 않는다. host의 리렌더
- *     순간에 스친 상태일 수 있어서, 연속 2회 같은 결과일 때만 레지스트리에 올린다.
- *
- * 확정 전에는 레지스트리를 비워둔다 — 근거 없는 판정이 필터를 꺼버리는 게 가장 나쁜
- * 실패 모드다. 있는 필터를 잠시 못 고치는 것보다, 없는 문제로 필터를 끄는 쪽이 해롭다.
- *
- * @returns cleanup 함수
- */
-export function startSelectorHealthWatch(
-    adapter: PlatformAdapter,
-    platform: SettingInterface['platform'],
-    opts?: {
-        firstDelayMs?: number;
-        retryDelayMs?: number;
-        /** 판정 근거가 계속 없을 때 포기하기까지의 최대 시도 횟수 */
-        maxChecks?: number;
-        /** broken 확정에 필요한 연속 관측 횟수 */
-        confirmCount?: number;
-    },
-): () => void {
-    const firstDelayMs = opts?.firstDelayMs ?? 8000;
-    const retryDelayMs = opts?.retryDelayMs ?? 15000;
-    const maxChecks = opts?.maxChecks ?? 20;
-    const confirmCount = opts?.confirmCount ?? 2;
-
-    let checks = 0;
-    let brokenStreak = 0;
-    let timer: number | undefined;
-    let cancelled = false;
-
-    const run = () => {
-        if (cancelled) return;
-        checks++;
-
-        const health = inspectSelectors(adapter, platform);
-
-        if (health.verdict === 'broken') brokenStreak++;
-        else brokenStreak = 0;
-
-        // 연속 confirmCount회 전에는 레지스트리에 올리지 않는다.
-        if (health.verdict === 'broken' && brokenStreak < confirmCount) {
-            setBrokenSelectors([]);
-        } else if (health.verdict === 'broken') {
-            console.warn(
-                `[selector-health] required selector 매칭 0 (연속 ${brokenStreak}회, 채팅 ${health.chatCount}개):`,
-                health.broken.join(', '),
-            );
-        }
-        if (health.degraded.length > 0) {
-            console.warn('[selector-health] selector branch 일부 사망 (기능은 정상):',
-                health.degraded.map(d => `${d.name}[${d.deadBranches.join(' | ')}]`).join(', '));
-        }
-
-        // 'ok'로 확정되면 더 볼 필요가 없다. 'unknown'은 근거를 기다리는 상태라 계속,
-        // 'broken'도 회복(OTA 적용 후 SPA 이동 등)을 잡기 위해 계속 본다.
-        if (health.verdict === 'ok') return;
-        if (checks < maxChecks) timer = window.setTimeout(run, retryDelayMs);
-    };
-
-    timer = window.setTimeout(run, firstDelayMs);
-
-    return () => {
-        cancelled = true;
-        if (timer !== undefined) window.clearTimeout(timer);
-    };
 }

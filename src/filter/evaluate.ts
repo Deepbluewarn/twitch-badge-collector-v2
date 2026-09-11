@@ -38,9 +38,16 @@ export function evaluateFilterGroup(
     let res = false;
     let lastIncludeColor: string | undefined;
 
-    // host DOM에서 값을 못 뽑은 Category. 해당 Category를 참조하는 composite는
-    // 평가 자체에서 빠진다 — atomic 레벨에서 false로 떨구면 exclude atomic이
-    // 그걸 부정해 true가 되어 필터 의미가 뒤집히기 때문 (chat.unavailable 주석 참고).
+    // host DOM에서 값을 못 뽑은 Category.
+    //
+    // 여기서 막아야 하는 건 하나뿐이다: **exclude atomic의 부정 연산**.
+    // 값을 모르면 atomic은 false가 되는데, exclude가 그걸 뒤집어 true로 만들어서
+    // "이 배지 없는 사람" 같은 조건이 전원 매칭으로 변한다.
+    //
+    // 반대로 include atomic은 막을 필요가 없다. 값을 모르면 매칭이 안 되고, 그건
+    // "이 필터로는 아무것도 못 찾았다"는 정직한 결과다. 그런데도 composite를
+    // 통째로 건너뛰면, 판정이 틀렸을 때(오탐) 멀쩡히 동작하던 include 필터까지
+    // 같이 꺼진다 — 사용자에게 아무 이득 없이 기능만 잃는 실패다.
     const unavailable = chat.unavailable;
 
     for (let composite of filterGroup) {
@@ -49,8 +56,8 @@ export function evaluateFilterGroup(
             continue;
         }
         if (unavailable && unavailable.length > 0
-            && composite.filters.some(f => unavailable.includes(f.category))) {
-            // 확정 못 한 필드에 의존하는 composite → verdict에 영향 없음 (sleep과 동일 효과).
+            && composite.filters.some(f => f.type === 'exclude' && unavailable.includes(f.category))) {
+            // 확정 못 한 필드에 부정 연산이 걸린 composite → verdict에 영향 없음 (sleep과 동일).
             continue;
         }
         const filterMatched = composite.filters.every((filter) => {

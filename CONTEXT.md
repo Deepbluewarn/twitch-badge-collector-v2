@@ -51,28 +51,21 @@ The atomic-level `exclude` is what lets a single composite express both presence
 
 **확정되지 않은 필드 (unavailable)**:
 Host page 구조가 바뀌어 **Platform Adapter**가 어떤 필드를 못 뽑았을 때, 그 사실을
-`ChatInfo.unavailable`에 실어 보낸다. "값이 빈 문자열"과 "값을 모른다"는 다른 상태다.
+`ChatInfo.unavailable`에 실어 보낸다.
 
-현재 **`ChzzkAdapter`만** 이걸 채운다. `TwitchAdapter`는 예전처럼 이름을 못 뽑으면
-채팅을 버린다 — 트위치에서 조기 반환 조건을 느슨하게 하면 이름 없이 본문만 있는
-노드(구독 알림, 레이드 공지 등 시스템 메시지)가 새로 통과하는데, 그 영향을 라이브
-트위치에서 확인하지 않았기 때문이다. `evaluateFilterGroup`의 처리는 플랫폼 무관이므로
-트위치에서는 해당 분기가 실행되지 않을 뿐이다.
+`evaluateFilterGroup`은 이 값을 **한 가지 경우에만** 쓴다 — 해당 Category에 `exclude`
+atomic이 걸린 composite를 평가에서 제외한다. 값을 모르면 atomic이 false가 되는데,
+`exclude`가 그걸 뒤집어 true로 만들어서 "이 배지 없는 사람" 같은 조건이 전원 매칭으로
+변하기 때문이다.
 
-`evaluateFilterGroup`은 unavailable에 실린 **Filter Category**를 참조하는 composite
-**Filter Element**를 평가에서 **완전히 제외**한다 (composite 레벨 `sleep`과 같은 관측 결과).
-atomic 레벨에서 false로 떨구면 안 된다 — atomic `exclude`가 그 false를 부정해 true가 되고,
-"이 사람 제외" 같은 조건이 전원 매칭으로 뒤집힌다.
+**`include` atomic은 막지 않는다.** 값을 모르면 매칭이 안 될 뿐이고 그건 정직한 결과다.
+composite를 통째로 건너뛰면 판정이 틀렸을 때 멀쩡히 동작하던 필터까지 같이 꺼진다 —
+사용자에게 아무 이득 없이 기능만 잃는 실패다.
 
-판정 기준:
-- `name` — 작성자 없는 채팅은 없으므로 채팅 단위 부재로 바로 확정.
-- `badge` / `keyword` — 배지 없는 채팅, 이모티콘만 있는 채팅이 정상 존재하므로 채팅 단위
-  부재로는 판정 불가. `selector-health`의 **페이지 단위** 판정(required selector가 페이지
-  전체에서 0건)에만 의존한다.
-
-이 설계의 목적은 selector 하나가 깨졌을 때 채팅 수집이 100%가 아니라 부분만 손실되게
-하는 것이다. 2026-09-10 chzzk가 username class hash를 롤링했을 때(`_container_zw6kq_` →
-`_container_1mc5x_`) `displayName` 하나 때문에 모든 채팅이 필터 평가 전에 폐기됐다.
+현재 **`ChzzkAdapter`가 `name`에 대해서만** 채운다 (작성자 없는 채팅은 없으므로 채팅
+단위로 바로 확정 가능). `badge`는 출처를 둘로 둬서(React props 유래 data 속성 + selector)
+selector가 깨져도 동작하므로 판정이 필요 없고, `keyword`는 판정할 독립 근거가 없어
+다루지 않는다. `TwitchAdapter`는 채우지 않는다.
 _Avoid_: missing, empty, null 필드.
 
 **Filter Category**:
@@ -102,12 +95,8 @@ An optional restriction on a composite Filter Element making it fire only when t
 - **Filter validation**: [src/filter/validate.ts](src/filter/validate.ts) — `validateFilterList(filter)` returns `{valid:true}` or `{valid:false, error: FilterValidationError}` (error code, not localized string).
 - **Container layout**: [src/content-scripts/base/layout.ts](src/content-scripts/base/layout.ts) — `applyPosition`, `applyRatio`. Owns the 3 element ID convention, `order`/`height` rules.
 - **Platform adapters**: [src/platform/](src/platform/) — `PlatformAdapter` interface + `TwitchAdapter`/`ChzzkAdapter` impls. Each carries `extract`, `getCurrentChannelId`, `getPageMode`, `computeDragRatio`.
-- **Selector 건강 검사**: [src/platform/selector-health.ts](src/platform/selector-health.ts) — `inspectSelectors` / `startSelectorHealthWatch`. required selector 매칭 0을 감지해 host-selectors의 broken 레지스트리에 게시하고, Adapter가 그걸 읽어 `unavailable`을 채운다. **용도는 이것 하나** — 필터 의미가 뒤집히는 것을 막는 판정 근거. UI도 네트워크 요청도 없다. Container mount 여부와 무관해야 하므로 React 밖 content-script bootstrap에서 시작한다.
-  - 사용자 알림(배너)과 즉시 OTA fetch는 **의도적으로 넣지 않았다.** 채팅 필터가 잠깐 안 되는 건 긴급 상황이 아니고, 확장이 알아서 띄우는 배너가 좁은 채팅창을 가리는 비용이 이득보다 크며, 판정 오탐이 곧바로 사용자 필터를 꺼버리는 사고로 이어졌다. selector가 깨지면 평소 OTA 경로(SW wake + 1시간 TTL)로 복구된다.
-  - 단, 채팅창 앵커(`chatRoomLive`) 자체를 못 찾는 최악의 경우는 [findElement](src/utils/utils-common.ts)가 10초 후 세션당 1회 `tbc-force-ota-fetch`를 보낸다 — 이건 이전부터 있던 경로다.
-  - **판정은 3상태** (`ok` / `broken` / `unknown`). 채팅이 0개인 페이지에서는 `displayName`·`usernameContainer`·`messageText`·`badge`가 자연히 0이므로 판정을 보류한다(`unknown`). 시청자 적은 채널이나 방금 시작한 방송을 `broken`으로 보면 멀쩡한 사용자에게 배너가 뜨고, 더 나쁘게는 broken 레지스트리를 통해 `badge`/`keyword`가 `unavailable`로 표시돼 **필터가 실제로 멈춘다.** `unknown`에서는 레지스트리를 비운다.
-  - 판정 근거는 `[data-tbc-chat-key]` 개수 — inject가 React props에서 읽어 박는 값이라 검사 대상 selector와 독립이다 (selector 상태를 다른 selector로 판정하면 순환).
-  - `broken`은 **연속 2회** 관측해야 확정된다. host 리렌더 순간에 스친 상태로 배너를 띄우지 않기 위함.
+- **Selector 건강 검사**: [src/platform/selector-health.ts](src/platform/selector-health.ts) — `inspectSelectors`. **진단 리포트 전용**이고 런타임 동작에는 영향을 주지 않는다. 판정은 3상태(`ok`/`broken`/`unknown`)이며, 채팅이 0개면 채팅 의존 selector는 판정하지 않는다 — 리포트를 읽는 사람이 "멀쩡함"과 "판단 근거 없음"을 구별해야 오진하지 않는다.
+  - 한때 이 판정으로 필터를 끄고 배너까지 띄웠으나 전부 걷어냈다. "badge selector 0건"은 배지 단 사람이 아무도 없을 때도 성립해서, 그 오탐이 멀쩡한 사용자의 배지 필터를 통째로 껐다. 감지해서 끄는 것보다 **깨져도 동작하게** 만드는 쪽이 맞다 (배지 이중 출처).
 - **Selector 문법 헬퍼**: [src/platform/selector-syntax.ts](src/platform/selector-syntax.ts) — `splitSelectorBranches` / `extractClassHashes`. 의존성 0이라 확장 런타임과 canary 스크립트가 공유. rev 14부터 fragile selector는 콤마 selector list로 이중화되어 있고, branch 하나가 죽어도 전체는 매칭되므로 branch 단위로 쪼개 봐야 조기 감지가 된다.
 - **Chat attribute contract**: [src/interfaces/chat-attributes.ts](src/interfaces/chat-attributes.ts) — `CHAT_ATTR` 상수 객체와 `PROCESSED_CHAT_CLASS`. inject 스크립트가 host page 채팅 노드에 박는 `data-tbc-chat-*` 속성과, useChatStream의 *처리됨* 마킹 클래스를 한 곳에 명시. inject ↔ Adapter.extract / useChatStream가 모두 이 상수를 참조해 컴파일 타임 sync.
 - **GlobalSetting cross-entrypoint sync**: [src/hooks/useGlobalSettingExtension.ts](src/hooks/useGlobalSettingExtension.ts) — `browser.storage.local`이 source of truth. 4개 entrypoint(popup/setting/welcome/Container)가 각자 hook을 호출하지만 `storage.onChanged` 리스너로 다른 entrypoint의 변경을 자기 state에 자동 반영. 자기 변경의 echo는 비교 후 no-op이라 루프 없음.
