@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Button from "@mui/material/Button";
-import { useTranslation } from "react-i18next";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { SELECTOR_HEALTH_EVENT, SelectorHealth } from "@/platform/selector-health";
 
@@ -35,6 +34,18 @@ function forcedHealth(mode: unknown): SelectorHealth | null {
     return null;
 }
 
+/**
+ * 번역은 browser.i18n(public/_locales) 사용 — i18next가 아니다.
+ *
+ * 이 컴포넌트는 content script가 host page에 mount하는 Container 안에서 돈다.
+ * i18next는 설정 페이지 entrypoint에서만 init되므로 여기선 초기화가 안 돼 있고,
+ * useTranslation을 쓰면 번역 키 문자열이 그대로 화면에 찍힌다 (실제로 그렇게 났다).
+ * popup과 SocialFooter도 같은 이유로 browser.i18n을 쓴다 — 브라우저가 항상 먼저
+ * 준비해두고, ru까지 커버되며, content script 번들에 i18next가 안 실린다.
+ */
+const t = (key: string, sub?: string[]): string =>
+    browser.i18n.getMessage(key as never, sub as never) || key;
+
 /** 깨진 selector 이름 → 사용자에게 설명할 Filter Category */
 const SELECTOR_TO_FIELD: Record<string, string> = {
     displayName: 'name',
@@ -55,7 +66,6 @@ const SELECTOR_TO_FIELD: Record<string, string> = {
  * 자체가 깨져 Container가 아예 안 붙는 최악의 경우는 popup의 진단 리포트가 담당.
  */
 export default function SelectorHealthBanner() {
-    const { t } = useTranslation();
     const [health, setHealth] = useState<SelectorHealth | null>(null);
     const [dismissed, setDismissed] = useState(false);
 
@@ -104,19 +114,19 @@ export default function SelectorHealthBanner() {
             action={
                 <>
                     <Button color="inherit" size="small" onClick={() => window.location.reload()}>
-                        {t('selector_health.refresh')}
+                        {t('selectorHealthRefresh')}
                     </Button>
                     <Button color="inherit" size="small" onClick={() => setDismissed(true)}>
-                        {t('selector_health.dismiss')}
+                        {t('selectorHealthDismiss')}
                     </Button>
                 </>
             }
             sx={{ fontSize: '0.75rem', alignItems: 'center', borderRadius: 0 }}
         >
-            <AlertTitle sx={{ fontSize: '0.8rem', mb: 0.25 }}>{t('selector_health.title')}</AlertTitle>
+            <AlertTitle sx={{ fontSize: '0.8rem', mb: 0.25 }}>{t('selectorHealthTitle')}</AlertTitle>
             {stopped
-                ? t('selector_health.body')
-                : t('selector_health.partial', { fields: fields.join(', ') })}
+                ? t('selectorHealthBody')
+                : t('selectorHealthPartial', [fields.join(', ')])}
         </Alert>
     );
 }

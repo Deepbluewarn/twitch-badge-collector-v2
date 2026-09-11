@@ -151,5 +151,26 @@
   },
   "supportMessage" : {
     "message": "프로그램이 유용하다면, 후원과 평가를 통해 서비스 개선과 지속적인 업데이트를 지원해주세요!"
+  },
+  "selectorHealthTitle": {
+    "message": "채팅 수집이 중단됐어요"
+  },
+  "selectorHealthBody": {
+    "message": "방송 사이트의 화면 구조가 바뀌어 채팅을 읽지 못하고 있어요. 자동 복구를 요청했습니다 — 페이지를 새로고침해 주세요."
+  },
+  "selectorHealthPartial": {
+    "message": "채팅의 일부 정보만 읽고 있어요 ($FIELDS$). 해당 항목을 쓰는 필터는 잠시 적용되지 않습니다.",
+    "placeholders": {
+      "fields": {
+        "content": "$1",
+        "example": "name, badge"
+      }
+    }
+  },
+  "selectorHealthRefresh": {
+    "message": "새로고침"
+  },
+  "selectorHealthDismiss": {
+    "message": "닫기"
   }
 }

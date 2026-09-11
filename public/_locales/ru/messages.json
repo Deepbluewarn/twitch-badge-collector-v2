@@ -151,5 +151,26 @@
   },
   "supportMessage" : {
     "message": "If you find the program useful, please help us improve and keep it updated by donating and rating!"
+  },
+  "selectorHealthTitle": {
+    "message": "Сбор чата остановлен"
+  },
+  "selectorHealthBody": {
+    "message": "Структура страницы сайта изменилась, и чат не читается. Запрошено автоматическое восстановление — обновите страницу."
+  },
+  "selectorHealthPartial": {
+    "message": "Из каждого сообщения читается только часть данных ($FIELDS$). Фильтры, использующие эти поля, приостановлены.",
+    "placeholders": {
+      "fields": {
+        "content": "$1",
+        "example": "name, badge"
+      }
+    }
+  },
+  "selectorHealthRefresh": {
+    "message": "Обновить"
+  },
+  "selectorHealthDismiss": {
+    "message": "Закрыть"
   }
 }

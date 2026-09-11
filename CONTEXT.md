@@ -100,6 +100,10 @@ An optional restriction on a composite Filter Element making it fire only when t
 - **Selector 문법 헬퍼**: [src/platform/selector-syntax.ts](src/platform/selector-syntax.ts) — `splitSelectorBranches` / `extractClassHashes`. 의존성 0이라 확장 런타임과 canary 스크립트가 공유. rev 14부터 fragile selector는 콤마 selector list로 이중화되어 있고, branch 하나가 죽어도 전체는 매칭되므로 branch 단위로 쪼개 봐야 조기 감지가 된다.
 - **Chat attribute contract**: [src/interfaces/chat-attributes.ts](src/interfaces/chat-attributes.ts) — `CHAT_ATTR` 상수 객체와 `PROCESSED_CHAT_CLASS`. inject 스크립트가 host page 채팅 노드에 박는 `data-tbc-chat-*` 속성과, useChatStream의 *처리됨* 마킹 클래스를 한 곳에 명시. inject ↔ Adapter.extract / useChatStream가 모두 이 상수를 참조해 컴파일 타임 sync.
 - **GlobalSetting cross-entrypoint sync**: [src/hooks/useGlobalSettingExtension.ts](src/hooks/useGlobalSettingExtension.ts) — `browser.storage.local`이 source of truth. 4개 entrypoint(popup/setting/welcome/Container)가 각자 hook을 호출하지만 `storage.onChanged` 리스너로 다른 entrypoint의 변경을 자기 state에 자동 반영. 자기 변경의 echo는 비교 후 no-op이라 루프 없음.
+- **번역 (두 체계 공존)**: surface에 따라 다른 걸 쓴다 — 섞으면 화면에 번역 키가 그대로 찍힌다.
+  - `browser.i18n.getMessage` + [public/_locales/](public/_locales/) — **popup, content script, Container**. 브라우저가 항상 먼저 준비하고 ko/en/ru를 커버한다. 치환이 필요한 메시지는 `placeholders`를 선언할 것 (`$1` 위치 치환만으로는 브라우저별 동작 보장 안 됨).
+  - `useTranslation` + [src/translate/](src/translate/) — **설정 페이지 entrypoint 전용**. `@/translate/i18n` import가 [src/entrypoints/setting/main.tsx](src/entrypoints/setting/main.tsx)에만 있어서, 다른 entrypoint에서 `useTranslation`을 쓰면 init이 안 된 상태로 키 문자열이 노출된다.
+  - 남은 함정: [useFilterGroup](src/hooks/useFilterGroup.ts)이 `t()`로 alert 메시지를 만드는데 Container 트리에도 들어 있다. Container는 `checkFilter`만 써서 그 경로에 도달하지 않아 현재는 문제가 없지만, Container에서 filter 추가/검증 경로를 쓰게 되면 키가 노출된다. Container에 i18next를 init하면 content script 번들이 ~57KB 늘어나므로(실측), 그때는 해당 메시지를 `_locales`로 옮기는 쪽이 낫다.
 
 ## Flagged ambiguities
 

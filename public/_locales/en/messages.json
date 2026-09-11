@@ -151,5 +151,26 @@
   },
   "supportMessage" : {
     "message": "If you find the program useful, please help us improve and keep it updated by donating and rating!"
+  },
+  "selectorHealthTitle": {
+    "message": "Chat collection has stopped"
+  },
+  "selectorHealthBody": {
+    "message": "The streaming site's layout changed, so chats can't be read. An automatic recovery was requested — please refresh the page."
+  },
+  "selectorHealthPartial": {
+    "message": "Only part of each chat can be read ($FIELDS$). Filters that use those fields are paused.",
+    "placeholders": {
+      "fields": {
+        "content": "$1",
+        "example": "name, badge"
+      }
+    }
+  },
+  "selectorHealthRefresh": {
+    "message": "Refresh"
+  },
+  "selectorHealthDismiss": {
+    "message": "Dismiss"
   }
 }
