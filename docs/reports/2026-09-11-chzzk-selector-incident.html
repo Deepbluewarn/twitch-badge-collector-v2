@@ -352,6 +352,126 @@
   a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
   a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
 
+  /* ---------- 배포 상태 ---------- */
+  .status {
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .status-head {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .status-head time { font-variant-numeric: tabular-nums; }
+  .status-rows { display: flex; flex-direction: column; }
+  .status-row {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 4px 14px;
+    align-items: baseline;
+    padding: 11px 18px;
+  }
+  .status-row + .status-row { border-top: 1px solid var(--rule-soft); }
+  .status-row p { font-size: 14.5px; line-height: 1.6; color: var(--ink-soft); margin: 0; }
+
+  .pill {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .pill-live { background: var(--accent-dim); color: var(--accent); }
+  .pill-wait { background: var(--warn-dim); color: var(--warn); }
+  .pill-ci   { background: var(--rule-soft); color: var(--muted); }
+
+  /* ---------- 호출 사슬 ---------- */
+  .chain { margin: 4px 0 0; }
+  .chain figcaption {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .chain ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .chain li {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .chain li + li { border-top: 1px solid var(--rule-soft); }
+  .chain li code { background: none; border: 0; padding: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .chain li span { font-size: 14px; color: var(--ink-soft); line-height: 1.55; }
+  .chain .chain-cut {
+    background: var(--critical-dim);
+    border-left: 3px solid var(--critical);
+  }
+  .chain .chain-cut code { color: var(--critical); }
+  .chain .chain-cut .cut-label {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--critical);
+  }
+  .chain .chain-dead code,
+  .chain .chain-dead span { color: var(--muted); }
+  .chain .chain-dead code { text-decoration: line-through; text-decoration-thickness: 1px; }
+
+  /* ---------- 함정 박스 ---------- */
+  .trap {
+    background: var(--warn-dim);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--warn);
+    border-radius: 2px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .trap .lead {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--warn);
+  }
+  .trap pre {
+    margin: 0;
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: var(--ink);
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     a { transition: opacity .15s ease; }
     a:hover { opacity: .75; }
@@ -393,6 +513,35 @@
     </div>
   </dl>
 
+  <div class="status">
+    <div class="status-head">
+      <span>지금 배포 상태</span>
+      <time datetime="2026-09-11">2026-09-11 기준</time>
+    </div>
+    <div class="status-rows">
+      <div class="status-row">
+        <span class="pill pill-live">적용됨</span>
+        <p><strong>rev 14 selector</strong> — master 푸시 + CDN 퍼지 완료. 이미 설치된 확장이 실행 중에 내려받아
+          쓰고 있어서 <em>새 버전을 배포하지 않고</em> 복구됐습니다. 아래 L1·L2가 여기 해당합니다.</p>
+      </div>
+      <div class="status-row">
+        <span class="pill pill-live">적용됨</span>
+        <p><strong>감시 봇 정상화</strong> — 방문한 모든 라이브 채널에서 필수 항목 전부 통과. 4회 연속 실패 해제.</p>
+      </div>
+      <div class="status-row">
+        <span class="pill pill-wait">릴리스 대기</span>
+        <p><strong>L3 부분 수집 · L5 배너</strong> — 이 둘은 코드라서 selector 파일로는 전달되지 않습니다.
+          <strong>v2.19.5를 내보내기 전까지 사용자에게는 없습니다.</strong> 즉 지금은
+          “고쳐졌지만 다음에도 여전히 전부 아니면 전무”입니다.</p>
+      </div>
+      <div class="status-row">
+        <span class="pill pill-wait">푸시 대기</span>
+        <p><strong>L4 이슈 자동 생성</strong> — 스크립트는 올라갔지만 이를 호출하는 워크플로 파일이
+          토큰 권한(<code>workflow</code> 스코프) 때문에 아직 로컬에 있습니다.</p>
+      </div>
+    </div>
+  </div>
+
   <section>
     <h2>무슨 일이 있었나</h2>
 
@@ -414,10 +563,46 @@
 
     <h3>왜 “필터가 죽은” 것처럼 보였나</h3>
     <p>
-      채팅 한 줄을 처리하는 순서는 <strong>읽기 → 필터 판정 → 보여주기</strong>입니다.
-      문제는 첫 단계인 ‘읽기’에서 났습니다. 닉네임을 못 찾으면 그 채팅을 통째로 버리는 코드였기 때문에,
-      채팅은 <em>필터 판정에 도달조차 하지 못했습니다</em>. 사용자 눈에는 필터가 고장 난 것처럼 보이지만
-      필터는 애초에 호출되지 않았던 겁니다.
+      채팅 한 줄은 <strong>읽기 → 필터 판정 → 보여주기</strong> 순서로 처리됩니다. 문제는 첫 단계에서 났고,
+      그 결과 두 번째 단계가 <strong>아예 실행되지 않았습니다</strong>. 맨 위 문장의 “그 한 줄”은 아래 빨간 줄입니다.
+    </p>
+
+    <figure class="chain">
+      <figcaption>useChatStream.ts 85–88행</figcaption>
+      <ol>
+        <li>
+          <code>adapter.extract(element)</code>
+          <span>읽기 — 닉네임·본문·배지를 화면에서 뽑는다. 닉네임을 못 찾아 “실패”를 돌려줬다.</span>
+        </li>
+        <li class="chain-cut">
+          <span class="cut-label">여기서 끊겼다</span>
+          <code>if (!chat) return;</code>
+          <span>읽기가 실패하면 이 채팅을 통째로 버리고 함수를 끝낸다.</span>
+        </li>
+        <li class="chain-dead">
+          <code>predicate(chat)</code>
+          <span>필터 판정 — 사고 기간 내내 <strong>단 한 번도 호출되지 않았다.</strong></span>
+        </li>
+        <li class="chain-dead">
+          <code>onChatPassed(...)</code>
+          <span>화면에 표시</span>
+        </li>
+      </ol>
+    </figure>
+
+    <p>
+      사용자 눈에는 “필터가 고장났다”와 “필터가 호출되지 않았다”가 똑같아 보입니다. 하지만 대응이 정반대입니다.
+      필터가 고장난 거라면 설정을 고치면 뭐라도 달라지지만, 호출되지 않은 거라면
+      <strong>설정을 어떻게 바꿔도 아무 변화가 없습니다.</strong> 제보자가 필터를 지웠다 다시 만들어도 소용없었을 겁니다.
+    </p>
+    <p>
+      제보 데이터에 이 구분이 그대로 남아 있었습니다. 읽기는 <code>fail-undefined</code>로 실패한 반면
+      필터 설정은 치지직 그룹 4개가 멀쩡히 로드돼 있었습니다 — 필터가 무죄라는 증거였습니다.
+    </p>
+    <p>
+      손실이 90%도 99%도 아닌 <strong>100%</strong>인 이유도 여기 있습니다. 치지직은 모든 채팅에서 닉네임을
+      같은 자리에 그립니다. 일반 채팅이든 도네이션이든 같은 이름표를 쓰기 때문에 읽기는 일부가 아니라
+      <em>모든 채팅에서 똑같이</em> 실패했습니다.
     </p>
   </section>
 
@@ -495,7 +680,16 @@
       </li>
       <li class="fix">
         <span class="t-when">09-11</span>
-        <span class="t-what">원인 확정, rev 14 배포 + 5개 계층 보강</span>
+        <span class="t-what">원인 확정 — 라이브 채널을 직접 열어 측정</span>
+      </li>
+      <li class="fix">
+        <span class="t-when">09-11</span>
+        <span class="t-what">rev 14 배포 (master 푸시 → CDN 퍼지) + 5개 계층 보강</span>
+      </li>
+      <li class="fix">
+        <span class="t-when">09-11</span>
+        <span class="t-what">감시 봇 재실행 통과 — 전 채널 필수 항목 <strong>fail=none</strong></span>
+        <span class="t-note">18시간 동안 닫히지 않던 고리가 닫혔다.</span>
       </li>
     </ol>
 
@@ -565,6 +759,36 @@
       <strong>도네이션 닉네임이 안 잡혔습니다.</strong> 실제 도네이션 샘플을 6건 잡아 검증하고 나서야
       두 경우 모두 통과하는 형태를 골랐습니다.
     </p>
+
+    <h3>콤마는 OR입니다 — 단, 우선순위가 아닙니다</h3>
+    <p>
+      콤마로 이어붙인 두 조건은 <strong>OR</strong>로 묶입니다. 이 OR은 브라우저가 처리하므로 우리 코드는
+      문자열 하나를 넘길 뿐입니다 — L2가 코드 0줄인 이유입니다. 여러 개를 찾을 때는 <strong>합집합에서 중복이
+      제거</strong>되므로, 두 조건이 같은 배지를 잡아도 배지가 두 번 들어가지 않습니다.
+    </p>
+
+    <div class="trap">
+      <span class="lead">다음에 selector 고칠 사람이 알아야 할 함정</span>
+      <p>
+        하나만 찾는 <code>querySelector</code>는 <strong>“앞에 쓴 조건을 먼저 시도”하지 않습니다.</strong>
+        앞뒤 순서와 무관하게 <strong>화면에서 먼저 나오는 요소</strong>가 이깁니다:
+      </p>
+<pre>"A조건, B조건"  →  A가 잡은 것   (A의 요소가 DOM에서 먼저라서)
+"B조건, A조건"  →  A가 잡은 것   (순서를 뒤집어도 똑같다)</pre>
+      <p>
+        그래서 두 조건이 <strong>서로 다른 요소</strong>를 가리키면, 어느 쪽이 나오는지가 화면 구조에 좌우되고
+        조용히 틀린 값이 나옵니다. 이중화가 안전한 건 두 조건이 <strong>같은 요소</strong>를 가리킬 때뿐입니다 —
+        이번 후보들은 라이브 3개 채널과 도네이션 샘플 6건에서 모두 같은 요소임을 확인했습니다.
+      </p>
+    </div>
+
+    <p>
+      하나 완전한 대칭은 아닙니다. <code>usernameContainer</code>의 두 조건 중
+      <code>_nickname_</code> 쪽은 <strong>도네이션 채팅을 못 잡습니다</strong>
+      (버튼 이름이 다르고 <code>_nickname_</code>이 컨테이너 안쪽에 있음). 즉
+      <code>aria-haspopup</code> 쪽이 죽으면 일반 채팅은 버티지만 도네이션 채팅의 시간 표시가 사라집니다.
+      수집이 멈추지는 않지만, 두 조건의 능력이 같다고 생각하면 안 됩니다.
+    </p>
   </section>
 
   <section>
@@ -575,7 +799,7 @@
         <span class="layer-n">L1</span>
         <div class="layer-body">
           <h3 class="layer-title">해시 의존 제거</h3>
-          <div class="layer-meta"><span>코드 배포 불필요</span><span>즉시 복구</span></div>
+          <div class="layer-meta"><span class="pill pill-live">적용됨</span><span>코드 배포 불필요</span><span>즉시 복구</span></div>
           <p>빌드마다 바뀌는 이름 대신 기능·구조 기준으로 교체. 라이브 3개 채널에서 필수 항목이 모두 채팅당 정확히 1건씩 잡히는 것을 확인했습니다.</p>
         </div>
       </div>
@@ -584,7 +808,7 @@
         <span class="layer-n">L2</span>
         <div class="layer-body">
           <h3 class="layer-title">두 갈래로 이중화</h3>
-          <div class="layer-meta"><span>코드 변경 0줄</span></div>
+          <div class="layer-meta"><span class="pill pill-live">적용됨</span><span>코드 변경 0줄</span></div>
           <p>콤마로 두 후보를 나란히 걸면 브라우저가 알아서 둘 다 시도합니다. 한쪽이 죽어도 기능은 유지됩니다.</p>
           <p>단, 이러면 <strong>절반 죽어도 조용해진다</strong>는 부작용이 생깁니다. 그래서 감시 봇과 진단 도구가 갈래별로 따로 세도록 만들었습니다 — 한쪽이 죽는 순간 알림이 갑니다.</p>
         </div>
@@ -594,7 +818,7 @@
         <span class="layer-n">L3</span>
         <div class="layer-body">
           <h3 class="layer-title">전량 폐기 대신 부분 수집</h3>
-          <div class="layer-meta"><span>100% 손실 → 부분 손실</span></div>
+          <div class="layer-meta"><span class="pill pill-wait">릴리스 대기</span><span>100% 손실 → 부분 손실</span></div>
           <p>닉네임을 못 읽어도 채팅을 버리지 않고, <strong>“이 항목은 값을 모른다”</strong>고 표시해서 넘깁니다. 배지·키워드 필터는 그대로 동작합니다.</p>
           <p>여기에 함정이 하나 있었습니다. 모르는 값을 그냥 “빈 값”으로 두면, <code>제외</code> 조건이 그걸 뒤집어 참이 되어 <strong>“이 사람 제외” 필터가 전원 매칭으로 변합니다.</strong> 그래서 값을 모르는 항목을 쓰는 조건은 아예 평가에서 빼도록 했고, 이 함정을 그대로 재현하는 테스트를 남겼습니다.</p>
         </div>
@@ -604,11 +828,12 @@
         <span class="layer-n">L4</span>
         <div class="layer-body">
           <h3 class="layer-title">감시 봇이 실제로 조치하게</h3>
-          <div class="layer-meta"><span>이번 사고의 진짜 미스</span></div>
+          <div class="layer-meta"><span class="pill pill-ci">CI · 일부 대기</span><span>이번 사고의 진짜 미스</span></div>
           <ul>
             <li>후보를 <strong>실제 방송 페이지에서 직접 돌려보고</strong> 채점 — “채팅당 정확히 1건”처럼 원래 하던 일을 그대로 하는지로 오답을 걸러냅니다. 이번 건은 정답 하나만 통과합니다.</li>
             <li>자동 수정 시 <strong>구버전용 파일까지 같이</strong> 갱신 (지금까지 빠져 있어 옛 사용자는 계속 깨진 상태였습니다).</li>
-            <li>자동으로 못 고치면 <strong>GitHub 이슈 생성</strong> — 디스코드 알림만으로는 놓칩니다.</li>
+            <li>자동으로 못 고치면 <strong>GitHub 이슈 생성</strong> — 디스코드 알림만으로는 놓칩니다.
+              <em>이 항목만 아직 비활성</em>입니다 (워크플로 파일 푸시 대기).</li>
           </ul>
         </div>
       </div>
@@ -617,8 +842,9 @@
         <span class="layer-n">L5</span>
         <div class="layer-body">
           <h3 class="layer-title">사용자에게 보이게 + 자가 복구</h3>
-          <div class="layer-meta"><span>지금까지 완전히 무성이었음</span></div>
+          <div class="layer-meta"><span class="pill pill-wait">릴리스 대기</span><span>지금까지 완전히 무성이었음</span></div>
           <p>필수 항목이 하나도 안 잡히면 곧바로 최신 설정을 내려받고(평소 1시간 대기 규칙 무시), 채팅창 위에 배너를 띄워 새로고침을 안내합니다. 사용자가 “왜 안 되지”로 시간을 버리지 않게 하는 게 목적입니다.</p>
+          <p><strong>이번 사고에는 소용이 없었습니다.</strong> 배너와 강제 내려받기는 코드라서, 다음 버전을 내보낸 뒤에 일어나는 사고부터 작동합니다.</p>
         </div>
       </div>
     </div>
@@ -642,14 +868,27 @@
 
   <section>
     <h2>남은 일</h2>
+    <p>
+      selector 배포(CDN 퍼지)와 감시 봇 재실행은 완료했습니다. 남은 것은 <strong>코드를 사용자에게 보내는 일</strong>입니다.
+    </p>
     <ol class="steps">
-      <li><strong>jsDelivr 캐시 퍼지</strong> — 이게 있어야 기존 사용자에게 rev 14가 빨리 전달됩니다. <code>purge.jsdelivr.net</code>에서 두 selector 파일 모두.</li>
-      <li><strong>감시 봇 재실행</strong> — 통과하면 스냅샷이 갱신되고 4회 연속 실패 상태가 해제됩니다.</li>
-      <li><strong>실제 브라우저에서 최종 확인</strong> — 배지 필터, 닉네임 필터, 도네이션 키워드 필터 각각 한 번씩.</li>
+      <li>
+        <strong>v2.19.5 릴리스</strong> — 이게 있어야 L3(부분 수집)과 L5(배너)가 사용자에게 갑니다.
+        지금은 selector만 고쳐진 상태라, 다음 사고가 나면 다시 채팅 100% 손실 + 아무 안내 없음으로 돌아갑니다.
+      </li>
+      <li>
+        <strong>워크플로 파일 푸시</strong> — <code>gh auth refresh -s workflow</code> 후 푸시.
+        토큰에 <code>workflow</code> 권한이 없어 거부된 커밋 하나가 로컬에 남아 있습니다.
+        이게 붙으면 L4의 “자동 수정 못 할 때 이슈 생성”이 활성화됩니다.
+      </li>
+      <li>
+        <strong>실제 브라우저에서 최종 확인</strong> — 배지 필터, 닉네임 필터, 도네이션 키워드 필터 각각 한 번씩.
+        특히 도네이션 본문은 이번에 처음 되살아난 경로입니다.
+      </li>
     </ol>
     <p class="footnote">
       검증 규모: 라이브 채널 5개, 채팅 노드 100건 이상, 삽입 순간 캡처 67건, 도네이션 실물 샘플 6건.
-      테스트 119개 통과, 타입 검사·빌드 통과. 자세한 selector 작성 원칙은
+      테스트 119개 통과, 타입 검사·빌드 통과, 감시 봇 전 채널 통과. 자세한 selector 작성 원칙은
       <code>docs/ota-selectors.md</code>, 도메인 규칙은 <code>CONTEXT.md</code>에 정리했습니다.
     </p>
   </section>

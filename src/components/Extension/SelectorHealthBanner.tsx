@@ -3,7 +3,37 @@ import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Button from "@mui/material/Button";
 import { useTranslation } from "react-i18next";
+import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { SELECTOR_HEALTH_EVENT, SelectorHealth } from "@/platform/selector-health";
+
+/**
+ * 개발용 강제 표시 스위치. 배너는 host가 실제로 깨져야 뜨는데, 그 상황을 만들려면
+ * selector를 일부러 망가뜨려야 해서 눈으로 확인하기가 번거롭다. storage에 이 키를
+ * 넣으면 실제 감지 없이 배너를 띄운다.
+ *
+ *   browser.storage.local.set({ 'tbcv2-debug-force-health': 'stopped' })  // 수집 중단 (빨강)
+ *   browser.storage.local.set({ 'tbcv2-debug-force-health': 'partial' })  // 부분 수집 (노랑)
+ *   browser.storage.local.remove('tbcv2-debug-force-health')              // 해제
+ *
+ * storage 게이트라 기본값은 항상 꺼짐 — 릴리스 빌드에 남아도 사용자에게 안 보인다.
+ */
+const DEBUG_FORCE_KEY = 'tbcv2-debug-force-health';
+
+function forcedHealth(mode: unknown): SelectorHealth | null {
+    if (mode === 'stopped') {
+        // 이름도 본문도 못 읽는 상태 = rev 13 사고와 같은 조건.
+        return {
+            broken: ['displayName', 'usernameContainer', 'messageText', 'badge'],
+            degraded: [],
+            checkedAt: Date.now(),
+        };
+    }
+    if (mode === 'partial') {
+        // 닉네임만 못 읽는 상태 — 배지/키워드 필터는 계속 도는 경우.
+        return { broken: ['displayName', 'usernameContainer'], degraded: [], checkedAt: Date.now() };
+    }
+    return null;
+}
 
 /** 깨진 selector 이름 → 사용자에게 설명할 Filter Category */
 const SELECTOR_TO_FIELD: Record<string, string> = {
@@ -29,6 +59,9 @@ export default function SelectorHealthBanner() {
     const [health, setHealth] = useState<SelectorHealth | null>(null);
     const [dismissed, setDismissed] = useState(false);
 
+    // 개발용 강제 표시가 켜져 있으면 실제 감지 결과보다 우선한다.
+    const [forced, setForced] = useState<SelectorHealth | null>(null);
+
     useEffect(() => {
         const onHealth = (e: Event) => {
             const detail = (e as CustomEvent<SelectorHealth>).detail;
@@ -40,15 +73,29 @@ export default function SelectorHealthBanner() {
         return () => window.removeEventListener(SELECTOR_HEALTH_EVENT, onHealth);
     }, []);
 
-    if (!health || health.broken.length === 0 || dismissed) return null;
+    useEffect(() => {
+        browser.storage.local.get(DEBUG_FORCE_KEY)
+            .then(res => setForced(forcedHealth(res[DEBUG_FORCE_KEY])))
+            .catch(() => { /* storage 못 읽음 — 강제 표시 없음 */ });
+
+        // 콘솔에서 값을 바꾸면 새로고침 없이 바로 반영되게.
+        addStorageUpdateListener((key, newValue) => {
+            if (key !== DEBUG_FORCE_KEY) return;
+            setForced(forcedHealth(newValue));
+            setDismissed(false);
+        });
+    }, []);
+
+    const shown = forced ?? health;
+    if (!shown || shown.broken.length === 0 || dismissed) return null;
 
     // 이름도 본문도 못 읽으면 수집 자체가 멈춘 것. 하나라도 살아있으면 부분 수집.
-    const nameDead = health.broken.includes('displayName');
-    const textDead = health.broken.includes('messageText');
+    const nameDead = shown.broken.includes('displayName');
+    const textDead = shown.broken.includes('messageText');
     const stopped = nameDead && textDead;
 
     const fields = Array.from(new Set(
-        health.broken.map(n => SELECTOR_TO_FIELD[n]).filter(Boolean),
+        shown.broken.map(n => SELECTOR_TO_FIELD[n]).filter(Boolean),
     ));
 
     return (
