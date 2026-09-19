@@ -63,6 +63,10 @@ function init() {
 }
 
 async function bootstrap() {
+    // manifestReady 는 MAIN 에서 즉시 resolve 한다 — manifest 를 기다리지 않는다.
+    // (ISOLATED 는 document_idle 이라 기다려봐야 못 받는다. host-selectors 주석 참고.)
+    // bundled 로 먼저 붙고, manifest 가 도착하면 reactPropsPaths 는 매 채팅 다시 읽으므로
+    // 그 시점부터 자동으로 최신이 된다. chatRoomLive 만 다음 init() 까지 옛 값.
     await manifestReady;
     init();
 }

@@ -18,6 +18,27 @@
 - 받은 manifest는 `browser.storage.local`에 저장. content-script는 `manifestReady` 후 init.
 - 6시간 stale 판정 + `rev` 비교. 활성 사용자는 SW wake가 잦아 ~수 시간 내 갱신.
 
+### realm 두 개 — MAIN은 storage를 못 읽는다
+
+확장은 페이지당 두 벌이 돈다. ISOLATED(content script)는 `browser.storage`를 직접 읽지만,
+MAIN(inject, React props 접근용)은 `browser` 자체가 없다. **MAIN이 manifest를 받는 유일한
+경로는 ISOLATED의 `postMessage`다.**
+
+- ISOLATED: storage 읽기가 끝나면 `manifestReady` resolve. 그 값이 곧 최신.
+- MAIN: **기다리지 않는다.** bundled로 즉시 resolve하고, 대신 수신 리스너를 세션 내내 열어둔다.
+  `reactPropsPaths`처럼 매 채팅 다시 읽는 값은 늦게 받아도 그 시점부터 최신이 된다.
+  (`init()`이 붙잡아두는 `chatRoomLive`만 다음 SPA 이동까지 옛 값 — "mid-session 재부착 안 함" 계약 그대로.)
+- 핸드셰이크는 양방향이다. ISOLATED는 뜨면서 manifest를 한 번 push하고, MAIN은 로드 시
+  `tbcv2-selectors-request`를 쏜다. 어느 쪽이 먼저 뜨든 두 경로 중 하나는 걸린다.
+
+즉 `manifestReady`는 "manifest를 받았다"가 아니라 **"이제 시작해도 된다"**는 뜻이다.
+
+> 예전엔 MAIN이 200ms 기다렸다가 타임아웃되면 **리스너까지 제거**했다. chzzk MAIN은
+> `document_start`(host React보다 먼저 visibility를 위조해야 함), ISOLATED는 `document_idle`
+> — 그 사이에 HTML 파싱 전체가 들어가므로 200ms는 늘 타임아웃됐고, 뒤늦게 도착한 manifest는
+> 받는 사람이 없어 버려졌다. 결과적으로 **OTA를 push해도 MAIN world는 영원히 bundled로
+> 동작했다.** 회귀 테스트: `src/platform/host-selectors-realm.test.ts`.
+
 ## 평소 사용법 (selector 한 줄 갱신)
 
 ### 신 빌드 사용자 (v2.18.16+) 대상
@@ -164,3 +185,4 @@ fetch(browser.runtime.getURL('platform/bundled-selectors.json')).then(r => r.jso
 - `src/platform/host-selectors.ts` — 스키마 + `getPlatformConfig` / `manifestReady` / `setManifest`.
 - `src/platform/ota-fetch.ts` — jsDelivr fetch + stale 판정.
 - `src/entrypoints/background.ts` — `onInstalled` / `onStartup` / SW wake 시 `fetchIfStale` 호출.
+- `src/platform/host-selectors-realm.test.ts` — MAIN/ISOLATED manifest 전달 계약 회귀 테스트.

@@ -7,13 +7,26 @@ import { Logger } from "@/utils/logger";
 import { ChzzkAdapter } from "@/platform/chzzk";
 import {
     getPlatformConfig, manifestReady, getManifest,
-    SELECTORS_MESSAGE_TYPE,
+    SELECTORS_MESSAGE_TYPE, SELECTORS_REQUEST_TYPE,
 } from "@/platform/host-selectors";
 import { registerDiagnoseListener } from "@/platform/diagnose";
 
 async function bootstrap() {
     await manifestReady;
-    window.postMessage({ type: SELECTORS_MESSAGE_TYPE, manifest: getManifest() }, '*');
+
+    // MAIN world(inject)는 browser API 가 없어 storage 를 못 읽는다 — 여기서 건네준다.
+    // 듣기 먼저, 보내기 나중: MAIN 이 우리보다 먼저 떠서 요청을 이미 쐈다면 초기 push
+    // 전에 그 요청을 받을 수 있어야 한다.
+    const sendManifest = () =>
+        window.postMessage({ type: SELECTORS_MESSAGE_TYPE, manifest: getManifest() }, '*');
+
+    window.addEventListener('message', (e) => {
+        if (e.source !== window) return;
+        if (e.data?.type !== SELECTORS_REQUEST_TYPE) return;
+        sendManifest();
+    });
+
+    sendManifest();
 
     const adapter = new ChzzkAdapter();
     registerDiagnoseListener(adapter, 'chzzk');

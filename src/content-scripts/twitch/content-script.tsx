@@ -6,7 +6,7 @@ import { Logger } from "@/utils/logger";
 import { TwitchAdapter } from "@/platform/twitch";
 import {
     getPlatformConfig, manifestReady, getManifest,
-    SELECTORS_MESSAGE_TYPE,
+    SELECTORS_MESSAGE_TYPE, SELECTORS_REQUEST_TYPE,
 } from "@/platform/host-selectors";
 import { registerDiagnoseListener } from "@/platform/diagnose";
 
@@ -15,8 +15,20 @@ async function bootstrap() {
     // 안 그러면 bundled selector로 attach해서 OTA 효과 못 봄.
     await manifestReady;
 
-    // MAIN world inject가 같은 manifest 쓰도록 forward.
-    window.postMessage({ type: SELECTORS_MESSAGE_TYPE, manifest: getManifest() }, '*');
+    // MAIN world inject가 같은 manifest 쓰도록 forward. MAIN 은 browser API 가 없어
+    // storage 를 못 읽으므로 이 경로가 유일하다.
+    // 듣기 먼저, 보내기 나중: MAIN 이 우리보다 먼저 떠서 요청을 이미 쐈다면 초기 push
+    // 전에 그 요청을 받을 수 있어야 한다.
+    const sendManifest = () =>
+        window.postMessage({ type: SELECTORS_MESSAGE_TYPE, manifest: getManifest() }, '*');
+
+    window.addEventListener('message', (e) => {
+        if (e.source !== window) return;
+        if (e.data?.type !== SELECTORS_REQUEST_TYPE) return;
+        sendManifest();
+    });
+
+    sendManifest();
 
     const adapter = new TwitchAdapter();
     registerDiagnoseListener(adapter, 'twitch');

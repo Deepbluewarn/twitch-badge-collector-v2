@@ -125,38 +125,58 @@ function isValidManifest(v: unknown): v is SelectorsManifest {
 // 컨텍스트별 자동 적용 — module load 시점에 한 번 실행
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─── realm 간 manifest 전달 계약 ──────────────────────────────────────────────
+// IIFE(manifestReady)가 module 평가 시점에 이 값들을 동기적으로 읽으므로 반드시 위에 둔다.
+// (아래에 두면 TDZ — 예전에 여기 문자열 리터럴이 박혀 있던 이유가 그것이었다.)
+
+/** Storage key. ISOLATED 만 접근 가능. */
+export const SELECTORS_STORAGE_KEY = 'tbcv2-selectors-manifest';
+/** ISOLATED → MAIN: manifest 본문 전달. */
+export const SELECTORS_MESSAGE_TYPE = 'tbcv2-selectors-manifest';
+/** MAIN → ISOLATED: "manifest 달라". ISOLATED 가 먼저 떠서 초기 push 를 놓친 경우용. */
+export const SELECTORS_REQUEST_TYPE = 'tbcv2-selectors-request';
+
 /**
- * Manifest가 외부 source(storage/postMessage)로 적용 시도까지 끝나면 resolve되는 promise.
- * 사용자(content script, inject 등)는 observer attach 전에 await 권장 — bundled로 attach
- * 하면 Twitch가 selector 바꿨을 때 새 OTA 값으로 자동 갱신 안 됨 (re-attach 필요).
+ * "이제 시작해도 된다"를 알리는 promise. **"manifest 를 받았다"가 아니다.**
+ *
+ * ISOLATED: storage 를 직접 읽으므로 읽기가 끝나면 곧 resolve — 그 값이 곧 최신이다.
+ *
+ * MAIN: browser API 가 없어 storage 를 못 읽는다. ISOLATED 가 postMessage 로 건네줘야
+ * 하는데, 치지직 MAIN 은 document_start(호스트 React 보다 먼저 visibility 를 위조해야
+ * 함)이고 ISOLATED 는 document_idle 이다. 그 사이에 HTML 파싱 전체가 들어가므로 MAIN 이
+ * manifest 를 기다리는 건 의미가 없다 — 기다리지 않고 bundled 로 즉시 resolve 한다.
+ *
+ * 대신 **수신 리스너는 세션 내내 닫지 않는다.** 예전엔 200ms 타임아웃에 리스너까지 함께
+ * 제거해서, 뒤늦게 도착한 manifest 가 받는 사람 없이 버려졌다. reactPropsPaths 처럼 매
+ * 채팅 다시 읽는 값은 늦게 받아도 그 시점부터 바로 최신이 되므로 계속 들을 값어치가 있다.
+ * (init() 이 붙잡아두는 chatRoomLive 만 다음 SPA 이동까지 옛 값으로 남는다 —
+ *  host-selectors 의 "mid-session 재부착 안 함" 계약 그대로.)
  */
 export const manifestReady: Promise<void> = (async () => {
     // ISOLATED context: storage 직접 읽기
     if (typeof browser !== 'undefined' && browser.storage?.local) {
         try {
-            const res = await browser.storage.local.get('tbcv2-selectors-manifest');
-            const stored = res['tbcv2-selectors-manifest'] as SelectorsManifest | undefined;
+            const res = await browser.storage.local.get(SELECTORS_STORAGE_KEY);
+            const stored = res[SELECTORS_STORAGE_KEY] as SelectorsManifest | undefined;
             if (stored) setManifest(stored);
         } catch { /* storage 못 읽음 — bundled 유지 */ }
         return;
     }
 
-    // MAIN world (inject): browser undefined → ISOLATED content가 postMessage로 전송할 때까지 대기.
-    // 200ms 안에 안 오면 그냥 bundled로 진행 (content script 부재 등 edge case).
+    // MAIN world (inject)
     if (typeof window !== 'undefined') {
-        await new Promise<void>((resolve) => {
-            let done = false;
-            const handler = (e: MessageEvent) => {
-                if (e.source !== window) return;
-                if (e.data?.type !== 'tbcv2-selectors-manifest') return;
-                setManifest(e.data.manifest);
-                if (!done) { done = true; window.removeEventListener('message', handler); resolve(); }
-            };
-            window.addEventListener('message', handler);
-            setTimeout(() => {
-                if (!done) { done = true; window.removeEventListener('message', handler); resolve(); }
-            }, 200);
+        // 듣기 먼저, 보내기 나중 — 순서가 반대면 그 사이에 온 응답을 놓친다.
+        window.addEventListener('message', (e: MessageEvent) => {
+            if (e.source !== window) return;
+            if (e.data?.type !== SELECTORS_MESSAGE_TYPE) return;
+            // 중복/구버전 수신은 setManifest 의 rev 단조 검사가 걸러낸다.
+            setManifest(e.data.manifest);
         });
+
+        // ISOLATED 가 이미 떠서 초기 push 를 놓쳤을 수 있으니 직접 요청도 보낸다.
+        // 아직 ISOLATED 가 없으면 이 요청은 유실되지만, 그 경우 ISOLATED 가 곧 뜨면서
+        // 보내는 초기 push 를 위 리스너가 받는다. 두 경로 중 하나는 반드시 걸린다.
+        window.postMessage({ type: SELECTORS_REQUEST_TYPE }, '*');
     }
 })();
 
@@ -191,6 +211,3 @@ export function extractChannelId(
     return pathname.split('/')[config.channelIdPathIndex] ?? null;
 }
 
-/** Storage / postMessage broadcast용 key */
-export const SELECTORS_STORAGE_KEY = 'tbcv2-selectors-manifest';
-export const SELECTORS_MESSAGE_TYPE = 'tbcv2-selectors-manifest';
