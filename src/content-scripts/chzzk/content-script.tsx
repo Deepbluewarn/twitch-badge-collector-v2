@@ -10,7 +10,7 @@ import {
     SELECTORS_MESSAGE_TYPE, SELECTORS_REQUEST_TYPE,
 } from "@/platform/host-selectors";
 import { registerDiagnoseListener } from "@/platform/diagnose";
-import { applyChatSide } from "./chat-side";
+import { applyChatSide, trackSidebarSwap } from "./chat-side";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 
 async function bootstrap() {
@@ -30,13 +30,16 @@ async function bootstrap() {
 
     sendManifest();
 
-    // 채팅 사이드바 좌/우 — 순수 CSS 스위치라 mount 전에 켜둘 수 있다. 호스트 DOM이
-    // 아직 없어도 `<html>` 속성은 유효하므로, 사이드바가 렌더되는 순간 이미 제자리다
-    // (오른쪽에 그렸다가 튀는 깜빡임 없음).
+    // 영상 양옆 두 영역 맞교환. 채팅 쪽은 순수 CSS 스위치라 호스트 DOM이 아직 없어도
+    // 미리 켜둘 수 있다 — 사이드바가 렌더되는 순간 이미 제자리다(깜빡임 없음).
+    // 전역 내비 쪽은 폭 측정이 필요해 trackSidebarSwap이 따로 맡는다.
     applyChatSide((await browser.storage.local.get('chzzkChatSide')).chzzkChatSide);
-    // 설정 변경 즉시 반영 — CSS 한 줄이라 reload가 필요 없다 (displayMode와 다른 점).
+    trackSidebarSwap();
+    // 설정 변경 즉시 반영 — CSS 스위치라 reload가 필요 없다 (displayMode와 다른 점).
     addStorageUpdateListener((key, newValue) => {
-        if (key === 'chzzkChatSide') applyChatSide(newValue);
+        if (key !== 'chzzkChatSide') return;
+        applyChatSide(newValue);
+        trackSidebarSwap();
     });
 
     const adapter = new ChzzkAdapter();
@@ -92,6 +95,9 @@ async function bootstrap() {
     // Local/useFilteredChatBuffer가 channelId 재조회 + persistenceKey 갱신.
     addHistoryStateListener('chzzk.naver.com', () => {
         init();
+        // 전역 내비가 SPA 이동으로 갈아끼워졌을 수 있다. 좌측 배치가 꺼져 있거나
+        // 잡고 있는 노드가 그대로면 no-op.
+        trackSidebarSwap();
         window.dispatchEvent(new CustomEvent('tbc-channel-changed'));
     });
     // Chromium Navigation API — pushState 발화 즉시 감지. background webNavigation

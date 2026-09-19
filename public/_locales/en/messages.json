@@ -156,7 +156,7 @@
     "message": "Chat panel side (Chzzk)"
   },
   "chzzkChatSideHint" : {
-    "message": "Which side of the video the chat sidebar sits on"
+    "message": "Swaps the chat panel and the navigation sidebar"
   },
   "chatSideLeft" : {
     "message": "Left"

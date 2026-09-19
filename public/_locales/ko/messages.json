@@ -156,7 +156,7 @@
     "message": "채팅창 위치 (치지직)"
   },
   "chzzkChatSideHint" : {
-    "message": "채팅 사이드바를 영상 좌/우 어느 쪽에 둘지"
+    "message": "채팅창과 메뉴 사이드바의 좌우를 맞바꿉니다"
   },
   "chatSideLeft" : {
     "message": "왼쪽"

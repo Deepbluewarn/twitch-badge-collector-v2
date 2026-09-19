@@ -94,3 +94,21 @@ html[data-tbc-chzzk-chat-side="left"] aside#aside-chatting,
 html[data-tbc-chzzk-chat-side="left"] aside#vod-aside {
     order: -1;
 }
+
+/* 전역 내비 사이드바를 반대편으로. 이쪽은 position:fixed(left:0)이고 #layout-body가
+   padding-left로 자리를 비워주는 구조라, 옮기려면 padding도 같이 반대쪽으로 가야 한다.
+
+   폭(--tbc-sidebar-w)은 chat-side.ts가 호스트 사이드바에서 직접 재서 넘긴다. 펼침/접힘에
+   따라 달라지기 때문(실측 240px ↔ 82px)인데, 상수로 박으면 접었을 때 빈 띠가 남고
+   hash 붙은 _is_expanded_ 클래스로 분기하면 hash 롤링 때 같이 죽는다.
+
+   그래서 스위치가 chat-side와 별개다: 폭을 실제로 잰 뒤에만 이 규칙이 켜진다.
+   측정 전에 켜면 사이드바가 영상을 덮거나 오른쪽에 빈 띠가 생긴다. */
+html[data-tbc-chzzk-sidebar-swapped] aside#sidebar {
+    left: auto;
+    right: 0;
+}
+html[data-tbc-chzzk-sidebar-swapped] #layout-body {
+    padding-left: 0;
+    padding-right: var(--tbc-sidebar-w);
+}
