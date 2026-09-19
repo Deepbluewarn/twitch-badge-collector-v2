@@ -151,5 +151,17 @@
   },
   "supportMessage" : {
     "message": "If you find the program useful, please help us improve and keep it updated by donating and rating!"
+  },
+  "chzzkChatSide" : {
+    "message": "Chat panel side (Chzzk)"
+  },
+  "chzzkChatSideHint" : {
+    "message": "Which side of the video the chat sidebar sits on"
+  },
+  "chatSideLeft" : {
+    "message": "Left"
+  },
+  "chatSideRight" : {
+    "message": "Right"
   }
 }

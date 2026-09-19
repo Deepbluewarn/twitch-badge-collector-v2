@@ -79,3 +79,18 @@
    해당 hash 사라짐. 신 패턴의 verified icon 확정 전까지 룰 제거. 시각상 영향:
    인증마크가 기본 사이즈(보통 18px)로 나옴 — 채팅 내용 표시엔 영향 없음.
    확인되면 적절한 substring 셀렉터로 재추가. */
+
+/* 채팅 사이드바 좌측 배치 (설정 chzzkChatSide: 'left').
+   라이브 #aside-chatting, 다시보기 #vod-aside 둘 다 부모가 flex row이고
+   [비디오, aside] 순서라 aside만 앞으로 당기면 좌우가 뒤집힌다.
+
+   id를 CSS에 박은 건 이미 content-script.tsx(전체화면 keep-alive)와
+   floatingLive가 같은 id를 하드코딩하고 있기 때문 — 이 id가 바뀌면 확장이
+   통째로 깨지므로 OTA selector로 뺄 새로운 취약점 축이 아니다.
+
+   !important 없음: 치지직은 이 두 노드에 order를 주지 않고(computed 0 = initial),
+   우리 규칙이 id 선택자라 클래스 기반 호스트 CSS보다 우선순위가 높다. */
+html[data-tbc-chzzk-chat-side="left"] aside#aside-chatting,
+html[data-tbc-chzzk-chat-side="left"] aside#vod-aside {
+    order: -1;
+}

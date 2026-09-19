@@ -21,7 +21,7 @@ import DeleteSweepOutlinedIcon from "@mui/icons-material/DeleteSweepOutlined";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
-import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition } from "@/reducer/setting";
+import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
 
 const PopupGlobalStyle = (
@@ -295,6 +295,22 @@ function PopupSetting() {
         >
           <ToggleButton value='up'>{t('up')}</ToggleButton>
           <ToggleButton value='down'>{t('down')}</ToggleButton>
+        </ToggleButtonGroup>
+      </SettingRow>
+
+      {/* 채팅창 좌/우 — 치지직 전용. 호스트 사이드바(원본 채팅 + 모아보기)를 통째로 옮긴다. */}
+      <SettingRow label={t('chzzkChatSide')} hint={t('chzzkChatSideHint')}>
+        <ToggleButtonGroup
+          value={globalSetting.chzzkChatSide}
+          exclusive
+          size='small'
+          onChange={(_e, v: SettingInterface['chzzkChatSide'] | null) => {
+            if (v) dispatchGlobalSetting(setChzzkChatSide(v));
+          }}
+          sx={{ '& .MuiToggleButton-root': { px: 1.5, py: 0.25, textTransform: 'none' } }}
+        >
+          <ToggleButton value='left'>{t('chatSideLeft')}</ToggleButton>
+          <ToggleButton value='right'>{t('chatSideRight')}</ToggleButton>
         </ToggleButtonGroup>
       </SettingRow>
 

@@ -51,6 +51,7 @@ export default defineBackground(() => {
       chatPersistence: "on",
       displayMode: "inline",
       floatingBgColor: '',
+      chzzkChatSide: "right",
     };
 
     const keys = Object.keys(DEFAULTS);

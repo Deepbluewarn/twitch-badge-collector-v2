@@ -16,6 +16,8 @@ export interface SettingInterface {
     displayMode: 'inline' | 'floating';
     /** floating 모드 팝오버 배경색. 빈 문자열이면 자동 감지(다크/라이트). hex/rgba. */
     floatingBgColor?: string;
+    /** 치지직 전용 — 호스트 채팅 사이드바를 비디오 좌/우 어느 쪽에 둘지. default 'right'(치지직 기본). */
+    chzzkChatSide: 'right' | 'left';
 }
 
 export interface SettingReducerActionTypes {
@@ -31,6 +33,7 @@ export interface SettingReducerActionTypes {
     SET_CHAT_PERSISTENCE: "SET_CHAT_PERSISTENCE";
     SET_DISPLAY_MODE: "SET_DISPLAY_MODE";
     SET_FLOATING_BG_COLOR: "SET_FLOATING_BG_COLOR";
+    SET_CHZZK_CHAT_SIDE: "SET_CHZZK_CHAT_SIDE";
     SET_MULTIPLE: "SET_MULTIPLE";
 }
 

@@ -15,6 +15,7 @@ const SETTING_KEYS = [
     "chatPersistence",
     "displayMode",
     "floatingBgColor",
+    "chzzkChatSide",
 ] as const;
 
 /**

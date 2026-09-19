@@ -14,6 +14,7 @@ export const initialState: SettingInterface = {
     chatPersistence: 'on',
     displayMode: 'inline',
     floatingBgColor: '',
+    chzzkChatSide: 'right',
 }
 
 // 액션 타입 정의
@@ -30,6 +31,7 @@ const actionTypes: SettingReducerActionTypes = {
     SET_CHAT_PERSISTENCE: "SET_CHAT_PERSISTENCE",
     SET_DISPLAY_MODE: "SET_DISPLAY_MODE",
     SET_FLOATING_BG_COLOR: "SET_FLOATING_BG_COLOR",
+    SET_CHZZK_CHAT_SIDE: "SET_CHZZK_CHAT_SIDE",
     SET_MULTIPLE: "SET_MULTIPLE"
 };
 
@@ -60,6 +62,9 @@ function settingsReducer(state: SettingInterface = initialState, action: Setting
             return { ...state, displayMode: action.payload || 'inline' };
         case actionTypes.SET_FLOATING_BG_COLOR:
             return { ...state, floatingBgColor: action.payload ?? '' };
+        case actionTypes.SET_CHZZK_CHAT_SIDE:
+            // 'left'만 명시적으로 받는다. 오타/undefined는 치지직 기본 배치로.
+            return { ...state, chzzkChatSide: action.payload === 'left' ? 'left' : 'right' };
         case actionTypes.SET_MULTIPLE: // 새로운 액션 타입 처리
             return { ...state, ...action.payload };
         default:
@@ -80,6 +85,7 @@ const setJumpToBottomButton = (jumpToBottomButton: SettingInterface['jumpToBotto
 const setChatPersistence = (chatPersistence: SettingInterface['chatPersistence']) => ({ type: actionTypes.SET_CHAT_PERSISTENCE, payload: chatPersistence });
 const setDisplayMode = (displayMode: SettingInterface['displayMode']) => ({ type: actionTypes.SET_DISPLAY_MODE, payload: displayMode });
 const setFloatingBgColor = (floatingBgColor: SettingInterface['floatingBgColor']) => ({ type: actionTypes.SET_FLOATING_BG_COLOR, payload: floatingBgColor });
+const setChzzkChatSide = (chzzkChatSide: SettingInterface['chzzkChatSide']) => ({ type: actionTypes.SET_CHZZK_CHAT_SIDE, payload: chzzkChatSide });
 const setMultipleSettings = (settings: SettingInterface) => ({ type: actionTypes.SET_MULTIPLE, payload: settings });
 
 export {
@@ -96,5 +102,6 @@ export {
     setChatPersistence,
     setDisplayMode,
     setFloatingBgColor,
+    setChzzkChatSide,
     setMultipleSettings,
 };
