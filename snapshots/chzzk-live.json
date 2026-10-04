@@ -34,7 +34,7 @@
     {
       "name": "donationText",
       "required": false,
-      "present": true
+      "present": false
     },
     {
       "name": "badge",
