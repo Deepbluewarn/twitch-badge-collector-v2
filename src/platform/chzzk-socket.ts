@@ -179,6 +179,25 @@ export function parseChzzkPacket(packet: unknown): ChzzkSocketChat[] {
         c !== null && c.type !== CHZZK_MSG_TYPE.SYSTEM);
 }
 
+/** 다시보기 채팅 REST 주소 — `/service/v1/videos/{videoNo}/chats?playerMessageTime=…`. */
+export const VOD_CHATS_URL = /\/service\/v1\/videos\/(\d+)\/chats(?:\?|$)/;
+
+/**
+ * 다시보기 채팅 REST 응답(`{content: {previousVideoChats, videoChats, nextPlayerMessageTime}}`)의 채팅들.
+ * 치지직은 재생 위치 기준 약 45초 분량을 미리 받아 두고 재생에 맞춰 하나씩 그린다.
+ * 다시보기 host key는 `${userIdHash}_${messageTime}`이라 채팅 id와 그대로 같다(라이브와 달리 랜덤 꼬리 없음).
+ */
+export function parseVodChatResponse(body: unknown): ChzzkSocketChat[] {
+    const content = (body as Json | null)?.content;
+    if (!content || typeof content !== 'object') return [];
+    const items = [
+        ...(Array.isArray(content.previousVideoChats) ? content.previousVideoChats : []),
+        ...(Array.isArray(content.videoChats) ? content.videoChats : []),
+    ];
+    return items.map(normalizeChzzkMessage).filter((c): c is ChzzkSocketChat =>
+        c !== null && c.type !== CHZZK_MSG_TYPE.SYSTEM);
+}
+
 /**
  * 94008 블라인드 이벤트 — 이미 올라온 채팅을 나중에 가리거나(BLIND/HIDDEN/CBOTBLIND/
  * RECLAIM/FILTERED) 가린 것을 푼다(CANCEL). 대상은 `${userId}_${messageTime}` = 채팅 id.

@@ -51,7 +51,8 @@ HTML(selector) 대신 채팅 소켓으로 채팅을 수집하는 경로(`src/pla
 
 VOD REST: `GET api.chzzk.naver.com/service/v1/videos/{videoNo}/chats?playerMessageTime={ms}&previousVideoChatSize=50`
 → `{nextPlayerMessageTime, previousVideoChats[], videoChats[]}`. 한 번에 약 45초 분량을 미리 준다.
-치지직 웹은 axios(XHR)로 호출한다.
+치지직 웹은 axios(XHR)로 호출하고, 버퍼에 쌓았다가 재생 위치(`playerMessageTime`)가 지난 채팅부터 틱마다 대기열의 1/5씩 그린다(번들 `a$.updatePlayerCurrentTime`). 다시보기 host key는 `${userIdHash}_${messageTime}`(랜덤 꼬리 없음).
+구현: `vod-tap.ts`가 응답을 엿보고(`parseVodChatResponse`), useChatStream이 원본이 그려질 때 판정·복제한다.
 
 ## msgTypeCode (번들 enum `Bg`)
 

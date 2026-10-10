@@ -320,3 +320,88 @@ describe('useChatStream — 사용자 템플릿 켜짐', () => {
         expect(passed.mock.calls[0][0].clone.querySelector('.tbc-chat-nick').textContent).toBe('시청자');
     });
 });
+
+describe('useChatStream — 다시보기 (REST로 미리 받은 채팅)', () => {
+    beforeEach(() => {
+        localStorage.setItem('tbc:socket-render', '1');
+        vi.useFakeTimers();
+    });
+    afterEach(() => {
+        unmounts.splice(0).forEach(u => u());
+        vi.mocked(adapter.extract).mockClear();
+        vi.mocked(adapter.prepareChatClone).mockClear();
+        vi.useRealTimers();
+        localStorage.clear();
+    });
+
+    const vodChat = (over: Partial<ChzzkSocketChat> = {}) => chat({ playerTime: 61_000, ...over });
+    // 다시보기 host key는 랜덤 꼬리 없이 `${uid}_${time}`, inject가 REPLAY 속성을 단다.
+    const replayHtml = (key: string, prevKey: string | null = null) => send({
+        action: TBC_CHAT_PASSED_ACTION, key, time: 61_000, prevKey,
+        html: `<div data-tbc-chat-key="${key}" data-tbc-chat-replay-chat="true"><span class="host">원본</span></div>`,
+    });
+
+    it('받아 둔 채팅은 원본이 그려질 때 판정해서 원본 복제본으로 넘긴다', () => {
+        const { passed } = setup();
+        sock({ kind: 'vod-chats', chats: [vodChat()] });
+        expect(passed).not.toHaveBeenCalled();
+        replayHtml('u1_1000', 'u0_900');
+        expect(passed).toHaveBeenCalledTimes(1);
+        const p = passed.mock.calls[0][0];
+        expect(p).toMatchObject({ key: 'u1_1000', time: 61_000, prevKey: 'u0_900', text: '원문' });
+        expect(p.clone.querySelector('.host').textContent).toBe('원본');
+        expect(adapter.extract).not.toHaveBeenCalled();   // HTML 추출을 거치지 않는다
+    });
+
+    it('판정은 REST 데이터로 — 필터에 안 걸리면 원본이 와도 넘기지 않는다', () => {
+        const { passed } = setup();
+        sock({ kind: 'vod-chats', chats: [vodChat({ badges: [] })] });
+        replayHtml('u1_1000');
+        expect(passed).not.toHaveBeenCalled();
+        expect(adapter.extract).not.toHaveBeenCalled();
+    });
+
+    it('받아 두지 못한 채팅은 기존 HTML 경로로', () => {
+        setup(() => ({ pass: true }));
+        replayHtml('nope_1');
+        expect(adapter.extract).toHaveBeenCalledTimes(1);
+    });
+
+    it('가상 스크롤로 다시 그려져도 한 번만', () => {
+        const { passed } = setup();
+        sock({ kind: 'vod-chats', chats: [vodChat()] });
+        replayHtml('u1_1000');
+        replayHtml('u1_1000');
+        expect(passed).toHaveBeenCalledTimes(1);
+    });
+
+    it('사용자 템플릿이 켜져 있으면 그 템플릿으로, 시각은 영상 안의 위치', () => {
+        const passed = vi.fn();
+        const { unmount } = renderHook(() => useChatStream(
+            adapter, c => ({ pass: c.badges.includes('b1') }), passed, vi.fn(),
+            () => ({ custom: true, templates: { chat: '<b class="mine">{{time}} {{nickname}}</b>' } }),
+        ));
+        unmounts.push(unmount);
+        sock({ kind: 'vod-chats', chats: [vodChat()] });
+        replayHtml('u1_1000');
+        const clone = passed.mock.calls[0][0].clone;
+        expect(clone.querySelector('.mine').textContent).toBe('01:01 시청자');
+        expect(clone.getAttribute('data-tbc-chat-replay-chat')).toBe('true');
+        expect(clone.getAttribute('data-tbc-chat-time')).toBe('61000');
+    });
+
+    it('다시보기 응답은 라이브 소켓 모드를 켜지 않는다 (라이브 HTML 채팅은 그대로 수집)', () => {
+        setup(() => ({ pass: true }));
+        sock({ kind: 'vod-chats', chats: [vodChat()] });
+        send({ action: TBC_CHAT_PASSED_ACTION, key: 'u9_5_r', time: 5, prevKey: null, html: '<div>live</div>' });
+        expect(adapter.extract).toHaveBeenCalledTimes(1);
+    });
+
+    it('소켓 모드를 끄면 다시보기 응답도 무시하고 HTML 경로', () => {
+        localStorage.setItem('tbc:socket-render', '0');
+        setup(() => ({ pass: true }));
+        sock({ kind: 'vod-chats', chats: [vodChat()] });
+        replayHtml('u1_1000');
+        expect(adapter.extract).toHaveBeenCalledTimes(1);
+    });
+});

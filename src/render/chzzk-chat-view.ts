@@ -1,5 +1,6 @@
 import { CHZZK_MSG_TYPE, resolveNicknameColor, type ChzzkSocketChat } from "@/platform/chzzk-socket";
 import { escapeHtml } from "./template";
+import { msToTime } from "@/utils/utils-common";
 
 /**
  * 소켓 채팅 → 템플릿에 넣을 값(뷰 모델). 템플릿 편집 페이지에서 쓸 수 있는 필드 목록이
@@ -26,7 +27,7 @@ export interface ChzzkChatView {
     verified: boolean;
     /** 인증 마크 이미지 — 인증 사용자일 때만. */
     verifiedIconUrl?: string;
-    /** "14:05" 같은 표시용 시각. */
+    /** "14:05" 같은 표시용 시각. 다시보기는 영상 안의 위치("12:34", "1:02:03"). */
     time: string;
     /** ms epoch. */
     timestamp: number;
@@ -117,7 +118,7 @@ export function toChzzkChatView(chat: ChzzkSocketChat, opts: ChzzkViewOptions = 
         badges: chat.badges.map(url => ({ url })),
         verified: chat.verified,
         ...(chat.verified && opts.verifiedIconUrl ? { verifiedIconUrl: opts.verifiedIconUrl } : {}),
-        time: (opts.formatTime ?? defaultFormatTime)(chat.time),
+        time: chat.playerTime !== undefined ? msToTime(chat.playerTime) : (opts.formatTime ?? defaultFormatTime)(chat.time),
         timestamp: chat.time,
         nickColorLight: color.light,
         nickColorDark: color.dark,

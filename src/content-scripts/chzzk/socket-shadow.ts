@@ -2,7 +2,6 @@ import type { ChatInfo } from "@/interfaces/chat";
 import type { ChzzkSocketChat } from "@/platform/chzzk-socket";
 import { toChatInfo } from "@/platform/chzzk-socket";
 import {
-    CHAT_ATTR,
     TBC_CHAT_PASSED_ACTION,
     TBC_SOCKET_CHAT_ACTION,
     TbcChatPassedMessage,
@@ -62,9 +61,12 @@ export interface SocketShadowOptions {
     now?: () => number;
 }
 
-/** host key → 소켓 id. 형식이 다르면(CUSTOM_ 등 클라이언트 메시지) null. */
+/**
+ * host key → 소켓 id. 라이브는 `${uid}_${time}_${랜덤}`, 다시보기는 `${uid}_${time}` 그대로.
+ * 형식이 다르면(CUSTOM_ 등 클라이언트 메시지) null.
+ */
 export function socketIdFromHostKey(key: string): string | null {
-    const m = /^([^_]+)_(\d+)_/.exec(key);
+    const m = /^([^_]+)_(\d+)(?:_|$)/.exec(key);
     if (!m || m[1] === 'CUSTOM') return null;
     return `${m[1]}_${m[2]}`;
 }
@@ -77,6 +79,10 @@ export function createSocketShadow(opts: SocketShadowOptions) {
     const startedAt = now();
 
     const socketWaiting = new Map<string, { chat: ChzzkSocketChat; at: number }>();
+    // 다시보기: REST로 ~45초 먼저 받는다. 재생 위치에 따라 원본이 한참 뒤에(또는 영영) 그려지므로
+    // 만료·지연 측정 없이 원본이 오면 비교만 한다.
+    const vodChats = new Map<string, ChzzkSocketChat>();
+    const VOD_LIMIT = 5000;
     const htmlWaiting = new Map<string, { info: ChatInfo; at: number }>();
     // 같은 채팅은 한 번만 비교 — 가상 스크롤로 html이 다시 오거나 recent와 live가 겹칠 때.
     const done = new Set<string>();
@@ -146,9 +152,19 @@ export function createSocketShadow(opts: SocketShadowOptions) {
         }
     }
 
+    function onVodChats(chats: ChzzkSocketChat[]) {
+        for (const chat of chats) {
+            if (done.has(chat.id)) continue;
+            vodChats.set(chat.id, chat);
+            if (vodChats.size > VOD_LIMIT) vodChats.delete(vodChats.keys().next().value!);
+        }
+    }
+
     function onHtmlChat(hostKey: string, info: ChatInfo) {
         const id = socketIdFromHostKey(hostKey);
         if (!id || done.has(id) || htmlWaiting.has(id)) return;
+        const vod = vodChats.get(id);
+        if (vod) { vodChats.delete(id); compare(id, info, vod); return; }
         const sock = socketWaiting.get(id);
         if (sock) { socketWaiting.delete(id); recordDelay(now() - sock.at); compare(id, info, sock.chat); }
         else htmlWaiting.set(id, { info, at: now() });
@@ -188,7 +204,7 @@ export function createSocketShadow(opts: SocketShadowOptions) {
         };
     }
 
-    return { onSocketChats, onHtmlChat, sweep };
+    return { onSocketChats, onVodChats, onHtmlChat, sweep };
 }
 
 // ----- 브라우저 연결 (ISOLATED) ---------------------------------------------
@@ -243,6 +259,7 @@ export function startChzzkSocketShadow(
             const msg = d as TbcSocketChatMessage;
             if (msg.kind === 'connected') console.info(`${tag}%c 채팅 소켓 연결 (${msg.cid})`, style, '');
             else if (msg.kind === 'chats') shadow.onSocketChats(msg.chats);
+            else if (msg.kind === 'vod-chats') shadow.onVodChats(msg.chats);
             return;
         }
         if (d?.action === TBC_CHAT_PASSED_ACTION) {
@@ -251,8 +268,7 @@ export function startChzzkSocketShadow(
             const tmpl = document.createElement('template');
             tmpl.innerHTML = msg.html;
             const el = tmpl.content.firstElementChild as HTMLElement | null;
-            // 다시보기 채팅은 소켓이 없다 (REST) — 비교 대상 아님.
-            if (!el || el.hasAttribute(CHAT_ATTR.REPLAY_CHAT)) return;
+            if (!el) return;
             // extract는 부모 id로 채팅 목록 안의 노드인지 확인한다 (useChatStream과 동일 처리).
             const wrapper = document.createElement('div');
             wrapper.id = 'tbc-chzzk-chat-list-wrapper';

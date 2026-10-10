@@ -31,6 +31,9 @@ describe('socketIdFromHostKey', () => {
     it('uid_time_랜덤 → uid_time', () => {
         expect(socketIdFromHostKey('abc_1700000000000_x9')).toBe('abc_1700000000000');
     });
+    it('다시보기 key(uid_time)는 그대로', () => {
+        expect(socketIdFromHostKey('abc_1700000000000')).toBe('abc_1700000000000');
+    });
     it('클라이언트 메시지(CUSTOM_)와 형식 밖 key는 null', () => {
         expect(socketIdFromHostKey('CUSTOM_10001_1700000000000_x')).toBeNull();
         expect(socketIdFromHostKey('nokey')).toBeNull();
@@ -160,5 +163,27 @@ describe('원본 렌더 지연 측정', () => {
 
     it('표본이 없으면 0', () => {
         expect(setup().shadow.sweep().renderDelay).toEqual({ count: 0, p50: 0, p95: 0, p99: 0, max: 0 });
+    });
+});
+
+describe('다시보기 비교', () => {
+    it('REST로 받아 둔 채팅은 원본이 오면 비교한다 (만료·지연 측정 없음)', () => {
+        const { shadow, advance, onMismatch } = setup();
+        shadow.onVodChats([sock({ uid: 'v1', nickname: '다른 이름' }), sock({ uid: 'v2' })]);
+        advance(60_000);   // 재생이 한참 뒤에 그 위치에 도달
+        shadow.onHtmlChat(`v1_${T0 + 1000}`, html());
+        shadow.onHtmlChat(`v2_${T0 + 1000}`, html());
+        expect(onMismatch.mock.calls.map(c => c[0].field)).toEqual(['name']);
+        const s = shadow.sweep();
+        expect(s).toMatchObject({ matched: 1, htmlOnly: 0, pending: 0 });
+        expect(s.socketOnly).toEqual({});
+        expect(s.renderDelay.count).toBe(0);
+    });
+
+    it('재생하지 않은 구간의 채팅은 소켓만으로 세지 않는다', () => {
+        const { shadow, advance } = setup();
+        shadow.onVodChats([sock({ uid: 'v1' })]);
+        advance(60_000);
+        expect(shadow.sweep()).toMatchObject({ socketOnly: {}, pending: 0 });
     });
 });

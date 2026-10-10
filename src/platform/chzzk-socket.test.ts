@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
+    parseVodChatResponse,
+    VOD_CHATS_URL,
     applyBlindEvent,
     parseChzzkBlindEvent,
     deriveDisplayBadges,
@@ -310,5 +312,36 @@ describe('블라인드 이벤트 (94008)', () => {
         const c = { ...normalizeChzzkMessage(liveBdy())!, status: 'BLIND' };
         const next = applyBlindEvent(c, { id: c.id, blindType: 'CANCEL', message: { content: '원문', emojis: {} } });
         expect(next).toMatchObject({ status: 'NORMAL', message: '원문' });
+    });
+});
+
+describe('다시보기 REST 응답', () => {
+    const vodItem = (over: Record<string, unknown> = {}) => ({
+        chatChannelId: 'CID', messageTime: 1700000000000, userIdHash: 'u1', content: '다시보기',
+        extras: JSON.stringify({ emojis: {} }), messageTypeCode: 1, messageStatusType: 'NORMAL',
+        profile: JSON.stringify(profile({ nickname: 'vod' })), playerMessageTime: 600038, ...over,
+    });
+
+    it('previousVideoChats + videoChats를 정규화', () => {
+        const chats = parseVodChatResponse({ code: 200, content: {
+            nextPlayerMessageTime: 646521,
+            previousVideoChats: [vodItem({ userIdHash: 'p' })],
+            videoChats: [vodItem(), vodItem({ messageTypeCode: 30, userIdHash: 's' })],
+        } });
+        expect(chats.map(c => c.id)).toEqual(['p_1700000000000', 'u1_1700000000000']);
+        expect(chats[1]).toMatchObject({ playerTime: 600038, chatChannelId: 'CID', nickname: 'vod' });
+    });
+
+    it('모양이 다르면 빈 배열', () => {
+        expect(parseVodChatResponse(null)).toEqual([]);
+        expect(parseVodChatResponse({ content: null })).toEqual([]);
+        expect(parseVodChatResponse({ content: { videoChats: 'x' } })).toEqual([]);
+    });
+
+    it('주소 판별', () => {
+        expect(VOD_CHATS_URL.test('https://api.chzzk.naver.com/service/v1/videos/15594358/chats?playerMessageTime=0')).toBe(true);
+        expect(VOD_CHATS_URL.test('https://api.chzzk.naver.com/service/v1/videos/15594358/chats')).toBe(true);
+        expect(VOD_CHATS_URL.test('https://api.chzzk.naver.com/service/v1/videos/15594358/chats-config')).toBe(false);
+        expect(VOD_CHATS_URL.test('https://api.chzzk.naver.com/service/v1/videos/15594358')).toBe(false);
     });
 });

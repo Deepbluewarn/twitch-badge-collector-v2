@@ -261,7 +261,51 @@ export default function useChatStream(
             return true;
         }
 
+        // 다시보기: REST로 미리 받은 채팅. host가 재생에 맞춰 원본을 그리는 순간 이걸로 판정한다
+        // (받은 시점과 표시 시점 사이에 필터가 바뀔 수 있어 판정을 미룬다). 시점·모양은 원본 그대로.
+        const vodChats = new Map<string, ChzzkSocketChat>();
+        const VOD_CHAT_LIMIT = 5000;
+
+        function rememberVodChats(chats: ChzzkSocketChat[]) {
+            for (const chat of chats) {
+                vodChats.set(chat.id, chat);
+                if (vodChats.size > VOD_CHAT_LIMIT) vodChats.delete(vodChats.keys().next().value!);
+            }
+        }
+
+        function processVodChat(chat: ChzzkSocketChat, msg: TbcChatPassedMessage) {
+            if (seenKeys.has(chat.id)) {
+                // 가상 스크롤 재등장 — 판정은 이미 끝났다. highlight만 다시.
+                applyHighlight(msg.key, processedColors.get(chat.id));
+                return;
+            }
+            const info = toChatInfo(chat, verifiedIconUrl);
+            const result = predicate(info);
+            if (!result.pass) return;
+            seenKeys.add(chat.id);
+            processedColors.set(chat.id, result.markerColor);
+
+            let clone: HTMLElement | null = null;
+            if (!getTemplateMode().custom) {
+                const tmpl = document.createElement('template');
+                tmpl.innerHTML = msg.html;
+                clone = tmpl.content.firstElementChild as HTMLElement | null;
+                if (clone) adapter.prepareChatClone(clone);
+            }
+            onChatPassed({
+                clone: clone ?? renderBuilt(chat),
+                key: chat.id,
+                time: msg.time,
+                // 다시보기는 host DOM 순서를 그대로 따른다 (HTML 경로와 같다).
+                prevKey: msg.prevKey,
+                nickname: info.nickName,
+                text: previewText(chat),
+            });
+            applyHighlight(msg.key, result.markerColor);
+        }
+
         function processSocketMessage(msg: TbcSocketChatMessage) {
+            if (msg.kind === 'vod-chats') { rememberVodChats(msg.chats); return; }
             socketActive = true;
             if (msg.kind === 'blind') {
                 const prev = passedSocketChats.get(msg.event.id);
@@ -313,9 +357,16 @@ export default function useChatStream(
             if (msg?.action !== TBC_CHAT_PASSED_ACTION) return;
             if (!msg.key) return;
 
+            // 다시보기: REST로 받아 둔 채팅이면 그걸로 판정. 없으면(탭이 못 본 채팅) 아래 HTML 경로.
+            // 다시보기는 어차피 원본이 그려질 때 처리하므로 HTML로 대신해도 늦어지지 않는다.
+            if (msg.html.includes(CHAT_ATTR.REPLAY_CHAT)) {
+                const id = socketIdFromHostKey(msg.key);
+                const vodChat = id ? vodChats.get(id) : undefined;
+                if (vodChat) { processVodChat(vodChat, msg); return; }
+            }
+
             // 소켓 모드가 동작 중이면 라이브 HTML 채팅은 수집하지 않는다 — 원본 채팅창
             // highlight만 붙인다 (소켓 채팅이 host DOM보다 먼저 와서 그때는 요소가 없다).
-            // 다시보기는 소켓이 없으므로 HTML 경로 그대로.
             if (socketActive && !msg.html.includes(CHAT_ATTR.REPLAY_CHAT)) {
                 const id = socketIdFromHostKey(msg.key);
                 if (!id) return;

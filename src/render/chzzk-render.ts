@@ -121,7 +121,9 @@ export function renderChzzkChat(chat: ChzzkSocketChat, opts: RenderOptions = {})
     scrub(root);
 
     root.setAttribute(CHAT_ATTR.KEY, chat.id);
-    root.setAttribute(CHAT_ATTR.TIME, String(chat.time));
+    // 다시보기는 HTML 경로와 같이 영상 안의 위치를 시각으로 단다.
+    root.setAttribute(CHAT_ATTR.TIME, String(chat.playerTime ?? chat.time));
+    if (chat.playerTime !== undefined) root.setAttribute(CHAT_ATTR.REPLAY_CHAT, 'true');
     root.setAttribute(CHAT_ATTR.BADGES, JSON.stringify(chat.badges));
     return root;
 }
