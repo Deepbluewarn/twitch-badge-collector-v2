@@ -22,6 +22,7 @@ export const CHZZK_CMD = {
     RECENT_CHAT: 15101,
     CHAT: 93101,
     DONATION: 93102,
+    BLIND: 94008,
 } as const;
 
 /** msgTypeCode. 치지직 번들의 enum(`Bg`) 중 서버가 보내는 값 (2026-10 확인). */
@@ -176,6 +177,48 @@ export function parseChzzkPacket(packet: unknown): ChzzkSocketChat[] {
         // SYSTEM(30)은 임시 제한 같은 운영 알림 — host는 extras.visibleRoles(매니저 등)에게만
         // 보여주고 작성자 개념도 없다(닉네임 빈 profile). 채팅 수집 대상이 아니다.
         c !== null && c.type !== CHZZK_MSG_TYPE.SYSTEM);
+}
+
+/**
+ * 94008 블라인드 이벤트 — 이미 올라온 채팅을 나중에 가리거나(BLIND/HIDDEN/CBOTBLIND/
+ * RECLAIM/FILTERED) 가린 것을 푼다(CANCEL). 대상은 `${userId}_${messageTime}` = 채팅 id.
+ * 해제 시에는 원문이 `message.{content, extras}`로 함께 온다 (번들 notiBlindListener).
+ */
+export interface ChzzkBlindEvent {
+    id: string;
+    blindType: string;
+    message?: { content: string; emojis: Record<string, string> };
+}
+
+export function parseChzzkBlindEvent(packet: unknown): ChzzkBlindEvent | null {
+    if (!packet || typeof packet !== 'object') return null;
+    const p = packet as Json;
+    if (p.cmd !== CHZZK_CMD.BLIND || !p.bdy || typeof p.bdy !== 'object') return null;
+    const { userId, messageTime, blindType, message } = p.bdy as Json;
+    if (typeof userId !== 'string' || !userId || !(messageTime > 0) || typeof blindType !== 'string') return null;
+    const extras = parseMaybeJson(message?.extras);
+    return {
+        id: `${userId}_${messageTime}`,
+        blindType,
+        ...(typeof message?.content === 'string' ? {
+            message: {
+                content: message.content,
+                emojis: extras?.emojis && typeof extras.emojis === 'object' ? extras.emojis : {},
+            },
+        } : {}),
+    };
+}
+
+/** 블라인드 이벤트를 채팅에 적용한 새 채팅. host와 같이 CANCEL이면 원문을 되돌리고, 아니면 상태만 바꾼다. */
+export function applyBlindEvent(chat: ChzzkSocketChat, ev: ChzzkBlindEvent): ChzzkSocketChat {
+    if (ev.blindType === 'CANCEL') {
+        return {
+            ...chat,
+            status: 'NORMAL',
+            ...(ev.message ? { message: ev.message.content, emojis: ev.message.emojis } : {}),
+        };
+    }
+    return { ...chat, status: ev.blindType };
 }
 
 /** `{:name:}` 이모지 토큰을 지운 순수 텍스트. HTML 경로에서 이모지는 <img>라 textContent에 안 잡히는 것과 맞춘다. */

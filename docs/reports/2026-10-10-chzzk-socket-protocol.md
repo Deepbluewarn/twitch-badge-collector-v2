@@ -32,7 +32,7 @@ HTML(selector) 대신 채팅 소켓으로 채팅을 수집하는 경로(`src/pla
 | 93101 | 채팅 | 12,367 | 수집 |
 | 93102 | 후원·구독 등 (msgTypeCode로 구분) | 128 | 수집 |
 | 15101 | 최근 채팅 (`bdy.messageList`) | 14 | 수집 (`recent`) |
-| 94008 | 블라인드 이벤트 | 405 | **아직 미처리** — 아래 참고 |
+| 94008 | 블라인드 이벤트 | 405 | 소켓 렌더 모드에서 이미 넣은 채팅을 다시 그림 |
 | 93006 | 채널 이벤트 | 83 | 무시 |
 | 10100 | 접속 완료 | 14 | 탭 생존 신호 |
 | 0 / 10000 | ping / pong | 616 | 무시 |
@@ -109,7 +109,8 @@ VOD REST: `GET api.chzzk.naver.com/service/v1/videos/{videoNo}/chats?playerMessa
 `bdy: {serviceId, channelId, messageTime, userId, blindType, blindUserId:null, message:null}`
 blindType: `CBOTBLIND` 245 / `HIDDEN` 149 / `BLIND` 11.
 `${userId}_${messageTime}`가 우리 채팅 id와 같다. 이번 수집에서 405건 중 319건이 수집된 채팅과 매칭됐고, 나머지는 접속 전에 올라온 채팅이다.
-→ 이미 수집된 채팅을 나중에 가리는 데 쓸 수 있다. **아직 미처리.**
+host(`notiBlindListener`) 처리: `CANCEL`이면 이벤트에 같이 온 `message.{content, extras}`로 원문을 복원하고, 그 밖의 값(`BLIND`/`HIDDEN`/`CBOTBLIND`/`RECLAIM`/`FILTERED`)이면 상태만 바꾼다.
+구현: `parseChzzkBlindEvent()`·`applyBlindEvent()` → ws-tap이 `blind` 메시지로 보낸다 → useChatStream이 통과시킨 채팅이면 다시 그려 `updateChat`으로 교체한다. 필터 판정은 다시 하지 않는다(원문 기준).
 
 ## 93006 채널 이벤트 (`bdy.type`)
 
@@ -166,8 +167,14 @@ host의 `chatMessage.key`는 `${uid}_${msgTime}_${랜덤}`이다(번들 `makeMes
 
 ## 나중에 설계: 운영 관찰 메트릭
 
-소켓 경로를 운영에 낸 뒤에도 잘 동작하는지 볼 수 있어야 한다 (2026-10-10 결정, 설계는 보류).
+소켓 경로를 운영에 낸 뒤에도 잘 동작하는지 볼 수 있어야 한다 (2026-10-10 결정).
 shadow 비교는 dev/수동 플래그용이라 운영 관찰을 대신하지 못한다.
+
+**결정 (2026-10-10): 사용자 브라우저에서 데이터를 보내지 않는다. CI canary만 쓴다.**
+canary가 확장을 로드한 채 라이브를 열어 탭 연결 신호, 파서 실패율, 배지 계산이 화면과 맞는지를
+확인한다 (shadow 비교 자동화). 사용자 데이터가 없으므로 수집 동의가 필요 없다.
+상시 사용자 지표(동의 + 수신 서버)는 canary로 부족하다는 근거가 생길 때 다시 검토한다.
+작업 순서는 소켓 모드 작업의 맨 마지막.
 
 참고할 기존 장치:
 - `src/platform/diagnose.ts` + `report.ts`: 사용자가 popup에서 진단 리포트를 Discord로 제보 (동의 필요). 소켓 탭 상태(연결 신호 수신 여부, 수신 채팅 수, HTML 경로로 대체한 횟수)를 여기에 실을 수 있다.

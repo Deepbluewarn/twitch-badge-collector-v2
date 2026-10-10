@@ -77,7 +77,7 @@ export default function Local({
     const lastRangeKeysRef = useRef<Set<string>>(new Set());
     const captureView = useMemo(() => ({ captureMode, selectedKeys }), [captureMode, selectedKeys]);
 
-    const { chats, addChat, clear, savedChats } = useFilteredChatBuffer(
+    const { chats, addChat, updateChat, clear, savedChats } = useFilteredChatBuffer(
         adapter, maxNumChats, channelId, persistenceKey, captureView,
     );
 
@@ -119,7 +119,7 @@ export default function Local({
                 ? undefined
                 : (r.markerColor ?? '#FFC107'),
         };
-    }, guardedAddChat);
+    }, guardedAddChat, updateChat);
 
     // 캡쳐 모드 OFF로 전환되면 선택 + anchor + range 초기화.
     useEffect(() => {

@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
+    applyBlindEvent,
+    parseChzzkBlindEvent,
     deriveDisplayBadges,
     normalizeChzzkMessage,
     parseChzzkPacket,
@@ -270,5 +272,43 @@ describe('withEncodedVariants — HTML 경로의 <img src> 형태 맞추기', ()
             viewerBadges: [{ badge: { scope: 'CHANNEL', imageUrl: 'https://x.net/배지.png' } }],
         })))!;
         expect(toChatInfo(c).badges).toEqual(['https://x.net/배지.png', 'https://x.net/%EB%B0%B0%EC%A7%80.png']);
+    });
+});
+
+describe('블라인드 이벤트 (94008)', () => {
+    const blind = (bdy: Record<string, unknown>) => ({ cmd: 94008, bdy: {
+        serviceId: 'game', channelId: 'CID', messageTime: 1700000000000, userId: 'u1', blindUserId: null, message: null, ...bdy,
+    } });
+
+    it('실측 모양 → 채팅 id와 blindType', () => {
+        expect(parseChzzkBlindEvent(blind({ blindType: 'HIDDEN' }))).toEqual({ id: 'u1_1700000000000', blindType: 'HIDDEN' });
+    });
+
+    it('해제(CANCEL)는 원문과 이모지를 함께 꺼낸다', () => {
+        const ev = parseChzzkBlindEvent(blind({
+            blindType: 'CANCEL',
+            message: { content: '되살아남 {:a:}', extras: JSON.stringify({ emojis: { a: 'a.png' } }) },
+        }))!;
+        expect(ev.message).toEqual({ content: '되살아남 {:a:}', emojis: { a: 'a.png' } });
+    });
+
+    it('94008이 아니거나 대상이 불완전하면 null', () => {
+        expect(parseChzzkBlindEvent({ cmd: 93101, bdy: [] })).toBeNull();
+        expect(parseChzzkBlindEvent(blind({ blindType: 'BLIND', userId: '' }))).toBeNull();
+        expect(parseChzzkBlindEvent(blind({ blindType: 'BLIND', messageTime: 0 }))).toBeNull();
+    });
+
+    it('적용: 블라인드는 상태만 바꾸고 원문은 유지 (필터 판정은 원문 기준)', () => {
+        const c = normalizeChzzkMessage(liveBdy())!;
+        const next = applyBlindEvent(c, { id: c.id, blindType: 'CBOTBLIND' });
+        expect(next.status).toBe('CBOTBLIND');
+        expect(next.message).toBe(c.message);
+        expect(c.status).toBe('NORMAL');
+    });
+
+    it('적용: 해제는 NORMAL + 원문 복원', () => {
+        const c = { ...normalizeChzzkMessage(liveBdy())!, status: 'BLIND' };
+        const next = applyBlindEvent(c, { id: c.id, blindType: 'CANCEL', message: { content: '원문', emojis: {} } });
+        expect(next).toMatchObject({ status: 'NORMAL', message: '원문' });
     });
 });

@@ -218,7 +218,7 @@ export function startChzzkSocketShadow(
         if (d?.action === TBC_SOCKET_CHAT_ACTION) {
             const msg = d as TbcSocketChatMessage;
             if (msg.kind === 'connected') console.info(`${tag}%c 채팅 소켓 연결 (${msg.cid})`, style, '');
-            else shadow.onSocketChats(msg.chats);
+            else if (msg.kind === 'chats') shadow.onSocketChats(msg.chats);
             return;
         }
         if (d?.action === TBC_CHAT_PASSED_ACTION) {

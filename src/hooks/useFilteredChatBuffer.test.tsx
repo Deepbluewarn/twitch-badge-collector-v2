@@ -98,6 +98,27 @@ describe('useFilteredChatBuffer', () => {
         expect(result.current.chats.map(c => c.key)).toEqual(['d', 'c', 'b']);
     });
 
+    it('updateChat replaces html/text in place, keeping position', () => {
+        const { result } = renderHook(() => useFilteredChatBuffer(makeAdapter('newest-top'), 100));
+        const blinded = document.createElement('div');
+        blinded.textContent = 'blinded';
+
+        act(() => result.current.addChat(passed({ key: 'a', time: 1, prevKey: null, text: '원문' })));
+        act(() => result.current.addChat(passed({ key: 'b', time: 2, prevKey: null })));
+        act(() => result.current.updateChat({ key: 'a', clone: blinded, text: '' }));
+
+        expect(result.current.savedChats.map(c => c.key)).toEqual(['b', 'a']);
+        expect(result.current.savedChats[1]).toMatchObject({ html: '<div>blinded</div>', text: '', time: 1 });
+    });
+
+    it('updateChat ignores unknown keys', () => {
+        const { result } = renderHook(() => useFilteredChatBuffer(makeAdapter('newest-top'), 100));
+        act(() => result.current.addChat(passed({ key: 'a', time: 1 })));
+        const before = result.current.savedChats;
+        act(() => result.current.updateChat({ key: 'zzz', clone: document.createElement('div'), text: '' }));
+        expect(result.current.savedChats).toBe(before);
+    });
+
     it('clear empties the buffer', () => {
         const { result } = renderHook(() => useFilteredChatBuffer(makeAdapter('newest-bottom'), 100));
 

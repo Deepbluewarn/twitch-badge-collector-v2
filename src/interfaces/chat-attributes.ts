@@ -57,9 +57,11 @@ export interface TbcChatPassedMessage {
  *  - `connected`: 채팅 소켓이 CONNECTED(10100)를 받음 — 탭이 살아있다는 신호.
  *    ISOLATED는 이게 안 오면 HTML 파싱 경로로 fallback한다.
  *  - `chats`: 채팅 묶음. `recent`면 접속 직후 받은 과거 채팅(15101).
+ *  - `blind`: 이미 올라온 채팅의 블라인드/해제(94008).
  */
 export const TBC_SOCKET_CHAT_ACTION = 'tbc-socket-chat';
 
 export type TbcSocketChatMessage =
     | { action: typeof TBC_SOCKET_CHAT_ACTION; kind: 'connected'; cid: string }
-    | { action: typeof TBC_SOCKET_CHAT_ACTION; kind: 'chats'; recent: boolean; chats: import('@/platform/chzzk-socket').ChzzkSocketChat[] };
+    | { action: typeof TBC_SOCKET_CHAT_ACTION; kind: 'chats'; recent: boolean; chats: import('@/platform/chzzk-socket').ChzzkSocketChat[] }
+    | { action: typeof TBC_SOCKET_CHAT_ACTION; kind: 'blind'; event: import('@/platform/chzzk-socket').ChzzkBlindEvent };

@@ -42,6 +42,16 @@ describe('installChzzkSocketTap', () => {
         expect(post).toHaveBeenCalledWith({ action: TBC_SOCKET_CHAT_ACTION, kind: 'connected', cid: 'CID' });
     });
 
+    it('94008은 blind 이벤트로', () => {
+        const { post, make } = setup();
+        make('wss://kr-ss1.chat.naver.com/chat').receive({
+            cmd: 94008, bdy: { userId: 'u1', messageTime: 7, blindType: 'HIDDEN', message: null },
+        });
+        expect(post).toHaveBeenCalledWith({
+            action: TBC_SOCKET_CHAT_ACTION, kind: 'blind', event: { id: 'u1_7', blindType: 'HIDDEN' },
+        });
+    });
+
     it('15101은 recent로 표시', () => {
         const { post, make } = setup();
         make('wss://kr-ss1.chat.naver.com/chat').receive({

@@ -10,7 +10,7 @@ import {
 import { isSocketShadowEnabled, socketIdFromHostKey, startChzzkSocketShadow } from "@/content-scripts/chzzk/socket-shadow";
 import { isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
 import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
-import { toChatInfo } from "@/platform/chzzk-socket";
+import { applyBlindEvent, toChatInfo, type ChzzkSocketChat } from "@/platform/chzzk-socket";
 import { renderChzzkChat } from "@/render/chzzk-render";
 import { getPlatformConfig } from "@/platform/host-selectors";
 
@@ -51,6 +51,8 @@ export default function useChatStream(
     adapter: PlatformAdapter,
     predicate: (chat: ChatInfo) => ChatPredicateResult,
     onChatPassed: (chat: PassedChat) => void,
+    /** 소켓 모드 전용 — 이미 넘긴 채팅의 내용이 바뀜 (나중에 블라인드/해제). */
+    onChatUpdated?: (update: { key: string; clone: HTMLElement; text: string }) => void,
 ) {
     useEffect(() => {
         // 같은 key는 한 번만 처리 (extract/predicate/addChat).
@@ -167,9 +169,25 @@ export default function useChatStream(
         const socketMode = adapter.type === 'chzzk' && isSocketRenderEnabled();
         const verifiedIconUrl = getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined;
         let socketActive = false;
+        // 넘긴 채팅의 원본 — 나중에 블라인드 이벤트가 오면 상태만 바꿔 다시 그린다.
+        // 오래된 것부터 버린다: 블라인드는 대개 올라온 직후에 오고, Container도 maxChats로 잘린다.
+        const passedSocketChats = new Map<string, ChzzkSocketChat>();
+        const PASSED_SOCKET_CHAT_LIMIT = 3000;
+
+        const previewText = (chat: ChzzkSocketChat) =>
+            chat.status === 'NORMAL' ? toChatInfo(chat).textContents.join(' ').trim() : '';
 
         function processSocketMessage(msg: TbcSocketChatMessage) {
             socketActive = true;
+            if (msg.kind === 'blind') {
+                const prev = passedSocketChats.get(msg.event.id);
+                if (!prev) return;
+                // 필터 판정은 원문 기준으로 정했으므로 다시 하지 않는다 — 표시만 바꾼다.
+                const next = applyBlindEvent(prev, msg.event);
+                passedSocketChats.set(next.id, next);
+                onChatUpdated?.({ key: next.id, clone: renderChzzkChat(next, { verifiedIconUrl }), text: previewText(next) });
+                return;
+            }
             if (msg.kind !== 'chats') return;
             for (const chat of msg.chats) {
                 if (seenKeys.has(chat.id)) continue;
@@ -178,6 +196,10 @@ export default function useChatStream(
                 const result = predicate(info);
                 if (!result.pass) continue;
                 processedColors.set(chat.id, result.markerColor);
+                passedSocketChats.set(chat.id, chat);
+                if (passedSocketChats.size > PASSED_SOCKET_CHAT_LIMIT) {
+                    passedSocketChats.delete(passedSocketChats.keys().next().value!);
+                }
                 onChatPassed({
                     clone: renderChzzkChat(chat, { verifiedIconUrl }),
                     key: chat.id,
@@ -186,7 +208,7 @@ export default function useChatStream(
                     // 위치 추정으로 들어간다 — 소켓 시각은 서버 시각이라 정확하다.
                     prevKey: '',
                     nickname: info.nickName,
-                    text: info.textContents.join(' ').trim(),
+                    text: previewText(chat),
                 });
             }
         }

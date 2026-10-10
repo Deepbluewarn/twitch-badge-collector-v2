@@ -1,4 +1,4 @@
-import { CHZZK_CMD, parseChzzkPacket } from "@/platform/chzzk-socket";
+import { CHZZK_CMD, parseChzzkBlindEvent, parseChzzkPacket } from "@/platform/chzzk-socket";
 import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
 
 /**
@@ -28,6 +28,11 @@ function attach(ws: WebSocket, post: Post) {
             const packet = JSON.parse(e.data);
             if (packet?.cmd === CHZZK_CMD.CONNECTED) {
                 post({ action: TBC_SOCKET_CHAT_ACTION, kind: 'connected', cid: String(packet.cid ?? '') });
+                return;
+            }
+            if (packet?.cmd === CHZZK_CMD.BLIND) {
+                const event = parseChzzkBlindEvent(packet);
+                if (event) post({ action: TBC_SOCKET_CHAT_ACTION, kind: 'blind', event });
                 return;
             }
             const chats = parseChzzkPacket(packet);
