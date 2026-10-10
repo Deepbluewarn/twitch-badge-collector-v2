@@ -15,6 +15,7 @@
     "test:watch": "vitest",
     "canary:chzzk": "tsx scripts/canary/chzzk.ts",
     "canary:badges": "tsx scripts/canary/badges.ts",
+    "canary:socket": "tsx scripts/canary/socket.ts",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
