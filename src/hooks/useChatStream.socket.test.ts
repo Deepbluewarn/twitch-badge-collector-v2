@@ -19,7 +19,7 @@ import type { ChzzkSocketChat } from '@/platform/chzzk-socket';
 const adapter = {
     type: 'chzzk',
     extract: vi.fn(() => undefined),
-    prepareChatClone: vi.fn(),
+    prepareChatClone: vi.fn((el: HTMLElement) => el.setAttribute('data-prepared', '1')),
 } as unknown as PlatformAdapter;
 
 function chat(over: Partial<ChzzkSocketChat> = {}): ChzzkSocketChat {
@@ -49,18 +49,27 @@ function setup(predicate = (c: ChatInfo) => ({ pass: c.badges.includes('b1') }))
     return { passed, updated };
 }
 
-describe('useChatStream — 소켓 렌더 모드', () => {
-    beforeEach(() => localStorage.setItem('tbc:socket-render', '1'));
+/** 원본(host html)이 끝내 안 오는 경우 — 대기 시간이 지나 직접 그린다. */
+const noOriginal = () => vi.advanceTimersByTime(1200);
+
+describe('useChatStream — 소켓 렌더 모드 (원본이 안 와서 직접 그리는 경로)', () => {
+    beforeEach(() => {
+        localStorage.setItem('tbc:socket-render', '1');
+        vi.useFakeTimers();
+    });
     afterEach(() => {
         // 이전 테스트의 hook이 남아 있으면 그 listener도 메시지를 받는다.
         unmounts.splice(0).forEach(u => u());
         vi.mocked(adapter.extract).mockClear();
+        vi.mocked(adapter.prepareChatClone).mockClear();
+        vi.useRealTimers();
         localStorage.clear();
     });
 
     it('필터를 통과한 소켓 채팅만 렌더해서 넘긴다', () => {
         const { passed } = setup();
         sock({ kind: 'chats', recent: false, chats: [chat(), chat({ id: 'u2_1000', uid: 'u2', badges: [] })] });
+        noOriginal();
         expect(passed).toHaveBeenCalledTimes(1);
         const p = passed.mock.calls[0][0];
         expect(p).toMatchObject({ key: 'u1_1000', time: 1000, prevKey: '', nickname: '시청자', text: '원문' });
@@ -71,12 +80,14 @@ describe('useChatStream — 소켓 렌더 모드', () => {
         const { passed } = setup();
         sock({ kind: 'chats', recent: true, chats: [chat()] });
         sock({ kind: 'chats', recent: false, chats: [chat()] });
+        noOriginal();
         expect(passed).toHaveBeenCalledTimes(1);
     });
 
     it('나중에 블라인드되면 같은 key로 교체 — 원문이 사라지고 미리보기 텍스트도 비운다', () => {
         const { updated } = setup();
         sock({ kind: 'chats', recent: false, chats: [chat()] });
+        noOriginal();
         sock({ kind: 'blind', event: { id: 'u1_1000', blindType: 'HIDDEN' } });
         expect(updated).toHaveBeenCalledTimes(1);
         const u = updated.mock.calls[0][0];
@@ -89,6 +100,7 @@ describe('useChatStream — 소켓 렌더 모드', () => {
     it('클린봇 블라인드는 클릭해서 볼 수 있는 형태로', () => {
         const { updated } = setup();
         sock({ kind: 'chats', recent: false, chats: [chat()] });
+        noOriginal();
         sock({ kind: 'blind', event: { id: 'u1_1000', blindType: 'CBOTBLIND' } });
         expect(updated.mock.calls[0][0].clone.querySelector('details.tbc-chat-cleanbot > i').textContent).toBe('원문');
     });
@@ -96,6 +108,7 @@ describe('useChatStream — 소켓 렌더 모드', () => {
     it('해제(CANCEL)되면 원문으로 되돌린다', () => {
         const { updated } = setup();
         sock({ kind: 'chats', recent: false, chats: [chat({ status: 'BLIND' })] });
+        noOriginal();
         sock({ kind: 'blind', event: { id: 'u1_1000', blindType: 'CANCEL', message: { content: '돌아온 원문', emojis: {} } } });
         const u = updated.mock.calls[0][0];
         expect(u.text).toBe('돌아온 원문');
@@ -105,6 +118,7 @@ describe('useChatStream — 소켓 렌더 모드', () => {
     it('넘기지 않은 채팅의 블라인드는 무시', () => {
         const { updated } = setup();
         sock({ kind: 'chats', recent: false, chats: [chat({ badges: [] })] });
+        noOriginal();
         sock({ kind: 'blind', event: { id: 'u1_1000', blindType: 'HIDDEN' } });
         sock({ kind: 'blind', event: { id: 'nope_1', blindType: 'HIDDEN' } });
         expect(updated).not.toHaveBeenCalled();
@@ -114,6 +128,7 @@ describe('useChatStream — 소켓 렌더 모드', () => {
         const { passed } = setup(() => ({ pass: true }));
         sock({ kind: 'connected', cid: 'CID' });
         send({ action: TBC_CHAT_PASSED_ACTION, key: 'u9_5_r', time: 5, prevKey: null, html: '<div>html</div>' });
+        noOriginal();
         expect(adapter.extract).not.toHaveBeenCalled();
         expect(passed).not.toHaveBeenCalled();
     });
@@ -122,6 +137,7 @@ describe('useChatStream — 소켓 렌더 모드', () => {
         localStorage.removeItem('tbc:socket-render');
         const { passed } = setup();
         sock({ kind: 'chats', recent: false, chats: [chat()] });
+        noOriginal();
         expect(passed).toHaveBeenCalledTimes(1);
     });
 
@@ -129,6 +145,133 @@ describe('useChatStream — 소켓 렌더 모드', () => {
         localStorage.setItem('tbc:socket-render', '0');
         const { passed } = setup();
         sock({ kind: 'chats', recent: false, chats: [chat()] });
+        noOriginal();
+        expect(passed).not.toHaveBeenCalled();
+    });
+});
+
+describe('useChatStream — 원본 우선 표시', () => {
+    beforeEach(() => {
+        localStorage.setItem('tbc:socket-render', '1');
+        vi.useFakeTimers();
+    });
+    afterEach(() => {
+        unmounts.splice(0).forEach(u => u());
+        vi.mocked(adapter.prepareChatClone).mockClear();
+        vi.useRealTimers();
+        localStorage.clear();
+    });
+
+    const hostHtml = (key: string, text = '원본') => send({
+        action: TBC_CHAT_PASSED_ACTION, key, time: 1000, prevKey: null,
+        html: `<div data-tbc-chat-key="${key}"><span class="host">${text}</span></div>`,
+    });
+
+    it('원본이 그려지면 그 복제본을 넘긴다 (기존 HTML 경로와 같은 결과)', () => {
+        const { passed } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        expect(passed).not.toHaveBeenCalled();
+        hostHtml('u1_1000_rand');
+        expect(passed).toHaveBeenCalledTimes(1);
+        const p = passed.mock.calls[0][0];
+        expect(p.key).toBe('u1_1000');
+        expect(p.clone.querySelector('.host').textContent).toBe('원본');
+        expect(p.clone.getAttribute('data-prepared')).toBe('1');
+    });
+
+    it('1.2초 안에 원본이 없으면 일단 직접 그린다', () => {
+        const { passed } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        vi.advanceTimersByTime(1199);
+        expect(passed).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(1);
+        expect(passed).toHaveBeenCalledTimes(1);
+        expect(passed.mock.calls[0][0].clone.classList.contains('tbc-chat')).toBe(true);
+    });
+
+    it('직접 그린 뒤 원본이 오면 원본으로 교체한다 (원본 우선)', () => {
+        const { passed, updated } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        vi.advanceTimersByTime(1200);
+        hostHtml('u1_1000_rand', '늦은 원본');
+        expect(passed).toHaveBeenCalledTimes(1);
+        expect(updated).toHaveBeenCalledTimes(1);
+        const u = updated.mock.calls[0][0];
+        expect(u).toMatchObject({ key: 'u1_1000', text: '원문' });
+        expect(u.clone.querySelector('.host').textContent).toBe('늦은 원본');
+        expect(u.clone.getAttribute('data-prepared')).toBe('1');
+    });
+
+    it('교체는 한 번만 (가상 스크롤로 원본이 다시 와도)', () => {
+        const { updated } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        vi.advanceTimersByTime(1200);
+        hostHtml('u1_1000_r1');
+        hostHtml('u1_1000_r2');
+        expect(updated).toHaveBeenCalledTimes(1);
+    });
+
+    it('10초가 넘게 늦은 원본으로는 교체하지 않는다', () => {
+        const { updated } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        vi.advanceTimersByTime(1200);
+        vi.setSystemTime(Date.now() + 10_001);
+        hostHtml('u1_1000_rand');
+        expect(updated).not.toHaveBeenCalled();
+    });
+
+    it('직접 그린 뒤 블라인드됐으면 늦게 온 원본으로 바꾸지 않는다', () => {
+        const { updated } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        vi.advanceTimersByTime(1200);
+        sock({ kind: 'blind', event: { id: 'u1_1000', blindType: 'HIDDEN' } });
+        hostHtml('u1_1000_rand');
+        expect(updated).toHaveBeenCalledTimes(1);
+        expect(updated.mock.calls[0][0].clone.querySelector('.tbc-chat-blinded')).not.toBeNull();
+    });
+
+    it('원본이 소켓보다 먼저 와도 원본을 쓴다', () => {
+        const { passed } = setup();
+        sock({ kind: 'connected', cid: 'CID' });
+        hostHtml('u1_1000_rand', '먼저 온 원본');
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        expect(passed).toHaveBeenCalledTimes(1);
+        expect(passed.mock.calls[0][0].clone.querySelector('.host').textContent).toBe('먼저 온 원본');
+    });
+
+    it('필터에 걸리지 않은 채팅은 원본이 와도 넘기지 않는다', () => {
+        const { passed } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat({ badges: [] })] });
+        hostHtml('u1_1000_rand');
+        vi.advanceTimersByTime(5000);
+        expect(passed).not.toHaveBeenCalled();
+    });
+
+    it('기다리는 중 블라인드되면 바로 직접 그린 (가려진) 모양으로', () => {
+        const { passed, updated } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        sock({ kind: 'blind', event: { id: 'u1_1000', blindType: 'HIDDEN' } });
+        expect(passed).toHaveBeenCalledTimes(1);
+        expect(passed.mock.calls[0][0].clone.querySelector('.tbc-chat-blinded')).not.toBeNull();
+        expect(updated).not.toHaveBeenCalled();
+        hostHtml('u1_1000_rand');
+        vi.advanceTimersByTime(5000);
+        expect(passed).toHaveBeenCalledTimes(1);
+    });
+
+    it('원본으로 넣은 뒤 블라인드되면 직접 그린 모양으로 교체', () => {
+        const { updated } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        hostHtml('u1_1000_rand');
+        sock({ kind: 'blind', event: { id: 'u1_1000', blindType: 'BLIND' } });
+        expect(updated.mock.calls[0][0].clone.querySelector('.tbc-chat-blinded')).not.toBeNull();
+    });
+
+    it('unmount하면 대기 타이머도 정리', () => {
+        const { passed } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        unmounts.splice(0).forEach(u => u());
+        vi.advanceTimersByTime(5000);
         expect(passed).not.toHaveBeenCalled();
     });
 });
