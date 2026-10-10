@@ -7,6 +7,8 @@ import {
     TBC_CHAT_PASSED_ACTION,
     TbcChatPassedMessage,
 } from "@/interfaces/chat-attributes";
+import { isSocketShadowEnabled, startChzzkSocketShadow } from "@/content-scripts/chzzk/socket-shadow";
+import { getPlatformConfig } from "@/platform/host-selectors";
 
 export interface PassedChat {
     /** 후처리 완료된 복제 노드 (DOM 삽입 직전 상태) */
@@ -168,9 +170,20 @@ export default function useChatStream(
         }
 
         window.addEventListener('message', handleMessage);
+
+        // 소켓 경로 검증용 — 화면에는 영향 없이 같은 채팅을 소켓으로도 처리해 비교 로그만 남긴다.
+        const stopShadow = adapter.type === 'chzzk' && isSocketShadowEnabled()
+            ? startChzzkSocketShadow(
+                node => adapter.extract(node),
+                chat => predicate(chat),
+                getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined,
+            )
+            : undefined;
+
         return () => {
             window.removeEventListener('message', handleMessage);
             attrMo?.disconnect();
+            stopShadow?.();
         };
     }, []);
 }

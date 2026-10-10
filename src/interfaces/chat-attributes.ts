@@ -50,3 +50,16 @@ export interface TbcChatPassedMessage {
      *  chzzk가 virtual window로 element를 unmount할 수 있어 key-by-querySelector 신뢰 불가. */
     html: string;
 }
+
+/**
+ * chzzk 소켓 탭(MAIN world, ws-tap.ts)이 ISOLATED로 보내는 메시지.
+ * HTML을 거치지 않고 치지직 채팅 소켓 패킷을 정규화해서 그대로 넘긴다.
+ *  - `connected`: 채팅 소켓이 CONNECTED(10100)를 받음 — 탭이 살아있다는 신호.
+ *    ISOLATED는 이게 안 오면 HTML 파싱 경로로 fallback한다.
+ *  - `chats`: 채팅 묶음. `recent`면 접속 직후 받은 과거 채팅(15101).
+ */
+export const TBC_SOCKET_CHAT_ACTION = 'tbc-socket-chat';
+
+export type TbcSocketChatMessage =
+    | { action: typeof TBC_SOCKET_CHAT_ACTION; kind: 'connected'; cid: string }
+    | { action: typeof TBC_SOCKET_CHAT_ACTION; kind: 'chats'; recent: boolean; chats: import('@/platform/chzzk-socket').ChzzkSocketChat[] };
