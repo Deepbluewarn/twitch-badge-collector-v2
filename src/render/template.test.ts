@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { compileTemplate, parseTemplate, TemplateError, escapeHtml } from './template';
+import { compileTemplate, parseTemplate, TemplateError, escapeHtml, stripNewlineWhitespace } from './template';
 
 const r = (src: string, view: object, raw: string[] = []) => compileTemplate(src, raw).render(view);
 
@@ -88,4 +88,19 @@ describe('문법 오류', () => {
 
 it('escapeHtml', () => {
     expect(escapeHtml(`<a href="x" title='y'>&\``)).toBe('&lt;a href=&quot;x&quot; title=&#39;y&#39;&gt;&amp;&#96;');
+});
+
+describe('줄바꿈 공백', () => {
+    it('줄바꿈이 들어간 공백은 지우고 같은 줄 공백은 둔다', () => {
+        expect(stripNewlineWhitespace('<b>\n    a b\n</b>\r\n  <i>x</i>  \n')).toBe('<b>a b</b><i>x</i>');
+    });
+
+    it('여러 줄로 들여 쓴 템플릿도 태그 사이에 틈이 없다', () => {
+        const src = '{{#badges}}\n    <img src="{{url}}">\n{{/badges}}\n<span>{{nickname}}</span>';
+        expect(r(src, { badges: [{ url: 'a' }, { url: 'b' }], nickname: 'n' })).toBe('<img src="a"><img src="b"><span>n</span>');
+    });
+
+    it('오류 위치는 원문 기준', () => {
+        expect(() => compileTemplate('a\n  {{/x}}')).toThrow(/위치 4/);
+    });
 });

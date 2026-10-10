@@ -1,4 +1,5 @@
 import './style.css';
+import '../../render/chzzk-chat.css';
 
 export default defineContentScript({
   matches: [

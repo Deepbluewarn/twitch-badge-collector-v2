@@ -101,7 +101,7 @@ An optional restriction on a composite Filter Element making it fire only when t
   - 기본으로 켜져 있고, 탭 신호가 한 번도 안 오면 HTML 경로로 자동 대체된다. 원격 비상 끄기는 OTA `constants.socketRender: 0` ([docs/ota-selectors.md](docs/ota-selectors.md) 시나리오 D). 다시보기는 아직 HTML 경로.
   - 필터 판정은 원문 기준이다. 클린봇·운영자 블라인드는 표시 단계에서만 가린다(클린봇은 클릭하면 원문 이탤릭).
   - 표시는 원본 우선이다(설정 없음). 필터를 통과한 소켓 채팅의 host 원본을 기다렸다가 복제한다 — 원본이 그려지면 기존 HTML 경로와 같은 결과이고, 1.2초(실측 p95 근처) 안에 안 그려지면 일단 직접 그리고, 원본이 10초 안에 오면 원본으로 교체한다(최악이 한 번 바뀌는 정도). 템플릿 렌더러는 이 대체 경로와 블라인드 표시에 쓰인다. host는 소켓 도착 후 실측 p50 ~0.4초, max ~2.1초 뒤에 그린다.
-  - 템플릿은 사용자가 편집할 수 있게 설계됐다 — 채팅 데이터는 항상 escape되고, 렌더 결과는 DOMPurify + 2차 scrub을 거친다.
+  - 사용자 템플릿: 설정 페이지 `/template`에서 편집하고, 설정 `chzzkCustomTemplate`을 켜면 원본을 기다리지 않고 그 템플릿으로 그린다(끄면 원본 우선). 본문은 storage.local `chzzkTemplates`([src/render/template-store.ts](src/render/template-store.ts)), 기본값과 같은 종류는 저장하지 않는다. 채팅 데이터는 항상 escape되고, 렌더 결과는 DOMPurify + 2차 scrub을 거친다.
 - **Selector 문법 헬퍼**: [src/platform/selector-syntax.ts](src/platform/selector-syntax.ts) — `splitSelectorBranches` / `extractClassHashes`. 의존성 0이라 확장 런타임과 canary 스크립트가 공유. rev 14부터 fragile selector는 콤마 selector list로 이중화되어 있고, branch 하나가 죽어도 전체는 매칭되므로 branch 단위로 쪼개 봐야 조기 감지가 된다.
 - **영상 양옆 영역 맞교환 (치지직 전용)**: [src/content-scripts/chzzk/chat-side.ts](src/content-scripts/chzzk/chat-side.ts) — 설정 `chzzkChatSide`. 기본 `[전역 내비][영상][채팅]`을 `[채팅][영상][전역 내비]`로 통째로 뒤집는다. **`position`(위/아래)과는 다른 축**: `position`은 채팅 사이드바 *안에서* 모아보기와 원본 채팅의 상하 순서다.
   - 두 영역은 배치 방식이 달라 스위치도 둘이다. **채팅 사이드바**는 부모가 flex row에 [영상, aside] 순서라 `order: -1` 한 줄이면 끝 — 측정이 필요 없어 호스트 DOM보다 먼저 켜둘 수 있다(깜빡임 없음). **전역 내비**는 `position: fixed; left: 0`에 `#layout-body`가 `padding-left`로 자리를 비워주는 구조라, `right: 0`으로 보내면서 padding도 반대쪽으로 옮겨야 한다.

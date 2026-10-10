@@ -14,22 +14,47 @@ import { CHZZK_VIEW_RAW_FIELDS, toChzzkChatView, type ChzzkChatKind, type ChzzkV
 export type ChzzkTemplates = Record<ChzzkChatKind, string>;
 
 /** 이름 앞 공통 부분: 시각 · 배지 · 닉네임 · 인증 마크. */
-const HEAD =
-    '<span class="tbcv2-chat-time">{{time}}</span>' +
-    '{{#badges}}<img class="tbc-chat-badge" src="{{url}}" alt="">{{/badges}}' +
-    '<span class="tbc-chat-nick" style="--tbc-nick-light:{{nickColorLight}};--tbc-nick-dark:{{nickColorDark}}">{{nickname}}</span>' +
-    '{{#verifiedIconUrl}}<img class="tbc-chat-verified" src="{{verifiedIconUrl}}" alt="">{{/verifiedIconUrl}}';
+const HEAD = `<span class="tbcv2-chat-time">{{time}}</span>
+{{#badges}}
+    <img class="tbc-chat-badge" src="{{url}}" alt="">
+{{/badges}}
+<span class="tbc-chat-nick" style="--tbc-nick-light:{{nickColorLight}};--tbc-nick-dark:{{nickColorDark}}">{{nickname}}</span>
+{{#verifiedIconUrl}}
+    <img class="tbc-chat-verified" src="{{verifiedIconUrl}}" alt="">
+{{/verifiedIconUrl}}`;
 
+const indent = (s: string) => s.split('\n').map(l => `    ${l}`).join('\n');
+
+/**
+ * 기본 템플릿. 편집기에 그대로 보이므로 읽기 좋게 줄을 나눠 둔다 — 줄바꿈 공백은 렌더 때
+ * 지워진다(stripNewlineWhitespace).
+ */
 export const DEFAULT_CHZZK_TEMPLATES: ChzzkTemplates = {
-    chat: `${HEAD}<span class="tbc-chat-text">{{{messageHtml}}}</span>`,
-    donation:
-        `<div class="tbc-chat-event-head">${HEAD}<strong class="tbc-chat-amount">{{donation.amountText}}</strong></div>` +
-        '{{#donation.missionText}}<div class="tbc-chat-mission">{{donation.missionText}}</div>{{/donation.missionText}}' +
-        '{{#hasMessage}}<div class="tbc-chat-text">{{{messageHtml}}}</div>{{/hasMessage}}',
-    subscription:
-        `<div class="tbc-chat-event-head">${HEAD}<strong class="tbc-chat-amount">{{subscription.month}}개월 구독</strong>` +
-        '{{#subscription.tierName}}<span class="tbc-chat-tier">{{subscription.tierName}}</span>{{/subscription.tierName}}</div>' +
-        '{{#hasMessage}}<div class="tbc-chat-text">{{{messageHtml}}}</div>{{/hasMessage}}',
+    chat: `${HEAD}
+<span class="tbc-chat-text">{{{messageHtml}}}</span>
+`,
+    donation: `<div class="tbc-chat-event-head">
+${indent(HEAD)}
+    <strong class="tbc-chat-amount">{{donation.amountText}}</strong>
+</div>
+{{#donation.missionText}}
+    <div class="tbc-chat-mission">{{donation.missionText}}</div>
+{{/donation.missionText}}
+{{#hasMessage}}
+    <div class="tbc-chat-text">{{{messageHtml}}}</div>
+{{/hasMessage}}
+`,
+    subscription: `<div class="tbc-chat-event-head">
+${indent(HEAD)}
+    <strong class="tbc-chat-amount">{{subscription.month}}개월 구독</strong>
+    {{#subscription.tierName}}
+        <span class="tbc-chat-tier">{{subscription.tierName}}</span>
+    {{/subscription.tierName}}
+</div>
+{{#hasMessage}}
+    <div class="tbc-chat-text">{{{messageHtml}}}</div>
+{{/hasMessage}}
+`,
 };
 
 const cache = new Map<string, CompiledTemplate>();

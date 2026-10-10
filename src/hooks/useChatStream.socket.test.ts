@@ -275,3 +275,48 @@ describe('useChatStream — 원본 우선 표시', () => {
         expect(passed).not.toHaveBeenCalled();
     });
 });
+
+describe('useChatStream — 사용자 템플릿 켜짐', () => {
+    beforeEach(() => {
+        localStorage.setItem('tbc:socket-render', '1');
+        vi.useFakeTimers();
+    });
+    afterEach(() => {
+        unmounts.splice(0).forEach(u => u());
+        vi.useRealTimers();
+        localStorage.clear();
+    });
+
+    function setupCustom(templates: Record<string, string>) {
+        const passed = vi.fn();
+        const updated = vi.fn();
+        const { unmount } = renderHook(() => useChatStream(
+            adapter, c => ({ pass: c.badges.includes('b1') }), passed, updated,
+            () => ({ custom: true, templates }),
+        ));
+        unmounts.push(unmount);
+        return { passed, updated };
+    }
+
+    it('원본을 기다리지 않고 바로 사용자 템플릿으로 그린다', () => {
+        const { passed } = setupCustom({ chat: '<b class="mine">{{nickname}}: {{message}}</b>' });
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        expect(passed).toHaveBeenCalledTimes(1);
+        expect(passed.mock.calls[0][0].clone.querySelector('.mine').textContent).toBe('시청자: 원문');
+    });
+
+    it('블라인드 표시도 사용자 템플릿으로 (가리기는 messageHtml에 들어 있다)', () => {
+        const { updated } = setupCustom({ chat: '<b class="mine">{{{messageHtml}}}</b>' });
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        sock({ kind: 'blind', event: { id: 'u1_1000', blindType: 'HIDDEN' } });
+        const clone = updated.mock.calls[0][0].clone;
+        expect(clone.querySelector('.mine .tbc-chat-blinded')).not.toBeNull();
+        expect(clone.textContent).not.toContain('원문');
+    });
+
+    it('고치지 않은 종류는 기본 템플릿', () => {
+        const { passed } = setupCustom({ donation: '<i>후원</i>' });
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        expect(passed.mock.calls[0][0].clone.querySelector('.tbc-chat-nick').textContent).toBe('시청자');
+    });
+});

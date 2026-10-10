@@ -16,6 +16,7 @@ const SETTING_KEYS = [
     "displayMode",
     "floatingBgColor",
     "chzzkChatSide",
+    "chzzkCustomTemplate",
 ] as const;
 
 /**

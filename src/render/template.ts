@@ -8,6 +8,10 @@
  *   {{.}}            반복 중인 현재 항목
  *   name.sub         점으로 하위 필드
  *
+ * 줄바꿈이 들어간 공백은 지운다(JSX와 같은 규칙). 템플릿을 여러 줄로 들여 써도 태그 사이에
+ * 틈이 생기지 않게 하려는 것 — HTML은 줄바꿈·들여쓰기를 공백 한 칸으로 그린다. 띄어쓰기가
+ * 필요하면 같은 줄 안에 쓰면 된다.
+ *
  * 사용자가 템플릿을 직접 편집하므로 안전이 1순위다:
  *  - 채팅 데이터(닉네임, 본문 등)는 escape 없이 HTML에 들어갈 길이 없다.
  *    날 HTML은 우리가 만든 필드(rawAllowed)만 허용한다.
@@ -118,8 +122,15 @@ export interface CompiledTemplate {
  * @param rawAllowed `{{{ }}}`로 날 HTML을 넣을 수 있는 필드 이름. 여기 없는 필드는
  *        `{{{ }}}`로 써도 escape된다 — 사용자가 템플릿에 실수로 넣어도 안전하게.
  */
+/** 줄바꿈을 포함한 공백 덩어리를 지운다. 같은 줄 안의 공백은 그대로. */
+export function stripNewlineWhitespace(src: string): string {
+    return src.replace(/[ \t]*\r?\n\s*/g, '');
+}
+
 export function compileTemplate(src: string, rawAllowed: Iterable<string> = []): CompiledTemplate {
-    const ast = parseTemplate(src);
+    // 문법 검사는 원문으로 해서 오류 위치가 사용자가 보는 글자와 맞게 한다.
+    parseTemplate(src);
+    const ast = parseTemplate(stripNewlineWhitespace(src));
     const raw = new Set(rawAllowed);
     return { render: (view) => renderNodes(ast, [view], raw) };
 }

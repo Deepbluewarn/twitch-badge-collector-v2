@@ -11,7 +11,7 @@ import { isSocketShadowEnabled, socketIdFromHostKey, startChzzkSocketShadow } fr
 import { isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
 import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
 import { applyBlindEvent, toChatInfo, type ChzzkSocketChat } from "@/platform/chzzk-socket";
-import { renderChzzkChat } from "@/render/chzzk-render";
+import { renderChzzkChat, type ChzzkTemplates } from "@/render/chzzk-render";
 import { getPlatformConfig } from "@/platform/host-selectors";
 
 export interface PassedChat {
@@ -53,6 +53,11 @@ export default function useChatStream(
     onChatPassed: (chat: PassedChat) => void,
     /** 소켓 모드 전용 — 이미 넘긴 채팅의 내용이 바뀜 (나중에 블라인드/해제). */
     onChatUpdated?: (update: { key: string; clone: HTMLElement; text: string }) => void,
+    /**
+     * 소켓 모드 전용 — 사용자 템플릿 설정. 켜져 있으면 원본을 기다리지 않고 바로 그 템플릿으로
+     * 그린다. 매 채팅 다시 읽으므로 설정·템플릿 변경이 다음 채팅부터 반영된다.
+     */
+    getTemplateMode: () => { custom: boolean; templates: Partial<ChzzkTemplates> } = () => ({ custom: false, templates: {} }),
 ) {
     useEffect(() => {
         // 같은 key는 한 번만 처리 (extract/predicate/addChat).
@@ -205,8 +210,14 @@ export default function useChatStream(
             };
         }
 
+        /** 직접 그리기 — 사용자 템플릿이 켜져 있으면 그 템플릿, 아니면 기본 템플릿. */
+        function renderBuilt(chat: ChzzkSocketChat): HTMLElement {
+            const mode = getTemplateMode();
+            return renderChzzkChat(chat, { verifiedIconUrl, ...(mode.custom ? { templates: mode.templates } : {}) });
+        }
+
         function emitBuilt(chat: ChzzkSocketChat) {
-            onChatPassed(passedChatOf(chat, renderChzzkChat(chat, { verifiedIconUrl })));
+            onChatPassed(passedChatOf(chat, renderBuilt(chat)));
         }
 
         /** host 원본 html을 복제해 넘긴다. 파싱에 실패하면 false — 호출자가 직접 그린다. */
@@ -268,7 +279,7 @@ export default function useChatStream(
                     return;
                 }
                 // native로 넣었던 채팅도 블라인드되면 직접 그린 모양으로 바뀐다 (원본 복제본은 스냅샷이라).
-                onChatUpdated?.({ key: next.id, clone: renderChzzkChat(next, { verifiedIconUrl }), text: previewText(next) });
+                onChatUpdated?.({ key: next.id, clone: renderBuilt(next), text: previewText(next) });
                 return;
             }
             if (msg.kind !== 'chats') return;
@@ -283,6 +294,8 @@ export default function useChatStream(
                 if (passedSocketChats.size > PASSED_SOCKET_CHAT_LIMIT) {
                     passedSocketChats.delete(passedSocketChats.keys().next().value!);
                 }
+                // 사용자 템플릿이 켜져 있으면 원본을 기다리지 않는다.
+                if (getTemplateMode().custom) { emitBuilt(chat); continue; }
                 const early = recentHostHtml.get(chat.id);
                 if (early !== undefined && emitNative(chat, early)) continue;
                 const id = chat.id;

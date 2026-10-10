@@ -138,5 +138,50 @@
         "filter_mode": {
             "advanced": "고급 설정"
         }
+    },
+    "template": {
+        "title": "채팅 템플릿 (치지직)",
+        "use_custom": "템플릿으로 표시",
+        "use_custom_hint_on": "모아보기 채팅을 아래 템플릿으로 바로 그립니다.",
+        "use_custom_hint_off": "꺼져 있으면 치지직 원본 채팅을 그대로 복사합니다. 원본이 늦게 그려질 때만 기본 템플릿으로 잠깐 대신합니다.",
+        "kinds": {
+            "chat": "일반 채팅",
+            "donation": "후원",
+            "subscription": "구독"
+        },
+        "save": "저장",
+        "saved": "저장했습니다",
+        "reset": "기본값으로",
+        "unsaved": "저장하지 않은 변경이 있습니다",
+        "error": "문법 오류 ({{line}}줄 {{col}}칸): {{message}}",
+        "preview": "미리보기",
+        "preview_dark": "어둡게",
+        "preview_light": "밝게",
+        "fields_title": "쓸 수 있는 값",
+        "fields": {
+            "nickname": "닉네임 (익명 후원은 '익명의 후원자')",
+            "messageHtml": "본문 HTML — 이모지, 클린봇·블라인드 가리기 포함",
+            "message": "본문 원문 (이모지는 {:이름:} 그대로, 가리기 없음)",
+            "hasMessage": "본문이 있으면 참",
+            "badges": "배지 목록 — 항목마다 url",
+            "verifiedIconUrl": "인증 마크 이미지 주소 (인증 사용자만)",
+            "time": "시각 (예: 14:05)",
+            "nickColorLight": "밝은 테마 닉네임 색",
+            "nickColorDark": "어두운 테마 닉네임 색",
+            "cleanbot": "클린봇이 가린 채팅이면 참",
+            "blinded": "운영자가 가린 채팅이면 참",
+            "anonymous": "익명이면 참",
+            "donation_amountText": "후원 금액 (예: 10,000치즈)",
+            "donation_amount": "후원 금액 숫자",
+            "donation_mission": "미션 후원이면 참",
+            "donation_missionText": "미션 내용",
+            "subscription_month": "구독 개월 수",
+            "subscription_tierName": "구독 등급 이름 (채널마다 다름)"
+        },
+        "help_var": "값을 글자로 넣습니다",
+        "help_raw": "본문 HTML. 이모지와 클린봇 가리기가 보이려면 이걸 쓰세요",
+        "help_section": "값이 있을 때 그립니다 (목록이면 항목마다)",
+        "help_inverted": "값이 없을 때만 그립니다",
+        "help_safety": "스크립트와 이벤트 속성(onclick 등)은 지워집니다."
     }
 }

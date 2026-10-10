@@ -18,6 +18,12 @@ export interface SettingInterface {
     floatingBgColor?: string;
     /** 치지직 전용 — 호스트 채팅 사이드바를 비디오 좌/우 어느 쪽에 둘지. default 'right'(치지직 기본). */
     chzzkChatSide: 'right' | 'left';
+    /**
+     * 치지직 라이브 — 모아보기 채팅을 사용자 템플릿으로 그릴지. default 'off'.
+     * off면 치지직 원본을 복제한다(원본 우선, 원본이 늦으면 기본 템플릿으로 대체).
+     * 템플릿 본문은 storage.local의 별도 키(src/render/template-store.ts).
+     */
+    chzzkCustomTemplate: 'on' | 'off';
 }
 
 export interface SettingReducerActionTypes {
@@ -34,6 +40,7 @@ export interface SettingReducerActionTypes {
     SET_DISPLAY_MODE: "SET_DISPLAY_MODE";
     SET_FLOATING_BG_COLOR: "SET_FLOATING_BG_COLOR";
     SET_CHZZK_CHAT_SIDE: "SET_CHZZK_CHAT_SIDE";
+    SET_CHZZK_CUSTOM_TEMPLATE: "SET_CHZZK_CUSTOM_TEMPLATE";
     SET_MULTIPLE: "SET_MULTIPLE";
 }
 
