@@ -7,7 +7,11 @@ import {
     TBC_CHAT_PASSED_ACTION,
     TbcChatPassedMessage,
 } from "@/interfaces/chat-attributes";
-import { isSocketShadowEnabled, startChzzkSocketShadow } from "@/content-scripts/chzzk/socket-shadow";
+import { isSocketShadowEnabled, socketIdFromHostKey, startChzzkSocketShadow } from "@/content-scripts/chzzk/socket-shadow";
+import { isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
+import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
+import { toChatInfo } from "@/platform/chzzk-socket";
+import { renderChzzkChat } from "@/render/chzzk-render";
 import { getPlatformConfig } from "@/platform/host-selectors";
 
 export interface PassedChat {
@@ -139,7 +143,10 @@ export default function useChatStream(
                     if (r.attributeName !== 'class') continue;
                     const target = r.target as HTMLElement;
                     if (!target.getAttribute) continue;
-                    const key = target.getAttribute(CHAT_ATTR.KEY);
+                    const hostKey = target.getAttribute(CHAT_ATTR.KEY);
+                    if (!hostKey) continue;
+                    // 소켓 모드에선 색이 소켓 id(uid_time)로 저장돼 있다 — host key 앞부분.
+                    const key = processedColors.has(hostKey) ? hostKey : socketIdFromHostKey(hostKey);
                     if (!key || !processedColors.has(key)) continue;
                     if (target.classList.contains(PROCESSED_CHAT_CLASS)) continue;
                     const color = processedColors.get(key);
@@ -154,11 +161,54 @@ export default function useChatStream(
         // Phase 2: 향후 inject.ts가 발행할 메시지 listen.
         // seenKeys 체크는 processElement 내부에서 — virtual scroll로 재출현한 chat은
         // 거기서 applyHighlight만 재호출함. handleMessage에서 short-circuit하면 그 경로 dead.
+        // 소켓 모드 (chzzk 라이브) — 채팅 소켓 탭이 살아 있으면 HTML 대신 소켓 채팅을 필터하고
+        // 템플릿 렌더러로 그린다. 탭 신호가 한 번도 안 오면 socketActive가 false로 남아
+        // 아래 HTML 경로가 그대로 동작한다 (자동 fallback).
+        const socketMode = adapter.type === 'chzzk' && isSocketRenderEnabled();
+        const verifiedIconUrl = getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined;
+        let socketActive = false;
+
+        function processSocketMessage(msg: TbcSocketChatMessage) {
+            socketActive = true;
+            if (msg.kind !== 'chats') return;
+            for (const chat of msg.chats) {
+                if (seenKeys.has(chat.id)) continue;
+                seenKeys.add(chat.id);
+                const info = toChatInfo(chat, verifiedIconUrl);
+                const result = predicate(info);
+                if (!result.pass) continue;
+                processedColors.set(chat.id, result.markerColor);
+                onChatPassed({
+                    clone: renderChzzkChat(chat, { verifiedIconUrl }),
+                    key: chat.id,
+                    time: chat.time,
+                    // 소켓 채팅엔 host DOM 형제가 없다. buffer에 없는 key를 주면 시각 기준
+                    // 위치 추정으로 들어간다 — 소켓 시각은 서버 시각이라 정확하다.
+                    prevKey: '',
+                    nickname: info.nickName,
+                    text: info.textContents.join(' ').trim(),
+                });
+            }
+        }
+
         function handleMessage(e: MessageEvent) {
             if (e.source !== window) return;
+            if (socketMode && e.data?.action === TBC_SOCKET_CHAT_ACTION) {
+                processSocketMessage(e.data as TbcSocketChatMessage);
+                return;
+            }
             const msg = e.data as TbcChatPassedMessage | undefined;
             if (msg?.action !== TBC_CHAT_PASSED_ACTION) return;
             if (!msg.key) return;
+
+            // 소켓 모드가 동작 중이면 라이브 HTML 채팅은 수집하지 않는다 — 원본 채팅창
+            // highlight만 붙인다 (소켓 채팅이 host DOM보다 먼저 와서 그때는 요소가 없다).
+            // 다시보기는 소켓이 없으므로 HTML 경로 그대로.
+            if (socketActive && !msg.html.includes(CHAT_ATTR.REPLAY_CHAT)) {
+                const id = socketIdFromHostKey(msg.key);
+                if (id) applyHighlight(msg.key, processedColors.get(id));
+                return;
+            }
 
             // inject.ts가 보낸 outerHTML 파싱 (host DOM은 virtual window로 unmount 가능).
             const tmpl = document.createElement('template');
@@ -176,7 +226,7 @@ export default function useChatStream(
             ? startChzzkSocketShadow(
                 node => adapter.extract(node),
                 chat => predicate(chat),
-                getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined,
+                verifiedIconUrl,
             )
             : undefined;
 
