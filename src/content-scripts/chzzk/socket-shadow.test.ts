@@ -137,3 +137,28 @@ describe('createSocketShadow', () => {
         expect(shadow.sweep().pending).toBe(0);
     });
 });
+
+describe('원본 렌더 지연 측정', () => {
+    it('소켓 도착 → html 도착 간격의 분위수', () => {
+        const { shadow, advance } = setup();
+        for (let i = 0; i < 10; i++) {
+            shadow.onSocketChats([sock({ uid: `u${i}` })]);
+            advance(i * 10);   // 0, 10, …, 90ms
+            shadow.onHtmlChat(`u${i}_${T0 + 1000}_r`, html());
+        }
+        const d = shadow.sweep().renderDelay;
+        expect(d).toMatchObject({ count: 10, p50: 50, max: 90 });
+        expect(d.p95).toBe(90);
+    });
+
+    it('html이 먼저 온 짝은 0ms', () => {
+        const { shadow } = setup();
+        shadow.onHtmlChat(`u1_${T0 + 1000}_r`, html());
+        shadow.onSocketChats([sock()]);
+        expect(shadow.sweep().renderDelay).toMatchObject({ count: 1, max: 0 });
+    });
+
+    it('표본이 없으면 0', () => {
+        expect(setup().shadow.sweep().renderDelay).toEqual({ count: 0, p50: 0, p95: 0, p99: 0, max: 0 });
+    });
+});

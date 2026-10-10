@@ -118,8 +118,15 @@ describe('useChatStream — 소켓 렌더 모드', () => {
         expect(passed).not.toHaveBeenCalled();
     });
 
-    it('플래그가 꺼져 있으면 소켓 메시지를 무시한다', () => {
+    it('기본으로 켜져 있다 (플래그 없음)', () => {
         localStorage.removeItem('tbc:socket-render');
+        const { passed } = setup();
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        expect(passed).toHaveBeenCalledTimes(1);
+    });
+
+    it('로컬 플래그로 끄면 소켓 메시지를 무시한다', () => {
+        localStorage.setItem('tbc:socket-render', '0');
         const { passed } = setup();
         sock({ kind: 'chats', recent: false, chats: [chat()] });
         expect(passed).not.toHaveBeenCalled();

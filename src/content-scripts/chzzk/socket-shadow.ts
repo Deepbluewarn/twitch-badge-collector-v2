@@ -46,6 +46,11 @@ export interface ShadowStats {
     /** 아직 짝을 기다리는 중. */
     pending: number;
     htmlOnlySamples: string[];
+    /**
+     * 소켓 도착 → host DOM에 원본이 그려지기까지(html 메시지 도착) 걸린 시간, ms.
+     * native 표시 스타일이 원본을 얼마나 기다려야 하는지 정하는 근거. html이 먼저 온 짝은 0.
+     */
+    renderDelay: { count: number; p50: number; p95: number; p99: number; max: number };
 }
 
 export interface SocketShadowOptions {
@@ -84,6 +89,14 @@ export function createSocketShadow(opts: SocketShadowOptions) {
         socketOnly: {},
         pending: 0,
         htmlOnlySamples: [],
+        renderDelay: { count: 0, p50: 0, p95: 0, p99: 0, max: 0 },
+    };
+    // 최근 표본만 — 오래 켜 두어도 메모리가 늘지 않게.
+    const delays: number[] = [];
+    const DELAY_SAMPLES = 2000;
+    const recordDelay = (ms: number) => {
+        delays.push(Math.max(0, ms));
+        if (delays.length > DELAY_SAMPLES) delays.shift();
     };
 
     function compare(id: string, html: ChatInfo, chat: ChzzkSocketChat) {
@@ -128,7 +141,7 @@ export function createSocketShadow(opts: SocketShadowOptions) {
         for (const chat of chats) {
             if (done.has(chat.id) || socketWaiting.has(chat.id)) continue;
             const html = htmlWaiting.get(chat.id);
-            if (html) { htmlWaiting.delete(chat.id); compare(chat.id, html.info, chat); }
+            if (html) { htmlWaiting.delete(chat.id); recordDelay(0); compare(chat.id, html.info, chat); }
             else socketWaiting.set(chat.id, { chat, at: t });
         }
     }
@@ -137,7 +150,7 @@ export function createSocketShadow(opts: SocketShadowOptions) {
         const id = socketIdFromHostKey(hostKey);
         if (!id || done.has(id) || htmlWaiting.has(id)) return;
         const sock = socketWaiting.get(id);
-        if (sock) { socketWaiting.delete(id); compare(id, info, sock.chat); }
+        if (sock) { socketWaiting.delete(id); recordDelay(now() - sock.at); compare(id, info, sock.chat); }
         else htmlWaiting.set(id, { info, at: now() });
     }
 
@@ -161,7 +174,18 @@ export function createSocketShadow(opts: SocketShadowOptions) {
             if (stats.htmlOnlySamples.length < 10) stats.htmlOnlySamples.push(id);
         }
         stats.pending = socketWaiting.size + htmlWaiting.size;
-        return { ...stats, mismatched: { ...stats.mismatched }, socketOnly: { ...stats.socketOnly }, htmlOnlySamples: [...stats.htmlOnlySamples] };
+        if (delays.length) {
+            const sorted = [...delays].sort((a, b) => a - b);
+            const q = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))];
+            stats.renderDelay = { count: sorted.length, p50: q(0.5), p95: q(0.95), p99: q(0.99), max: sorted[sorted.length - 1] };
+        }
+        return {
+            ...stats,
+            mismatched: { ...stats.mismatched },
+            socketOnly: { ...stats.socketOnly },
+            htmlOnlySamples: [...stats.htmlOnlySamples],
+            renderDelay: { ...stats.renderDelay },
+        };
     }
 
     return { onSocketChats, onHtmlChat, sweep };
@@ -243,7 +267,8 @@ export function startChzzkSocketShadow(
         const mismatchTotal = Object.values(s.mismatched).reduce((a, b) => a + b, 0);
         const socketOnlyTotal = Object.values(s.socketOnly).reduce((a, b) => a + b, 0);
         console.info(
-            `${tag}%c 일치 ${s.matched} / 불일치 ${mismatchTotal} / 소켓만 ${socketOnlyTotal} / html만 ${s.htmlOnly} (시작 전 ${s.htmlOnlyBeforeStart}) / 대기 ${s.pending}`,
+            `${tag}%c 일치 ${s.matched} / 불일치 ${mismatchTotal} / 소켓만 ${socketOnlyTotal} / html만 ${s.htmlOnly} (시작 전 ${s.htmlOnlyBeforeStart}) / 대기 ${s.pending}` +
+            ` | 원본 지연 p50 ${s.renderDelay.p50}ms p95 ${s.renderDelay.p95}ms p99 ${s.renderDelay.p99}ms max ${s.renderDelay.max}ms (n=${s.renderDelay.count})`,
             style, '',
             { mismatched: s.mismatched, socketOnly: s.socketOnly, htmlOnlySamples: s.htmlOnlySamples },
         );
