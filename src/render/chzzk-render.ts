@@ -109,6 +109,11 @@ function scrub(root: Element) {
 
 export interface RenderOptions extends ChzzkViewOptions {
     templates?: Partial<ChzzkTemplates>;
+    /**
+     * PROTOTYPE: 원본 우선 모드에서 원본을 못 찾아 임시로 그린 채팅 표시. 루트에 표시 클래스와
+     * 마우스를 올리면 뜨는 설명(title)을 단다. 원본으로 교체되면 요소째 바뀌어 사라진다.
+     */
+    fallbackNote?: string;
 }
 
 /**
@@ -131,6 +136,10 @@ export function renderChzzkChat(chat: ChzzkSocketChat, opts: RenderOptions = {})
     const root = document.createElement('div');
     root.className = `tbc-chat tbc-chat--${view.kind}`;
     if (view.cleanbot) root.classList.add('tbc-chat--cleanbot');
+    if (opts.fallbackNote) {
+        root.classList.add('tbc-chat--fallback');
+        root.title = opts.fallbackNote;
+    }
     root.appendChild(DOMPurify.sanitize(html, { RETURN_DOM_FRAGMENT: true }));
     scrub(root);
 

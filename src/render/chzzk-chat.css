@@ -113,3 +113,21 @@
 .tbc-chat-blinded {
     opacity: 0.6;
 }
+
+/* PROTOTYPE: 원본 우선 모드에서 임시로 그린 채팅 — 왼쪽에 작은 점, 마우스를 올리면 설명(title). */
+.tbc-chat--fallback {
+    position: relative;
+    cursor: help;
+}
+.tbc-chat--fallback::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    margin-top: -2px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.45;
+}

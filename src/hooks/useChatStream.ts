@@ -218,7 +218,14 @@ export default function useChatStream(
         /** 직접 그리기 — 사용자 템플릿이 켜져 있으면 그 템플릿, 아니면 기본 템플릿. */
         function renderBuilt(chat: ChzzkSocketChat): HTMLElement {
             const mode = getTemplateMode();
-            return renderChzzkChat(chat, { verifiedIconUrl, ...(mode.custom ? { templates: mode.templates } : {}) });
+            return renderChzzkChat(chat, {
+                verifiedIconUrl,
+                ...(mode.custom ? { templates: mode.templates } : {}),
+                // PROTOTYPE(dev 전용): 기본 모드에서 원본을 못 찾아 임시로 그린 채팅에 표시 + 설명.
+                ...(!mode.custom && import.meta.env.DEV
+                    ? { fallbackNote: '치지직 채팅창에서 아직 찾지 못해 커스텀 모양으로 먼저 보여주는 중이에요. 찾으면 기본 모양으로 바뀌어요.' }
+                    : {}),
+            });
         }
 
         function emitBuilt(chat: ChzzkSocketChat) {

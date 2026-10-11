@@ -85,7 +85,7 @@ function VariantA({ mode, setMode, openTemplate }: VariantProps) {
     return (
         <Stack spacing={1}>
             <Typography variant="body2">모아보기 채팅 모양 (치지직)</Typography>
-            {card('native', '기본', '치지직 채팅창과 똑같은 모양으로 보여줍니다.', <>
+            {card('native', '기본', '치지직 채팅창과 똑같은 모양으로 보여줍니다. 채팅을 바로 찾지 못하면 잠깐 커스텀 모양으로 먼저 보여줘요.', <>
                 <FakeNativeChat />
                 <FakeNativeChat name="방장대리" text="공지 확인해주세요" />
             </>)}
@@ -122,7 +122,10 @@ function VariantB({ mode, setMode, openTemplate }: VariantProps) {
         <Box>
             <Typography variant="body2" fontWeight={700}>모아보기 채팅, 어떻게 보여드릴까요?</Typography>
             <Typography variant="caption" color="text.secondary">치지직에서만 적용돼요</Typography>
-            {option('native', '기본', ['🪞 치지직과 같은 모양', '⏱ 치지직이 보여줄 때 함께'])}
+            {option('native', '기본', ['🪞 치지직과 같은 모양'],
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, lineHeight: 1.3 }}>
+                    치지직 채팅을 바로 찾지 못하면 잠깐 커스텀 모양으로 먼저 보여줘요. (모아보기에서 작은 점이 붙은 채팅)
+                </Typography>)}
             {option('template', '커스텀', ['🎨 원하는 모양으로 꾸미기', '✨ 모양이 바뀌는 깜빡임 없음'],
                 mode === 'template' && (
                     <Button size="small" onClick={e => { e.stopPropagation(); openTemplate(); }} sx={{ mt: 0.5, px: 0, textTransform: 'none' }}>
@@ -149,7 +152,7 @@ function VariantC({ mode, setMode, openTemplate }: VariantProps) {
     const rows: [string, string, string][] = [
         ['모양', '치지직과 같음', '내가 꾸민 모양'],
         ['꾸미기', '안 됨', '글자색·배지·말풍선 등'],
-        ['깜빡임', '아주 가끔', '없음'],
+        ['채팅을 못 찾으면', '잠깐 커스텀 모양으로', '-'],
     ];
     return (
         <Box>
@@ -212,7 +215,7 @@ function VariantD({ mode, setMode, openTemplate }: VariantProps) {
                     : <Box ref={ref} className="tbcv2_chatTime_on" sx={{ py: 0.25, '& .tbc-chat': { fontSize: 12, py: '2px' } }} />}
                 <Typography sx={{ fontSize: 11, px: 1, pb: 0.75, color: 'text.secondary', lineHeight: 1.3 }}>
                     {mode === 'native'
-                        ? '치지직 채팅창과 똑같은 모양으로 보여줍니다.'
+                        ? '치지직 채팅창과 똑같은 모양으로 보여줍니다. 채팅을 바로 찾지 못하면 잠깐 커스텀 모양으로 먼저 보여줘요.'
                         : '지금 설정된 커스텀 모양이에요. 원하는 대로 바꿀 수 있어요.'}
                 </Typography>
                 {mode === 'template' && (
