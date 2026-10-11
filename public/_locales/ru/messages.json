@@ -2,178 +2,184 @@
   "ExtensionName": {
     "message": "Badge Collector"
   },
-  "language": {
-    "message": "ru"
-  },
   "ExtensionDesc": {
-    "message": "Собирерите в чате тех, кто вам нужен!"
-  },
-  "popup_title": {
-    "message": "Badge Collector"
+    "message": "Собирайте только нужные сообщения чата!"
   },
   "generalSetting": {
-    "message": "General Settings"
-  },
-  "chatClientSetting": {
-    "message": "Chat Client Settings"
-  },
-  "extraSetting": {
-    "message": "Etc"
-  },
-  "review" : {
-    "message" : "Rate the Extension"
-  },
-  "review_2" : {
-    "message": "Review"
-  },
-  "documentation" : {
-    "message" : "Documentation"
+    "message": "Общие настройки"
   },
   "reset_chat_ratio": {
-    "message": "Reset Chat Layout"
+    "message": "Сбросить размеры чата"
   },
-  "support" : {
-    "message" : "Support"
+  "chatTime": {
+    "message": "Показывать время сообщений"
   },
-  "discord": {
-    "message": "Discord"
+  "collectedChatMarker": {
+    "message": "Отмечать собранные сообщения"
   },
-  "replay_chat_settings" : {
-    "message" : "VOD Chat Setting"
+  "jumpToBottomButton": {
+    "message": "Кнопка «Вниз»"
   },
-  "chat_window_size_setting" : {
-    "message" : "Chat window size"
+  "chatPersistence": {
+    "message": "Сохранять собранные сообщения после перезагрузки"
   },
-  "language_text": {
-    "message": "Language"
+  "displayMode": {
+    "message": "Режим отображения"
   },
-  "ko": {
-    "message": "한국어"
+  "displayModeInline": {
+    "message": "Встроенный"
   },
-  "en": {
-    "message": "English"
+  "displayModeFloating": {
+    "message": "Плавающий"
   },
-  "fontSize": {
-    "message": "Font size"
+  "floatingBgColor": {
+    "message": "Фон плавающего окна"
   },
-  "small": {
-    "message": "Small"
+  "startCapture": {
+    "message": "Снимок чата"
   },
-  "default": {
-    "message": "Default"
-  },
-  "big": {
-    "message": "Big"
-  },
-  "bigger": {
-    "message": "Bigger"
-  },
-  "chatTime" : {
-    "message" : "Show chat time"
-  },
-  "collectedChatMarker" : {
-    "message" : "Отмечать собранные сообщения"
-  },
-  "jumpToBottomButton" : {
-    "message" : "Кнопка «Вниз»"
-  },
-  "chatPersistence" : {
-    "message" : "Сохранять собранные сообщения"
-  },
-  "displayMode" : {
-    "message" : "Режим отображения"
-  },
-  "displayModeInline" : {
-    "message" : "Встроенный"
-  },
-  "displayModeFloating" : {
-    "message" : "Плавающий"
-  },
-  "floatingBgColor" : {
-    "message" : "Цвет фона плавающего окна"
-  },
-  "startCapture" : {
-    "message" : "Начать захват чата"
-  },
-  "clearCollectedChats" : {
-    "message" : "Очистить собранные сообщения"
+  "clearCollectedChats": {
+    "message": "Очистить собранные сообщения"
   },
   "chatPosition": {
-    "message": "Chat Position"
+    "message": "Положение чата"
   },
   "up": {
-    "message": "Up"
+    "message": "Сверху"
   },
   "down": {
-    "message": "Down"
-  },
-  "dispCopiedChatmethod": {
-    "message": "show chats with"
-  },
-  "local": {
-    "message": "Copy from Twitch UI"
-  },
-  "remote": {
-    "message": "Chat client"
-  },
-  "pointBoxAutoClick": {
-    "message": "Point Box Auto Click"
-  },
-  "on": {
-    "message": "On"
-  },
-  "off": {
-    "message": "Off"
+    "message": "Снизу"
   },
   "p_filter_btn": {
-    "message": "Добавить фильтр"
+    "message": "Настройки фильтров"
   },
-  "p_save_chat_btn": {
-    "message": "Save Chat"
+  "maximumNumberChats": {
+    "message": "Максимум сообщений"
   },
-  "maximumNumberChats" : {
-    "message": "Maximum number of chats"
+  "needRefresh": {
+    "message": "Требуется обновить страницу"
   },
-  "needRefresh" : {
-    "message": "Need to refresh"
+  "chzzkChatSide": {
+    "message": "Сторона чата (CHZZK)"
   },
-  "closePermanently" : {
-    "message": "Don't show again"
-  },
-  "close" : {
-    "message": "Close"
-  },
-  "donation" : {
-    "message" : "Donation"
-  },
-  "donationMessage" : {
-    "message": "If you find the extension useful please rate or sponsor it!"
-  },
-  "supportMessage" : {
-    "message": "If you find the program useful, please help us improve and keep it updated by donating and rating!"
-  },
-  "chzzkChatSide" : {
-    "message": "Сторона панели чата (Chzzk)"
-  },
-  "chzzkChatSideHint" : {
+  "chzzkChatSideHint": {
     "message": "Меняет местами панель чата и боковое меню"
   },
-  "chatSideLeft" : {
+  "chatSideLeft": {
     "message": "Слева"
   },
-  "chatSideRight" : {
+  "chatSideRight": {
     "message": "Справа"
   },
-  "chzzkChatRender" : {
-    "message": "Вид собранного чата (Chzzk)"
+  "chzzkChatRender": {
+    "message": "Вид собранных сообщений (CHZZK)"
   },
-  "chatRenderNative" : {
-    "message": "Обычный"
+  "chatRenderNative": {
+    "message": "По умолчанию"
   },
-  "chatRenderTemplate" : {
+  "chatRenderTemplate": {
     "message": "Свой"
   },
-  "templateSettingButton" : {
+  "templateSettingButton": {
     "message": "Настройки шаблона"
+  },
+  "auto": {
+    "message": "Авто"
+  },
+  "theme": {
+    "message": "Тема"
+  },
+  "themeSystem": {
+    "message": "Системная"
+  },
+  "themeLight": {
+    "message": "Светлая"
+  },
+  "themeDark": {
+    "message": "Тёмная"
+  },
+  "diagNoActiveTab": {
+    "message": "Нет активной вкладки"
+  },
+  "diagNoResponse": {
+    "message": "Нет ответа (запускайте на странице CHZZK/Twitch)"
+  },
+  "onlyOnHostPage": {
+    "message": "Работает только на страницах CHZZK или Twitch."
+  },
+  "otaBundled": {
+    "message": "OTA-селекторы: встроенные по умолчанию"
+  },
+  "diagFailCount": {
+    "message": "Ошибок $1 / $2"
+  },
+  "diagRun": {
+    "message": "Диагностика"
+  },
+  "diagRunning": {
+    "message": "Проверка…"
+  },
+  "copy": {
+    "message": "Копировать"
+  },
+  "copied": {
+    "message": "Скопировано"
+  },
+  "report": {
+    "message": "Сообщить"
+  },
+  "reportSubmitting": {
+    "message": "Отправка…"
+  },
+  "reportSubmitted": {
+    "message": "Отправлено"
+  },
+  "reportFailed": {
+    "message": "Ошибка"
+  },
+  "reportConsentTitle": {
+    "message": "Отправить диагностические данные через Discord"
+  },
+  "reportConsentBody": {
+    "message": "Приведённые ниже анонимные данные будут отправлены разработчику."
+  },
+  "reportConsentAccept": {
+    "message": "Согласиться и отправить"
+  },
+  "cancel": {
+    "message": "Отмена"
+  },
+  "scrollToBottom": {
+    "message": "Прокрутить вниз"
+  },
+  "selectAll": {
+    "message": "Выбрать все"
+  },
+  "deselectAll": {
+    "message": "Снять выбор"
+  },
+  "selectedCount": {
+    "message": "Выбрано: $1"
+  },
+  "capturing": {
+    "message": "Создание снимка…"
+  },
+  "downloadPng": {
+    "message": "Скачать PNG"
+  },
+  "emoticonOnly": {
+    "message": "(эмодзи)"
+  },
+  "chatSource": {
+    "message": "Канал: $1"
+  },
+  "chatSourceRestored": {
+    "message": "Канал: $1 (восстановлено)"
+  },
+  "translationNotice": {
+    "message": "Badge Collector создан на корейском языке, поэтому некоторые переводы могут звучать неестественно."
+  },
+  "dismiss": {
+    "message": "Понятно"
   }
 }

@@ -1,0 +1,180 @@
+{
+    "alert": {
+        "no_value_filter": "过滤器中没有值。",
+        "filter_already_exist": "过滤器已存在。",
+        "filter_added": "已添加过滤器。",
+        "network_error": "请求失败。",
+        "filter_validation": {
+            "missing_filter": "缺少过滤器对象。",
+            "missing_id": "缺少过滤器 ID。",
+            "missing_filter_type": "缺少过滤器类型。",
+            "missing_sub_filters": "未定义子过滤器。",
+            "empty_sub_filter_value": "有子过滤器的值为空。"
+        },
+        "no_platform_filters": "没有可添加的该平台过滤器。"
+    },
+    "common": {
+        "filter": "过滤器",
+        "condition": "条件",
+        "badge": "徽章",
+        "channel": "频道",
+        "channel_name": "频道名称",
+        "note": "备注",
+        "badge_name": "徽章名称",
+        "global": "全局",
+        "add_selected": "添加所选",
+        "search": "搜索",
+        "add_filter": "添加过滤器",
+        "add_filter_element": "添加过滤元素",
+        "filter_export": "导出过滤器",
+        "filter_import": "导入过滤器",
+        "category": "类别",
+        "add_filter_elements": "添加过滤元素",
+        "nickname": "昵称",
+        "keyword": "关键词",
+        "value": "值",
+        "remove": "删除",
+        "cancel": "取消",
+        "save": "保存",
+        "add": "添加",
+        "edit": "编辑",
+        "close": "关闭",
+        "details": "详情",
+        "reset": "重置",
+        "delete_selected": "删除所选",
+        "color": "颜色",
+        "content": "内容",
+        "channel_id": "频道 ID",
+        "note_optional": "备注（可选）",
+        "channel_only": "仅在特定频道生效（可选）",
+        "no_badge": "无徽章",
+        "no_name": "无名称",
+        "no_value": "无值",
+        "selected_count": "已选择 {{count}} 项",
+        "dismiss": "知道了"
+    },
+    "filter": {
+        "category": {
+            "include": "包含",
+            "exclude": "排除",
+            "sleep": "停用"
+        },
+        "type": {
+            "badge": "徽章",
+            "name": "昵称",
+            "keyword": "关键词"
+        }
+    },
+    "setting": {
+        "filter_setting": "过滤器设置",
+        "filter": {
+            "filter_list": "过滤器列表",
+            "filter_add": "添加新过滤器",
+            "select_badges": "选择徽章",
+            "empty_hint": "点击下方的 <b>+ 添加过滤元素</b> 或某个徽章即可开始。"
+        },
+        "filter_mode": {
+            "advanced": "高级设置"
+        }
+    },
+    "template": {
+        "title": "聊天模板（CHZZK）",
+        "use_custom": "使用模板显示",
+        "use_custom_hint_on": "收集的聊天消息会立即按下方模板绘制，比 CHZZK 聊天框更早显示，且不会闪烁。（等同于在常规设置的“收集消息外观”中选择“自定义”）",
+        "use_custom_hint_off": "直接复制 CHZZK 聊天框的原始内容。消息会在 CHZZK 绘制后出现；CHZZK 较慢时，可能会短暂显示为其他样式，然后恢复为原样。（常规设置中的“收集消息外观”为“默认”）",
+        "kinds": {
+            "chat": "聊天",
+            "donation": "打赏",
+            "subscription": "订阅",
+            "gift": "赠送"
+        },
+        "save": "保存",
+        "saved": "已保存",
+        "reset": "恢复默认",
+        "unsaved": "有未保存的更改",
+        "error": "语法错误（第 {{line}} 行，第 {{col}} 列）：{{message}}",
+        "preview": "预览",
+        "preview_dark": "深色",
+        "preview_light": "浅色",
+        "fields_title": "可用的值",
+        "fields": {
+            "nickname": "昵称（匿名打赏时为 '익명의 후원자'）",
+            "messageHtml": "消息 HTML — 包含表情及 cleanbot/屏蔽隐藏处理",
+            "message": "原始消息（表情为 {:name:}，不做隐藏）",
+            "hasMessage": "有消息时为 true",
+            "badges": "徽章列表 — 每项含 url",
+            "verifiedIconUrl": "认证标识图片（仅限认证用户）",
+            "time": "时间（例：14:05）",
+            "nickStyle": "昵称颜色 CSS 变量（含装饰用的结束色、背景色）— 直接放入 style 属性",
+            "nickEffect": "二级订阅者昵称装饰：gradient / highlight / stealth / 空",
+            "nickColorLight": "浅色主题昵称颜色",
+            "nickColorDark": "深色主题昵称颜色",
+            "cleanbot": "被 cleanbot 隐藏时为 true",
+            "blinded": "被管理员隐藏时为 true",
+            "anonymous": "匿名时为 true",
+            "donation_amountText": "打赏金额（例：10,000치즈）",
+            "donation_amount": "打赏金额（数字）",
+            "donation_mission": "任务打赏时为 true",
+            "donation_missionText": "任务内容",
+            "subscription_month": "订阅月数",
+            "subscription_tierName": "订阅等级名称（各频道不同）",
+            "gift_toChannel": "向频道赠送（有赠送者）时为 true，逐个接收者通知（赠送者匿名）时为 false",
+            "gift_quantity": "赠送订阅数量（向频道赠送）",
+            "gift_tierName": "赠送等级名称（各频道不同）",
+            "gift_receiverNickname": "接收者昵称（逐个接收者通知）"
+        },
+        "help_var": "以文本形式插入值",
+        "help_raw": "消息 HTML。要显示表情和 cleanbot 隐藏效果时请使用此项",
+        "help_section": "值存在时显示（列表则每项显示一次）",
+        "help_inverted": "仅在值不存在时显示",
+        "help_safety": "脚本和事件属性（onclick 等）会被移除。",
+        "errors": {
+            "unbalanced_braces": "花括号不匹配：{{tag}}",
+            "raw_section": "区块标签不能使用 {{{ }}}：{{tag}}",
+            "unexpected_close": "没有对应的开始标签：{{tag}}",
+            "mismatched_close": "{{open}} 被 {{close}} 关闭",
+            "unclosed": "{{tag}} 未关闭",
+            "too_long": "模板过长（最多 {{max}} 个字符）"
+        },
+        "samples": {
+            "badge_emoji": "徽章 + 表情",
+            "manager": "管理员",
+            "nick_gradient": "二级订阅者昵称（渐变）",
+            "nick_highlight": "二级订阅者昵称（高亮）",
+            "cleanbot": "Cleanbot（点击查看原文）",
+            "blinded": "被管理员隐藏",
+            "donation": "打赏",
+            "donation_anonymous": "匿名打赏（无消息）",
+            "donation_mission": "任务打赏",
+            "gift_channel": "向频道赠送订阅",
+            "gift_receiver": "接收者通知（赠送者匿名）",
+            "subscription": "订阅"
+        }
+    },
+    "platform": {
+        "twitch": "Twitch",
+        "chzzk": "CHZZK"
+    },
+    "filter_dialog": {
+        "add_filter": "添加子过滤器",
+        "edit_filter": "编辑子过滤器",
+        "add_channel": "添加频道",
+        "edit_channel": "编辑频道",
+        "add_note": "添加备注",
+        "edit_note": "编辑备注",
+        "nothing_selected": "未选择任何项。",
+        "per_channel_hint": "可以按频道设置过滤器。"
+    },
+    "badge_list": {
+        "multi_select_hint": "可以选择多个徽章",
+        "search_hint": "输入频道名称进行搜索",
+        "empty": "没有可显示的徽章"
+    },
+    "channel_guide": {
+        "title": "查找频道 ID",
+        "twitch": "Twitch 频道 ID 是频道网址的最后一部分。",
+        "chzzk": "CHZZK 频道 ID 是直播网址中 <b>/live/</b> 后面由字母和数字组成的 ID。",
+        "example": "示例："
+    },
+    "translation_notice": "Badge Collector 以韩语开发，部分翻译可能不够自然。"
+}

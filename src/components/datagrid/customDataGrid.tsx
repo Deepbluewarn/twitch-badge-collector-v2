@@ -1,5 +1,5 @@
 import { DataGrid, DataGridProps, GridCellParams } from "@mui/x-data-grid";
-import { koKR, enUS } from "@mui/x-data-grid/locales";
+import { koKR, enUS, ruRU, ukUA, jaJP, esES, ptBR, deDE, frFR, zhCN, zhTW } from "@mui/x-data-grid/locales";
 import Box from "@mui/material/Box";
 import { useTranslation } from "react-i18next";
 import { FilterType } from "@/interfaces/filter";
@@ -17,9 +17,13 @@ const onTypeCellClick = (params: GridCellParams, event: React.MouseEvent) => {
     }
 }
 
+const GRID_LOCALES: Record<string, typeof enUS> = {
+    en: enUS, ko: koKR, ru: ruRU, uk: ukUA, ja: jaJP, es: esES, 'pt-BR': ptBR, de: deDE, fr: frFR, 'zh-CN': zhCN, 'zh-TW': zhTW,
+};
+
 export function CustomDataGrid(props: DataGridProps) {
     const { i18n } = useTranslation();
-    const locale = i18n.language === 'ko' ? koKR : enUS;
+    const locale = GRID_LOCALES[i18n.resolvedLanguage ?? 'en'] ?? enUS;
 
     return (
         <Box sx={{ height: '40rem' }}>

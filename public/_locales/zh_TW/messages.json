@@ -1,0 +1,185 @@
+{
+  "ExtensionName": {
+    "message": "Badge Collector"
+  },
+  "ExtensionDesc": {
+    "message": "只收集你想看的聊天訊息！"
+  },
+  "generalSetting": {
+    "message": "一般設定"
+  },
+  "reset_chat_ratio": {
+    "message": "重設聊天室比例"
+  },
+  "chatTime": {
+    "message": "顯示聊天時間"
+  },
+  "collectedChatMarker": {
+    "message": "標示已收集的訊息"
+  },
+  "jumpToBottomButton": {
+    "message": "「捲到最底」按鈕"
+  },
+  "chatPersistence": {
+    "message": "重新整理後保留收集的訊息"
+  },
+  "displayMode": {
+    "message": "顯示方式"
+  },
+  "displayModeInline": {
+    "message": "內嵌"
+  },
+  "displayModeFloating": {
+    "message": "浮動"
+  },
+  "floatingBgColor": {
+    "message": "浮動視窗背景色"
+  },
+  "startCapture": {
+    "message": "開始擷取聊天"
+  },
+  "clearCollectedChats": {
+    "message": "清除收集的訊息"
+  },
+  "chatPosition": {
+    "message": "聊天位置"
+  },
+  "up": {
+    "message": "上方"
+  },
+  "down": {
+    "message": "下方"
+  },
+  "p_filter_btn": {
+    "message": "篩選器設定"
+  },
+  "maximumNumberChats": {
+    "message": "訊息數量上限"
+  },
+  "needRefresh": {
+    "message": "需要重新整理"
+  },
+  "chzzkChatSide": {
+    "message": "聊天室位置（CHZZK）"
+  },
+  "chzzkChatSideHint": {
+    "message": "左右對調聊天室與導覽側邊欄"
+  },
+  "chatSideLeft": {
+    "message": "左側"
+  },
+  "chatSideRight": {
+    "message": "右側"
+  },
+  "chzzkChatRender": {
+    "message": "收集訊息外觀（CHZZK）"
+  },
+  "chatRenderNative": {
+    "message": "預設"
+  },
+  "chatRenderTemplate": {
+    "message": "自訂"
+  },
+  "templateSettingButton": {
+    "message": "範本設定"
+  },
+  "auto": {
+    "message": "自動"
+  },
+  "theme": {
+    "message": "主題"
+  },
+  "themeSystem": {
+    "message": "依照系統"
+  },
+  "themeLight": {
+    "message": "淺色"
+  },
+  "themeDark": {
+    "message": "深色"
+  },
+  "diagNoActiveTab": {
+    "message": "沒有作用中的分頁"
+  },
+  "diagNoResponse": {
+    "message": "沒有回應（請在 CHZZK/Twitch 頁面上執行）"
+  },
+  "onlyOnHostPage": {
+    "message": "僅在 CHZZK 或 Twitch 頁面上有效。"
+  },
+  "otaBundled": {
+    "message": "OTA 選擇器：內建預設值"
+  },
+  "diagFailCount": {
+    "message": "失敗 $1 / $2"
+  },
+  "diagRun": {
+    "message": "診斷"
+  },
+  "diagRunning": {
+    "message": "檢查中…"
+  },
+  "copy": {
+    "message": "複製"
+  },
+  "copied": {
+    "message": "已複製"
+  },
+  "report": {
+    "message": "回報"
+  },
+  "reportSubmitting": {
+    "message": "傳送中…"
+  },
+  "reportSubmitted": {
+    "message": "已傳送"
+  },
+  "reportFailed": {
+    "message": "失敗"
+  },
+  "reportConsentTitle": {
+    "message": "透過 Discord 傳送診斷資料"
+  },
+  "reportConsentBody": {
+    "message": "以下匿名資料將傳送給開發者。"
+  },
+  "reportConsentAccept": {
+    "message": "同意並傳送"
+  },
+  "cancel": {
+    "message": "取消"
+  },
+  "scrollToBottom": {
+    "message": "捲到最底"
+  },
+  "selectAll": {
+    "message": "全選"
+  },
+  "deselectAll": {
+    "message": "取消全選"
+  },
+  "selectedCount": {
+    "message": "已選取 $1 項"
+  },
+  "capturing": {
+    "message": "擷取中…"
+  },
+  "downloadPng": {
+    "message": "下載 PNG"
+  },
+  "emoticonOnly": {
+    "message": "（表情符號）"
+  },
+  "chatSource": {
+    "message": "頻道：$1"
+  },
+  "chatSourceRestored": {
+    "message": "頻道：$1（已還原）"
+  },
+  "translationNotice": {
+    "message": "Badge Collector 以韓文開發，部分翻譯可能不太自然。"
+  },
+  "dismiss": {
+    "message": "知道了"
+  }
+}

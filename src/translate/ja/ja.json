@@ -1,0 +1,180 @@
+{
+    "alert": {
+        "no_value_filter": "フィルターに値がありません。",
+        "filter_already_exist": "このフィルターはすでに存在します。",
+        "filter_added": "フィルターを追加しました。",
+        "network_error": "リクエストに失敗しました。",
+        "filter_validation": {
+            "missing_filter": "フィルターオブジェクトがありません。",
+            "missing_id": "フィルターの id がありません。",
+            "missing_filter_type": "フィルターの種類がありません。",
+            "missing_sub_filters": "サブフィルターがありません。",
+            "empty_sub_filter_value": "サブフィルターの値が空です。"
+        },
+        "no_platform_filters": "追加できるこのプラットフォームのフィルターがありません。"
+    },
+    "common": {
+        "filter": "フィルター",
+        "condition": "条件",
+        "badge": "バッジ",
+        "channel": "チャンネル",
+        "channel_name": "チャンネル名",
+        "note": "メモ",
+        "badge_name": "バッジ名",
+        "global": "グローバル",
+        "add_selected": "選択項目を追加",
+        "search": "検索",
+        "add_filter": "フィルターを追加",
+        "add_filter_element": "フィルター要素を追加",
+        "filter_export": "フィルターをエクスポート",
+        "filter_import": "フィルターをインポート",
+        "category": "カテゴリー",
+        "add_filter_elements": "フィルター要素を追加してください。",
+        "nickname": "ニックネーム",
+        "keyword": "キーワード",
+        "value": "値",
+        "remove": "削除",
+        "cancel": "キャンセル",
+        "save": "保存",
+        "add": "追加",
+        "edit": "編集",
+        "close": "閉じる",
+        "details": "詳細",
+        "reset": "リセット",
+        "delete_selected": "選択項目を削除",
+        "color": "色",
+        "content": "内容",
+        "channel_id": "チャンネル ID",
+        "note_optional": "メモ（任意）",
+        "channel_only": "特定のチャンネルでのみ適用（任意）",
+        "no_badge": "バッジなし",
+        "no_name": "名前なし",
+        "no_value": "値なし",
+        "selected_count": "{{count}} 件選択中",
+        "dismiss": "OK"
+    },
+    "filter": {
+        "category": {
+            "include": "含める",
+            "exclude": "除外",
+            "sleep": "オフ"
+        },
+        "type": {
+            "badge": "バッジ",
+            "name": "名前",
+            "keyword": "キーワード"
+        }
+    },
+    "setting": {
+        "filter_setting": "フィルター設定",
+        "filter": {
+            "filter_list": "フィルター一覧",
+            "filter_add": "新しいフィルターを追加",
+            "select_badges": "バッジを選択",
+            "empty_hint": "下の <b>+ フィルター要素を追加</b> またはバッジをクリックして始めましょう。"
+        },
+        "filter_mode": {
+            "advanced": "詳細設定"
+        }
+    },
+    "template": {
+        "title": "チャットテンプレート（CHZZK）",
+        "use_custom": "テンプレートで表示",
+        "use_custom_hint_on": "収集したチャットを下のテンプレートですぐに描画します。CHZZK のチャット欄より先に表示され、ちらつきもありません。（一般設定の「収集チャットの見た目」で「カスタム」を選ぶのと同じです）",
+        "use_custom_hint_off": "CHZZK のチャットをそのままコピーします。CHZZK が描画した後に表示され、CHZZK が遅いときは一瞬違う見た目になってから元の表示に切り替わることがあります。（一般設定の「収集チャットの見た目」が「デフォルト」の状態です）",
+        "kinds": {
+            "chat": "チャット",
+            "donation": "投げ銭",
+            "subscription": "サブスク",
+            "gift": "ギフト"
+        },
+        "save": "保存",
+        "saved": "保存しました",
+        "reset": "デフォルトに戻す",
+        "unsaved": "未保存の変更があります",
+        "error": "構文エラー（{{line}} 行 {{col}} 列）: {{message}}",
+        "preview": "プレビュー",
+        "preview_dark": "ダーク",
+        "preview_light": "ライト",
+        "fields_title": "使用できる値",
+        "fields": {
+            "nickname": "ニックネーム（匿名の投げ銭では '익명의 후원자'）",
+            "messageHtml": "メッセージ HTML — 絵文字とクリーンボット/ブラインドによる非表示を含む",
+            "message": "生のメッセージ（絵文字は {:name:}、非表示処理なし）",
+            "hasMessage": "メッセージがあれば true",
+            "badges": "バッジ一覧 — 項目ごとに url",
+            "verifiedIconUrl": "認証マークの画像（認証済みユーザーのみ）",
+            "time": "時刻（例: 14:05）",
+            "nickStyle": "ニックネーム色の CSS 変数（装飾の終点色・背景色を含む）— style 属性に入れてください",
+            "nickEffect": "2段階サブスク登録者のニックネーム装飾: gradient / highlight / stealth / 空",
+            "nickColorLight": "ニックネームの色（ライトテーマ）",
+            "nickColorDark": "ニックネームの色（ダークテーマ）",
+            "cleanbot": "クリーンボットで非表示なら true",
+            "blinded": "モデレーターが非表示にしたら true",
+            "anonymous": "匿名なら true",
+            "donation_amountText": "投げ銭の金額（例: 10,000치즈）",
+            "donation_amount": "投げ銭の金額（数値）",
+            "donation_mission": "ミッション投げ銭なら true",
+            "donation_missionText": "ミッションの内容",
+            "subscription_month": "サブスク継続月数",
+            "subscription_tierName": "サブスクのティア名（チャンネルごと）",
+            "gift_toChannel": "チャンネルへのギフト（送り主あり）なら true、受け取った人ごとの通知（送り主匿名）なら false",
+            "gift_quantity": "ギフトしたサブスクの数（チャンネルへのギフト）",
+            "gift_tierName": "ギフトしたティア名（チャンネルごと）",
+            "gift_receiverNickname": "受け取った人のニックネーム（受け取った人ごとの通知）"
+        },
+        "help_var": "値をテキストとして挿入します",
+        "help_raw": "メッセージ HTML。絵文字やクリーンボットの非表示を表示するにはこれを使います",
+        "help_section": "値があるときに描画します（リストなら項目ごと）",
+        "help_inverted": "値がないときだけ描画します",
+        "help_safety": "スクリプトとイベント属性（onclick など）は削除されます。",
+        "errors": {
+            "unbalanced_braces": "波括弧の対応が取れていません: {{tag}}",
+            "raw_section": "セクションタグには {{{ }}} を使えません: {{tag}}",
+            "unexpected_close": "開始タグなしで閉じられています: {{tag}}",
+            "mismatched_close": "{{open}} が {{close}} で閉じられています",
+            "unclosed": "{{tag}} が閉じられていません",
+            "too_long": "テンプレートが長すぎます（最大 {{max}} 文字）"
+        },
+        "samples": {
+            "badge_emoji": "バッジ + 絵文字",
+            "manager": "マネージャー",
+            "nick_gradient": "2段階サブスク登録者のニックネーム（グラデーション）",
+            "nick_highlight": "2段階サブスク登録者のニックネーム（ハイライト）",
+            "cleanbot": "クリーンボット（クリックで原文を表示）",
+            "blinded": "モデレーターによる非表示",
+            "donation": "投げ銭",
+            "donation_anonymous": "匿名の投げ銭（メッセージなし）",
+            "donation_mission": "ミッション投げ銭",
+            "gift_channel": "チャンネルへのサブスクギフト",
+            "gift_receiver": "受け取った人への通知（送り主匿名）",
+            "subscription": "サブスク"
+        }
+    },
+    "platform": {
+        "twitch": "Twitch",
+        "chzzk": "CHZZK"
+    },
+    "filter_dialog": {
+        "add_filter": "サブフィルターを追加",
+        "edit_filter": "サブフィルターを編集",
+        "add_channel": "チャンネルを追加",
+        "edit_channel": "チャンネルを編集",
+        "add_note": "メモを追加",
+        "edit_note": "メモを編集",
+        "nothing_selected": "何も選択されていません。",
+        "per_channel_hint": "チャンネルごとにフィルターを設定できます。"
+    },
+    "badge_list": {
+        "multi_select_hint": "複数のバッジを選択できます",
+        "search_hint": "チャンネル名を入力して検索してください",
+        "empty": "表示するバッジがありません"
+    },
+    "channel_guide": {
+        "title": "チャンネル ID の調べ方",
+        "twitch": "Twitch のチャンネル ID は、チャンネル URL の最後の部分です。",
+        "chzzk": "CHZZK のチャンネル ID は、ライブ配信 URL の <b>/live/</b> の後に続く英数字の ID です。",
+        "example": "例:"
+    },
+    "translation_notice": "Badge Collector は韓国語で作られているため、一部の翻訳が不自然な場合があります。"
+}

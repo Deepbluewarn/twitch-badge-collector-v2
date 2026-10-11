@@ -1,0 +1,185 @@
+{
+  "ExtensionName": {
+    "message": "Badge Collector"
+  },
+  "ExtensionDesc": {
+    "message": "Sammle nur die Chats, die du willst!"
+  },
+  "generalSetting": {
+    "message": "Allgemein"
+  },
+  "reset_chat_ratio": {
+    "message": "Chat-Layout zurücksetzen"
+  },
+  "chatTime": {
+    "message": "Chat-Uhrzeit anzeigen"
+  },
+  "collectedChatMarker": {
+    "message": "Gesammelte Chats markieren"
+  },
+  "jumpToBottomButton": {
+    "message": "Nach-unten-Button"
+  },
+  "chatPersistence": {
+    "message": "Chats nach Neuladen behalten"
+  },
+  "displayMode": {
+    "message": "Anzeigemodus"
+  },
+  "displayModeInline": {
+    "message": "Eingebettet"
+  },
+  "displayModeFloating": {
+    "message": "Schwebend"
+  },
+  "floatingBgColor": {
+    "message": "Hintergrund (schwebend)"
+  },
+  "startCapture": {
+    "message": "Chat-Aufnahme starten"
+  },
+  "clearCollectedChats": {
+    "message": "Gesammelte Chats leeren"
+  },
+  "chatPosition": {
+    "message": "Chat-Position"
+  },
+  "up": {
+    "message": "Oben"
+  },
+  "down": {
+    "message": "Unten"
+  },
+  "p_filter_btn": {
+    "message": "Filtereinstellungen"
+  },
+  "maximumNumberChats": {
+    "message": "Max. Anzahl Chats"
+  },
+  "needRefresh": {
+    "message": "Neuladen nötig"
+  },
+  "chzzkChatSide": {
+    "message": "Chat-Seite (CHZZK)"
+  },
+  "chzzkChatSideHint": {
+    "message": "Tauscht Chat-Panel und Navigationsleiste"
+  },
+  "chatSideLeft": {
+    "message": "Links"
+  },
+  "chatSideRight": {
+    "message": "Rechts"
+  },
+  "chzzkChatRender": {
+    "message": "Aussehen gesammelter Chats (CHZZK)"
+  },
+  "chatRenderNative": {
+    "message": "Standard"
+  },
+  "chatRenderTemplate": {
+    "message": "Eigene"
+  },
+  "templateSettingButton": {
+    "message": "Vorlagen-Einstellungen"
+  },
+  "auto": {
+    "message": "Auto"
+  },
+  "theme": {
+    "message": "Design"
+  },
+  "themeSystem": {
+    "message": "System"
+  },
+  "themeLight": {
+    "message": "Hell"
+  },
+  "themeDark": {
+    "message": "Dunkel"
+  },
+  "diagNoActiveTab": {
+    "message": "Kein aktiver Tab"
+  },
+  "diagNoResponse": {
+    "message": "Keine Antwort (auf einer CHZZK-/Twitch-Seite ausführen)"
+  },
+  "onlyOnHostPage": {
+    "message": "Funktioniert nur auf CHZZK- oder Twitch-Seiten."
+  },
+  "otaBundled": {
+    "message": "OTA-Selektoren: mitgelieferte Standards"
+  },
+  "diagFailCount": {
+    "message": "Fehlgeschlagen $1 / $2"
+  },
+  "diagRun": {
+    "message": "Diagnose"
+  },
+  "diagRunning": {
+    "message": "Prüfe…"
+  },
+  "copy": {
+    "message": "Kopieren"
+  },
+  "copied": {
+    "message": "Kopiert"
+  },
+  "report": {
+    "message": "Melden"
+  },
+  "reportSubmitting": {
+    "message": "Sende…"
+  },
+  "reportSubmitted": {
+    "message": "Gesendet"
+  },
+  "reportFailed": {
+    "message": "Fehlgeschlagen"
+  },
+  "reportConsentTitle": {
+    "message": "Diagnosedaten über Discord senden"
+  },
+  "reportConsentBody": {
+    "message": "Die folgenden anonymen Daten werden an den Entwickler gesendet."
+  },
+  "reportConsentAccept": {
+    "message": "Zustimmen und senden"
+  },
+  "cancel": {
+    "message": "Abbrechen"
+  },
+  "scrollToBottom": {
+    "message": "Nach unten scrollen"
+  },
+  "selectAll": {
+    "message": "Alle auswählen"
+  },
+  "deselectAll": {
+    "message": "Auswahl aufheben"
+  },
+  "selectedCount": {
+    "message": "$1 ausgewählt"
+  },
+  "capturing": {
+    "message": "Nehme auf…"
+  },
+  "downloadPng": {
+    "message": "PNG herunterladen"
+  },
+  "emoticonOnly": {
+    "message": "(Emoticon)"
+  },
+  "chatSource": {
+    "message": "Kanal: $1"
+  },
+  "chatSourceRestored": {
+    "message": "Kanal: $1 (wiederhergestellt)"
+  },
+  "translationNotice": {
+    "message": "Badge Collector wurde auf Koreanisch entwickelt, daher klingen manche Übersetzungen vielleicht holprig."
+  },
+  "dismiss": {
+    "message": "Verstanden"
+  }
+}

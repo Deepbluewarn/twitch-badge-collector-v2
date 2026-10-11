@@ -1,0 +1,180 @@
+{
+    "alert": {
+        "no_value_filter": "El filtro no tiene valores.",
+        "filter_already_exist": "El filtro ya existe.",
+        "filter_added": "Filtro añadido.",
+        "network_error": "La solicitud falló.",
+        "filter_validation": {
+            "missing_filter": "Falta el objeto del filtro.",
+            "missing_id": "Falta el ID del filtro.",
+            "missing_filter_type": "Falta el tipo de filtro.",
+            "missing_sub_filters": "No hay subfiltros definidos.",
+            "empty_sub_filter_value": "Un subfiltro tiene un valor vacío."
+        },
+        "no_platform_filters": "No hay filtros de esta plataforma para añadir."
+    },
+    "common": {
+        "filter": "Filtro",
+        "condition": "Condición",
+        "badge": "Insignia",
+        "channel": "Canal",
+        "channel_name": "Nombre del canal",
+        "note": "Nota",
+        "badge_name": "Nombre de la insignia",
+        "global": "Global",
+        "add_selected": "Añadir seleccionados",
+        "search": "Buscar",
+        "add_filter": "Añadir filtro",
+        "add_filter_element": "Añadir elemento",
+        "filter_export": "Exportar filtros",
+        "filter_import": "Importar filtros",
+        "category": "Categoría",
+        "add_filter_elements": "Añadir elementos de filtro",
+        "nickname": "Apodo",
+        "keyword": "Palabra clave",
+        "value": "Valor",
+        "remove": "Quitar",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "add": "Añadir",
+        "edit": "Editar",
+        "close": "Cerrar",
+        "details": "Detalles",
+        "reset": "Restablecer",
+        "delete_selected": "Eliminar seleccionados",
+        "color": "Color",
+        "content": "Contenido",
+        "channel_id": "ID del canal",
+        "note_optional": "Nota (opcional)",
+        "channel_only": "Aplicar solo en un canal concreto (opcional)",
+        "no_badge": "Sin insignia",
+        "no_name": "Sin nombre",
+        "no_value": "Sin valor",
+        "selected_count": "{{count}} seleccionados",
+        "dismiss": "Entendido"
+    },
+    "filter": {
+        "category": {
+            "include": "Incluir",
+            "exclude": "Excluir",
+            "sleep": "Desactivado"
+        },
+        "type": {
+            "badge": "Insignia",
+            "name": "Nombre",
+            "keyword": "Palabra clave"
+        }
+    },
+    "setting": {
+        "filter_setting": "Ajustes de filtros",
+        "filter": {
+            "filter_list": "Lista de filtros",
+            "filter_add": "Añadir nuevo filtro",
+            "select_badges": "Seleccionar insignias",
+            "empty_hint": "Haz clic en <b>+ Añadir elemento</b> abajo o en una insignia para empezar."
+        },
+        "filter_mode": {
+            "advanced": "Ajustes avanzados"
+        }
+    },
+    "template": {
+        "title": "Plantilla de chat (CHZZK)",
+        "use_custom": "Mostrar con plantilla",
+        "use_custom_hint_on": "Los chats recopilados se dibujan al instante con las plantillas de abajo, antes de que aparezcan en el chat de CHZZK y sin parpadeos. (Equivale a elegir «Personalizado» en «Aspecto de chats recopilados» en los ajustes generales)",
+        "use_custom_hint_off": "Se copia tal cual el chat de CHZZK. Los chats aparecen después de que CHZZK los dibuje y, si CHZZK va lento, pueden verse brevemente con otro aspecto antes de pasar al original. («Aspecto de chats recopilados» está en «Predeterminado» en los ajustes generales)",
+        "kinds": {
+            "chat": "Chat",
+            "donation": "Donación",
+            "subscription": "Suscripción",
+            "gift": "Regalo"
+        },
+        "save": "Guardar",
+        "saved": "Guardado",
+        "reset": "Restablecer",
+        "unsaved": "Tienes cambios sin guardar",
+        "error": "Error de sintaxis (línea {{line}}, col. {{col}}): {{message}}",
+        "preview": "Vista previa",
+        "preview_dark": "Oscuro",
+        "preview_light": "Claro",
+        "fields_title": "Valores disponibles",
+        "fields": {
+            "nickname": "Apodo ('익명의 후원자' en donaciones anónimas)",
+            "messageHtml": "HTML del mensaje, con emojis y ocultación de cleanbot/moderador incluidos",
+            "message": "Mensaje sin procesar (emojis como {:nombre:}, sin ocultar)",
+            "hasMessage": "Verdadero si hay mensaje",
+            "badges": "Lista de insignias: url por elemento",
+            "verifiedIconUrl": "Imagen de la marca de verificación (solo usuarios verificados)",
+            "time": "Hora (p. ej. 14:05)",
+            "nickStyle": "Variables CSS del color del apodo (incl. colores final/fondo de la decoración): ponlas en un atributo style",
+            "nickEffect": "Decoración del apodo de suscriptor nivel 2: gradient / highlight / stealth / vacío",
+            "nickColorLight": "Color del apodo, tema claro",
+            "nickColorDark": "Color del apodo, tema oscuro",
+            "cleanbot": "Verdadero si cleanbot lo ocultó",
+            "blinded": "Verdadero si un moderador lo ocultó",
+            "anonymous": "Verdadero si es anónimo",
+            "donation_amountText": "Importe de la donación (p. ej. 10,000치즈)",
+            "donation_amount": "Importe de la donación como número",
+            "donation_mission": "Verdadero en donaciones de misión",
+            "donation_missionText": "Texto de la misión",
+            "subscription_month": "Meses de suscripción",
+            "subscription_tierName": "Nombre del nivel de suscripción (según el canal)",
+            "gift_toChannel": "Verdadero para un regalo al canal (con remitente), falso para un aviso por receptor (remitente anónimo)",
+            "gift_quantity": "Número de suscripciones regaladas (regalo al canal)",
+            "gift_tierName": "Nombre del nivel regalado (según el canal)",
+            "gift_receiverNickname": "Apodo del receptor (aviso por receptor)"
+        },
+        "help_var": "Inserta el valor como texto",
+        "help_raw": "HTML del mensaje. Úsalo para que se vean los emojis y la ocultación de cleanbot",
+        "help_section": "Se muestra si el valor existe (una vez por elemento en listas)",
+        "help_inverted": "Se muestra solo si el valor no existe",
+        "help_safety": "Se eliminan los scripts y atributos de eventos (onclick, …).",
+        "errors": {
+            "unbalanced_braces": "Las llaves no coinciden: {{tag}}",
+            "raw_section": "Las etiquetas de sección no pueden usar {{{ }}}: {{tag}}",
+            "unexpected_close": "Cierre sin etiqueta de apertura: {{tag}}",
+            "mismatched_close": "{{open}} se cerró con {{close}}",
+            "unclosed": "{{tag}} nunca se cierra",
+            "too_long": "La plantilla es demasiado larga (máx. {{max}} caracteres)"
+        },
+        "samples": {
+            "badge_emoji": "Insignias + emoji",
+            "manager": "Moderador",
+            "nick_gradient": "Apodo de suscriptor nivel 2 (degradado)",
+            "nick_highlight": "Apodo de suscriptor nivel 2 (resaltado)",
+            "cleanbot": "Cleanbot (clic para ver el original)",
+            "blinded": "Ocultado por un moderador",
+            "donation": "Donación",
+            "donation_anonymous": "Donación anónima (sin mensaje)",
+            "donation_mission": "Donación de misión",
+            "gift_channel": "Suscripción regalada al canal",
+            "gift_receiver": "Aviso al receptor (remitente anónimo)",
+            "subscription": "Suscripción"
+        }
+    },
+    "platform": {
+        "twitch": "Twitch",
+        "chzzk": "CHZZK"
+    },
+    "filter_dialog": {
+        "add_filter": "Añadir subfiltro",
+        "edit_filter": "Editar subfiltro",
+        "add_channel": "Añadir canal",
+        "edit_channel": "Editar canal",
+        "add_note": "Añadir nota",
+        "edit_note": "Editar nota",
+        "nothing_selected": "No hay nada seleccionado.",
+        "per_channel_hint": "Puedes configurar filtros por canal."
+    },
+    "badge_list": {
+        "multi_select_hint": "Puedes seleccionar varias insignias",
+        "search_hint": "Escribe el nombre de un canal y busca",
+        "empty": "No hay insignias para mostrar"
+    },
+    "channel_guide": {
+        "title": "Cómo encontrar el ID del canal",
+        "twitch": "El ID de un canal de Twitch es la última parte de la URL del canal.",
+        "chzzk": "El ID de un canal de CHZZK es el código de letras y números que va después de <b>/live/</b> en la URL del directo.",
+        "example": "Ejemplo:"
+    },
+    "translation_notice": "Badge Collector se creó en coreano, así que algunas traducciones pueden sonar poco naturales."
+}

@@ -1,0 +1,185 @@
+{
+  "ExtensionName": {
+    "message": "Badge Collector"
+  },
+  "ExtensionDesc": {
+    "message": "見たいチャットだけを集めて表示！"
+  },
+  "generalSetting": {
+    "message": "一般設定"
+  },
+  "reset_chat_ratio": {
+    "message": "チャット欄の比率をリセット"
+  },
+  "chatTime": {
+    "message": "チャットの時刻を表示"
+  },
+  "collectedChatMarker": {
+    "message": "収集したチャットに印を付ける"
+  },
+  "jumpToBottomButton": {
+    "message": "最下部へボタン"
+  },
+  "chatPersistence": {
+    "message": "再読み込み後も収集チャットを保持"
+  },
+  "displayMode": {
+    "message": "表示方式"
+  },
+  "displayModeInline": {
+    "message": "インライン"
+  },
+  "displayModeFloating": {
+    "message": "フローティング"
+  },
+  "floatingBgColor": {
+    "message": "フローティングの背景色"
+  },
+  "startCapture": {
+    "message": "チャットをキャプチャ"
+  },
+  "clearCollectedChats": {
+    "message": "収集したチャットを消去"
+  },
+  "chatPosition": {
+    "message": "チャットの位置"
+  },
+  "up": {
+    "message": "上"
+  },
+  "down": {
+    "message": "下"
+  },
+  "p_filter_btn": {
+    "message": "フィルター設定"
+  },
+  "maximumNumberChats": {
+    "message": "チャットの最大件数"
+  },
+  "needRefresh": {
+    "message": "再読み込みが必要"
+  },
+  "chzzkChatSide": {
+    "message": "チャット欄の位置（CHZZK）"
+  },
+  "chzzkChatSideHint": {
+    "message": "チャット欄とメニューサイドバーの左右を入れ替えます"
+  },
+  "chatSideLeft": {
+    "message": "左"
+  },
+  "chatSideRight": {
+    "message": "右"
+  },
+  "chzzkChatRender": {
+    "message": "収集チャットの見た目（CHZZK）"
+  },
+  "chatRenderNative": {
+    "message": "デフォルト"
+  },
+  "chatRenderTemplate": {
+    "message": "カスタム"
+  },
+  "templateSettingButton": {
+    "message": "テンプレート設定"
+  },
+  "auto": {
+    "message": "自動"
+  },
+  "theme": {
+    "message": "テーマ"
+  },
+  "themeSystem": {
+    "message": "システム"
+  },
+  "themeLight": {
+    "message": "ライト"
+  },
+  "themeDark": {
+    "message": "ダーク"
+  },
+  "diagNoActiveTab": {
+    "message": "アクティブなタブがありません"
+  },
+  "diagNoResponse": {
+    "message": "応答なし（CHZZK/Twitch のページで実行してください）"
+  },
+  "onlyOnHostPage": {
+    "message": "CHZZK または Twitch のページでのみ動作します。"
+  },
+  "otaBundled": {
+    "message": "OTA セレクター: 同梱のデフォルト"
+  },
+  "diagFailCount": {
+    "message": "失敗 $1 / $2"
+  },
+  "diagRun": {
+    "message": "診断"
+  },
+  "diagRunning": {
+    "message": "確認中…"
+  },
+  "copy": {
+    "message": "コピー"
+  },
+  "copied": {
+    "message": "コピーしました"
+  },
+  "report": {
+    "message": "報告"
+  },
+  "reportSubmitting": {
+    "message": "送信中…"
+  },
+  "reportSubmitted": {
+    "message": "送信しました"
+  },
+  "reportFailed": {
+    "message": "失敗"
+  },
+  "reportConsentTitle": {
+    "message": "Discord で診断データを送信"
+  },
+  "reportConsentBody": {
+    "message": "以下の匿名データが開発者に送信されます。"
+  },
+  "reportConsentAccept": {
+    "message": "同意して送信"
+  },
+  "cancel": {
+    "message": "キャンセル"
+  },
+  "scrollToBottom": {
+    "message": "最下部へ"
+  },
+  "selectAll": {
+    "message": "すべて選択"
+  },
+  "deselectAll": {
+    "message": "選択を解除"
+  },
+  "selectedCount": {
+    "message": "$1 件選択中"
+  },
+  "capturing": {
+    "message": "キャプチャ中…"
+  },
+  "downloadPng": {
+    "message": "PNG をダウンロード"
+  },
+  "emoticonOnly": {
+    "message": "（エモート）"
+  },
+  "chatSource": {
+    "message": "チャンネル: $1"
+  },
+  "chatSourceRestored": {
+    "message": "チャンネル: $1（復元）"
+  },
+  "translationNotice": {
+    "message": "Badge Collector は韓国語で作られているため、一部の翻訳が不自然な場合があります。"
+  },
+  "dismiss": {
+    "message": "OK"
+  }
+}

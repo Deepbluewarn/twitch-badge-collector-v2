@@ -1,0 +1,185 @@
+{
+  "ExtensionName": {
+    "message": "Badge Collector"
+  },
+  "ExtensionDesc": {
+    "message": "Збирайте лише потрібні повідомлення чату!"
+  },
+  "generalSetting": {
+    "message": "Загальні налаштування"
+  },
+  "reset_chat_ratio": {
+    "message": "Скинути розміри чату"
+  },
+  "chatTime": {
+    "message": "Показувати час повідомлень"
+  },
+  "collectedChatMarker": {
+    "message": "Позначати зібрані повідомлення"
+  },
+  "jumpToBottomButton": {
+    "message": "Кнопка «Донизу»"
+  },
+  "chatPersistence": {
+    "message": "Зберігати зібрані повідомлення після перезавантаження"
+  },
+  "displayMode": {
+    "message": "Режим відображення"
+  },
+  "displayModeInline": {
+    "message": "Вбудований"
+  },
+  "displayModeFloating": {
+    "message": "Плаваючий"
+  },
+  "floatingBgColor": {
+    "message": "Фон плаваючого вікна"
+  },
+  "startCapture": {
+    "message": "Знімок чату"
+  },
+  "clearCollectedChats": {
+    "message": "Очистити зібрані повідомлення"
+  },
+  "chatPosition": {
+    "message": "Розташування чату"
+  },
+  "up": {
+    "message": "Угорі"
+  },
+  "down": {
+    "message": "Унизу"
+  },
+  "p_filter_btn": {
+    "message": "Налаштування фільтрів"
+  },
+  "maximumNumberChats": {
+    "message": "Максимум повідомлень"
+  },
+  "needRefresh": {
+    "message": "Потрібно оновити сторінку"
+  },
+  "chzzkChatSide": {
+    "message": "Бік чату (CHZZK)"
+  },
+  "chzzkChatSideHint": {
+    "message": "Міняє місцями панель чату й бічне меню"
+  },
+  "chatSideLeft": {
+    "message": "Ліворуч"
+  },
+  "chatSideRight": {
+    "message": "Праворуч"
+  },
+  "chzzkChatRender": {
+    "message": "Вигляд зібраних повідомлень (CHZZK)"
+  },
+  "chatRenderNative": {
+    "message": "Типовий"
+  },
+  "chatRenderTemplate": {
+    "message": "Власний"
+  },
+  "templateSettingButton": {
+    "message": "Налаштування шаблону"
+  },
+  "auto": {
+    "message": "Авто"
+  },
+  "theme": {
+    "message": "Тема"
+  },
+  "themeSystem": {
+    "message": "Системна"
+  },
+  "themeLight": {
+    "message": "Світла"
+  },
+  "themeDark": {
+    "message": "Темна"
+  },
+  "diagNoActiveTab": {
+    "message": "Немає активної вкладки"
+  },
+  "diagNoResponse": {
+    "message": "Немає відповіді (запускайте на сторінці CHZZK/Twitch)"
+  },
+  "onlyOnHostPage": {
+    "message": "Працює лише на сторінках CHZZK або Twitch."
+  },
+  "otaBundled": {
+    "message": "OTA-селектори: вбудовані типові"
+  },
+  "diagFailCount": {
+    "message": "Помилок $1 / $2"
+  },
+  "diagRun": {
+    "message": "Діагностика"
+  },
+  "diagRunning": {
+    "message": "Перевірка…"
+  },
+  "copy": {
+    "message": "Копіювати"
+  },
+  "copied": {
+    "message": "Скопійовано"
+  },
+  "report": {
+    "message": "Повідомити"
+  },
+  "reportSubmitting": {
+    "message": "Надсилання…"
+  },
+  "reportSubmitted": {
+    "message": "Надіслано"
+  },
+  "reportFailed": {
+    "message": "Помилка"
+  },
+  "reportConsentTitle": {
+    "message": "Надіслати діагностичні дані через Discord"
+  },
+  "reportConsentBody": {
+    "message": "Наведені нижче анонімні дані буде надіслано розробнику."
+  },
+  "reportConsentAccept": {
+    "message": "Погодитися й надіслати"
+  },
+  "cancel": {
+    "message": "Скасувати"
+  },
+  "scrollToBottom": {
+    "message": "Прокрутити донизу"
+  },
+  "selectAll": {
+    "message": "Вибрати все"
+  },
+  "deselectAll": {
+    "message": "Зняти вибір"
+  },
+  "selectedCount": {
+    "message": "Вибрано: $1"
+  },
+  "capturing": {
+    "message": "Створення знімка…"
+  },
+  "downloadPng": {
+    "message": "Завантажити PNG"
+  },
+  "emoticonOnly": {
+    "message": "(емодзі)"
+  },
+  "chatSource": {
+    "message": "Канал: $1"
+  },
+  "chatSourceRestored": {
+    "message": "Канал: $1 (відновлено)"
+  },
+  "translationNotice": {
+    "message": "Badge Collector створено корейською мовою, тож деякі переклади можуть звучати незграбно."
+  },
+  "dismiss": {
+    "message": "Зрозуміло"
+  }
+}

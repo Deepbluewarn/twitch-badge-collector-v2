@@ -1,0 +1,180 @@
+{
+    "alert": {
+        "no_value_filter": "Der Filter hat keine Werte.",
+        "filter_already_exist": "Filter existiert bereits.",
+        "filter_added": "Filter hinzugefügt.",
+        "network_error": "Anfrage fehlgeschlagen.",
+        "filter_validation": {
+            "missing_filter": "Filterobjekt fehlt.",
+            "missing_id": "Filter-ID fehlt.",
+            "missing_filter_type": "Filtertyp fehlt.",
+            "missing_sub_filters": "Keine Unterfilter definiert.",
+            "empty_sub_filter_value": "Ein Unterfilter hat einen leeren Wert."
+        },
+        "no_platform_filters": "Keine Filter dieser Plattform zum Hinzufügen."
+    },
+    "common": {
+        "filter": "Filter",
+        "condition": "Bedingung",
+        "badge": "Badge",
+        "channel": "Kanal",
+        "channel_name": "Kanalname",
+        "note": "Notiz",
+        "badge_name": "Badge-Name",
+        "global": "Global",
+        "add_selected": "Auswahl hinzufügen",
+        "search": "Suchen",
+        "add_filter": "Filter hinzufügen",
+        "add_filter_element": "Element hinzufügen",
+        "filter_export": "Filter exportieren",
+        "filter_import": "Filter importieren",
+        "category": "Kategorie",
+        "add_filter_elements": "Filterelemente hinzufügen",
+        "nickname": "Nickname",
+        "keyword": "Stichwort",
+        "value": "Wert",
+        "remove": "Entfernen",
+        "cancel": "Abbrechen",
+        "save": "Speichern",
+        "add": "Hinzufügen",
+        "edit": "Bearbeiten",
+        "close": "Schließen",
+        "details": "Details",
+        "reset": "Zurücksetzen",
+        "delete_selected": "Auswahl löschen",
+        "color": "Farbe",
+        "content": "Inhalt",
+        "channel_id": "Kanal-ID",
+        "note_optional": "Notiz (optional)",
+        "channel_only": "Nur in einem bestimmten Kanal anwenden (optional)",
+        "no_badge": "Kein Badge",
+        "no_name": "Kein Name",
+        "no_value": "Kein Wert",
+        "selected_count": "{{count}} ausgewählt",
+        "dismiss": "Verstanden"
+    },
+    "filter": {
+        "category": {
+            "include": "Einschließen",
+            "exclude": "Ausschließen",
+            "sleep": "Aus"
+        },
+        "type": {
+            "badge": "Badge",
+            "name": "Name",
+            "keyword": "Stichwort"
+        }
+    },
+    "setting": {
+        "filter_setting": "Filtereinstellungen",
+        "filter": {
+            "filter_list": "Filterliste",
+            "filter_add": "Neuen Filter hinzufügen",
+            "select_badges": "Badges auswählen",
+            "empty_hint": "Klicke unten auf <b>+ Element hinzufügen</b> oder auf ein Badge, um loszulegen."
+        },
+        "filter_mode": {
+            "advanced": "Erweiterte Einstellungen"
+        }
+    },
+    "template": {
+        "title": "Chat-Vorlage (CHZZK)",
+        "use_custom": "Mit Vorlage anzeigen",
+        "use_custom_hint_on": "Gesammelte Chats werden sofort mit den Vorlagen unten gezeichnet – noch bevor der CHZZK-Chat sie zeigt, ohne Flackern. (Entspricht „Eigene“ bei „Aussehen gesammelter Chats“ in den allgemeinen Einstellungen)",
+        "use_custom_hint_off": "Der CHZZK-Chat wird unverändert kopiert. Chats erscheinen erst, nachdem CHZZK sie gezeichnet hat, und können bei langsamem CHZZK kurz anders aussehen, bevor sie zum Original wechseln. („Aussehen gesammelter Chats“ steht in den allgemeinen Einstellungen auf „Standard“)",
+        "kinds": {
+            "chat": "Chat",
+            "donation": "Spende",
+            "subscription": "Abo",
+            "gift": "Geschenk"
+        },
+        "save": "Speichern",
+        "saved": "Gespeichert",
+        "reset": "Auf Standard zurücksetzen",
+        "unsaved": "Du hast ungespeicherte Änderungen",
+        "error": "Syntaxfehler (Zeile {{line}}, Spalte {{col}}): {{message}}",
+        "preview": "Vorschau",
+        "preview_dark": "Dunkel",
+        "preview_light": "Hell",
+        "fields_title": "Verfügbare Werte",
+        "fields": {
+            "nickname": "Nickname ('익명의 후원자' bei anonymen Spenden)",
+            "messageHtml": "Nachricht als HTML – inkl. Emojis und Ausblendung durch Cleanbot/Moderation",
+            "message": "Rohe Nachricht (Emojis als {:name:}, ohne Ausblendung)",
+            "hasMessage": "Wahr, wenn es eine Nachricht gibt",
+            "badges": "Badge-Liste – url pro Eintrag",
+            "verifiedIconUrl": "Bild des Verifiziert-Zeichens (nur verifizierte Nutzer)",
+            "time": "Uhrzeit (z. B. 14:05)",
+            "nickStyle": "CSS-Variablen der Nickname-Farbe (inkl. End-/Hintergrundfarbe der Verzierung) – in ein style-Attribut einsetzen",
+            "nickEffect": "Nickname-Verzierung für Stufe-2-Abonnenten: gradient / highlight / stealth / leer",
+            "nickColorLight": "Nickname-Farbe, helles Design",
+            "nickColorDark": "Nickname-Farbe, dunkles Design",
+            "cleanbot": "Wahr, wenn vom Cleanbot ausgeblendet",
+            "blinded": "Wahr, wenn von einem Moderator ausgeblendet",
+            "anonymous": "Wahr, wenn anonym",
+            "donation_amountText": "Spendenbetrag (z. B. 10,000치즈)",
+            "donation_amount": "Spendenbetrag als Zahl",
+            "donation_mission": "Wahr bei Missionsspenden",
+            "donation_missionText": "Missionstext",
+            "subscription_month": "Abo-Monate",
+            "subscription_tierName": "Name der Abo-Stufe (je Kanal)",
+            "gift_toChannel": "Wahr bei einem Kanalgeschenk (mit Absender), falsch bei einer Empfängermeldung (Absender anonym)",
+            "gift_quantity": "Anzahl verschenkter Abos (Kanalgeschenk)",
+            "gift_tierName": "Name der verschenkten Stufe (je Kanal)",
+            "gift_receiverNickname": "Nickname des Empfängers (Empfängermeldung)"
+        },
+        "help_var": "Fügt den Wert als Text ein",
+        "help_raw": "Nachricht als HTML. Nutze das, damit Emojis und Cleanbot-Ausblendung angezeigt werden",
+        "help_section": "Wird angezeigt, wenn der Wert gesetzt ist (bei Listen einmal pro Eintrag)",
+        "help_inverted": "Wird nur angezeigt, wenn der Wert nicht gesetzt ist",
+        "help_safety": "Skripte und Event-Attribute (onclick, …) werden entfernt.",
+        "errors": {
+            "unbalanced_braces": "Klammern passen nicht zusammen: {{tag}}",
+            "raw_section": "Abschnitts-Tags dürfen kein {{{ }}} verwenden: {{tag}}",
+            "unexpected_close": "Geschlossen ohne öffnendes Tag: {{tag}}",
+            "mismatched_close": "{{open}} wurde mit {{close}} geschlossen",
+            "unclosed": "{{tag}} wird nie geschlossen",
+            "too_long": "Vorlage ist zu lang (max. {{max}} Zeichen)"
+        },
+        "samples": {
+            "badge_emoji": "Badges + Emoji",
+            "manager": "Moderator",
+            "nick_gradient": "Nickname Stufe-2-Abonnent (Verlauf)",
+            "nick_highlight": "Nickname Stufe-2-Abonnent (Hervorhebung)",
+            "cleanbot": "Cleanbot (klicken für Original)",
+            "blinded": "Von Moderator ausgeblendet",
+            "donation": "Spende",
+            "donation_anonymous": "Anonyme Spende (ohne Nachricht)",
+            "donation_mission": "Missionsspende",
+            "gift_channel": "Abo-Geschenk an den Kanal",
+            "gift_receiver": "Empfängermeldung (Absender anonym)",
+            "subscription": "Abo"
+        }
+    },
+    "platform": {
+        "twitch": "Twitch",
+        "chzzk": "CHZZK"
+    },
+    "filter_dialog": {
+        "add_filter": "Unterfilter hinzufügen",
+        "edit_filter": "Unterfilter bearbeiten",
+        "add_channel": "Kanal hinzufügen",
+        "edit_channel": "Kanal bearbeiten",
+        "add_note": "Notiz hinzufügen",
+        "edit_note": "Notiz bearbeiten",
+        "nothing_selected": "Nichts ausgewählt.",
+        "per_channel_hint": "Filter lassen sich pro Kanal festlegen."
+    },
+    "badge_list": {
+        "multi_select_hint": "Du kannst mehrere Badges auswählen",
+        "search_hint": "Kanalnamen eingeben und suchen",
+        "empty": "Keine Badges vorhanden"
+    },
+    "channel_guide": {
+        "title": "Kanal-ID finden",
+        "twitch": "Die Kanal-ID bei Twitch ist der letzte Teil der Kanal-URL.",
+        "chzzk": "Die Kanal-ID bei CHZZK ist die Kombination aus Buchstaben und Zahlen nach <b>/live/</b> in der URL des Livestreams.",
+        "example": "Beispiel:"
+    },
+    "translation_notice": "Badge Collector wurde auf Koreanisch entwickelt, daher klingen manche Übersetzungen vielleicht holprig."
+}

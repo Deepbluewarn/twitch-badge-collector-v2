@@ -1,0 +1,180 @@
+{
+    "alert": {
+        "no_value_filter": "篩選器中沒有任何值。",
+        "filter_already_exist": "篩選器已存在。",
+        "filter_added": "已新增篩選器。",
+        "network_error": "請求失敗。",
+        "filter_validation": {
+            "missing_filter": "缺少篩選器物件。",
+            "missing_id": "缺少篩選器 ID。",
+            "missing_filter_type": "缺少篩選器類型。",
+            "missing_sub_filters": "未定義子篩選器。",
+            "empty_sub_filter_value": "有子篩選器的值為空。"
+        },
+        "no_platform_filters": "沒有可新增的此平台篩選器。"
+    },
+    "common": {
+        "filter": "篩選器",
+        "condition": "條件",
+        "badge": "徽章",
+        "channel": "頻道",
+        "channel_name": "頻道名稱",
+        "note": "備註",
+        "badge_name": "徽章名稱",
+        "global": "全域",
+        "add_selected": "新增所選項目",
+        "search": "搜尋",
+        "add_filter": "新增篩選器",
+        "add_filter_element": "新增篩選元素",
+        "filter_export": "匯出篩選器",
+        "filter_import": "匯入篩選器",
+        "category": "類別",
+        "add_filter_elements": "新增篩選元素",
+        "nickname": "暱稱",
+        "keyword": "關鍵字",
+        "value": "值",
+        "remove": "移除",
+        "cancel": "取消",
+        "save": "儲存",
+        "add": "新增",
+        "edit": "編輯",
+        "close": "關閉",
+        "details": "詳細資料",
+        "reset": "重設",
+        "delete_selected": "刪除所選項目",
+        "color": "顏色",
+        "content": "內容",
+        "channel_id": "頻道 ID",
+        "note_optional": "備註（選填）",
+        "channel_only": "僅套用於特定頻道（選填）",
+        "no_badge": "無徽章",
+        "no_name": "無名稱",
+        "no_value": "無值",
+        "selected_count": "已選取 {{count}} 項",
+        "dismiss": "知道了"
+    },
+    "filter": {
+        "category": {
+            "include": "包含",
+            "exclude": "排除",
+            "sleep": "停用"
+        },
+        "type": {
+            "badge": "徽章",
+            "name": "暱稱",
+            "keyword": "關鍵字"
+        }
+    },
+    "setting": {
+        "filter_setting": "篩選器設定",
+        "filter": {
+            "filter_list": "篩選器清單",
+            "filter_add": "新增篩選器",
+            "select_badges": "選擇徽章",
+            "empty_hint": "點選下方的 <b>+ 新增篩選元素</b> 或徽章即可開始。"
+        },
+        "filter_mode": {
+            "advanced": "進階設定"
+        }
+    },
+    "template": {
+        "title": "聊天範本（CHZZK）",
+        "use_custom": "使用範本顯示",
+        "use_custom_hint_on": "收集的聊天訊息會立即依下方範本繪製，比 CHZZK 聊天室更早顯示，也不會閃爍。（等同於在一般設定的「收集訊息外觀」中選擇「自訂」）",
+        "use_custom_hint_off": "直接複製 CHZZK 聊天室的原始內容。訊息會在 CHZZK 繪製後出現；CHZZK 較慢時，可能會短暫顯示為其他樣式，再恢復為原樣。（一般設定中的「收集訊息外觀」為「預設」）",
+        "kinds": {
+            "chat": "聊天",
+            "donation": "斗內",
+            "subscription": "訂閱",
+            "gift": "贈送"
+        },
+        "save": "儲存",
+        "saved": "已儲存",
+        "reset": "還原預設值",
+        "unsaved": "有尚未儲存的變更",
+        "error": "語法錯誤（第 {{line}} 行，第 {{col}} 欄）：{{message}}",
+        "preview": "預覽",
+        "preview_dark": "深色",
+        "preview_light": "淺色",
+        "fields_title": "可用的值",
+        "fields": {
+            "nickname": "暱稱（匿名斗內時為 '익명의 후원자'）",
+            "messageHtml": "訊息 HTML — 包含表情符號及 cleanbot/遮蔽隱藏處理",
+            "message": "原始訊息（表情符號為 {:name:}，不做隱藏）",
+            "hasMessage": "有訊息時為 true",
+            "badges": "徽章清單 — 每項含 url",
+            "verifiedIconUrl": "認證標章圖片（僅限認證使用者）",
+            "time": "時間（例：14:05）",
+            "nickStyle": "暱稱顏色 CSS 變數（含裝飾用的結束色、背景色）— 直接放入 style 屬性",
+            "nickEffect": "第 2 階訂閱者暱稱裝飾：gradient / highlight / stealth / 空值",
+            "nickColorLight": "淺色主題暱稱顏色",
+            "nickColorDark": "深色主題暱稱顏色",
+            "cleanbot": "被 cleanbot 隱藏時為 true",
+            "blinded": "被管理員隱藏時為 true",
+            "anonymous": "匿名時為 true",
+            "donation_amountText": "斗內金額（例：10,000치즈）",
+            "donation_amount": "斗內金額（數字）",
+            "donation_mission": "任務斗內時為 true",
+            "donation_missionText": "任務內容",
+            "subscription_month": "訂閱月數",
+            "subscription_tierName": "訂閱階級名稱（依頻道而異）",
+            "gift_toChannel": "向頻道贈送（有贈送者）時為 true，個別接收者通知（贈送者匿名）時為 false",
+            "gift_quantity": "贈送訂閱數量（向頻道贈送）",
+            "gift_tierName": "贈送階級名稱（依頻道而異）",
+            "gift_receiverNickname": "接收者暱稱（個別接收者通知）"
+        },
+        "help_var": "以文字形式插入值",
+        "help_raw": "訊息 HTML。要顯示表情符號和 cleanbot 隱藏效果時請使用",
+        "help_section": "有值時顯示（清單則每項顯示一次）",
+        "help_inverted": "僅在沒有值時顯示",
+        "help_safety": "指令碼與事件屬性（onclick 等）會被移除。",
+        "errors": {
+            "unbalanced_braces": "大括號不成對：{{tag}}",
+            "raw_section": "區塊標籤不能使用 {{{ }}}：{{tag}}",
+            "unexpected_close": "沒有對應的開始標籤：{{tag}}",
+            "mismatched_close": "{{open}} 被 {{close}} 關閉",
+            "unclosed": "{{tag}} 未關閉",
+            "too_long": "範本過長（最多 {{max}} 個字元）"
+        },
+        "samples": {
+            "badge_emoji": "徽章 + 表情符號",
+            "manager": "管理員",
+            "nick_gradient": "第 2 階訂閱者暱稱（漸層）",
+            "nick_highlight": "第 2 階訂閱者暱稱（醒目提示）",
+            "cleanbot": "Cleanbot（點選查看原文）",
+            "blinded": "被管理員隱藏",
+            "donation": "斗內",
+            "donation_anonymous": "匿名斗內（無訊息）",
+            "donation_mission": "任務斗內",
+            "gift_channel": "向頻道贈送訂閱",
+            "gift_receiver": "接收者通知（贈送者匿名）",
+            "subscription": "訂閱"
+        }
+    },
+    "platform": {
+        "twitch": "Twitch",
+        "chzzk": "CHZZK"
+    },
+    "filter_dialog": {
+        "add_filter": "新增子篩選器",
+        "edit_filter": "編輯子篩選器",
+        "add_channel": "新增頻道",
+        "edit_channel": "編輯頻道",
+        "add_note": "新增備註",
+        "edit_note": "編輯備註",
+        "nothing_selected": "未選取任何項目。",
+        "per_channel_hint": "可以依頻道設定篩選器。"
+    },
+    "badge_list": {
+        "multi_select_hint": "可以選取多個徽章",
+        "search_hint": "輸入頻道名稱進行搜尋",
+        "empty": "沒有可顯示的徽章"
+    },
+    "channel_guide": {
+        "title": "尋找頻道 ID",
+        "twitch": "Twitch 頻道 ID 是頻道網址的最後一段。",
+        "chzzk": "CHZZK 頻道 ID 是直播網址中 <b>/live/</b> 後面由英文字母和數字組成的 ID。",
+        "example": "範例："
+    },
+    "translation_notice": "Badge Collector 以韓文開發，部分翻譯可能不太自然。"
+}

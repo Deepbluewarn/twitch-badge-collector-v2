@@ -1,0 +1,185 @@
+{
+  "ExtensionName": {
+    "message": "Badge Collector"
+  },
+  "ExtensionDesc": {
+    "message": "只收集你想看的聊天消息！"
+  },
+  "generalSetting": {
+    "message": "常规设置"
+  },
+  "reset_chat_ratio": {
+    "message": "重置聊天框比例"
+  },
+  "chatTime": {
+    "message": "显示聊天时间"
+  },
+  "collectedChatMarker": {
+    "message": "标记已收集的消息"
+  },
+  "jumpToBottomButton": {
+    "message": "“回到底部”按钮"
+  },
+  "chatPersistence": {
+    "message": "刷新后保留收集的消息"
+  },
+  "displayMode": {
+    "message": "显示方式"
+  },
+  "displayModeInline": {
+    "message": "内嵌"
+  },
+  "displayModeFloating": {
+    "message": "浮动"
+  },
+  "floatingBgColor": {
+    "message": "浮动窗口背景色"
+  },
+  "startCapture": {
+    "message": "开始截取聊天"
+  },
+  "clearCollectedChats": {
+    "message": "清空收集的消息"
+  },
+  "chatPosition": {
+    "message": "聊天位置"
+  },
+  "up": {
+    "message": "上方"
+  },
+  "down": {
+    "message": "下方"
+  },
+  "p_filter_btn": {
+    "message": "过滤器设置"
+  },
+  "maximumNumberChats": {
+    "message": "最大消息数"
+  },
+  "needRefresh": {
+    "message": "需要刷新"
+  },
+  "chzzkChatSide": {
+    "message": "聊天框位置（CHZZK）"
+  },
+  "chzzkChatSideHint": {
+    "message": "左右互换聊天框与导航侧边栏"
+  },
+  "chatSideLeft": {
+    "message": "左侧"
+  },
+  "chatSideRight": {
+    "message": "右侧"
+  },
+  "chzzkChatRender": {
+    "message": "收集消息外观（CHZZK）"
+  },
+  "chatRenderNative": {
+    "message": "默认"
+  },
+  "chatRenderTemplate": {
+    "message": "自定义"
+  },
+  "templateSettingButton": {
+    "message": "模板设置"
+  },
+  "auto": {
+    "message": "自动"
+  },
+  "theme": {
+    "message": "主题"
+  },
+  "themeSystem": {
+    "message": "跟随系统"
+  },
+  "themeLight": {
+    "message": "浅色"
+  },
+  "themeDark": {
+    "message": "深色"
+  },
+  "diagNoActiveTab": {
+    "message": "没有活动标签页"
+  },
+  "diagNoResponse": {
+    "message": "无响应（请在 CHZZK/Twitch 页面上运行）"
+  },
+  "onlyOnHostPage": {
+    "message": "仅在 CHZZK 或 Twitch 页面上有效。"
+  },
+  "otaBundled": {
+    "message": "OTA 选择器：内置默认值"
+  },
+  "diagFailCount": {
+    "message": "失败 $1 / $2"
+  },
+  "diagRun": {
+    "message": "诊断"
+  },
+  "diagRunning": {
+    "message": "检查中…"
+  },
+  "copy": {
+    "message": "复制"
+  },
+  "copied": {
+    "message": "已复制"
+  },
+  "report": {
+    "message": "反馈"
+  },
+  "reportSubmitting": {
+    "message": "发送中…"
+  },
+  "reportSubmitted": {
+    "message": "已发送"
+  },
+  "reportFailed": {
+    "message": "失败"
+  },
+  "reportConsentTitle": {
+    "message": "通过 Discord 发送诊断数据"
+  },
+  "reportConsentBody": {
+    "message": "以下匿名数据将发送给开发者。"
+  },
+  "reportConsentAccept": {
+    "message": "同意并发送"
+  },
+  "cancel": {
+    "message": "取消"
+  },
+  "scrollToBottom": {
+    "message": "回到底部"
+  },
+  "selectAll": {
+    "message": "全选"
+  },
+  "deselectAll": {
+    "message": "取消全选"
+  },
+  "selectedCount": {
+    "message": "已选择 $1 项"
+  },
+  "capturing": {
+    "message": "截取中…"
+  },
+  "downloadPng": {
+    "message": "下载 PNG"
+  },
+  "emoticonOnly": {
+    "message": "（表情）"
+  },
+  "chatSource": {
+    "message": "频道：$1"
+  },
+  "chatSourceRestored": {
+    "message": "频道：$1（已恢复）"
+  },
+  "translationNotice": {
+    "message": "Badge Collector 以韩语开发，部分翻译可能不够自然。"
+  },
+  "dismiss": {
+    "message": "知道了"
+  }
+}

@@ -1,0 +1,180 @@
+{
+    "alert": {
+        "no_value_filter": "Le filtre ne contient aucune valeur.",
+        "filter_already_exist": "Ce filtre existe déjà.",
+        "filter_added": "Filtre ajouté.",
+        "network_error": "La requête a échoué.",
+        "filter_validation": {
+            "missing_filter": "L'objet filtre est manquant.",
+            "missing_id": "L'identifiant du filtre est manquant.",
+            "missing_filter_type": "Le type de filtre est manquant.",
+            "missing_sub_filters": "Aucun sous-filtre défini.",
+            "empty_sub_filter_value": "Un sous-filtre a une valeur vide."
+        },
+        "no_platform_filters": "Aucun filtre à ajouter pour cette plateforme."
+    },
+    "common": {
+        "filter": "Filtre",
+        "condition": "Condition",
+        "badge": "Badge",
+        "channel": "Chaîne",
+        "channel_name": "Nom de la chaîne",
+        "note": "Note",
+        "badge_name": "Nom du badge",
+        "global": "Global",
+        "add_selected": "Ajouter la sélection",
+        "search": "Rechercher",
+        "add_filter": "Ajouter un filtre",
+        "add_filter_element": "Ajouter un élément",
+        "filter_export": "Exporter les filtres",
+        "filter_import": "Importer des filtres",
+        "category": "Catégorie",
+        "add_filter_elements": "Ajouter des éléments",
+        "nickname": "Pseudo",
+        "keyword": "Mot-clé",
+        "value": "Valeur",
+        "remove": "Supprimer",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "add": "Ajouter",
+        "edit": "Modifier",
+        "close": "Fermer",
+        "details": "Détails",
+        "reset": "Réinitialiser",
+        "delete_selected": "Supprimer la sélection",
+        "color": "Couleur",
+        "content": "Contenu",
+        "channel_id": "ID de la chaîne",
+        "note_optional": "Note (facultatif)",
+        "channel_only": "Appliquer à une seule chaîne (facultatif)",
+        "no_badge": "Aucun badge",
+        "no_name": "Sans nom",
+        "no_value": "Aucune valeur",
+        "selected_count": "{{count}} sélectionné(s)",
+        "dismiss": "J'ai compris"
+    },
+    "filter": {
+        "category": {
+            "include": "Inclure",
+            "exclude": "Exclure",
+            "sleep": "Désactivé"
+        },
+        "type": {
+            "badge": "Badge",
+            "name": "Pseudo",
+            "keyword": "Mot-clé"
+        }
+    },
+    "setting": {
+        "filter_setting": "Réglages des filtres",
+        "filter": {
+            "filter_list": "Liste des filtres",
+            "filter_add": "Nouveau filtre",
+            "select_badges": "Choisir des badges",
+            "empty_hint": "Cliquez sur <b>+ Ajouter un élément</b> ci-dessous ou sur un badge pour commencer."
+        },
+        "filter_mode": {
+            "advanced": "Réglages avancés"
+        }
+    },
+    "template": {
+        "title": "Modèle de chat (CHZZK)",
+        "use_custom": "Afficher avec le modèle",
+        "use_custom_hint_on": "Les messages collectés sont dessinés immédiatement avec les modèles ci-dessous, avant même que le chat de CHZZK ne les affiche, sans scintillement. (Équivaut à choisir « Personnalisé » pour « Apparence des messages collectés » dans les réglages généraux.)",
+        "use_custom_hint_off": "Le chat de CHZZK est copié tel quel. Les messages apparaissent après leur affichage par CHZZK et, si CHZZK est lent, peuvent brièvement avoir un autre aspect avant de reprendre l'original. (« Apparence des messages collectés » est réglé sur « Par défaut » dans les réglages généraux.)",
+        "kinds": {
+            "chat": "Chat",
+            "donation": "Don",
+            "subscription": "Abonnement",
+            "gift": "Cadeau"
+        },
+        "save": "Enregistrer",
+        "saved": "Enregistré",
+        "reset": "Rétablir par défaut",
+        "unsaved": "Modifications non enregistrées",
+        "error": "Erreur de syntaxe (ligne {{line}}, col. {{col}}) : {{message}}",
+        "preview": "Aperçu",
+        "preview_dark": "Sombre",
+        "preview_light": "Clair",
+        "fields_title": "Valeurs disponibles",
+        "fields": {
+            "nickname": "Pseudo ('익명의 후원자' pour les dons anonymes)",
+            "messageHtml": "HTML du message — emojis et masquage cleanbot/modération inclus",
+            "message": "Message brut (emojis sous la forme {:name:}, sans masquage)",
+            "hasMessage": "Vrai s'il y a un message",
+            "badges": "Liste des badges — url pour chaque élément",
+            "verifiedIconUrl": "Image de la marque de vérification (utilisateurs vérifiés uniquement)",
+            "time": "Heure (ex. 14:05)",
+            "nickStyle": "Variables CSS de couleur du pseudo (y compris couleurs de fin et de fond de la décoration) — à placer dans un attribut style",
+            "nickEffect": "Décoration du pseudo des abonnés de niveau 2 : gradient / highlight / stealth / vide",
+            "nickColorLight": "Couleur du pseudo, thème clair",
+            "nickColorDark": "Couleur du pseudo, thème sombre",
+            "cleanbot": "Vrai si masqué par le cleanbot",
+            "blinded": "Vrai si masqué par un modérateur",
+            "anonymous": "Vrai si anonyme",
+            "donation_amountText": "Montant du don (ex. 10,000치즈)",
+            "donation_amount": "Montant du don (nombre)",
+            "donation_mission": "Vrai pour les dons de mission",
+            "donation_missionText": "Texte de la mission",
+            "subscription_month": "Nombre de mois d'abonnement",
+            "subscription_tierName": "Nom du niveau d'abonnement (propre à la chaîne)",
+            "gift_toChannel": "Vrai pour un cadeau à la chaîne (expéditeur connu), faux pour un avis par destinataire (expéditeur anonyme)",
+            "gift_quantity": "Nombre d'abonnements offerts (cadeau à la chaîne)",
+            "gift_tierName": "Nom du niveau offert (propre à la chaîne)",
+            "gift_receiverNickname": "Pseudo du destinataire (avis par destinataire)"
+        },
+        "help_var": "Insère la valeur en tant que texte",
+        "help_raw": "HTML du message. À utiliser pour afficher les emojis et le masquage cleanbot",
+        "help_section": "S'affiche si la valeur est définie (une fois par élément pour les listes)",
+        "help_inverted": "S'affiche uniquement si la valeur n'est pas définie",
+        "help_safety": "Les scripts et attributs d'événement (onclick, …) sont supprimés.",
+        "errors": {
+            "unbalanced_braces": "Accolades non appariées : {{tag}}",
+            "raw_section": "Les balises de section ne peuvent pas utiliser {{{ }}} : {{tag}}",
+            "unexpected_close": "Fermeture sans balise d'ouverture : {{tag}}",
+            "mismatched_close": "{{open}} a été fermé par {{close}}",
+            "unclosed": "{{tag}} n'est jamais fermé",
+            "too_long": "Modèle trop long ({{max}} caractères max.)"
+        },
+        "samples": {
+            "badge_emoji": "Badges + emoji",
+            "manager": "Gestionnaire",
+            "nick_gradient": "Pseudo d'abonné niveau 2 (dégradé)",
+            "nick_highlight": "Pseudo d'abonné niveau 2 (surligné)",
+            "cleanbot": "Cleanbot (cliquer pour voir l'original)",
+            "blinded": "Masqué par un modérateur",
+            "donation": "Don",
+            "donation_anonymous": "Don anonyme (sans message)",
+            "donation_mission": "Don de mission",
+            "gift_channel": "Abonnements offerts à la chaîne",
+            "gift_receiver": "Avis au destinataire (expéditeur anonyme)",
+            "subscription": "Abonnement"
+        }
+    },
+    "platform": {
+        "twitch": "Twitch",
+        "chzzk": "CHZZK"
+    },
+    "filter_dialog": {
+        "add_filter": "Ajouter un sous-filtre",
+        "edit_filter": "Modifier le sous-filtre",
+        "add_channel": "Ajouter une chaîne",
+        "edit_channel": "Modifier la chaîne",
+        "add_note": "Ajouter une note",
+        "edit_note": "Modifier la note",
+        "nothing_selected": "Aucune sélection.",
+        "per_channel_hint": "Les filtres peuvent être définis par chaîne."
+    },
+    "badge_list": {
+        "multi_select_hint": "Vous pouvez sélectionner plusieurs badges",
+        "search_hint": "Saisissez un nom de chaîne pour rechercher",
+        "empty": "Aucun badge à afficher"
+    },
+    "channel_guide": {
+        "title": "Trouver l'ID de la chaîne",
+        "twitch": "L'ID d'une chaîne Twitch est la dernière partie de l'URL de la chaîne.",
+        "chzzk": "L'ID d'une chaîne CHZZK est la suite de lettres et de chiffres qui suit <b>/live/</b> dans l'URL du direct.",
+        "example": "Exemple :"
+    },
+    "translation_notice": "Badge Collector est conçu en coréen ; certaines traductions peuvent donc sembler maladroites."
+}
