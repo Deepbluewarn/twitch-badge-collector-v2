@@ -314,9 +314,10 @@ function PopupSetting() {
         </ToggleButtonGroup>
       </SettingRow>
 
-      {/* 채팅 표시 방식 — 치지직 전용. 원본 복제(치지직과 같은 모양) / 템플릿(더 빠르고 깜빡임 없음).
-          템플릿 편집 자체는 하단 "고급" 링크에 둔다 — 고르는 건 누구나, 고치는 건 고급 사용자. */}
-      <SettingRow label={t('chzzkChatRender')} hint={t('chzzkChatRenderHint')}>
+      {/* 모아보기 채팅 모양 — 치지직 전용. 기본(치지직 원본 복제) / 커스텀(사용자 템플릿).
+          설명은 두지 않는다 — 비개발자에게 내부 동작(원본 대기·속도)을 풀어 쓰면 오히려 헷갈린다
+          (prototype/chat-render-setting 브랜치의 시안 비교 결과). 커스텀을 고르면 템플릿 설정으로 가는 버튼. */}
+      <SettingRow label={t('chzzkChatRender')}>
         <ToggleButtonGroup
           value={globalSetting.chzzkCustomTemplate === 'on' ? 'on' : 'off'}
           exclusive
@@ -330,6 +331,16 @@ function PopupSetting() {
           <ToggleButton value='on'>{t('chatRenderTemplate')}</ToggleButton>
         </ToggleButtonGroup>
       </SettingRow>
+      {globalSetting.chzzkCustomTemplate === 'on' && (
+        <Button
+          size='small'
+          variant='outlined'
+          onClick={() => browser.tabs.create({ url: browser.runtime.getURL('/setting.html?initialPath=template') })}
+          sx={{ alignSelf: 'flex-end', mt: -0.5, py: 0.25, textTransform: 'none' }}
+        >
+          {t('templateSettingButton')}
+        </Button>
+      )}
 
       {/* 채팅 최대 개수 */}
       <SettingRow

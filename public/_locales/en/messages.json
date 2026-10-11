@@ -168,15 +168,15 @@
     "message": "Advanced · Chat template (Chzzk) →"
   },
   "chzzkChatRender" : {
-    "message": "Chat style (Chzzk)"
-  },
-  "chzzkChatRenderHint" : {
-    "message": "Original: Chzzk's own look · Template: faster, no flicker"
+    "message": "Collected chat look (Chzzk)"
   },
   "chatRenderNative" : {
-    "message": "Original"
+    "message": "Default"
   },
   "chatRenderTemplate" : {
-    "message": "Template"
+    "message": "Custom"
+  },
+  "templateSettingButton" : {
+    "message": "Template settings"
   }
 }

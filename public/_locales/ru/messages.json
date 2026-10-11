@@ -168,15 +168,15 @@
     "message": "Дополнительно · Шаблон чата (Chzzk) →"
   },
   "chzzkChatRender" : {
-    "message": "Стиль чата (Chzzk)"
-  },
-  "chzzkChatRenderHint" : {
-    "message": "Оригинал: как в Chzzk · Шаблон: быстрее, без мерцания"
+    "message": "Вид собранного чата (Chzzk)"
   },
   "chatRenderNative" : {
-    "message": "Оригинал"
+    "message": "Обычный"
   },
   "chatRenderTemplate" : {
-    "message": "Шаблон"
+    "message": "Свой"
+  },
+  "templateSettingButton" : {
+    "message": "Настройки шаблона"
   }
 }

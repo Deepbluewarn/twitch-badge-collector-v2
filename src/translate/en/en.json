@@ -142,8 +142,8 @@
     "template": {
         "title": "Chat template (Chzzk)",
         "use_custom": "Render with template",
-        "use_custom_hint_on": "Collected chats are drawn right away with the templates below — before Chzzk's chat shows them, with no flicker. (Same as 'Chat style' in general settings)",
-        "use_custom_hint_off": "Chzzk's own chat is copied as is. Chats appear after Chzzk draws them, and may briefly show a different look before switching to the original when Chzzk is slow. (Same as 'Chat style' in general settings)",
+        "use_custom_hint_on": "Collected chats are drawn right away with the templates below — before Chzzk's chat shows them, with no flicker. (Same as choosing 'Custom' for 'Collected chat look' in general settings)",
+        "use_custom_hint_off": "Chzzk's own chat is copied as is. Chats appear after Chzzk draws them, and may briefly show a different look before switching to the original when Chzzk is slow. ('Collected chat look' is set to 'Default' in general settings)",
         "kinds": {
             "chat": "Chat",
             "donation": "Donation",
