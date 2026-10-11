@@ -23,6 +23,8 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide, setChzzkCustomTemplate } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
+import { getPlatformConfig, manifestReady } from "@/platform/host-selectors";
+import { isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -140,6 +142,12 @@ function BgColorPicker({ value, onChange }: { value: string; onChange: (c: strin
 function PopupSetting() {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
   const t = (k: string) => browser.i18n.getMessage(k as any);
+  // "모아보기 채팅 모양"(커스텀 템플릿)은 소켓 렌더 모드에서만 동작한다. OTA로 소켓 모드를 꺼 둔
+  // 동안(constants.socketRender: 0)엔 골라도 아무 변화가 없으니 항목 자체를 숨긴다.
+  const [socketRenderEnabled, setSocketRenderEnabled] = React.useState(false);
+  useEffect(() => {
+    manifestReady.then(() => setSocketRenderEnabled(isSocketRenderEnabled(getPlatformConfig('chzzk').constants, null)));
+  }, []);
   const [otaInfo, setOtaInfo] = React.useState<{ rev: number | null; fetchedAt: number | null }>({ rev: null, fetchedAt: null });
   useEffect(() => {
     browser.storage.local.get(['tbcv2-selectors-manifest', 'tbcv2-selectors-fetched-at']).then((r) => {
@@ -317,7 +325,7 @@ function PopupSetting() {
       {/* 모아보기 채팅 모양 — 치지직 전용. 기본(치지직 원본 복제) / 커스텀(사용자 템플릿).
           설명은 두지 않는다 — 비개발자에게 내부 동작(원본 대기·속도)을 풀어 쓰면 오히려 헷갈린다
           (prototype/chat-render-setting 브랜치의 시안 비교 결과). 커스텀을 고르면 템플릿 설정으로 가는 버튼. */}
-      <SettingRow label={t('chzzkChatRender')}>
+      {socketRenderEnabled && <SettingRow label={t('chzzkChatRender')}>
         <ToggleButtonGroup
           value={globalSetting.chzzkCustomTemplate === 'on' ? 'on' : 'off'}
           exclusive
@@ -330,8 +338,8 @@ function PopupSetting() {
           <ToggleButton value='off'>{t('chatRenderNative')}</ToggleButton>
           <ToggleButton value='on'>{t('chatRenderTemplate')}</ToggleButton>
         </ToggleButtonGroup>
-      </SettingRow>
-      {globalSetting.chzzkCustomTemplate === 'on' && (
+      </SettingRow>}
+      {socketRenderEnabled && globalSetting.chzzkCustomTemplate === 'on' && (
         <Button
           size='small'
           variant='outlined'

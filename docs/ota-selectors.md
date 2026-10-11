@@ -188,6 +188,9 @@ fetch(browser.runtime.getURL('platform/bundled-selectors.json')).then(r => r.jso
 
 MAIN world의 소켓 탭 자체는 이 값과 관계없이 설치된다(listener만 붙는 수동 탭). 개별 사용자 디버그는 페이지 콘솔에서 `localStorage.setItem('tbc:socket-render', '0' | '1')`.
 
+**현재 상태 (2026-10-11, rev 15): `socketRender: 0` — 꺼진 채 배포.** v2.20.0은 소켓 모드 코드를 담고 나가지만 꺼진 상태로 시작한다(새 빌드는 prod json을 번들로 갖고 나가므로 처음부터 꺼짐). 며칠 지켜본 뒤 위 절차의 반대로 켠다: 값을 지우거나 `1`로 바꾸고 `rev` +1 → 푸시 → (급하면) jsDelivr purge.
+꺼져 있는 동안 팝업의 "모아보기 채팅 모양" 항목은 숨겨진다(커스텀 템플릿이 소켓 모드에서만 동작하므로). dev 빌드에서 소켓 모드를 보려면 치지직 페이지 콘솔에서 `localStorage.setItem('tbc:socket-render', '1')`.
+
 ## 관련 파일
 
 - `src/platform/bundled-selectors.json` — 진실 원천. 번들 + OTA fetch 대상.

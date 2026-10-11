@@ -133,14 +133,6 @@ describe('useChatStream — 소켓 렌더 모드 (원본이 안 와서 직접 �
         expect(passed).not.toHaveBeenCalled();
     });
 
-    it('기본으로 켜져 있다 (플래그 없음)', () => {
-        localStorage.removeItem('tbc:socket-render');
-        const { passed } = setup();
-        sock({ kind: 'chats', recent: false, chats: [chat()] });
-        noOriginal();
-        expect(passed).toHaveBeenCalledTimes(1);
-    });
-
     it('로컬 플래그로 끄면 소켓 메시지를 무시한다', () => {
         localStorage.setItem('tbc:socket-render', '0');
         const { passed } = setup();
