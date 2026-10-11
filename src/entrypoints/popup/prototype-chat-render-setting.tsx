@@ -93,7 +93,7 @@ function VariantA({ mode, setMode, openTemplate }: VariantProps) {
     return (
         <Stack spacing={1}>
             <Typography variant="body2">모아보기 채팅 표시 (치지직)</Typography>
-            {card('native', '치지직과 같게', '치지직 채팅창에 뜬 그 모양 그대로 따라 뜹니다.', <>
+            {card('native', '기본', '치지직 채팅창에 뜬 그 모양 그대로 따라 뜹니다.', <>
                 <Lane label="치지직 채팅" start={20}><FakeNativeChat /></Lane>
                 <Lane label="모아보기" start={30}><FakeNativeChat /></Lane>
             </>)}
@@ -130,7 +130,7 @@ function VariantB({ mode, setMode, openTemplate }: VariantProps) {
         <Box>
             <Typography variant="body2" fontWeight={700}>모아보기 채팅, 어떻게 보여드릴까요?</Typography>
             <Typography variant="caption" color="text.secondary">치지직에서만 적용돼요</Typography>
-            {option('native', '치지직이랑 똑같이 (기본)', ['🪞 치지직과 같은 모양', '⏱ 치지직이 보여줄 때 함께'])}
+            {option('native', '기본', ['🪞 치지직과 같은 모양', '⏱ 치지직이 보여줄 때 함께'])}
             {option('template', '빠르게', ['⚡ 치지직보다 먼저 뜸', '✨ 깜빡임 없음', '🎨 모양 꾸미기 가능'],
                 mode === 'template' && (
                     <Button size="small" onClick={e => { e.stopPropagation(); openTemplate(); }} sx={{ mt: 0.5, px: 0, textTransform: 'none' }}>
@@ -143,7 +143,7 @@ function VariantB({ mode, setMode, openTemplate }: VariantProps) {
             <Collapse in={open}>
                 <Box component="ol" sx={{ m: 0, pl: 2.5, fontSize: 12, color: 'text.secondary', '& li': { mb: 0.5 } }}>
                     <li>치지직은 채팅이 많으면 조금씩 늦게 보여줘요.</li>
-                    <li><b>치지직이랑 똑같이</b>는 치지직이 보여준 채팅을 그대로 옮겨 와요. 아주 가끔, 잠깐 다른 모양이었다가 바뀔 수 있어요.</li>
+                    <li><b>기본</b>은 치지직이 보여준 채팅을 그대로 옮겨 와요. 아주 가끔, 잠깐 다른 모양이었다가 바뀔 수 있어요.</li>
                     <li><b>빠르게</b>는 확장이 채팅을 먼저 받아 바로 그려요. 모양은 조금 다르지만 직접 꾸밀 수 있어요.</li>
                 </Box>
             </Collapse>
@@ -173,14 +173,14 @@ function VariantC({ mode, setMode, openTemplate }: VariantProps) {
                     value={mode} exclusive size="small" onChange={(_e, v: Mode | null) => v && setMode(v)}
                     sx={{ '& .MuiToggleButton-root': { px: 1, py: 0.25, textTransform: 'none', fontSize: 12 } }}
                 >
-                    <ToggleButton value="native">치지직 모양</ToggleButton>
+                    <ToggleButton value="native">기본</ToggleButton>
                     <ToggleButton value="template">빠른 표시</ToggleButton>
                 </ToggleButtonGroup>
             </Stack>
             <Collapse in={open}>
                 <Box sx={{ mt: 1, p: 1, borderRadius: 1, bgcolor: 'action.hover' }}>
                     <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, '& td, & th': { py: 0.4, px: 0.5, textAlign: 'left', verticalAlign: 'top' }, '& th': { fontWeight: 700 } }}>
-                        <thead><tr><th /><th>치지직 모양</th><th>빠른 표시</th></tr></thead>
+                        <thead><tr><th /><th>기본</th><th>빠른 표시</th></tr></thead>
                         <tbody>{rows.map(r => <tr key={r[0]}><td style={{ opacity: 0.7 }}>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td></tr>)}</tbody>
                     </Box>
                     <Button size="small" variant="outlined" fullWidth onClick={openTemplate} sx={{ mt: 1, textTransform: 'none' }}>
@@ -210,7 +210,7 @@ function VariantD({ mode, setMode, openTemplate }: VariantProps) {
                     value={mode} exclusive size="small" onChange={(_e, v: Mode | null) => v && setMode(v)}
                     sx={{ '& .MuiToggleButton-root': { px: 1, py: 0.25, textTransform: 'none', fontSize: 12 } }}
                 >
-                    <ToggleButton value="native">치지직 모양</ToggleButton>
+                    <ToggleButton value="native">기본</ToggleButton>
                     <ToggleButton value="template">빠른 표시</ToggleButton>
                 </ToggleButtonGroup>
             </Stack>
