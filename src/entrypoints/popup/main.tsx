@@ -24,7 +24,7 @@ import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide, setChzzkCustomTemplate } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
 import { getPlatformConfig, manifestReady } from "@/platform/host-selectors";
-import { isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
+import { ensureRolloutBucket, isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -142,11 +142,12 @@ function BgColorPicker({ value, onChange }: { value: string; onChange: (c: strin
 function PopupSetting() {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
   const t = (k: string) => browser.i18n.getMessage(k as any);
-  // "모아보기 채팅 모양"(커스텀 템플릿)은 소켓 렌더 모드에서만 동작한다. OTA로 소켓 모드를 꺼 둔
-  // 동안(constants.socketRender: 0)엔 골라도 아무 변화가 없으니 항목 자체를 숨긴다.
+  // "모아보기 채팅 모양"(커스텀 템플릿)은 소켓 렌더 모드에서만 동작한다. 이 사용자에게 아직 켜지지
+  // 않았으면(비율 배포·비상 끄기) 골라도 아무 변화가 없으니 항목 자체를 숨긴다.
   const [socketRenderEnabled, setSocketRenderEnabled] = React.useState(false);
   useEffect(() => {
-    manifestReady.then(() => setSocketRenderEnabled(isSocketRenderEnabled(getPlatformConfig('chzzk').constants, null)));
+    Promise.all([manifestReady, ensureRolloutBucket()]).then(([, bucket]) =>
+      setSocketRenderEnabled(isSocketRenderEnabled(getPlatformConfig('chzzk').constants, null, bucket)));
   }, []);
   const [otaInfo, setOtaInfo] = React.useState<{ rev: number | null; fetchedAt: number | null }>({ rev: null, fetchedAt: null });
   useEffect(() => {

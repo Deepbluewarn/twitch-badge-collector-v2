@@ -11,10 +11,12 @@ import {
 } from "@/platform/host-selectors";
 import { registerDiagnoseListener } from "@/platform/diagnose";
 import { applyChatSide, trackSidebarSwap } from "./chat-side";
+import { ensureRolloutBucket } from "./socket-mode";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 
 async function bootstrap() {
-    await manifestReady;
+    // 소켓 모드 비율 배포 판정(isSocketRenderEnabled)은 동기라, 설치별 숫자를 먼저 읽어 둔다.
+    await Promise.all([manifestReady, ensureRolloutBucket()]);
 
     // MAIN world(inject)는 browser API 가 없어 storage 를 못 읽는다 — 여기서 건네준다.
     // 듣기 먼저, 보내기 나중: MAIN 이 우리보다 먼저 떠서 요청을 이미 쐈다면 초기 push
