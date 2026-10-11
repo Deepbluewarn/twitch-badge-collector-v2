@@ -7,6 +7,12 @@ import {
     TBC_CHAT_PASSED_ACTION,
     TbcChatPassedMessage,
 } from "@/interfaces/chat-attributes";
+import { isSocketShadowEnabled, socketIdFromHostKey, startChzzkSocketShadow } from "@/content-scripts/chzzk/socket-shadow";
+import { isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
+import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
+import { applyBlindEvent, toChatInfo, type ChzzkSocketChat } from "@/platform/chzzk-socket";
+import { renderChzzkChat, type ChzzkTemplates } from "@/render/chzzk-render";
+import { getPlatformConfig } from "@/platform/host-selectors";
 
 export interface PassedChat {
     /** 후처리 완료된 복제 노드 (DOM 삽입 직전 상태) */
@@ -45,6 +51,13 @@ export default function useChatStream(
     adapter: PlatformAdapter,
     predicate: (chat: ChatInfo) => ChatPredicateResult,
     onChatPassed: (chat: PassedChat) => void,
+    /** 소켓 모드 전용 — 이미 넘긴 채팅의 내용이 바뀜 (나중에 블라인드/해제). */
+    onChatUpdated?: (update: { key: string; clone: HTMLElement; text: string }) => void,
+    /**
+     * 소켓 모드 전용 — 사용자 템플릿 설정. 켜져 있으면 원본을 기다리지 않고 바로 그 템플릿으로
+     * 그린다. 매 채팅 다시 읽으므로 설정·템플릿 변경이 다음 채팅부터 반영된다.
+     */
+    getTemplateMode: () => { custom: boolean; templates: Partial<ChzzkTemplates> } = () => ({ custom: false, templates: {} }),
 ) {
     useEffect(() => {
         // 같은 key는 한 번만 처리 (extract/predicate/addChat).
@@ -137,7 +150,10 @@ export default function useChatStream(
                     if (r.attributeName !== 'class') continue;
                     const target = r.target as HTMLElement;
                     if (!target.getAttribute) continue;
-                    const key = target.getAttribute(CHAT_ATTR.KEY);
+                    const hostKey = target.getAttribute(CHAT_ATTR.KEY);
+                    if (!hostKey) continue;
+                    // 소켓 모드에선 색이 소켓 id(uid_time)로 저장돼 있다 — host key 앞부분.
+                    const key = processedColors.has(hostKey) ? hostKey : socketIdFromHostKey(hostKey);
                     if (!key || !processedColors.has(key)) continue;
                     if (target.classList.contains(PROCESSED_CHAT_CLASS)) continue;
                     const color = processedColors.get(key);
@@ -152,11 +168,221 @@ export default function useChatStream(
         // Phase 2: 향후 inject.ts가 발행할 메시지 listen.
         // seenKeys 체크는 processElement 내부에서 — virtual scroll로 재출현한 chat은
         // 거기서 applyHighlight만 재호출함. handleMessage에서 short-circuit하면 그 경로 dead.
+        // 소켓 모드 (chzzk 라이브) — 채팅 소켓 탭이 살아 있으면 HTML 대신 소켓 채팅을 필터하고
+        // 템플릿 렌더러로 그린다. 탭 신호가 한 번도 안 오면 socketActive가 false로 남아
+        // 아래 HTML 경로가 그대로 동작한다 (자동 fallback).
+        const socketMode = adapter.type === 'chzzk' && isSocketRenderEnabled();
+        const verifiedIconUrl = getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined;
+        let socketActive = false;
+        // 넘긴 채팅의 원본 — 나중에 블라인드 이벤트가 오면 상태만 바꿔 다시 그린다.
+        // 오래된 것부터 버린다: 블라인드는 대개 올라온 직후에 오고, Container도 maxChats로 잘린다.
+        const passedSocketChats = new Map<string, ChzzkSocketChat>();
+        const PASSED_SOCKET_CHAT_LIMIT = 3000;
+
+        const previewText = (chat: ChzzkSocketChat) =>
+            chat.status === 'NORMAL' ? toChatInfo(chat).textContents.join(' ').trim() : '';
+
+        // 표시: 필터를 통과한 소켓 채팅의 host 원본을 기다렸다가 복제한다 (원본 우선).
+        // 원본은 소켓보다 늦게 그려진다(실측 p50 ~0.4초, p95 ~1.1초, max ~2.1초) — 이건 기존
+        // HTML 경로도 똑같이 겪던 지연이다. NATIVE_WAIT_MS 안에 안 오면 일단 직접 그리고,
+        // 원본이 그 뒤에 오면 원본으로 교체한다(원본 우선). 대기를 p95 근처로 잡아 교체되는
+        // 채팅은 ~5%. 원본이 끝내 안 그려지는 경우(채팅창 접힘 등)는 직접 그린 그대로 남는다.
+        const NATIVE_WAIT_MS = 1200;
+        // 직접 그린 뒤 원본이 오면 교체해 주는 기한. 이보다 늦은 원본은 무시한다 — 한참 지난
+        // 채팅의 모양이 갑자기 바뀌는 건 교체 이득보다 어색함이 크다.
+        const LATE_NATIVE_SWAP_MS = 10000;
+        const pendingNative = new Map<string, { chat: ChzzkSocketChat; timer: ReturnType<typeof setTimeout> }>();
+        const builtAwaitingNative = new Map<string, number>();
+        // 드물게 원본이 소켓보다 먼저 온다(shadow 실측 0ms 짝). 그때를 위해 최근 원본을 잠깐 기억.
+        const recentHostHtml = new Map<string, string>();
+        const RECENT_HOST_HTML_LIMIT = 300;
+
+        function passedChatOf(chat: ChzzkSocketChat, clone: HTMLElement): PassedChat {
+            return {
+                clone,
+                key: chat.id,
+                time: chat.time,
+                // 소켓 채팅엔 host DOM 형제가 없다. buffer에 없는 key를 주면 시각 기준
+                // 위치 추정으로 들어간다 — 소켓 시각은 서버 시각이라 정확하다.
+                prevKey: '',
+                nickname: toChatInfo(chat).nickName,
+                text: previewText(chat),
+            };
+        }
+
+        /** 직접 그리기 — 사용자 템플릿이 켜져 있으면 그 템플릿, 아니면 기본 템플릿. */
+        function renderBuilt(chat: ChzzkSocketChat): HTMLElement {
+            const mode = getTemplateMode();
+            return renderChzzkChat(chat, { verifiedIconUrl, ...(mode.custom ? { templates: mode.templates } : {}) });
+        }
+
+        function emitBuilt(chat: ChzzkSocketChat) {
+            onChatPassed(passedChatOf(chat, renderBuilt(chat)));
+        }
+
+        /** host 원본 html을 복제해 넘긴다. 파싱에 실패하면 false — 호출자가 직접 그린다. */
+        function emitNative(chat: ChzzkSocketChat, html: string): boolean {
+            const tmpl = document.createElement('template');
+            tmpl.innerHTML = html;
+            const el = tmpl.content.firstElementChild as HTMLElement | null;
+            if (!el) return false;
+            adapter.prepareChatClone(el);
+            onChatPassed(passedChatOf(chat, el));
+            return true;
+        }
+
+        function resolvePending(id: string, html: string | null) {
+            const p = pendingNative.get(id);
+            if (!p) return;
+            clearTimeout(p.timer);
+            pendingNative.delete(id);
+            if (html && emitNative(p.chat, html)) return;
+            emitBuilt(p.chat);
+            builtAwaitingNative.set(id, Date.now());
+            if (builtAwaitingNative.size > RECENT_HOST_HTML_LIMIT) {
+                builtAwaitingNative.delete(builtAwaitingNative.keys().next().value!);
+            }
+        }
+
+        /** 직접 그려 넣은 채팅의 원본이 늦게 왔으면 원본으로 교체. 교체했으면 true. */
+        function swapToNative(id: string, html: string): boolean {
+            const at = builtAwaitingNative.get(id);
+            if (at === undefined) return false;
+            builtAwaitingNative.delete(id);
+            const chat = passedSocketChats.get(id);
+            // 그사이 블라인드됐으면 원본(블라인드 전 모습일 수 있음)으로 바꾸지 않는다.
+            if (!chat || chat.status !== 'NORMAL' || Date.now() - at > LATE_NATIVE_SWAP_MS) return true;
+            const tmpl = document.createElement('template');
+            tmpl.innerHTML = html;
+            const el = tmpl.content.firstElementChild as HTMLElement | null;
+            if (!el) return true;
+            adapter.prepareChatClone(el);
+            onChatUpdated?.({ key: id, clone: el, text: previewText(chat) });
+            return true;
+        }
+
+        // 다시보기: REST로 미리 받은 채팅. host가 재생에 맞춰 원본을 그리는 순간 이걸로 판정한다
+        // (받은 시점과 표시 시점 사이에 필터가 바뀔 수 있어 판정을 미룬다). 시점·모양은 원본 그대로.
+        const vodChats = new Map<string, ChzzkSocketChat>();
+        const VOD_CHAT_LIMIT = 5000;
+
+        function rememberVodChats(chats: ChzzkSocketChat[]) {
+            for (const chat of chats) {
+                vodChats.set(chat.id, chat);
+                if (vodChats.size > VOD_CHAT_LIMIT) vodChats.delete(vodChats.keys().next().value!);
+            }
+        }
+
+        function processVodChat(chat: ChzzkSocketChat, msg: TbcChatPassedMessage) {
+            if (seenKeys.has(chat.id)) {
+                // 가상 스크롤 재등장 — 판정은 이미 끝났다. highlight만 다시.
+                applyHighlight(msg.key, processedColors.get(chat.id));
+                return;
+            }
+            const info = toChatInfo(chat, verifiedIconUrl);
+            const result = predicate(info);
+            if (!result.pass) return;
+            seenKeys.add(chat.id);
+            processedColors.set(chat.id, result.markerColor);
+
+            let clone: HTMLElement | null = null;
+            if (!getTemplateMode().custom) {
+                const tmpl = document.createElement('template');
+                tmpl.innerHTML = msg.html;
+                clone = tmpl.content.firstElementChild as HTMLElement | null;
+                if (clone) adapter.prepareChatClone(clone);
+            }
+            onChatPassed({
+                clone: clone ?? renderBuilt(chat),
+                key: chat.id,
+                time: msg.time,
+                // 다시보기는 host DOM 순서를 그대로 따른다 (HTML 경로와 같다).
+                prevKey: msg.prevKey,
+                nickname: info.nickName,
+                text: previewText(chat),
+            });
+            applyHighlight(msg.key, result.markerColor);
+        }
+
+        function processSocketMessage(msg: TbcSocketChatMessage) {
+            if (msg.kind === 'vod-chats') { rememberVodChats(msg.chats); return; }
+            socketActive = true;
+            if (msg.kind === 'blind') {
+                const prev = passedSocketChats.get(msg.event.id);
+                if (!prev) return;
+                // 필터 판정은 원문 기준으로 정했으므로 다시 하지 않는다 — 표시만 바꾼다.
+                const next = applyBlindEvent(prev, msg.event);
+                passedSocketChats.set(next.id, next);
+                builtAwaitingNative.delete(next.id);
+                const pending = pendingNative.get(next.id);
+                if (pending) {
+                    // 아직 원본을 기다리는 중 — 기다리던 원본은 블라인드 전 모습일 수 있으니 바로 직접 그린다.
+                    clearTimeout(pending.timer);
+                    pendingNative.delete(next.id);
+                    emitBuilt(next);
+                    return;
+                }
+                // native로 넣었던 채팅도 블라인드되면 직접 그린 모양으로 바뀐다 (원본 복제본은 스냅샷이라).
+                onChatUpdated?.({ key: next.id, clone: renderBuilt(next), text: previewText(next) });
+                return;
+            }
+            if (msg.kind !== 'chats') return;
+            for (const chat of msg.chats) {
+                if (seenKeys.has(chat.id)) continue;
+                seenKeys.add(chat.id);
+                const info = toChatInfo(chat, verifiedIconUrl);
+                const result = predicate(info);
+                if (!result.pass) continue;
+                processedColors.set(chat.id, result.markerColor);
+                passedSocketChats.set(chat.id, chat);
+                if (passedSocketChats.size > PASSED_SOCKET_CHAT_LIMIT) {
+                    passedSocketChats.delete(passedSocketChats.keys().next().value!);
+                }
+                // 사용자 템플릿이 켜져 있으면 원본을 기다리지 않는다.
+                if (getTemplateMode().custom) { emitBuilt(chat); continue; }
+                const early = recentHostHtml.get(chat.id);
+                if (early !== undefined && emitNative(chat, early)) continue;
+                const id = chat.id;
+                pendingNative.set(id, { chat, timer: setTimeout(() => resolvePending(id, null), NATIVE_WAIT_MS) });
+            }
+        }
+
         function handleMessage(e: MessageEvent) {
             if (e.source !== window) return;
+            if (socketMode && e.data?.action === TBC_SOCKET_CHAT_ACTION) {
+                processSocketMessage(e.data as TbcSocketChatMessage);
+                return;
+            }
             const msg = e.data as TbcChatPassedMessage | undefined;
             if (msg?.action !== TBC_CHAT_PASSED_ACTION) return;
             if (!msg.key) return;
+
+            // 다시보기: REST로 받아 둔 채팅이면 그걸로 판정. 없으면(탭이 못 본 채팅) 아래 HTML 경로.
+            // 다시보기는 어차피 원본이 그려질 때 처리하므로 HTML로 대신해도 늦어지지 않는다.
+            if (msg.html.includes(CHAT_ATTR.REPLAY_CHAT)) {
+                const id = socketIdFromHostKey(msg.key);
+                const vodChat = id ? vodChats.get(id) : undefined;
+                if (vodChat) { processVodChat(vodChat, msg); return; }
+            }
+
+            // 소켓 모드가 동작 중이면 라이브 HTML 채팅은 수집하지 않는다 — 원본 채팅창
+            // highlight만 붙인다 (소켓 채팅이 host DOM보다 먼저 와서 그때는 요소가 없다).
+            if (socketActive && !msg.html.includes(CHAT_ATTR.REPLAY_CHAT)) {
+                const id = socketIdFromHostKey(msg.key);
+                if (!id) return;
+                if (pendingNative.has(id)) {
+                    resolvePending(id, msg.html);
+                } else if (swapToNative(id, msg.html)) {
+                    // 직접 그렸던 채팅을 원본으로 교체함
+                } else if (!seenKeys.has(id)) {
+                    recentHostHtml.set(id, msg.html);
+                    if (recentHostHtml.size > RECENT_HOST_HTML_LIMIT) {
+                        recentHostHtml.delete(recentHostHtml.keys().next().value!);
+                    }
+                }
+                applyHighlight(msg.key, processedColors.get(id));
+                return;
+            }
 
             // inject.ts가 보낸 outerHTML 파싱 (host DOM은 virtual window로 unmount 가능).
             const tmpl = document.createElement('template');
@@ -168,9 +394,21 @@ export default function useChatStream(
         }
 
         window.addEventListener('message', handleMessage);
+
+        // 소켓 경로 검증용 — 화면에는 영향 없이 같은 채팅을 소켓으로도 처리해 비교 로그만 남긴다.
+        const stopShadow = adapter.type === 'chzzk' && isSocketShadowEnabled()
+            ? startChzzkSocketShadow(
+                node => adapter.extract(node),
+                chat => predicate(chat),
+                verifiedIconUrl,
+            )
+            : undefined;
+
         return () => {
             window.removeEventListener('message', handleMessage);
             attrMo?.disconnect();
+            stopShadow?.();
+            pendingNative.forEach(p => clearTimeout(p.timer));
         };
     }, []);
 }

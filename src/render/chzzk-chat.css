@@ -1,0 +1,114 @@
+/* 템플릿 렌더러가 만든 채팅 (src/render/chzzk-render.ts).
+   치지직 content script와 설정 페이지(템플릿 미리보기)가 함께 쓴다.
+   치지직 class(hash)에 기대지 않는다 — 우리 class만 쓴다.
+   닉네임 색은 렌더러가 라이트/다크 두 값을 CSS 변수로 넣고, 치지직 테마(html.theme_dark)로 고른다.
+   선택자를 `.theme_dark` 조상으로 둔 건 설정 페이지 미리보기가 다크 테마를 흉내 내기 위해서.
+   글꼴·크기·색은 치지직 채팅 CSS(index-*.css의 body, _chatting_message_, _nickname_ 규칙) 실측값.
+   글꼴을 명시하는 이유: Container 안은 확장 UI(MUI)의 Roboto를 물려받아 같은 굵기도 다르게 보인다. */
+.tbc-chat {
+    padding: 4px 6px;
+    font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: left;
+    word-wrap: break-word;
+    word-break: break-all;
+    /* 설정 페이지엔 치지직 변수가 없다 — 주변 글자색으로. */
+    color: var(--sem-color-content-neutral-cool-stronger, inherit);
+}
+.tbc-chat-badge,
+.tbc-chat-verified {
+    width: 18px;
+    height: 18px;
+    margin-right: 4px;
+    vertical-align: -4px;
+}
+.tbc-chat-nick {
+    margin-left: 1px;
+    padding-right: 4px;
+    font-weight: 500;
+    color: var(--tbc-nick-light);
+}
+.theme_dark .tbc-chat-nick {
+    color: var(--tbc-nick-dark);
+}
+.tbc-chat-verified {
+    margin-left: -4px;
+}
+
+/* 2단계 구독자 닉네임 꾸미기 — 치지직 닉네임 컴포넌트와 같은 방식 (index-*.css의
+   _has_gradient_ / _has_highlight_ 규칙). 색은 nickStyle의 CSS 변수로 온다. */
+.tbc-chat-nick--gradient {
+    background-image: linear-gradient(to right, var(--tbc-nick-light), var(--tbc-nick-light-end));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+}
+.theme_dark .tbc-chat-nick--gradient {
+    background-image: linear-gradient(to right, var(--tbc-nick-dark), var(--tbc-nick-dark-end));
+}
+.tbc-chat-nick--highlight {
+    margin: -2px 2px -2px -2px;
+    padding: 2px;
+    background-color: var(--tbc-nick-light-bg);
+}
+.theme_dark .tbc-chat-nick--highlight {
+    background-color: var(--tbc-nick-dark-bg);
+}
+.tbc-chat-nick--stealth {
+    color: transparent !important;
+}
+.tbc-chat-emoji {
+    width: 24px;
+    height: 24px;
+    margin-right: 1px;
+    vertical-align: middle;
+}
+.tbcv2_chatTime_on .tbc-chat .tbcv2-chat-time {
+    display: inline;
+    opacity: 0.6;
+}
+
+/* 후원·구독: 일반 채팅과 구별되는 카드 */
+.tbc-chat--donation,
+.tbc-chat--subscription {
+    margin: 4px 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(0, 255, 163, 0.08);
+}
+.tbc-chat-amount {
+    margin-left: 2px;
+}
+.tbc-chat-tier,
+.tbc-chat-mission {
+    margin-left: 6px;
+    opacity: 0.7;
+}
+.tbc-chat-event-head + .tbc-chat-text,
+.tbc-chat-mission {
+    margin-top: 4px;
+}
+
+/* 클린봇: 기본으로 가리고 클릭하면 원문을 이탤릭으로 (펼친 뒤엔 안내 문구를 숨김) */
+.tbc-chat-cleanbot,
+.tbc-chat-cleanbot > summary {
+    display: inline;
+}
+.tbc-chat-cleanbot > summary {
+    cursor: pointer;
+    list-style: none;
+    opacity: 0.6;
+}
+.tbc-chat-cleanbot > summary::-webkit-details-marker {
+    display: none;
+}
+.tbc-chat-cleanbot[open] > summary {
+    display: none;
+}
+.tbc-chat-cleanbot > i {
+    font-style: italic;
+}
+.tbc-chat-blinded {
+    opacity: 0.6;
+}

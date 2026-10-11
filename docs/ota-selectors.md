@@ -179,6 +179,15 @@ fetch(browser.runtime.getURL('platform/bundled-selectors.json')).then(r => r.jso
 - `schemaVersion` bump 강제 → OTA 흐름 단절.
 - 새 버전 release 동반. 둘을 같은 PR로 묶고, 새 release publish 후 schemaVersion 푸시.
 
+### D. 치지직 소켓 렌더 모드가 잘못 동작함 (비상 끄기)
+치지직 라이브는 기본으로 채팅 소켓을 탭해 채팅을 직접 그린다(`src/content-scripts/chzzk/socket-mode.ts`).
+소켓 탭 신호가 아예 안 오면 HTML 경로로 자동 대체되지만, 신호는 오는데 결과가 이상하면(프로토콜 일부 변경 등) 원격으로 끈다.
+1. `bundled-selectors.prod.json`의 `platforms.chzzk.constants`에 `"socketRender": 0` 추가 + `rev` +1.
+2. 푸시 → 사용자는 다음 manifest 갱신 후 HTML 경로로 동작한다. 이 값은 ISOLATED가 읽으므로 페이지 새로고침 시점부터 적용된다.
+3. 고친 빌드를 배포한 뒤 값을 지우고(또는 `1`) `rev` +1.
+
+MAIN world의 소켓 탭 자체는 이 값과 관계없이 설치된다(listener만 붙는 수동 탭). 개별 사용자 디버그는 페이지 콘솔에서 `localStorage.setItem('tbc:socket-render', '0' | '1')`.
+
 ## 관련 파일
 
 - `src/platform/bundled-selectors.json` — 진실 원천. 번들 + OTA fetch 대상.

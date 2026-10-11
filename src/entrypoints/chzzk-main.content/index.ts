@@ -1,3 +1,6 @@
+import { installChzzkSocketTap } from '../../content-scripts/chzzk/ws-tap';
+import { installChzzkVodTap } from '../../content-scripts/chzzk/vod-tap';
+
 export default defineContentScript({
   matches: [
     "*://chzzk.naver.com/*"
@@ -7,6 +10,11 @@ export default defineContentScript({
   // spoof는 host React보다 먼저 적용돼야 하므로 document_start 필요.
   runAt: 'document_start',
   main() {
+    // 채팅 소켓 탭 — 치지직이 소켓을 열기 전이어야 하므로 맨 먼저, 동기로.
+    installChzzkSocketTap();
+    // 다시보기 채팅 REST 탭 — 같은 이유로 host 스크립트보다 먼저.
+    installChzzkVodTap();
+
     // 다른 탭/백그라운드 진입 시 chzzk가 visibilitychange를 듣고 채팅 렌더를 멈춤.
     // → 이벤트 차단 + document.hidden / visibilityState 위조로 host에게 항상 visible로 보이게.
     // (Chrome timer throttle 같은 브라우저-레벨 제약은 우회 못함. 라이브 audio 재생 중이면 throttle 면제됨.)

@@ -52,6 +52,7 @@ export default defineBackground(() => {
       displayMode: "inline",
       floatingBgColor: '',
       chzzkChatSide: "right",
+      chzzkCustomTemplate: "off",
     };
 
     const keys = Object.keys(DEFAULTS);

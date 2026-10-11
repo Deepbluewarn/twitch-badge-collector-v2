@@ -138,5 +138,52 @@
         "filter_mode": {
             "advanced": "Advenced Settings"
         }
+    },
+    "template": {
+        "title": "Chat template (Chzzk)",
+        "use_custom": "Render with template",
+        "use_custom_hint_on": "Collected chats are drawn right away with the templates below.",
+        "use_custom_hint_off": "When off, Chzzk's own chat is copied as is. The default template is used only briefly while Chzzk is slow to draw it.",
+        "kinds": {
+            "chat": "Chat",
+            "donation": "Donation",
+            "subscription": "Subscription"
+        },
+        "save": "Save",
+        "saved": "Saved",
+        "reset": "Reset to default",
+        "unsaved": "You have unsaved changes",
+        "error": "Syntax error (line {{line}}, col {{col}}): {{message}}",
+        "preview": "Preview",
+        "preview_dark": "Dark",
+        "preview_light": "Light",
+        "fields_title": "Available values",
+        "fields": {
+            "nickname": "Nickname ('익명의 후원자' for anonymous donations)",
+            "messageHtml": "Message HTML — emojis and cleanbot/blind hiding included",
+            "message": "Raw message (emojis as {:name:}, no hiding)",
+            "hasMessage": "True if there is a message",
+            "badges": "Badge list — url per item",
+            "verifiedIconUrl": "Verified mark image (verified users only)",
+            "time": "Time (e.g. 14:05)",
+            "nickStyle": "Nickname color CSS variables (incl. decoration end/background colors) — put into a style attribute",
+            "nickEffect": "Tier-2 subscriber nickname decoration: gradient / highlight / stealth / empty",
+            "nickColorLight": "Nickname color, light theme",
+            "nickColorDark": "Nickname color, dark theme",
+            "cleanbot": "True if hidden by cleanbot",
+            "blinded": "True if hidden by a moderator",
+            "anonymous": "True if anonymous",
+            "donation_amountText": "Donation amount (e.g. 10,000치즈)",
+            "donation_amount": "Donation amount as a number",
+            "donation_mission": "True for mission donations",
+            "donation_missionText": "Mission text",
+            "subscription_month": "Months subscribed",
+            "subscription_tierName": "Subscription tier name (per channel)"
+        },
+        "help_var": "Inserts the value as text",
+        "help_raw": "Message HTML. Use this so emojis and cleanbot hiding show up",
+        "help_section": "Renders when the value is set (once per item for lists)",
+        "help_inverted": "Renders only when the value is not set",
+        "help_safety": "Scripts and event attributes (onclick, …) are removed."
     }
 }

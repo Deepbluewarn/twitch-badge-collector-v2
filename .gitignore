@@ -35,3 +35,8 @@ canary-autofix.json
 
 # Claude Code 로컬 설정 (권한 allowlist 등) — 개인 환경 경로 포함
 .claude/
+
+# 채팅 소켓 원본 수집 (scripts/capture) — 실제 시청자 닉네임/해시 포함, 커밋 금지
+captures/
+# socket canary가 오류 때 만드는 알림 파일 (workflow 안에서만 소비)
+canary-socket-alert.json

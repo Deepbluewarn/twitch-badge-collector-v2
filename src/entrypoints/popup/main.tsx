@@ -387,6 +387,17 @@ function PopupSetting() {
         </SettingRow>
       )}
 
+      {/* 고급: 채팅 템플릿 (치지직). 기본값만으로 충분한 기능이라 첫 화면엔 두지 않고
+          하단 caption 크기로만 노출한다 — 찾는 사람만 찾게. */}
+      <Button
+        size='small'
+        variant='text'
+        onClick={() => browser.tabs.create({ url: browser.runtime.getURL('/setting.html?initialPath=template') })}
+        sx={{ alignSelf: 'flex-start', minWidth: 0, px: 0.75, py: 0, mt: 0.5, fontSize: '0.65rem', lineHeight: 1.4, color: 'text.secondary', textTransform: 'none' }}
+      >
+        {browser.i18n.getMessage('templateSettingAdvanced' as any)}
+      </Button>
+
       {/* OTA selector 버전 + 진단 — 하단 caption row. 문제 보고 시 참고용. */}
       <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={1} sx={{ mt: 0.5 }}>
         <Typography

@@ -163,5 +163,8 @@
   },
   "chatSideRight" : {
     "message": "오른쪽"
+  },
+  "templateSettingAdvanced" : {
+    "message": "고급 · 채팅 템플릿 (치지직) →"
   }
 }
