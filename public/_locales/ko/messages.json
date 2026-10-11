@@ -164,9 +164,6 @@
   "chatSideRight" : {
     "message": "오른쪽"
   },
-  "templateSettingAdvanced" : {
-    "message": "고급 · 채팅 템플릿 (치지직) →"
-  },
   "chzzkChatRender" : {
     "message": "모아보기 채팅 모양 (치지직)"
   },

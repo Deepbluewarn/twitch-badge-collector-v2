@@ -164,9 +164,6 @@
   "chatSideRight" : {
     "message": "Справа"
   },
-  "templateSettingAdvanced" : {
-    "message": "Дополнительно · Шаблон чата (Chzzk) →"
-  },
   "chzzkChatRender" : {
     "message": "Вид собранного чата (Chzzk)"
   },

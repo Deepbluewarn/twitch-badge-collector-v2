@@ -164,9 +164,6 @@
   "chatSideRight" : {
     "message": "Right"
   },
-  "templateSettingAdvanced" : {
-    "message": "Advanced · Chat template (Chzzk) →"
-  },
   "chzzkChatRender" : {
     "message": "Collected chat look (Chzzk)"
   },
