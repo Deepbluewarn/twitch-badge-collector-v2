@@ -23,6 +23,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide, setChzzkCustomTemplate } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
+import ChatRenderSettingPrototype from "./prototype-chat-render-setting";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -314,9 +315,12 @@ function PopupSetting() {
         </ToggleButtonGroup>
       </SettingRow>
 
+      {/* PROTOTYPE: dev 빌드에선 "채팅 표시 방식" 자리에 설명 시안을 띄운다 (prototype/chat-render-setting 브랜치 전용). */}
+      {import.meta.env.DEV && <ChatRenderSettingPrototype />}
+
       {/* 채팅 표시 방식 — 치지직 전용. 원본 복제(치지직과 같은 모양) / 템플릿(더 빠르고 깜빡임 없음).
           템플릿 편집 자체는 하단 "고급" 링크에 둔다 — 고르는 건 누구나, 고치는 건 고급 사용자. */}
-      <SettingRow label={t('chzzkChatRender')} hint={t('chzzkChatRenderHint')}>
+      {!import.meta.env.DEV && <SettingRow label={t('chzzkChatRender')} hint={t('chzzkChatRenderHint')}>
         <ToggleButtonGroup
           value={globalSetting.chzzkCustomTemplate === 'on' ? 'on' : 'off'}
           exclusive
@@ -329,7 +333,7 @@ function PopupSetting() {
           <ToggleButton value='off'>{t('chatRenderNative')}</ToggleButton>
           <ToggleButton value='on'>{t('chatRenderTemplate')}</ToggleButton>
         </ToggleButtonGroup>
-      </SettingRow>
+      </SettingRow>}
 
       {/* 채팅 최대 개수 */}
       <SettingRow
