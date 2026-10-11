@@ -91,6 +91,22 @@ describe('toChzzkChatView', () => {
         expect(v.nickStyle).toBe('');
     });
 
+    it('구독권 선물 — 채널 선물 (실측 모양: 보낸 사람 프로필 + quantity)', () => {
+        const v = toChzzkChatView(chat({
+            type: 12, message: '',
+            extras: { giftType: 'SUBSCRIPTION_GIFT', quantity: 5, giftTierName: '무웅이', giftTierNo: 1, completedQuantity: 5, selectionType: 'RANDOM' },
+        }));
+        expect(v).toMatchObject({ kind: 'gift', isGift: true, nickname: '시청자', gift: { toChannel: true, quantity: 5, tierName: '무웅이' } });
+    });
+
+    it('구독권 선물 — 받은 사람 알림 (실측 모양: 보낸 사람 익명 + receiverNickname)', () => {
+        const v = toChzzkChatView(chat({
+            type: 12, uid: 'anonymous', anonymous: true, nickname: '', message: '',
+            extras: { giftType: 'SUBSCRIPTION_GIFT_RECEIVER', receiverNickname: '아리사', giftTierName: '무웅이', receiverVerifiedMark: false },
+        }));
+        expect(v.gift).toEqual({ toChannel: false, quantity: 0, tierName: '무웅이', receiverNickname: '아리사' });
+    });
+
     it('인증 마크 URL은 인증 사용자에게만', () => {
         expect(toChzzkChatView(chat(), { verifiedIconUrl: 'v.png' }).verifiedIconUrl).toBeUndefined();
         expect(toChzzkChatView(chat({ verified: true }), { verifiedIconUrl: 'v.png' }).verifiedIconUrl).toBe('v.png');
@@ -127,6 +143,21 @@ describe('renderChzzkChat', () => {
         const el = renderChzzkChat(chat({ nicknameColorCode: 'SH004' }));
         expect(el.querySelector('.tbc-chat-nick')!.classList.contains('tbc-chat-nick--highlight')).toBe(true);
         expect(el.querySelector('.tbc-chat-nick')!.getAttribute('style')).toContain('--tbc-nick-dark-bg:');
+    });
+
+    it('선물 템플릿: 채널 선물은 보낸 사람 줄, 받은 사람 알림은 받는 사람이 주어', () => {
+        const channel = renderChzzkChat(chat({ type: 12, message: '', extras: { giftType: 'SUBSCRIPTION_GIFT', quantity: 3, giftTierName: '팬' } }));
+        expect(channel.className).toBe('tbc-chat tbc-chat--gift');
+        expect(channel.querySelector('.tbc-chat-nick')!.textContent).toBe('시청자');
+        expect(channel.querySelector('.tbc-chat-amount')!.textContent).toBe('팬 구독권 3개 선물');
+
+        const receiver = renderChzzkChat(chat({
+            type: 12, uid: 'anonymous', anonymous: true, nickname: '', message: '',
+            extras: { giftType: 'SUBSCRIPTION_GIFT_RECEIVER', receiverNickname: '아리사', giftTierName: '무웅이' },
+        }), { formatTime: () => '14:07' });
+        expect(receiver.querySelector('.tbc-chat-nick')).toBeNull();
+        expect(receiver.querySelector('.tbc-chat-gift-receiver')!.textContent).toBe('아리사');
+        expect(receiver.textContent).toContain('님에게 무웅이 구독권 선물');
     });
 
     it('클린봇 채팅은 루트에 표시 클래스', () => {
@@ -175,7 +206,7 @@ describe('renderChzzkChat', () => {
     });
 
     it('기본 템플릿 3종은 모두 문법이 맞다', () => {
-        for (const type of [1, 10, 11]) {
+        for (const type of [1, 10, 11, 12]) {
             expect(() => renderChzzkChat(chat({ type, extras: { payAmount: 1, month: 1 } }), { templates: DEFAULT_CHZZK_TEMPLATES })).not.toThrow();
         }
     });

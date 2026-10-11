@@ -166,5 +166,17 @@
   },
   "templateSettingAdvanced" : {
     "message": "Дополнительно · Шаблон чата (Chzzk) →"
+  },
+  "chzzkChatRender" : {
+    "message": "Стиль чата (Chzzk)"
+  },
+  "chzzkChatRenderHint" : {
+    "message": "Оригинал: как в Chzzk · Шаблон: быстрее, без мерцания"
+  },
+  "chatRenderNative" : {
+    "message": "Оригинал"
+  },
+  "chatRenderTemplate" : {
+    "message": "Шаблон"
   }
 }

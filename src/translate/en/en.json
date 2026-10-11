@@ -142,12 +142,13 @@
     "template": {
         "title": "Chat template (Chzzk)",
         "use_custom": "Render with template",
-        "use_custom_hint_on": "Collected chats are drawn right away with the templates below.",
-        "use_custom_hint_off": "When off, Chzzk's own chat is copied as is. The default template is used only briefly while Chzzk is slow to draw it.",
+        "use_custom_hint_on": "Collected chats are drawn right away with the templates below — before Chzzk's chat shows them, with no flicker. (Same as 'Chat style' in general settings)",
+        "use_custom_hint_off": "Chzzk's own chat is copied as is. Chats appear after Chzzk draws them, and may briefly show a different look before switching to the original when Chzzk is slow. (Same as 'Chat style' in general settings)",
         "kinds": {
             "chat": "Chat",
             "donation": "Donation",
-            "subscription": "Subscription"
+            "subscription": "Subscription",
+            "gift": "Gift"
         },
         "save": "Save",
         "saved": "Saved",
@@ -178,7 +179,11 @@
             "donation_mission": "True for mission donations",
             "donation_missionText": "Mission text",
             "subscription_month": "Months subscribed",
-            "subscription_tierName": "Subscription tier name (per channel)"
+            "subscription_tierName": "Subscription tier name (per channel)",
+            "gift_toChannel": "True for a channel gift (has a sender), false for a per-receiver notice (sender anonymous)",
+            "gift_quantity": "Number of gifted subscriptions (channel gift)",
+            "gift_tierName": "Gifted tier name (per channel)",
+            "gift_receiverNickname": "Receiver nickname (per-receiver notice)"
         },
         "help_var": "Inserts the value as text",
         "help_raw": "Message HTML. Use this so emojis and cleanbot hiding show up",

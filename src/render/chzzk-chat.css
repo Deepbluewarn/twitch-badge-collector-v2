@@ -71,7 +71,8 @@
 
 /* 후원·구독: 일반 채팅과 구별되는 카드 */
 .tbc-chat--donation,
-.tbc-chat--subscription {
+.tbc-chat--subscription,
+.tbc-chat--gift {
     margin: 4px 0;
     padding: 8px 10px;
     border-radius: 8px;

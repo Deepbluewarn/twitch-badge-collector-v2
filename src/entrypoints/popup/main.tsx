@@ -21,7 +21,7 @@ import DeleteSweepOutlinedIcon from "@mui/icons-material/DeleteSweepOutlined";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
-import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide } from "@/reducer/setting";
+import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide, setChzzkCustomTemplate } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
 
 const PopupGlobalStyle = (
@@ -311,6 +311,23 @@ function PopupSetting() {
         >
           <ToggleButton value='left'>{t('chatSideLeft')}</ToggleButton>
           <ToggleButton value='right'>{t('chatSideRight')}</ToggleButton>
+        </ToggleButtonGroup>
+      </SettingRow>
+
+      {/* 채팅 표시 방식 — 치지직 전용. 원본 복제(치지직과 같은 모양) / 템플릿(더 빠르고 깜빡임 없음).
+          템플릿 편집 자체는 하단 "고급" 링크에 둔다 — 고르는 건 누구나, 고치는 건 고급 사용자. */}
+      <SettingRow label={t('chzzkChatRender')} hint={t('chzzkChatRenderHint')}>
+        <ToggleButtonGroup
+          value={globalSetting.chzzkCustomTemplate === 'on' ? 'on' : 'off'}
+          exclusive
+          size='small'
+          onChange={(_e, v: SettingInterface['chzzkCustomTemplate'] | null) => {
+            if (v) dispatchGlobalSetting(setChzzkCustomTemplate(v));
+          }}
+          sx={{ '& .MuiToggleButton-root': { px: 1.5, py: 0.25, textTransform: 'none' } }}
+        >
+          <ToggleButton value='off'>{t('chatRenderNative')}</ToggleButton>
+          <ToggleButton value='on'>{t('chatRenderTemplate')}</ToggleButton>
         </ToggleButtonGroup>
       </SettingRow>
 

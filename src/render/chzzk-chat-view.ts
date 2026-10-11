@@ -9,7 +9,7 @@ import { msToTime } from "@/utils/utils-common";
  * DOM을 쓰지 않는 순수 모듈.
  */
 
-export type ChzzkChatKind = 'chat' | 'donation' | 'subscription';
+export type ChzzkChatKind = 'chat' | 'donation' | 'subscription' | 'gift';
 
 export interface ChzzkChatView {
     kind: ChzzkChatKind;
@@ -48,8 +48,16 @@ export interface ChzzkChatView {
     isChat: boolean;
     isDonation: boolean;
     isSubscription: boolean;
+    isGift: boolean;
     donation?: { amount: number; amountText: string; mission: boolean; missionText?: string };
     subscription?: { month: number; tierName: string };
+    /**
+     * 구독권 선물 (type 12). 실측(2026-10-11)상 두 갈래로 온다:
+     *  - 채널 선물(toChannel): 보낸 사람 프로필 + quantity
+     *  - 받은 사람 알림: 받는 사람마다 한 건씩, 보낸 사람은 익명(프로필 없음) + receiverNickname
+     * tierName은 채널의 구독 등급 이름("○○이 구독권"의 ○○).
+     */
+    gift?: { toChannel: boolean; quantity: number; tierName: string; receiverNickname: string };
 }
 
 /** 뷰 모델 안의 날 HTML 필드 — compileTemplate의 rawAllowed. */
@@ -103,6 +111,7 @@ function nickStyleOf(c: NicknameColor): string {
 function kindOf(type: number): ChzzkChatKind {
     if (type === CHZZK_MSG_TYPE.DONATION) return 'donation';
     if (type === CHZZK_MSG_TYPE.SUBSCRIPTION) return 'subscription';
+    if (type === CHZZK_MSG_TYPE.SUBSCRIPTION_GIFT) return 'gift';
     return 'chat';
 }
 
@@ -147,6 +156,7 @@ export function toChzzkChatView(chat: ChzzkSocketChat, opts: ChzzkViewOptions = 
         isChat: kind === 'chat',
         isDonation: kind === 'donation',
         isSubscription: kind === 'subscription',
+        isGift: kind === 'gift',
         ...(kind === 'donation' ? {
             donation: {
                 amount,
@@ -157,6 +167,14 @@ export function toChzzkChatView(chat: ChzzkSocketChat, opts: ChzzkViewOptions = 
         } : {}),
         ...(kind === 'subscription' ? {
             subscription: { month: Number(x.month) || 0, tierName: typeof x.tierName === 'string' ? x.tierName : '' },
+        } : {}),
+        ...(kind === 'gift' ? {
+            gift: {
+                toChannel: x.giftType === 'SUBSCRIPTION_GIFT',
+                quantity: Number(x.quantity) || 0,
+                tierName: typeof x.giftTierName === 'string' ? x.giftTierName : '',
+                receiverNickname: typeof x.receiverNickname === 'string' ? x.receiverNickname : '',
+            },
         } : {}),
     };
 }

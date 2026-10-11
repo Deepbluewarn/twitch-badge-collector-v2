@@ -52,7 +52,7 @@ HTML(selector) 대신 채팅 소켓으로 채팅을 수집하는 경로(`src/pla
 VOD REST: `GET api.chzzk.naver.com/service/v1/videos/{videoNo}/chats?playerMessageTime={ms}&previousVideoChatSize=50`
 → `{nextPlayerMessageTime, previousVideoChats[], videoChats[]}`. 한 번에 약 45초 분량을 미리 준다.
 치지직 웹은 axios(XHR)로 호출하고, 버퍼에 쌓았다가 재생 위치(`playerMessageTime`)가 지난 채팅부터 틱마다 대기열의 1/5씩 그린다(번들 `a$.updatePlayerCurrentTime`). 다시보기 host key는 `${userIdHash}_${messageTime}`(랜덤 꼬리 없음).
-구현: `vod-tap.ts`가 응답을 엿보고(`parseVodChatResponse`), useChatStream이 원본이 그려질 때 판정·복제한다.
+구현: `rest-tap.ts`가 응답을 엿보고(`parseVodChatResponse`), useChatStream이 원본이 그려질 때 판정·복제한다.
 
 ## msgTypeCode (번들 enum `Bg`)
 
@@ -65,7 +65,8 @@ VOD REST: `GET api.chzzk.naver.com/service/v1/videos/{videoNo}/chats?playerMessa
 | 10 | 109 | 93건(85%)이 익명 — `uid:'anonymous'`, `profile:null`, `extras.isAnonymous:true` |
 | 11 | 11 | |
 | 30 | 10 | 임시 제한 알림. `extras.visibleRoles`에 해당하는 역할(매니저 등)에게만 표시 → **수집 제외** |
-| 12, 13, 15 | 0 | **미확인** (이번 수집에 없음) |
+| 12 | (2026-10-11 별도 확인 11건) | 구독권 선물 — 아래 참고 |
+| 13, 15 | 0 | **미확인** (수집에 없음) |
 
 ## msgStatusType (번들 enum `Oy`: NORMAL / BLIND / CBOTBLIND)
 
@@ -102,6 +103,12 @@ VOD REST: `GET api.chzzk.naver.com/service/v1/videos/{videoNo}/chats?playerMessa
 **type 10 후원**: `payAmount`, `payType`(CURRENCY), `donationType`(CHAT 108 / MISSION 1), `isAnonymous`, `continuousDonationDays`, `weeklyRankList[]`, `donationUserWeeklyRank`, `emojis`. 미션 후원이면 추가로 `missionText`, `missionDonationType`, `durationTime`, `totalPayAmount`, `success`, `status`가 붙는다.
 
 **type 11 구독**: `month`, `tierNo`, `tierName`(채널별 이름), `nickname`.
+
+**type 12 구독권 선물** (2026-10-11, 15채널 8분, 필드 모양만 확인 — 값은 기록하지 않음): 두 갈래로 온다.
+- 채널 선물 `giftType: SUBSCRIPTION_GIFT` (1건): 보낸 사람 profile 있음. `quantity`, `completedQuantity`, `partialRefundedQuantity`, `giftTierName`, `giftTierNo`, `senderTierNo`, `selectionType`, `giftId`, `userIdHash`.
+- 받은 사람 알림 `giftType: SUBSCRIPTION_GIFT_RECEIVER` (10건): 받는 사람마다 한 건씩. 보낸 사람은 익명(`uid: anonymous`, profile null). `receiverNickname`, `receiverUserIdHash`, `receiverVerifiedMark`, `giftTierName`, `giftTierNo`, `selectionType`, `giftId`.
+- 본문(`msg`)은 비어 있다. host가 extras로 "○○님에게 [등급 이름] 구독권을 선물하였습니다." 같은 문구를 만든다. `giftTierName`은 채널의 구독 등급 이름이다(보낸 사람 이름이 아님).
+- 렌더러: 메시지 종류 `gift`, 템플릿 값 `gift.{toChannel,quantity,tierName,receiverNickname}`. 키워드 판정은 시청자 메시지 기준이라 host 문구는 쓰지 않는다(구독과 같은 원칙).
 
 **type 30 시스템**: `styleType`(3), `visibleRoles[]`, `description`, `params.{registerNickname,targetNickname,…}`.
 
@@ -148,6 +155,13 @@ host(`notiBlindListener`) 처리: `CANCEL`이면 이벤트에 같이 온 `messag
 > 정정 (2026-10-11): 처음엔 v1(`/service/v1/nickname/color/codes`)을 보고 "SG/SH는 공개 표에 없다", "host가 `lightRgbValue`를 읽어 라이트 CC 색이 빈다(v1은 `whiteRgbValue`)"고 적었는데 틀렸다. host는 v2(axios 인스턴스 `To` = LIVE_SERVICE v2)를 쓰고, v2에는 `lightRgbValue`와 꾸미기 정보가 모두 있다.
 
 구현: `resolveNicknameColor()` (`src/platform/chzzk-socket.ts`), 표는 `src/platform/chzzk-nickname-colors.json` (v2 API + 번들 `b_`/`x_` 추출본). 템플릿 값 `nickEffect`·`nickStyle`, CSS `src/render/chzzk-chat.css`.
+
+## host가 일부러 그리지 않는 채팅 (번들 messageFilter)
+
+- 로그인 시청자가 **차단한 사용자**의 채팅 — 권한(매니저 등)이 없을 때. 차단 목록은 `privateUserBlocks/allUserIdHash` GET(채팅 연결 시 1회, 차단 직후 0.5초 뒤 재조회).
+- SYSTEM(30) 중 `visibleRoles`에 해당하지 않는 것.
+- 라이브 렌더 속도: host는 받은 채팅을 대기열에 넣고 **200ms마다 대기열의 1/5씩(최소 1개)** 화면에 붙인다(`notiUpdateMessageList`, lodash throttle trailing). 채팅이 많을수록 대기열이 길어져 지연이 1초 안팎까지, 폭주 때는 그 이상 늘어난다.
+- 대응: 차단 사용자는 "원본이 안 오면 직접 그리기"를 하지 않는다(2026-10-11). 예전엔 1.2초 뒤 직접 그려서 차단한 사람의 채팅이 모아보기에 보였다.
 
 ## host DOM과의 연결
 

@@ -75,6 +75,22 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
             }),
         },
     ],
+    gift: [
+        {
+            label: '채널에 구독권 선물',
+            chat: sample({
+                uid: 'sample-h', type: 12, nickname: '선물왕', message: '', badges: [`${G}/icon/12m.png`],
+                extras: { giftType: 'SUBSCRIPTION_GIFT', quantity: 5, giftTierName: '팬', giftTierNo: 1 },
+            }),
+        },
+        {
+            label: '받은 사람 알림 (보낸 사람 익명)',
+            chat: sample({
+                uid: 'anonymous', type: 12, anonymous: true, nickname: '', message: '',
+                extras: { giftType: 'SUBSCRIPTION_GIFT_RECEIVER', receiverNickname: '운좋은시청자', giftTierName: '팬', giftTierNo: 1 },
+            }),
+        },
+    ],
     subscription: [
         {
             label: '구독',
@@ -109,4 +125,8 @@ export const TEMPLATE_FIELDS: { name: string; kinds?: ChzzkChatKind[] }[] = [
     { name: 'donation.missionText', kinds: ['donation'] },
     { name: 'subscription.month', kinds: ['subscription'] },
     { name: 'subscription.tierName', kinds: ['subscription'] },
+    { name: 'gift.toChannel', kinds: ['gift'] },
+    { name: 'gift.quantity', kinds: ['gift'] },
+    { name: 'gift.tierName', kinds: ['gift'] },
+    { name: 'gift.receiverNickname', kinds: ['gift'] },
 ];

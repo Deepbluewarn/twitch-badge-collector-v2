@@ -55,6 +55,20 @@ ${indent(HEAD)}
     <div class="tbc-chat-text">{{{messageHtml}}}</div>
 {{/hasMessage}}
 `,
+    // 채널 선물은 보낸 사람 줄, 받은 사람 알림은 보낸 사람이 익명이라 받는 사람을 주어로.
+    gift: `{{#gift.toChannel}}
+    <div class="tbc-chat-event-head">
+${indent(indent(HEAD))}
+        <strong class="tbc-chat-amount">{{gift.tierName}} 구독권 {{gift.quantity}}개 선물</strong>
+    </div>
+{{/gift.toChannel}}
+{{^gift.toChannel}}
+    <div class="tbc-chat-event-head">
+        <span class="tbcv2-chat-time">{{time}}</span>
+        <strong class="tbc-chat-gift-receiver">{{gift.receiverNickname}}</strong>님에게 {{gift.tierName}} 구독권 선물
+    </div>
+{{/gift.toChannel}}
+`,
 };
 
 const cache = new Map<string, CompiledTemplate>();

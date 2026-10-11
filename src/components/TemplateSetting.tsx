@@ -37,7 +37,7 @@ function usageOf(name: string): string {
     if (name === 'nickStyle') return 'style="{{nickStyle}}"';
     if (name === 'nickEffect') return 'class="tbc-chat-nick--{{nickEffect}}"';
     if (name === 'badges') return '{{#badges}}<img src="{{url}}">{{/badges}}';
-    if (['hasMessage', 'cleanbot', 'blinded', 'anonymous', 'donation.mission', 'verifiedIconUrl'].includes(name)) {
+    if (['hasMessage', 'cleanbot', 'blinded', 'anonymous', 'donation.mission', 'verifiedIconUrl', 'gift.toChannel'].includes(name)) {
         return `{{#${name}}}…{{/${name}}}`;
     }
     return `{{${name}}}`;

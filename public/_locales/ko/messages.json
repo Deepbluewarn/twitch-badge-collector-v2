@@ -166,5 +166,17 @@
   },
   "templateSettingAdvanced" : {
     "message": "고급 · 채팅 템플릿 (치지직) →"
+  },
+  "chzzkChatRender" : {
+    "message": "채팅 표시 방식 (치지직)"
+  },
+  "chzzkChatRenderHint" : {
+    "message": "원본: 치지직 채팅 그대로 · 템플릿: 더 빠르고 깜빡임 없음"
+  },
+  "chatRenderNative" : {
+    "message": "원본"
+  },
+  "chatRenderTemplate" : {
+    "message": "템플릿"
   }
 }

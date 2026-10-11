@@ -10,7 +10,7 @@ import type { ChzzkTemplates } from "./chzzk-render";
  */
 
 export const TEMPLATE_STORAGE_KEY = 'chzzkTemplates';
-export const TEMPLATE_KINDS = ['chat', 'donation', 'subscription'] as const;
+export const TEMPLATE_KINDS = ['chat', 'donation', 'subscription', 'gift'] as const;
 /** 템플릿 하나의 최대 길이. 채팅마다 렌더하므로 비정상적으로 큰 값은 받지 않는다. */
 export const TEMPLATE_MAX_LENGTH = 20000;
 
