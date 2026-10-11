@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { installChzzkVodTap } from './vod-tap';
+import { installChzzkRestTap } from './rest-tap';
 import { TBC_SOCKET_CHAT_ACTION } from '@/interfaces/chat-attributes';
 
 const URL_VOD = 'https://api.chzzk.naver.com/service/v1/videos/123/chats?playerMessageTime=0&previousVideoChatSize=50';
@@ -32,11 +32,11 @@ type FakeXHR = InstanceType<ReturnType<typeof makeXHR>>;
 function setup(fetchImpl?: typeof fetch) {
     const target = { XMLHttpRequest: makeXHR() as unknown as typeof XMLHttpRequest, fetch: fetchImpl };
     const post = vi.fn();
-    installChzzkVodTap(target, post);
+    installChzzkRestTap(target, post);
     return { target, post };
 }
 
-describe('installChzzkVodTap — XHR', () => {
+describe('installChzzkRestTap — 다시보기 채팅 (XHR)', () => {
     it('다시보기 채팅 응답을 정규화해서 post', () => {
         const { target, post } = setup();
         const xhr = new target.XMLHttpRequest() as unknown as FakeXHR;
@@ -83,7 +83,7 @@ describe('installChzzkVodTap — XHR', () => {
 
     it('post가 throw해도 host의 load listener는 계속 받는다', () => {
         const target = { XMLHttpRequest: makeXHR() as unknown as typeof XMLHttpRequest };
-        installChzzkVodTap(target, () => { throw new Error('boom'); });
+        installChzzkRestTap(target, () => { throw new Error('boom'); });
         const xhr = new target.XMLHttpRequest() as unknown as FakeXHR;
         xhr.open('GET', URL_VOD);
         const host = vi.fn();
@@ -93,7 +93,7 @@ describe('installChzzkVodTap — XHR', () => {
     });
 });
 
-describe('installChzzkVodTap — fetch', () => {
+describe('installChzzkRestTap — fetch', () => {
     it('다시보기 채팅 응답을 읽고, host에는 원래 응답을 그대로 준다', async () => {
         const res = new Response(JSON.stringify(body), { status: 200 });
         const orig = vi.fn(async () => res);
@@ -116,6 +116,41 @@ describe('installChzzkVodTap — fetch', () => {
 it('두 번 설치해도 한 번만 감싼다', () => {
     const target = { XMLHttpRequest: makeXHR() as unknown as typeof XMLHttpRequest };
     const post = vi.fn();
-    expect(installChzzkVodTap(target, post)).toBe(true);
-    expect(installChzzkVodTap(target, post)).toBe(false);
+    expect(installChzzkRestTap(target, post)).toBe(true);
+    expect(installChzzkRestTap(target, post)).toBe(false);
+});
+
+describe('installChzzkRestTap — 차단 목록', () => {
+    const URL_BLOCK = 'https://comm-api.game.naver.com/nng_main/v1/privateUserBlocks/allUserIdHash';
+
+    it('차단 목록 응답을 block-list로 post (XHR)', () => {
+        const { target, post } = setup();
+        const xhr = new target.XMLHttpRequest() as unknown as FakeXHR;
+        xhr.open('GET', URL_BLOCK);
+        xhr.finish(200, JSON.stringify({ code: 200, content: ['u1', 'u2'] }));
+        expect(post).toHaveBeenCalledWith({ action: TBC_SOCKET_CHAT_ACTION, kind: 'block-list', uids: ['u1', 'u2'] });
+    });
+
+    it('빈 목록도 post한다 (차단 해제 반영)', () => {
+        const { target, post } = setup();
+        const xhr = new target.XMLHttpRequest() as unknown as FakeXHR;
+        xhr.open('GET', URL_BLOCK);
+        xhr.finish(200, JSON.stringify({ code: 200, content: [] }));
+        expect(post).toHaveBeenCalledWith({ action: TBC_SOCKET_CHAT_ACTION, kind: 'block-list', uids: [] });
+    });
+
+    it('차단·해제 요청(POST/DELETE 주소)은 보지 않는다', () => {
+        const { target, post } = setup();
+        const xhr = new target.XMLHttpRequest() as unknown as FakeXHR;
+        xhr.open('POST', 'https://comm-api.game.naver.com/nng_main/v1/privateUserBlocks/u1?loungeId=');
+        xhr.finish(200, JSON.stringify({ code: 200, content: null }));
+        expect(post).not.toHaveBeenCalled();
+    });
+
+    it('fetch로 받아도 같다', async () => {
+        const orig = vi.fn(async () => new Response(JSON.stringify({ content: ['u9'] }), { status: 200 }));
+        const { target, post } = setup(orig as unknown as typeof fetch);
+        await target.fetch!(URL_BLOCK);
+        await vi.waitFor(() => expect(post).toHaveBeenCalledWith({ action: TBC_SOCKET_CHAT_ACTION, kind: 'block-list', uids: ['u9'] }));
+    });
 });

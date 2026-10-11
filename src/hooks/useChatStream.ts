@@ -191,7 +191,12 @@ export default function useChatStream(
         // 직접 그린 뒤 원본이 오면 교체해 주는 기한. 이보다 늦은 원본은 무시한다 — 한참 지난
         // 채팅의 모양이 갑자기 바뀌는 건 교체 이득보다 어색함이 크다.
         const LATE_NATIVE_SWAP_MS = 10000;
-        const pendingNative = new Map<string, { chat: ChzzkSocketChat; timer: ReturnType<typeof setTimeout> }>();
+        const pendingNative = new Map<string, { chat: ChzzkSocketChat; blocked: boolean; timer: ReturnType<typeof setTimeout> }>();
+        // 로그인 시청자의 차단 목록(REST 탭). host는 권한 없는 시청자에게 차단한 사용자의 채팅을
+        // 그리지 않는다. 우리가 "원본이 안 오니 직접 그리기"를 하면 차단한 사람의 채팅이 모아보기에
+        // 나타나므로, 차단한 사용자는 원본이 올 때만 넣는다. 매니저·스트리머처럼 host가 그래도
+        // 보여주는 경우엔 원본이 오니 권한을 따로 알 필요가 없다.
+        let blockedUids = new Set<string>();
         const builtAwaitingNative = new Map<string, number>();
         // 드물게 원본이 소켓보다 먼저 온다(shadow 실측 0ms 짝). 그때를 위해 최근 원본을 잠깐 기억.
         const recentHostHtml = new Map<string, string>();
@@ -231,17 +236,30 @@ export default function useChatStream(
             return true;
         }
 
+        /**
+         * 원본을 기다리던 채팅의 결말. html이 있으면 host가 그린 것, 없으면 기다리다 끝난 것.
+         */
+        function settle(chat: ChzzkSocketChat, blocked: boolean, html: string | null) {
+            if (html) {
+                // 사용자 템플릿이 켜진 상태에서 기다린 건 차단 사용자뿐 — host가 그렸으니 템플릿으로 넣는다.
+                if (getTemplateMode().custom) { emitBuilt(chat); return; }
+                if (emitNative(chat, html)) return;
+            }
+            // 차단한 사용자는 host가 안 그리면 우리도 안 넣는다.
+            if (blocked) return;
+            emitBuilt(chat);
+            builtAwaitingNative.set(chat.id, Date.now());
+            if (builtAwaitingNative.size > RECENT_HOST_HTML_LIMIT) {
+                builtAwaitingNative.delete(builtAwaitingNative.keys().next().value!);
+            }
+        }
+
         function resolvePending(id: string, html: string | null) {
             const p = pendingNative.get(id);
             if (!p) return;
             clearTimeout(p.timer);
             pendingNative.delete(id);
-            if (html && emitNative(p.chat, html)) return;
-            emitBuilt(p.chat);
-            builtAwaitingNative.set(id, Date.now());
-            if (builtAwaitingNative.size > RECENT_HOST_HTML_LIMIT) {
-                builtAwaitingNative.delete(builtAwaitingNative.keys().next().value!);
-            }
+            settle(p.chat, p.blocked, html);
         }
 
         /** 직접 그려 넣은 채팅의 원본이 늦게 왔으면 원본으로 교체. 교체했으면 true. */
@@ -306,6 +324,7 @@ export default function useChatStream(
 
         function processSocketMessage(msg: TbcSocketChatMessage) {
             if (msg.kind === 'vod-chats') { rememberVodChats(msg.chats); return; }
+            if (msg.kind === 'block-list') { blockedUids = new Set(msg.uids); return; }
             socketActive = true;
             if (msg.kind === 'blind') {
                 const prev = passedSocketChats.get(msg.event.id);
@@ -315,6 +334,11 @@ export default function useChatStream(
                 passedSocketChats.set(next.id, next);
                 builtAwaitingNative.delete(next.id);
                 const pending = pendingNative.get(next.id);
+                if (pending?.blocked) {
+                    // 차단 사용자는 host가 그릴지(권한) 아직 모른다 — 계속 기다리되 상태만 갱신.
+                    pending.chat = next;
+                    return;
+                }
                 if (pending) {
                     // 아직 원본을 기다리는 중 — 기다리던 원본은 블라인드 전 모습일 수 있으니 바로 직접 그린다.
                     clearTimeout(pending.timer);
@@ -338,12 +362,18 @@ export default function useChatStream(
                 if (passedSocketChats.size > PASSED_SOCKET_CHAT_LIMIT) {
                     passedSocketChats.delete(passedSocketChats.keys().next().value!);
                 }
-                // 사용자 템플릿이 켜져 있으면 원본을 기다리지 않는다.
-                if (getTemplateMode().custom) { emitBuilt(chat); continue; }
-                const early = recentHostHtml.get(chat.id);
-                if (early !== undefined && emitNative(chat, early)) continue;
+                const blocked = blockedUids.has(chat.uid);
+                // 사용자 템플릿이 켜져 있으면 원본을 기다리지 않는다 (차단 사용자만 예외).
+                if (getTemplateMode().custom && !blocked) { emitBuilt(chat); continue; }
                 const id = chat.id;
-                pendingNative.set(id, { chat, timer: setTimeout(() => resolvePending(id, null), NATIVE_WAIT_MS) });
+                const early = recentHostHtml.get(id);
+                if (early !== undefined) { settle(chat, blocked, early); continue; }
+                // 차단 사용자는 직접 그리기로 넘어가지 않는다 — 기한까지 원본이 안 오면 조용히 버린다.
+                pendingNative.set(id, {
+                    chat,
+                    blocked,
+                    timer: setTimeout(() => resolvePending(id, null), blocked ? LATE_NATIVE_SWAP_MS : NATIVE_WAIT_MS),
+                });
             }
         }
 

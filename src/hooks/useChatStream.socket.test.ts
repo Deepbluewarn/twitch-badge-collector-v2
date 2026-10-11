@@ -405,3 +405,87 @@ describe('useChatStream — 다시보기 (REST로 미리 받은 채팅)', () => 
         expect(adapter.extract).toHaveBeenCalledTimes(1);
     });
 });
+
+describe('useChatStream — 차단한 사용자', () => {
+    beforeEach(() => {
+        localStorage.setItem('tbc:socket-render', '1');
+        vi.useFakeTimers();
+    });
+    afterEach(() => {
+        unmounts.splice(0).forEach(u => u());
+        vi.mocked(adapter.extract).mockClear();
+        vi.useRealTimers();
+        localStorage.clear();
+    });
+
+    const hostHtml = (key: string) => send({
+        action: TBC_CHAT_PASSED_ACTION, key, time: 1000, prevKey: null,
+        html: `<div data-tbc-chat-key="${key}"><span class="host">원본</span></div>`,
+    });
+
+    it('host가 안 그리면 직접 그리지 않는다 (예전엔 1.2초 뒤 모아보기에 나타났다)', () => {
+        const { passed } = setup();
+        sock({ kind: 'block-list', uids: ['u1'] });
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        vi.advanceTimersByTime(20_000);
+        expect(passed).not.toHaveBeenCalled();
+    });
+
+    it('host가 그리면(매니저처럼 권한이 있어 차단 사용자도 보이는 경우) 원본으로 넣는다', () => {
+        const { passed } = setup();
+        sock({ kind: 'block-list', uids: ['u1'] });
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        vi.advanceTimersByTime(5_000);
+        hostHtml('u1_1000_r');
+        expect(passed).toHaveBeenCalledTimes(1);
+        expect(passed.mock.calls[0][0].clone.querySelector('.host')).not.toBeNull();
+    });
+
+    it('차단하지 않은 사용자는 그대로 1.2초 뒤 직접 그린다', () => {
+        const { passed } = setup();
+        sock({ kind: 'block-list', uids: ['someone-else'] });
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        vi.advanceTimersByTime(1200);
+        expect(passed).toHaveBeenCalledTimes(1);
+    });
+
+    it('차단 목록이 갱신되면 따른다 (해제)', () => {
+        const { passed } = setup();
+        sock({ kind: 'block-list', uids: ['u1'] });
+        sock({ kind: 'block-list', uids: [] });
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        vi.advanceTimersByTime(1200);
+        expect(passed).toHaveBeenCalledTimes(1);
+    });
+
+    it('기다리는 중 블라인드돼도 차단 사용자는 직접 그리지 않는다', () => {
+        const { passed } = setup();
+        sock({ kind: 'block-list', uids: ['u1'] });
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
+        sock({ kind: 'blind', event: { id: 'u1_1000', blindType: 'HIDDEN' } });
+        vi.advanceTimersByTime(20_000);
+        expect(passed).not.toHaveBeenCalled();
+    });
+
+    it('사용자 템플릿이 켜져 있어도 차단 사용자는 host가 그릴 때만 (템플릿으로)', () => {
+        const passed = vi.fn();
+        const { unmount } = renderHook(() => useChatStream(
+            adapter, c => ({ pass: c.badges.includes('b1') }), passed, vi.fn(),
+            () => ({ custom: true, templates: { chat: '<b class="mine">{{nickname}}</b>' } }),
+        ));
+        unmounts.push(unmount);
+        sock({ kind: 'block-list', uids: ['u1'] });
+        sock({ kind: 'chats', recent: false, chats: [chat(), chat({ id: 'u2_1000', uid: 'u2' })] });
+        expect(passed).toHaveBeenCalledTimes(1);             // u2만 바로
+        hostHtml('u1_1000_r');
+        expect(passed).toHaveBeenCalledTimes(2);
+        expect(passed.mock.calls[1][0].clone.querySelector('.mine').textContent).toBe('시청자');
+    });
+
+    it('차단 목록은 라이브 소켓 모드를 켜지 않는다', () => {
+        setup(() => ({ pass: true }));
+        sock({ kind: 'block-list', uids: [] });
+        send({ action: TBC_CHAT_PASSED_ACTION, key: 'u9_5_r', time: 5, prevKey: null, html: '<div>live</div>' });
+        expect(adapter.extract).toHaveBeenCalledTimes(1);
+    });
+});

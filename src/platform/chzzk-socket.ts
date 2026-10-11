@@ -199,6 +199,19 @@ export function parseVodChatResponse(body: unknown): ChzzkSocketChat[] {
 }
 
 /**
+ * 로그인 시청자의 차단 목록 — `GET …/privateUserBlocks/allUserIdHash` → `{content: [userIdHash…]}`.
+ * host는 채팅 연결 때 한 번, 사용자를 차단한 직후 다시 받는다. 차단한 사용자의 채팅은
+ * host가 그리지 않는다(권한 없는 시청자 기준, 번들 messageFilter).
+ */
+export const BLOCK_LIST_URL = /\/privateUserBlocks\/allUserIdHash(?:\?|$)/;
+
+export function parseBlockListResponse(body: unknown): string[] | null {
+    const content = (body as Json | null)?.content;
+    if (!Array.isArray(content)) return null;
+    return content.filter((v): v is string => typeof v === 'string' && v.length > 0);
+}
+
+/**
  * 94008 블라인드 이벤트 — 이미 올라온 채팅을 나중에 가리거나(BLIND/HIDDEN/CBOTBLIND/
  * RECLAIM/FILTERED) 가린 것을 푼다(CANCEL). 대상은 `${userId}_${messageTime}` = 채팅 id.
  * 해제 시에는 원문이 `message.{content, extras}`로 함께 온다 (번들 notiBlindListener).
