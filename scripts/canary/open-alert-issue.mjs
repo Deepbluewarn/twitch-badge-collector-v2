@@ -16,15 +16,17 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..', '..');
-const ALERT_FILE = join(REPO_ROOT, 'canary-alert.json');
-const LABEL = 'canary';
+// 인자로 다른 알림 파일을 받는다 (socket canary: canary-socket-alert.json).
+// 알림 파일의 label/actions가 있으면 그걸 쓴다 — 없으면 selector canary 기본값.
+const ALERT_FILE = join(REPO_ROOT, process.argv[2] ?? 'canary-alert.json');
 
 if (!existsSync(ALERT_FILE)) {
-    console.log('canary-alert.json 없음 — skip');
+    console.log(`${ALERT_FILE} 없음 — skip`);
     process.exit(0);
 }
 
 const alert = JSON.parse(readFileSync(ALERT_FILE, 'utf-8'));
+const LABEL = alert.label ?? 'canary';
 
 function gh(args, opts = {}) {
     return execFileSync('gh', args, { encoding: 'utf-8', cwd: REPO_ROOT, ...opts }).trim();
@@ -33,7 +35,7 @@ function gh(args, opts = {}) {
 // 없는 라벨로 이슈를 만들면 gh가 실패하므로 미리 보장한다. 이미 있으면 create가
 // 에러를 내는데 그건 정상 경로.
 for (const [name, desc, color] of [
-    [LABEL, 'chzzk/twitch selector canary 자동 감지', 'B60205'],
+    [LABEL, alert.labelDescription ?? 'chzzk/twitch selector canary 자동 감지', 'B60205'],
     ['ready-for-agent', '에이전트가 바로 착수 가능', '0E8A16'],
 ]) {
     try {
@@ -43,7 +45,7 @@ for (const [name, desc, color] of [
 }
 
 const bodyParts = [];
-bodyParts.push('> chzzk canary가 자동 생성한 이슈입니다.');
+bodyParts.push(`> ${alert.label ?? 'chzzk canary'}가 자동 생성한 이슈입니다.`);
 bodyParts.push('');
 bodyParts.push(alert.body ?? '');
 bodyParts.push('');
@@ -68,12 +70,15 @@ if (needManual.length > 0) {
     bodyParts.push('');
 }
 
+const actions = Array.isArray(alert.actions) ? alert.actions : [
+    '`docs/ota-selectors.md` 절차대로 `bundled-selectors.prod.json` + `bundled-selectors.json` 갱신',
+    '`rev` +1 (strict monotonic)',
+    'master 푸시 후 jsDelivr purge',
+];
 bodyParts.push('## 조치');
-bodyParts.push('1. `docs/ota-selectors.md` 절차대로 `bundled-selectors.prod.json` + `bundled-selectors.json` 갱신');
-bodyParts.push('2. `rev` +1 (strict monotonic)');
-bodyParts.push('3. master 푸시 후 jsDelivr purge');
+actions.forEach((a, i) => bodyParts.push(`${i + 1}. ${a}`));
 bodyParts.push('');
-bodyParts.push(`- 대표 URL: ${alert.url ?? '-'}`);
+if (alert.url) bodyParts.push(`- 대표 URL: ${alert.url}`);
 bodyParts.push(`- 감지 시각: ${alert.capturedAt ?? '-'}`);
 
 const body = bodyParts.join('\n');

@@ -6,6 +6,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import useFilterGroup from "@/hooks/useFilterGroup";
 import useChatStream from "@/hooks/useChatStream";
+import { useStoredTemplates } from "@/render/template-store";
 import useFilteredChatBuffer from "@/hooks/useFilteredChatBuffer";
 import { findElement } from "@/utils/utils-common";
 import { styled } from "@mui/material/styles";
@@ -77,7 +78,7 @@ export default function Local({
     const lastRangeKeysRef = useRef<Set<string>>(new Set());
     const captureView = useMemo(() => ({ captureMode, selectedKeys }), [captureMode, selectedKeys]);
 
-    const { chats, addChat, clear, savedChats } = useFilteredChatBuffer(
+    const { chats, addChat, updateChat, clear, savedChats } = useFilteredChatBuffer(
         adapter, maxNumChats, channelId, persistenceKey, captureView,
     );
 
@@ -109,6 +110,12 @@ export default function Local({
     useEffect(() => {
         markerEnabledRef.current = globalSetting.collectedChatMarker !== 'off';
     }, [globalSetting.collectedChatMarker]);
+    // 사용자 템플릿 — 설정 토글과 본문 모두 ref로. useChatStream이 매 채팅 getter로 읽는다.
+    const storedTemplates = useStoredTemplates();
+    const templateModeRef = useRef({ custom: false, templates: storedTemplates });
+    useEffect(() => {
+        templateModeRef.current = { custom: globalSetting.chzzkCustomTemplate === 'on', templates: storedTemplates };
+    }, [globalSetting.chzzkCustomTemplate, storedTemplates]);
     useChatStream(adapter, chat => {
         const r = checkFilter(chat, channelId);
         return {
@@ -119,7 +126,7 @@ export default function Local({
                 ? undefined
                 : (r.markerColor ?? '#FFC107'),
         };
-    }, guardedAddChat);
+    }, guardedAddChat, updateChat, () => templateModeRef.current);
 
     // 캡쳐 모드 OFF로 전환되면 선택 + anchor + range 초기화.
     useEffect(() => {

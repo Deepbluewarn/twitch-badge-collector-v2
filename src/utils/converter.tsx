@@ -28,7 +28,9 @@ export function convertToJSX(element: Node, customAttributes: CustomAttributes =
                 const [property, ...rest] = prop.split(':');
                 const value = rest.join(':');
                 if (property && value) {
-                    result[camelCase(property.trim())] = value.trim();
+                    const name = property.trim();
+                    // CSS 사용자 정의 속성(--x)은 React도 그 이름 그대로 받는다 — camelCase하면 깨진다.
+                    result[name.startsWith('--') ? name : camelCase(name)] = value.trim();
                 }
                 return result;
             }, {});

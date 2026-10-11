@@ -299,6 +299,21 @@ export default function useFilteredChatBuffer(
         });
     }, [adapter]);
 
+    /**
+     * 이미 들어간 채팅의 내용을 교체한다 (위치·key·time은 그대로). 소켓 모드에서 채팅이
+     * 나중에 블라인드되거나 해제될 때 쓴다. 없는 key면 아무것도 안 한다 — trim으로 이미
+     * 빠졌거나 필터를 통과하지 않은 채팅이다. 저장(persistence)은 savedChats 변경으로 따라간다.
+     */
+    const updateChat = useCallback(({ key, clone, text }: { key: string; clone: HTMLElement; text: string }) => {
+        setSavedChats(prev => {
+            const idx = prev.findIndex(c => c.key === key);
+            if (idx === -1) return prev;
+            const next = [...prev];
+            next[idx] = { ...prev[idx], html: clone.outerHTML, text };
+            return next;
+        });
+    }, []);
+
     const clear = useCallback(() => {
         setSavedChats([]);
         // persisted storage도 즉시 비움 — 디바운스된 save가 결국 빈 payload를 쓰겠지만
@@ -337,5 +352,5 @@ export default function useFilteredChatBuffer(
         });
     }, [savedChats, capture?.captureMode, capture?.selectedKeys]);
 
-    return { chats, addChat, clear, savedChats };
+    return { chats, addChat, updateChat, clear, savedChats };
 }

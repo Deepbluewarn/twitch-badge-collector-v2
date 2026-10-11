@@ -163,5 +163,20 @@
   },
   "chatSideRight" : {
     "message": "Right"
+  },
+  "templateSettingAdvanced" : {
+    "message": "Advanced · Chat template (Chzzk) →"
+  },
+  "chzzkChatRender" : {
+    "message": "Chat style (Chzzk)"
+  },
+  "chzzkChatRenderHint" : {
+    "message": "Original: Chzzk's own look · Template: faster, no flicker"
+  },
+  "chatRenderNative" : {
+    "message": "Original"
+  },
+  "chatRenderTemplate" : {
+    "message": "Template"
   }
 }

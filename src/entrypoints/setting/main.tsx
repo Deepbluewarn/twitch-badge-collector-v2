@@ -19,6 +19,8 @@ import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import AlertContainer from "@/components/AlertContainer";
 import { FilterGroupContext } from "@/context/FilterGroup";
 import Filter from "@/components/Filter";
+import TemplateSetting from "@/components/TemplateSetting";
+import "@/render/chzzk-chat.css";
 import '@/translate/i18n';
 
 function App() {
@@ -65,6 +67,7 @@ function Router() {
       <MemoryRouter initialEntries={[`/${getQueryParams("initialPath")}`]}>
         <Routes>
           <Route path="/filter" element={<Filter />} />
+          <Route path="/template" element={<TemplateSetting />} />
           <Route path="*" element={<Navigate to="/filter" replace />} />
         </Routes>
       </MemoryRouter>

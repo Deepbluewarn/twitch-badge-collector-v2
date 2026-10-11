@@ -21,7 +21,7 @@ import DeleteSweepOutlinedIcon from "@mui/icons-material/DeleteSweepOutlined";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
-import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide } from "@/reducer/setting";
+import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide, setChzzkCustomTemplate } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
 
 const PopupGlobalStyle = (
@@ -314,6 +314,23 @@ function PopupSetting() {
         </ToggleButtonGroup>
       </SettingRow>
 
+      {/* 채팅 표시 방식 — 치지직 전용. 원본 복제(치지직과 같은 모양) / 템플릿(더 빠르고 깜빡임 없음).
+          템플릿 편집 자체는 하단 "고급" 링크에 둔다 — 고르는 건 누구나, 고치는 건 고급 사용자. */}
+      <SettingRow label={t('chzzkChatRender')} hint={t('chzzkChatRenderHint')}>
+        <ToggleButtonGroup
+          value={globalSetting.chzzkCustomTemplate === 'on' ? 'on' : 'off'}
+          exclusive
+          size='small'
+          onChange={(_e, v: SettingInterface['chzzkCustomTemplate'] | null) => {
+            if (v) dispatchGlobalSetting(setChzzkCustomTemplate(v));
+          }}
+          sx={{ '& .MuiToggleButton-root': { px: 1.5, py: 0.25, textTransform: 'none' } }}
+        >
+          <ToggleButton value='off'>{t('chatRenderNative')}</ToggleButton>
+          <ToggleButton value='on'>{t('chatRenderTemplate')}</ToggleButton>
+        </ToggleButtonGroup>
+      </SettingRow>
+
       {/* 채팅 최대 개수 */}
       <SettingRow
         label={t('maximumNumberChats')}
@@ -386,6 +403,17 @@ function PopupSetting() {
           />
         </SettingRow>
       )}
+
+      {/* 고급: 채팅 템플릿 (치지직). 기본값만으로 충분한 기능이라 첫 화면엔 두지 않고
+          하단 caption 크기로만 노출한다 — 찾는 사람만 찾게. */}
+      <Button
+        size='small'
+        variant='text'
+        onClick={() => browser.tabs.create({ url: browser.runtime.getURL('/setting.html?initialPath=template') })}
+        sx={{ alignSelf: 'flex-start', minWidth: 0, px: 0.75, py: 0, mt: 0.5, fontSize: '0.65rem', lineHeight: 1.4, color: 'text.secondary', textTransform: 'none' }}
+      >
+        {browser.i18n.getMessage('templateSettingAdvanced' as any)}
+      </Button>
 
       {/* OTA selector 버전 + 진단 — 하단 caption row. 문제 보고 시 참고용. */}
       <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={1} sx={{ mt: 0.5 }}>

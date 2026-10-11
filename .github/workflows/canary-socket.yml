@@ -1,0 +1,56 @@
+name: chzzk socket canary
+
+# 치지직 채팅 소켓 응답이 확장의 파서 가정(src/platform/chzzk-socket.ts)과 맞는지 정기 검사.
+# 확장은 로드하지 않는다 — 인기 라이브 몇 개에 읽기 전용으로 잠깐 붙어 패킷만 본다.
+# 소켓 렌더 모드는 HTML 안전망 없이 소켓 우선이라, 프로토콜 변화는 여기서 먼저 잡아야 한다.
+
+on:
+  schedule:
+    # 6시간마다 (UTC). selector canary와 시각을 엇갈려 동시 실행을 피한다.
+    - cron: '30 */6 * * *'
+  workflow_dispatch: {}
+  push:
+    paths:
+      - 'src/platform/chzzk-socket.ts'
+      - 'scripts/canary/socket*.ts'
+      - 'scripts/capture/socket-client.ts'
+
+permissions:
+  contents: read
+  # 감지 실패 시 추적 이슈 생성용. 나열하지 않은 권한은 none이 되므로 명시한다.
+  issues: write
+
+jobs:
+  socket:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # 전역 WebSocket이 필요하다 (Node 22+).
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Run socket canary
+        id: socket
+        continue-on-error: true
+        env:
+          SOCKET_CANARY_CHANNELS: '8'
+          SOCKET_CANARY_SECONDS: '120'
+          DISCORD_CANARY_WEBHOOK: ${{ secrets.DISCORD_CANARY_WEBHOOK }}
+        run: npm run canary:socket
+
+      # Discord만으로는 놓친다 (selector canary rev 13 사고). 이슈로 남겨 추적한다.
+      # 같은 라벨(canary-socket)의 열린 이슈가 있으면 코멘트만 붙인다.
+      - name: Open or update tracking issue
+        if: ${{ hashFiles('canary-socket-alert.json') != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/canary/open-alert-issue.mjs canary-socket-alert.json
+
+      - name: Fail the run on errors
+        if: ${{ steps.socket.outcome == 'failure' }}
+        run: exit 1
