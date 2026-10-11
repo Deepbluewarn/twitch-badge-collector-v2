@@ -271,7 +271,7 @@ function FloatingShell({ adapter, type, anchor }: ShellProps) {
                     {latestChat && (
                         <>
                             <Box component="span" sx={{ fontWeight: 600, mr: 0.5 }}>{latestChat.nickname}</Box>
-                            {latestChat.text || <Box component="span" sx={{ opacity: 0.6 }}>(이모티콘)</Box>}
+                            {latestChat.text || <Box component="span" sx={{ opacity: 0.6 }}>{browser.i18n.getMessage('emoticonOnly' as any)}</Box>}
                         </>
                     )}
                 </Box>

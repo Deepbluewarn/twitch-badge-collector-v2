@@ -21,9 +21,12 @@
  * DOM을 쓰지 않는 순수 모듈.
  */
 
+/** 오류 종류. UI는 `template.errors.<code>`로 번역하고 params를 끼워 넣는다. */
+export type TemplateErrorCode = 'unbalanced_braces' | 'raw_section' | 'unexpected_close' | 'mismatched_close' | 'unclosed' | 'too_long';
+
 export class TemplateError extends Error {
-    constructor(message: string, readonly index: number) {
-        super(`${message} (위치 ${index})`);
+    constructor(readonly code: TemplateErrorCode, readonly params: Record<string, string | number>, readonly index: number) {
+        super(`${code} ${JSON.stringify(params)} (at ${index})`);
         this.name = 'TemplateError';
     }
 }
@@ -47,8 +50,8 @@ export function parseTemplate(src: string): Node[] {
         if (index > last) current.push({ kind: 'text', value: src.slice(last, index) });
         last = index + whole.length;
 
-        if (!!rawOpen !== !!rawClose) throw new TemplateError(`중괄호 짝이 맞지 않습니다: ${whole}`, index);
-        if (rawOpen && sigil) throw new TemplateError(`섹션 태그에는 {{{ }}}를 쓸 수 없습니다: ${whole}`, index);
+        if (!!rawOpen !== !!rawClose) throw new TemplateError('unbalanced_braces', { tag: whole }, index);
+        if (rawOpen && sigil) throw new TemplateError('raw_section', { tag: whole }, index);
 
         if (sigil === '#' || sigil === '^') {
             const node: Node = { kind: 'section', name, inverted: sigil === '^', children: [] };
@@ -57,8 +60,8 @@ export function parseTemplate(src: string): Node[] {
             current = node.children;
         } else if (sigil === '/') {
             const open = stack.pop();
-            if (!open) throw new TemplateError(`여는 태그 없이 닫았습니다: {{/${name}}}`, index);
-            if (open.name !== name) throw new TemplateError(`{{#${open.name}}}을 {{/${name}}}로 닫았습니다`, index);
+            if (!open) throw new TemplateError('unexpected_close', { tag: `{{/${name}}}` }, index);
+            if (open.name !== name) throw new TemplateError('mismatched_close', { open: `{{#${open.name}}}`, close: `{{/${name}}}` }, index);
             current = open.children;
         } else {
             current.push({ kind: 'var', name, raw: !!rawOpen });
@@ -66,7 +69,7 @@ export function parseTemplate(src: string): Node[] {
     }
     if (stack.length) {
         const open = stack[stack.length - 1];
-        throw new TemplateError(`{{#${open.name}}}이 닫히지 않았습니다`, open.index);
+        throw new TemplateError('unclosed', { tag: `{{#${open.name}}}` }, open.index);
     }
     if (last < src.length) root.push({ kind: 'text', value: src.slice(last) });
     return root;

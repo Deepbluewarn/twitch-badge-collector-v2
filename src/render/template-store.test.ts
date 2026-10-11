@@ -27,7 +27,7 @@ describe('validateTemplate', () => {
         expect(r.ok).toBe(false);
         if (!r.ok) {
             expect(r.index).toBe(2);
-            expect(r.message).toMatch(/닫히지 않았습니다/);
+            expect(r.code).toBe('unclosed');
         }
     });
 

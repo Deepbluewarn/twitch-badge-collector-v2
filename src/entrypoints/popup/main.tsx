@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import CustomTextField from "@/components/CustomTextField";
 import Selector from "@/components/Selector";
 import SocialFooter from "@/components/SocialFooter";
+import TranslationNotice from "@/components/TranslationNotice";
 import { GlobalSettingContext, useGlobalSettingContext } from "@/context/GlobalSetting";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Switch, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
@@ -132,7 +133,7 @@ function BgColorPicker({ value, onChange }: { value: string; onChange: (c: strin
       </Box>
       {value && (
         <Button size='small' variant='text' onClick={() => onChange('')} sx={{ minWidth: 0, p: 0.25, fontSize: '0.7rem' }}>
-          자동
+          {browser.i18n.getMessage('auto' as any)}
         </Button>
       )}
     </Stack>
@@ -183,11 +184,11 @@ function PopupSetting() {
     try {
       const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       const id = tabs[0]?.id;
-      if (id == null) { setDiag({ kind: 'error', message: '활성 탭 없음' }); return; }
+      if (id == null) { setDiag({ kind: 'error', message: t('diagNoActiveTab') }); return; }
       const res = await browser.tabs.sendMessage(id, { type: 'tbc-diagnose' }) as
         { ok: true; report: import('@/platform/diagnose').DiagnoseReport } | { ok: false; error: string } | undefined;
       if (!res || !res.ok) {
-        setDiag({ kind: 'error', message: res && !res.ok ? res.error : '응답 없음 (치지직/트위치 페이지에서 실행)' });
+        setDiag({ kind: 'error', message: res && !res.ok ? res.error : t('diagNoResponse') });
         return;
       }
       // required=true인 selector 중 count=0만 진짜 실패로 카운트.
@@ -197,7 +198,7 @@ function PopupSetting() {
       const passCount = required.length - failCount;
       setDiag({ kind: 'done', report: res.report, passCount, failCount });
     } catch {
-      setDiag({ kind: 'error', message: '치지직/트위치 페이지에서 실행하세요' });
+      setDiag({ kind: 'error', message: t('onlyOnHostPage') });
     }
   };
 
@@ -266,7 +267,7 @@ function PopupSetting() {
       </Stack>
 
       {/* 테마 — 시스템 / 라이트 / 다크 */}
-      <SettingRow label='테마'>
+      <SettingRow label={t('theme')}>
         <ToggleButtonGroup
           value={globalSetting.darkTheme}
           exclusive
@@ -278,15 +279,15 @@ function PopupSetting() {
         >
           <ToggleButton value='system'>
             <SettingsBrightnessIcon sx={{ fontSize: 16 }} />
-            시스템
+            {t('themeSystem')}
           </ToggleButton>
           <ToggleButton value='light'>
             <LightModeIcon sx={{ fontSize: 16 }} />
-            라이트
+            {t('themeLight')}
           </ToggleButton>
           <ToggleButton value='dark'>
             <DarkModeIcon sx={{ fontSize: 16 }} />
-            다크
+            {t('themeDark')}
           </ToggleButton>
         </ToggleButtonGroup>
       </SettingRow>
@@ -433,12 +434,12 @@ function PopupSetting() {
         >
           {otaInfo.rev !== null
             ? `OTA selectors rev ${otaInfo.rev}${otaInfo.fetchedAt ? ` (${new Date(otaInfo.fetchedAt).toLocaleString()})` : ''}`
-            : 'OTA selectors: 번들 기본값'}
+            : t('otaBundled')}
         </Typography>
         <Stack direction='row' spacing={0.5} alignItems='center'>
           {diag.kind === 'done' && (
             <Typography variant='caption' color={diag.failCount > 0 ? 'error' : 'success.main'} sx={{ fontSize: '0.65rem' }}>
-              {diag.failCount > 0 ? `실패 ${diag.failCount} / ${diag.passCount + diag.failCount}` : `OK ${diag.passCount}`}
+              {diag.failCount > 0 ? browser.i18n.getMessage('diagFailCount' as any, [String(diag.failCount), String(diag.passCount + diag.failCount)]) : `OK ${diag.passCount}`}
             </Typography>
           )}
           {diag.kind === 'error' && (
@@ -451,7 +452,7 @@ function PopupSetting() {
             disabled={diag.kind === 'running'}
             sx={{ minWidth: 0, px: 0.75, py: 0, fontSize: '0.65rem', lineHeight: 1.4 }}
           >
-            {diag.kind === 'running' ? '진단중...' : '진단'}
+            {diag.kind === 'running' ? t('diagRunning') : t('diagRun')}
           </Button>
           {diag.kind === 'done' && (
             <Button
@@ -460,7 +461,7 @@ function PopupSetting() {
               onClick={copyReport}
               sx={{ minWidth: 0, px: 0.75, py: 0, fontSize: '0.65rem', lineHeight: 1.4 }}
             >
-              {copyState === 'copied' ? '복사됨' : '복사'}
+              {copyState === 'copied' ? t('copied') : t('copy')}
             </Button>
           )}
           {diag.kind === 'done' && (() => {
@@ -469,11 +470,11 @@ function PopupSetting() {
             if (!url) return null;
             const disabled = submitState === 'submitting' || cooldownMin > 0;
             const label =
-              submitState === 'submitted' ? '제보됨' :
-              submitState === 'submitting' ? '제보중...' :
-              submitState === 'failed' ? '실패' :
+              submitState === 'submitted' ? t('reportSubmitted') :
+              submitState === 'submitting' ? t('reportSubmitting') :
+              submitState === 'failed' ? t('reportFailed') :
               cooldownMin > 0 ? `${cooldownMin}m` :
-              '제보';
+              t('report');
             return (
               <Button
                 size='small'
@@ -501,10 +502,10 @@ function PopupSetting() {
         fullWidth
         PaperProps={{ sx: { m: 1, maxHeight: 'calc(100% - 16px)' } }}
       >
-        <DialogTitle sx={{ fontSize: '0.9rem', py: 1 }}>Discord로 진단 데이터 전송</DialogTitle>
+        <DialogTitle sx={{ fontSize: '0.9rem', py: 1 }}>{t('reportConsentTitle')}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', p: 2, gap: 1 }}>
           <Typography variant='caption' color='text.secondary'>
-            아래의 익명 데이터가 개발자에게 전송됩니다.
+            {t('reportConsentBody')}
           </Typography>
           <Box
             component='pre'
@@ -525,8 +526,8 @@ function PopupSetting() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button size='small' onClick={() => setConsentDialog({ open: false, preview: '' })}>취소</Button>
-          <Button size='small' variant='contained' onClick={onConsentAccept}>동의하고 전송</Button>
+          <Button size='small' onClick={() => setConsentDialog({ open: false, preview: '' })}>{t('cancel')}</Button>
+          <Button size='small' variant='contained' onClick={onConsentAccept}>{t('reportConsentAccept')}</Button>
         </DialogActions>
       </Dialog>
     </Stack>
@@ -571,7 +572,7 @@ function Popup() {
       window.close();
     } catch {
       // content script 미주입 탭 — 안내 후 그대로 둠.
-      alert('치지직 또는 트위치 페이지에서만 동작합니다.');
+      alert(browser.i18n.getMessage('onlyOnHostPage' as any));
     }
   }
 
@@ -606,6 +607,12 @@ function Popup() {
           sx={{ height: 20, fontSize: '0.7rem', fontWeight: 500 }}
         />
       </Stack>
+
+      <TranslationNotice
+        language={browser.i18n.getUILanguage()}
+        message={browser.i18n.getMessage('translationNotice' as any)}
+        dismissLabel={browser.i18n.getMessage('dismiss' as any)}
+      />
 
       {/* primary CTA: 필터 설정 (가장 자주 쓰는 액션) */}
       <Button

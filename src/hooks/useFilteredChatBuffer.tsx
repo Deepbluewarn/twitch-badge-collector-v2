@@ -340,7 +340,7 @@ export default function useFilteredChatBuffer(
                 if (c.channel) {
                     const parts = c.channel.split(':');
                     const channelId = parts[2] ?? c.channel;
-                    node.setAttribute('title', `채널: ${channelId}${c.restored ? ' (복원)' : ''}`);
+                    node.setAttribute('title', browser.i18n.getMessage((c.restored ? 'chatSourceRestored' : 'chatSource') as any, [channelId]));
                 }
             }
             const content = node ? convertToJSX(node) : null;

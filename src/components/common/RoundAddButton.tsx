@@ -1,6 +1,7 @@
 import React from 'react';
 import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
+import { useTranslation } from 'react-i18next';
 
 interface RoundAddButtonProps {
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -13,11 +14,12 @@ interface RoundAddButtonProps {
  * dashed border + 저대비 아이콘. hover 시에만 살짝 부각.
  */
 const RoundAddButton: React.FC<RoundAddButtonProps> = ({ onClick, size = 24, sx }) => {
+    const { t } = useTranslation();
     return (
         <IconButton
             size='small'
             onClick={onClick}
-            aria-label="추가"
+            aria-label={t('common.add')}
             sx={{
                 width: size,
                 height: size,

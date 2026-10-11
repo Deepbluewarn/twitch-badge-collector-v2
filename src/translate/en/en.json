@@ -1,54 +1,24 @@
 {
-    "tmi_system": {
-        "server_connecting": "Connecting chat server..",
-        "server_connected": "Connected chat server.",
-        "channel_joined": "Joined in #{{channel}}.",
-        "emote_enabled": "Emote-only mode enabled.",
-        "emote_disabled": "Emote-only mode disabled.",
-        "follower_only_enabled": "{{length}} follow-only chat enabled.",
-        "follower_only_disabled": "Followed-only mode disabled.",
-        "slow_mode_enabled": "{{length}} slow mode enabled",
-        "slow_mode_disabled": "Slow mode disabled",
-        "all_chat_removed": "All chats removed.",
-        "temporary_timeout": "You are temporarily sent off for {{duration}} seconds.",
-        "subscriber_only_enabled": "Subscriber-only mode enabled.",
-        "subscriber_only_disabled": "Subscriber-only mode disabled.",
-        "raid": "{{username}} is rading {{channel}} with {{viewers}} raiders!",
-        "host": "Hosting {{target}}"
-    },
     "alert": {
         "no_value_filter": "No values in filter.",
         "filter_already_exist": "Filter already exist.",
         "filter_added": "Filter has been added.",
-        "filter_updated": "Filter has been updated.",
-        "no_selected_chat": "No chats selected.",
-        "no_connect_channel": "No channels are connected.",
-        "version_mismatch": "Extension Version mismatch. Unexpected errors may occur.",
         "network_error": "Request failed.",
-        "channel_not_found": "Channel info not found.",
-        "notice_1": "If the filter does not work properly, please refer to the link below.",
-        "extensionNotice": "This is the extension settings page. Does not apply to web version.",
         "filter_validation": {
             "missing_filter": "Filter object is missing.",
             "missing_id": "Filter id is missing.",
             "missing_filter_type": "Filter type is missing.",
             "missing_sub_filters": "No sub-filters defined.",
             "empty_sub_filter_value": "A sub-filter has an empty value."
-        }
+        },
+        "no_platform_filters": "No filters for this platform to add."
     },
     "common": {
-        "en": "English",
-        "ko": "한국어",
-        "setting": "Setting",
-        "general": "General",
-        "login": "Login",
-        "logout": "Log Out",
         "filter": "Filter",
         "condition": "Condition",
         "badge": "Badge",
         "channel": "Channel",
         "channel_name": "Channel Name",
-        "channel_select": "Select Channel",
         "note": "Note",
         "badge_name": "Badge Name",
         "global": "Global",
@@ -58,16 +28,7 @@
         "add_filter_element": "Add Filter Element",
         "filter_export": "Export Filter",
         "filter_import": "Import Filter",
-        "announcement": "Announcement",
         "category": "Category",
-        "type": "Type",
-        "filter_type": "Filter Type",
-        "chat": "Chat",
-        "player": "Player",
-        "language": "Language",
-        "donation": "Donation",
-        "web_player": "Web Player",
-        "send_message": "Send a message",
         "add_filter_elements": "Add Filter Elements",
         "nickname": "Nickname",
         "keyword": "Keyword",
@@ -75,26 +36,22 @@
         "remove": "Remove",
         "cancel": "Cancel",
         "save": "Save",
-        "join": "Join",
-        "chat_list": "Chat Lists",
-        "recent_channel": "Recent Channel",
-        "no_list": "No Lists.",
-        "online": "Online",
-        "error": "An error has occurred.",
-        "show_more": "Show More",
-        "live": "Live",
-        "replay": "Replay",
-        "noticeBeta": "This is a beta version. Unexpected errors may occur.",
-        "tier": "Tier",
-        "months": "Months",
-        "followSince": "Following Since {{date}}",
-        "subscribeSince": "Subbed for {{month}} Months",
-        "channelNotFound": "Channel name not found.",
-        "requestChannelName": "Please enter the channel name directly.",
-        "channelName": "Channel Name",
-        "confirm": "Confirm",
-        "document": "Documentation",
-        "nofityAdsense": "Google Adsense advertisements will be displayed at the bottom of the instruction page, provided to generate revenue for the program."
+        "add": "Add",
+        "edit": "Edit",
+        "close": "Close",
+        "details": "Details",
+        "reset": "Reset",
+        "delete_selected": "Delete selected",
+        "color": "Color",
+        "content": "Content",
+        "channel_id": "Channel ID",
+        "note_optional": "Note (optional)",
+        "channel_only": "Apply only on a specific channel (optional)",
+        "no_badge": "No badge",
+        "no_name": "No name",
+        "no_value": "No value",
+        "selected_count": "{{count}} selected",
+        "dismiss": "Got it"
     },
     "filter": {
         "category": {
@@ -110,30 +67,11 @@
     },
     "setting": {
         "filter_setting": "Filter Setting",
-        "channel_setting": "Channel Setting",
-        "save_chat": "Save Chats As Image",
-        "login_with_twitch": "Login with Twitch",
-        "darkmode": "Dark Mode",
-        "font_size": "Font Size",
-        "font_size_options": {
-            "small": "Small",
-            "default": "Default",
-            "big": "Big",
-            "bigger": "Bigger"
-        },
-        "chat_position": "Chat Position",
-        "chat_position_options": {
-            "up": "Up",
-            "down": "Down"
-        },
-        "chat_time": "Chat Time",
-        "show_player": "Show Player",
         "filter": {
-            "select_platform": "Select Platform",
             "filter_list": "Filter List",
             "filter_add": "Add New Filter",
-            "filter_add_subtitle": "Filters chats that satisfy all the conditions of the added filter element.",
-            "select_badges": "Select Badges"
+            "select_badges": "Select Badges",
+            "empty_hint": "Click <b>+ Add Filter Element</b> below or a badge to get started."
         },
         "filter_mode": {
             "advanced": "Advenced Settings"
@@ -189,6 +127,54 @@
         "help_raw": "Message HTML. Use this so emojis and cleanbot hiding show up",
         "help_section": "Renders when the value is set (once per item for lists)",
         "help_inverted": "Renders only when the value is not set",
-        "help_safety": "Scripts and event attributes (onclick, …) are removed."
-    }
+        "help_safety": "Scripts and event attributes (onclick, …) are removed.",
+        "errors": {
+            "unbalanced_braces": "Braces do not match: {{tag}}",
+            "raw_section": "Section tags cannot use {{{ }}}: {{tag}}",
+            "unexpected_close": "Closed without an opening tag: {{tag}}",
+            "mismatched_close": "{{open}} was closed with {{close}}",
+            "unclosed": "{{tag}} is never closed",
+            "too_long": "Template is too long (max {{max}} characters)"
+        },
+        "samples": {
+            "badge_emoji": "Badges + emoji",
+            "manager": "Manager",
+            "nick_gradient": "Tier-2 subscriber nickname (gradient)",
+            "nick_highlight": "Tier-2 subscriber nickname (highlight)",
+            "cleanbot": "Cleanbot (click to show original)",
+            "blinded": "Hidden by moderator",
+            "donation": "Donation",
+            "donation_anonymous": "Anonymous donation (no message)",
+            "donation_mission": "Mission donation",
+            "gift_channel": "Subscription gift to channel",
+            "gift_receiver": "Receiver notice (sender anonymous)",
+            "subscription": "Subscription"
+        }
+    },
+    "platform": {
+        "twitch": "Twitch",
+        "chzzk": "Chzzk"
+    },
+    "filter_dialog": {
+        "add_filter": "Add sub-filter",
+        "edit_filter": "Edit sub-filter",
+        "add_channel": "Add channel",
+        "edit_channel": "Edit channel",
+        "add_note": "Add note",
+        "edit_note": "Edit note",
+        "nothing_selected": "Nothing is selected.",
+        "per_channel_hint": "Filters can be set per channel."
+    },
+    "badge_list": {
+        "multi_select_hint": "You can select multiple badges",
+        "search_hint": "Enter a channel name and search",
+        "empty": "No badges to show"
+    },
+    "channel_guide": {
+        "title": "Finding the channel ID",
+        "twitch": "A Twitch channel ID is the last part of the channel URL.",
+        "chzzk": "A Chzzk channel ID is the letters-and-numbers ID after <b>/live/</b> in the live stream URL.",
+        "example": "Example:"
+    },
+    "translation_notice": "Badge Collector is made in Korean, so some translations may be awkward."
 }

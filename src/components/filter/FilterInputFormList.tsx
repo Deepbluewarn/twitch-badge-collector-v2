@@ -2,7 +2,7 @@
  * 필터 고급 모드를 위한 컴포넌트입니다.
  */
 import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
@@ -165,7 +165,7 @@ export default function FilterInputFormList(
                                 {t('common.add_filter_elements')}
                             </Typography>
                             <Typography color='text.disabled' variant="caption" sx={{ textAlign: 'center', maxWidth: 280 }}>
-                                아래 <b>+ 필터 요소 추가</b> 또는 배지를 클릭해서 시작하세요.
+                                <Trans i18nKey='setting.filter.empty_hint' components={{ b: <b /> }} />
                             </Typography>
                         </Stack>
                     )
@@ -232,7 +232,7 @@ export default function FilterInputFormList(
 
                     <CustomTextField
                         value={filterGroupNote}
-                        label="메모 (선택)"
+                        label={t('common.note_optional')}
                         onChange={onFilterNoteChanged}
                         fullWidth
                     />
@@ -241,12 +241,12 @@ export default function FilterInputFormList(
                     <Box>
                         <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.75 }}>
                             <Typography variant="caption" color="text.secondary">
-                                특정 채널에서만 적용 (선택)
+                                {t('common.channel_only')}
                             </Typography>
                             <IconButton
                                 size="small"
                                 onClick={() => setGuideOpen(true)}
-                                aria-label="채널 ID 안내"
+                                aria-label={t('channel_guide.title')}
                                 sx={{ p: 0.25 }}
                             >
                                 <HelpOutlineIcon sx={{ fontSize: 16 }} />
@@ -255,13 +255,13 @@ export default function FilterInputFormList(
                         <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
                             <CustomTextField
                                 value={channelId}
-                                label={'채널 ID'}
+                                label={t('common.channel_id')}
                                 onChange={(e) => setChannelId(e.target.value)}
                                 sx={{ flex: 1 }}
                             />
                             <CustomTextField
                                 value={channelName}
-                                label={'채널 이름'}
+                                label={t('common.channel_name')}
                                 onChange={(e) => setChannelName(e.target.value)}
                                 sx={{ flex: 1 }}
                             />

@@ -429,7 +429,7 @@ export default function Local({
             {showJumpToBottom && globalSetting.jumpToBottomButton !== 'off' && (
                 <IconButton
                     onClick={jumpToBottom}
-                    aria-label="맨 아래로"
+                    aria-label={browser.i18n.getMessage('scrollToBottom' as any)}
                     sx={{
                         position: 'absolute',
                         bottom: captureMode ? 64 : 12,
@@ -465,19 +465,19 @@ export default function Local({
                         p: 1, display: 'flex', gap: 1, alignItems: 'center',
                     }}
                 >
-                    <ToolbarButton onClick={() => setCaptureMode(false)} disabled={capturing}>취소</ToolbarButton>
+                    <ToolbarButton onClick={() => setCaptureMode(false)} disabled={capturing}>{browser.i18n.getMessage('cancel' as any)}</ToolbarButton>
                     <ToolbarButton onClick={onSelectAllClick} disabled={capturing || savedChats.length === 0}>
-                        {allSelected ? '전체 해제' : '전체 선택'}
+                        {browser.i18n.getMessage((allSelected ? 'deselectAll' : 'selectAll') as any)}
                     </ToolbarButton>
                     <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(255,255,255,0.7)' }}>
-                        {selectedKeys.size}개 선택됨
+                        {browser.i18n.getMessage('selectedCount' as any, [String(selectedKeys.size)])}
                     </Typography>
                     <ToolbarButton
                         onClick={onCaptureClick}
                         disabled={selectedKeys.size === 0 || capturing}
                         sx={{ bgcolor: 'rgba(124,138,239,0.6)', borderColor: 'rgba(124,138,239,0.8)', '&:hover': { bgcolor: 'rgba(124,138,239,0.8)' } }}
                     >
-                        {capturing ? '캡쳐 중...' : 'PNG 다운로드'}
+                        {browser.i18n.getMessage((capturing ? 'capturing' : 'downloadPng') as any)}
                     </ToolbarButton>
                 </Box>
             )}

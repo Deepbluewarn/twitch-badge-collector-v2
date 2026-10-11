@@ -1,55 +1,25 @@
 {
-    "tmi_system": {
-        "server_connecting": "채팅 서버에 연결 중 입니다..",
-        "server_connected": "채팅 서버에 연결되었습니다.",
-        "channel_joined": "#{{channel}} 채널에 입장했습니다.",
-        "emote_enabled": "이모티콘 전용 채팅이 활성화되었습니다.",
-        "emote_disabled": "이모티콘 전용 채팅이 비활성화되었습니다.",
-        "follower_only_enabled": "팔로우 전용 채팅이 {{length}} 동안 활성화되었습니다.",
-        "follower_only_disabled": "팔로우 전용 채팅이 비활성화되었습니다.",
-        "slow_mode_enabled": "슬로우 모드가 {{length}} 로 설정되었습니다.",
-        "slow_mode_disabled": "슬로우 모드가 비활성화되었습니다.",
-        "all_chat_removed": "채팅이 모두 삭제되었습니다.",
-        "temporary_timeout": "{{duration}} 동안 임시 퇴장되었습니다.",
-        "subscriber_only_enabled": "구독자 전용 모드가 활성화되었습니다.",
-        "subscriber_only_disabled": "구독자 전용 모드가 비활성화되었습니다.",
-        "raid": "{{username}} 님이 {{viewers}}명과 함께 {{channel}} 채널을 레이드합니다!",
-        "host": "{{target}} 호스팅 중."
-    },
     "alert": {
         "no_value_filter": "필터에 내용이 없습니다.",
         "filter_already_exist": "이미 존재하는 필터입니다.",
         "filter_added": "필터가 추가되었습니다.",
-        "filter_updated": "필터가 업데이트되었습니다.",
-        "no_selected_chat": "선택된 채팅이 없습니다.",
-        "no_connect_channel": "연결된 채널이 없습니다.",
-        "version_mismatch": "확장 프로그램의 버전이 일치하지 않습니다. 예상치 못한 오류가 발생할 수 있습니다.",
-        "network_error": "요청이 실패했습니다.",
-        "notice_1": "필터 기능이 제대로 동작하지 않는 경우 아래 링크를 참고해주세요.",
-        "channel_not_found": "채널 정보를 찾을 수 없습니다.",
-        "extensionNotice": "확장 프로그램 설정 페이지입니다. 웹 버전에는 적용되지 않습니다.",
+        "network_error": "요청 실패",
         "filter_validation": {
             "missing_filter": "필터 객체가 없습니다.",
             "missing_id": "필터 id가 없습니다.",
             "missing_filter_type": "필터 타입이 없습니다.",
             "missing_sub_filters": "하위 필터가 없습니다.",
             "empty_sub_filter_value": "하위 필터 값이 비어 있습니다."
-        }
+        },
+        "no_platform_filters": "추가 가능한 플랫폼 필터가 없습니다."
     },
     "common": {
-        "en": "English",
-        "ko": "한국어",
-        "setting": "설정",
-        "general": "일반",
-        "login": "로그인",
-        "logout": "로그아웃",
         "filter": "필터",
         "condition": "조건",
         "badge": "배지",
         "channel": "채널",
         "channel_name": "채널 이름",
-        "channel_select": "채널 선택",
-        "note": "비고",
+        "note": "메모",
         "badge_name": "배지 이름",
         "global": "글로벌",
         "add_selected": "선택 추가",
@@ -58,16 +28,7 @@
         "add_filter_element": "필터 요소 추가",
         "filter_export": "필터 내보내기",
         "filter_import": "필터 가져오기",
-        "announcement": "공지",
         "category": "카테고리",
-        "type": "타입",
-        "filter_type": "필터 카테고리",
-        "chat": "채팅",
-        "player": "플레이어",
-        "language": "언어",
-        "donation": "후원",
-        "web_player": "웹 플레이어",
-        "send_message": "메시지 보내기",
         "add_filter_elements": "필터 요소를 추가하세요.",
         "nickname": "닉네임",
         "keyword": "키워드",
@@ -75,26 +36,22 @@
         "remove": "삭제",
         "cancel": "취소",
         "save": "저장",
-        "join": "참가",
-        "chat_list": "채팅 목록",
-        "recent_channel": "최근 채널",
-        "no_list": "목록이 없습니다.",
-        "online": "온라인",
-        "error": "오류가 발생했습니다.",
-        "show_more": "더 보기",
-        "live": "생방송",
-        "replay": "다시보기",
-        "noticeBeta": "베타 버전입니다. 예상치 못한 오류가 발생할 수 있습니다.",
-        "tier": "티어",
-        "months": "개월",
-        "followSince": "{{date}}부터 팔로우 중",
-        "subscribeSince": "{{month}}개월 동안 구독 중",
-        "channelNotFound": "채널 이름을 찾을 수 없습니다.",
-        "requestChannelName": "채널 이름을 직접 입력해주세요.",
-        "channelName": "",
-        "confirm": "확인",
-        "document": "설명서",
-        "nofityAdsense": "설명서 페이지 하단에 Google Adsense 광고가 표시됩니다. 이 광고는 프로그램의 수익 창출을 위해 제공됩니다."
+        "add": "추가",
+        "edit": "수정",
+        "close": "닫기",
+        "details": "자세히",
+        "reset": "초기화",
+        "delete_selected": "선택 삭제",
+        "color": "색상",
+        "content": "내용",
+        "channel_id": "채널 ID",
+        "note_optional": "메모 (선택)",
+        "channel_only": "특정 채널에서만 적용 (선택)",
+        "no_badge": "배지 없음",
+        "no_name": "이름 없음",
+        "no_value": "값 없음",
+        "selected_count": "{{count}}개 선택됨",
+        "dismiss": "확인"
     },
     "filter": {
         "category": {
@@ -110,30 +67,11 @@
     },
     "setting": {
         "filter_setting": "필터 설정",
-        "channel_setting": "채널 설정",
-        "save_chat": "채팅 이미지 저장",
-        "login_with_twitch": "트위치로 로그인",
-        "darkmode": "어두운 테마",
-        "font_size": "글자 크기",
-        "font_size_options": {
-            "small": "작게",
-            "default": "기본값",
-            "big": "크게",
-            "bigger": "더 크게"
-        },
-        "chat_position": "채팅창 위치",
-        "chat_position_options": {
-            "up": "위",
-            "down": "아래"
-        },
-        "chat_time": "채팅 시간",
-        "show_player": "플레이어 보이기",
         "filter": {
-            "select_platform": "플랫폼 선택",
             "filter_list": "필터 목록",
             "filter_add": "새 필터 추가",
-            "filter_add_subtitle": "추가된 필터 요소의 조건을 모두 만족하는 채팅을 필터링합니다.",
-            "select_badges": "배지 선택"
+            "select_badges": "배지 선택",
+            "empty_hint": "아래 <b>+ 필터 요소 추가</b> 또는 배지를 클릭해서 시작하세요."
         },
         "filter_mode": {
             "advanced": "고급 설정"
@@ -189,6 +127,53 @@
         "help_raw": "본문 HTML. 이모지와 클린봇 가리기가 보이려면 이걸 쓰세요",
         "help_section": "값이 있을 때 그립니다 (목록이면 항목마다)",
         "help_inverted": "값이 없을 때만 그립니다",
-        "help_safety": "스크립트와 이벤트 속성(onclick 등)은 지워집니다."
+        "help_safety": "스크립트와 이벤트 속성(onclick 등)은 지워집니다.",
+        "errors": {
+            "unbalanced_braces": "중괄호 짝이 맞지 않습니다: {{tag}}",
+            "raw_section": "섹션 태그에는 {{{ }}}를 쓸 수 없습니다: {{tag}}",
+            "unexpected_close": "여는 태그 없이 닫았습니다: {{tag}}",
+            "mismatched_close": "{{open}}을 {{close}}로 닫았습니다",
+            "unclosed": "{{tag}}이 닫히지 않았습니다",
+            "too_long": "템플릿이 너무 깁니다 (최대 {{max}}자)"
+        },
+        "samples": {
+            "badge_emoji": "배지 + 이모지",
+            "manager": "매니저",
+            "nick_gradient": "2단계 구독자 닉네임 꾸미기 (그라데이션)",
+            "nick_highlight": "2단계 구독자 닉네임 꾸미기 (하이라이트)",
+            "cleanbot": "클린봇 (클릭하면 원문)",
+            "blinded": "운영자 블라인드",
+            "donation": "후원",
+            "donation_anonymous": "익명 후원 (메시지 없음)",
+            "donation_mission": "미션 후원",
+            "gift_channel": "채널에 구독권 선물",
+            "gift_receiver": "받은 사람 알림 (보낸 사람 익명)",
+            "subscription": "구독"
+        }
+    },
+    "platform": {
+        "twitch": "트위치",
+        "chzzk": "치지직"
+    },
+    "filter_dialog": {
+        "add_filter": "하위 필터 추가",
+        "edit_filter": "하위 필터 수정",
+        "add_channel": "채널 추가",
+        "edit_channel": "채널 수정",
+        "add_note": "메모 추가",
+        "edit_note": "메모 수정",
+        "nothing_selected": "선택된 항목이 없습니다.",
+        "per_channel_hint": "채널 별 필터 설정이 가능합니다."
+    },
+    "badge_list": {
+        "multi_select_hint": "여러 배지를 선택할 수 있습니다",
+        "search_hint": "채널 이름을 입력하고 검색하세요",
+        "empty": "표시할 배지가 없습니다"
+    },
+    "channel_guide": {
+        "title": "채널 ID 입력 안내",
+        "twitch": "트위치 채널 ID는 채널 주소의 마지막 부분입니다.",
+        "chzzk": "치지직 채널 ID는 라이브 방송 주소에서 <b>/live/</b> 다음에 나오는 영문/숫자 ID입니다.",
+        "example": "예시:"
     }
 }

@@ -1,179 +1,185 @@
 {
-  "ExtensionName" : {
-    "message" : "Badge Collector"
-  },
-  "language" : {
-    "message" : "en"
-  },
-  "ExtensionDesc" : {
-    "message" : "Collect only the chats you want!"
-  },
-  "popup_title": {
+  "ExtensionName": {
     "message": "Badge Collector"
   },
-  "generalSetting" : {
-    "message" : "General Settings"
+  "ExtensionDesc": {
+    "message": "Collect only the chats you want!"
   },
-  "chatClientSetting" : {
-    "message" : "Chat Client Settings"
-  },
-  "extraSetting" : {
-    "message" : "Etc"
-  },
-  "review" : {
-    "message" : "Rate the Extension"
-  },
-  "review_2" : {
-    "message": "Review"
-  },
-  "documentation" : {
-    "message" : "Documentation"
+  "generalSetting": {
+    "message": "General Settings"
   },
   "reset_chat_ratio": {
     "message": "Reset Chat Layout"
   },
-  "support" : {
-    "message" : "Support"
+  "chatTime": {
+    "message": "Show Chat Time"
   },
-  "discord" : {
-    "message" : "Discord"
+  "collectedChatMarker": {
+    "message": "Mark collected chats"
   },
-  "replay_chat_settings" : {
-    "message" : "VOD Chat Setting"
+  "jumpToBottomButton": {
+    "message": "Jump-to-bottom button"
   },
-  "chat_window_size_setting" : {
-    "message" : "Chat Window Size"
+  "chatPersistence": {
+    "message": "Keep collected chats across reloads"
   },
-  "language_text" : {
-    "message" : "Language"
+  "displayMode": {
+    "message": "Display mode"
   },
-  "ko": {
-    "message": "한국어"
+  "displayModeInline": {
+    "message": "Inline"
   },
-  "en": {
-    "message": "English"
+  "displayModeFloating": {
+    "message": "Floating"
   },
-  "fontSize" : {
-    "message" : "Font Size"
+  "floatingBgColor": {
+    "message": "Floating background color"
   },
-  "small" : {
-    "message" : "Small"
+  "startCapture": {
+    "message": "Start chat capture"
   },
-  "default" : {
-    "message" : "Default"
+  "clearCollectedChats": {
+    "message": "Clear collected chats"
   },
-  "big" : {
-    "message" : "Big"
+  "chatPosition": {
+    "message": "Chat Position"
   },
-  "bigger" : {
-    "message" : "Bigger"
+  "up": {
+    "message": "Up"
   },
-  "chatTime" : {
-    "message" : "Show Chat Time"
+  "down": {
+    "message": "Down"
   },
-  "collectedChatMarker" : {
-    "message" : "Mark collected chats"
+  "p_filter_btn": {
+    "message": "Filter Setting"
   },
-  "jumpToBottomButton" : {
-    "message" : "Jump-to-bottom button"
-  },
-  "chatPersistence" : {
-    "message" : "Keep collected chats across reloads"
-  },
-  "displayMode" : {
-    "message" : "Display mode"
-  },
-  "displayModeInline" : {
-    "message" : "Inline"
-  },
-  "displayModeFloating" : {
-    "message" : "Floating"
-  },
-  "floatingBgColor" : {
-    "message" : "Floating background color"
-  },
-  "startCapture" : {
-    "message" : "Start chat capture"
-  },
-  "clearCollectedChats" : {
-    "message" : "Clear collected chats"
-  },
-  "chatPosition" : {
-    "message" : "Chat Position"
-  },
-  "up" : {
-    "message" : "Up"
-  },
-  "down" : {
-    "message" : "Down"
-  },
-  "dispCopiedChatmethod" : {
-    "message" : "Show Chats with.."
-  },
-  "local" : {
-    "message" : "Copy from Twitch UI"
-  },
-  "remote" : {
-    "message" : "Chat Client"
-  },
-  "pointBoxAutoClick" : {
-    "message" : "Point Box Auto Click"
-  },
-  "on" : {
-    "message" : "On"
-  },
-  "off" : {
-    "message" : "Off"
-  },
-  "p_filter_btn" : {
-    "message" : "Filter Setting"
-  },
-  "p_save_chat_btn" : {
-    "message" : "Save Chat"
-  },
-  "maximumNumberChats" : {
+  "maximumNumberChats": {
     "message": "Maximum number of chats"
   },
-  "needRefresh" : {
+  "needRefresh": {
     "message": "Need to refresh"
   },
-  "closePermanently" : {
-    "message": "Don't show again"
-  },
-  "close" : {
-    "message": "Close"
-  },
-  "donation" : {
-    "message" : "Donation"
-  },
-  "donationMessage" : {
-    "message": "If you find the extension useful please rate or sponsor it!"
-  },
-  "supportMessage" : {
-    "message": "If you find the program useful, please help us improve and keep it updated by donating and rating!"
-  },
-  "chzzkChatSide" : {
+  "chzzkChatSide": {
     "message": "Chat panel side (Chzzk)"
   },
-  "chzzkChatSideHint" : {
+  "chzzkChatSideHint": {
     "message": "Swaps the chat panel and the navigation sidebar"
   },
-  "chatSideLeft" : {
+  "chatSideLeft": {
     "message": "Left"
   },
-  "chatSideRight" : {
+  "chatSideRight": {
     "message": "Right"
   },
-  "chzzkChatRender" : {
+  "chzzkChatRender": {
     "message": "Collected chat look (Chzzk)"
   },
-  "chatRenderNative" : {
+  "chatRenderNative": {
     "message": "Default"
   },
-  "chatRenderTemplate" : {
+  "chatRenderTemplate": {
     "message": "Custom"
   },
-  "templateSettingButton" : {
+  "templateSettingButton": {
     "message": "Template settings"
+  },
+  "auto": {
+    "message": "Auto"
+  },
+  "theme": {
+    "message": "Theme"
+  },
+  "themeSystem": {
+    "message": "System"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "diagNoActiveTab": {
+    "message": "No active tab"
+  },
+  "diagNoResponse": {
+    "message": "No response (run this on a Chzzk/Twitch page)"
+  },
+  "onlyOnHostPage": {
+    "message": "Only works on Chzzk or Twitch pages."
+  },
+  "otaBundled": {
+    "message": "OTA selectors: bundled defaults"
+  },
+  "diagFailCount": {
+    "message": "Failed $1 / $2"
+  },
+  "diagRun": {
+    "message": "Diagnose"
+  },
+  "diagRunning": {
+    "message": "Checking…"
+  },
+  "copy": {
+    "message": "Copy"
+  },
+  "copied": {
+    "message": "Copied"
+  },
+  "report": {
+    "message": "Report"
+  },
+  "reportSubmitting": {
+    "message": "Sending…"
+  },
+  "reportSubmitted": {
+    "message": "Sent"
+  },
+  "reportFailed": {
+    "message": "Failed"
+  },
+  "reportConsentTitle": {
+    "message": "Send diagnostic data via Discord"
+  },
+  "reportConsentBody": {
+    "message": "The anonymous data below will be sent to the developer."
+  },
+  "reportConsentAccept": {
+    "message": "Agree and send"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "scrollToBottom": {
+    "message": "Scroll to bottom"
+  },
+  "selectAll": {
+    "message": "Select all"
+  },
+  "deselectAll": {
+    "message": "Deselect all"
+  },
+  "selectedCount": {
+    "message": "$1 selected"
+  },
+  "capturing": {
+    "message": "Capturing…"
+  },
+  "downloadPng": {
+    "message": "Download PNG"
+  },
+  "emoticonOnly": {
+    "message": "(emoticon)"
+  },
+  "chatSource": {
+    "message": "Channel: $1"
+  },
+  "chatSourceRestored": {
+    "message": "Channel: $1 (restored)"
+  },
+  "translationNotice": {
+    "message": "Badge Collector is made in Korean, so some translations may be awkward."
+  },
+  "dismiss": {
+    "message": "Got it"
   }
 }

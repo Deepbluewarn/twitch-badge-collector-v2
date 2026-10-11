@@ -181,7 +181,7 @@ export function FilterGroupList() {
                 }
             },
             {
-                field: 'filterChannelName', headerName: "채널", flex: 0.2, display: 'flex',
+                field: 'filterChannelName', headerName: t('common.channel'), flex: 0.2, display: 'flex',
                 renderCell: (params: GridRenderCellParams<any, string>) => {
                     if (!params.value) {
                         return (
@@ -220,7 +220,7 @@ export function FilterGroupList() {
                 }
             },
             {
-                field: 'filterNote', headerName: "메모", flex: 0.2, display: 'flex',
+                field: 'filterNote', headerName: t('common.note'), flex: 0.2, display: 'flex',
                 renderCell: (params: GridRenderCellParams<any, string>) => {
                     if (!params.value) {
                         return (
@@ -273,7 +273,7 @@ export function FilterGroupList() {
                 }
             },
             {
-                field: 'markerColor', headerName: '색상', flex: 0.1, display: 'flex',
+                field: 'markerColor', headerName: t('common.color'), flex: 0.1, display: 'flex',
                 renderCell: (params: GridRenderCellParams) => {
                     const row = params.row as CompositeFilterElement;
                     const value = (params.value as string) || '#FFC107';
@@ -357,6 +357,7 @@ const DeleteButtonStyle = styled('div')({
 })
 
 function DeleteButton(props: { selectionModel: Set<GridRowId>, showDeleteButton: boolean }) {
+    const { t } = useTranslation();
     const { setFilterGroup } = useFilterGroupContext();
 
     if (!props.showDeleteButton) return null;
@@ -365,7 +366,7 @@ function DeleteButton(props: { selectionModel: Set<GridRowId>, showDeleteButton:
         <DeleteButtonStyle>
             <CustomToolbarItemStyle direction='row' onClick={() => { deleteSelectedFilter(setFilterGroup, props.selectionModel) }}>
                 <span className="material-icons-round">delete</span>
-                <span>선택 삭제</span>
+                <span>{t('common.delete_selected')}</span>
             </CustomToolbarItemStyle>
         </DeleteButtonStyle>
     )
@@ -392,6 +393,7 @@ function TextCell({
     onClick: (e: React.MouseEvent) => void;
     onDelete: (e: React.MouseEvent) => void;
 }) {
+    const { t } = useTranslation();
     const content = (
         <Stack
             direction="row"
@@ -425,7 +427,7 @@ function TextCell({
                 size="small"
                 onClick={onDelete}
                 className="tbcv2-cell-delete"
-                aria-label="삭제"
+                aria-label={t('common.remove')}
                 sx={{ opacity: 0, transition: 'opacity 0.15s', p: 0.25 }}
             >
                 <CloseIcon sx={{ fontSize: 14 }} />

@@ -1,179 +1,182 @@
 {
-  "ExtensionName" : {
-    "message" : "Badge Collector"
+  "ExtensionName": {
+    "message": "Badge Collector"
   },
-  "language" : {
-    "message" : "ko"
+  "ExtensionDesc": {
+    "message": "인터넷 방송에서 원하는 채팅만 모아 볼 수 있습니다."
   },
-  "ExtensionDesc" : {
-    "message" : "인터넷 방송에서 원하는 채팅만 모아 볼 수 있습니다."
-  },
-  "popup_title" : {
-    "message" : "Badge Collector"
-  },
-  "generalSetting" : {
-    "message" : "일반 설정"
-  },
-  "chatClientSetting" : {
-    "message" : "채팅 클라이언트 설정"
-  },
-  "extraSetting" : {
-    "message" : "기타"
-  },
-  "review" : {
-    "message" : "확장 프로그램 평가"
-  },
-  "review_2" : {
-    "message": "평가하기"
-  },
-  "documentation" : {
-    "message" : "설명서"
+  "generalSetting": {
+    "message": "일반 설정"
   },
   "reset_chat_ratio": {
     "message": "채팅창 비율 초기화"
   },
-  "support" : {
-    "message" : "지원"
+  "chatTime": {
+    "message": "채팅 시간 표시"
   },
-  "discord" : {
-    "message" : "디스코드"
+  "collectedChatMarker": {
+    "message": "원본 채팅에 수집 표시"
   },
-  "replay_chat_settings" : {
-    "message" : "다시보기 채팅창 설정"
+  "jumpToBottomButton": {
+    "message": "맨 아래로 버튼"
   },
-  "chat_window_size_setting" : {
-    "message" : "채팅창 크기 설정"
+  "chatPersistence": {
+    "message": "새로고침 후 채팅 유지"
   },
-  "language_text" : {
-    "message" : "언어"
+  "displayMode": {
+    "message": "표시 방식"
   },
-  "ko": {
-    "message": "한국어"
+  "displayModeInline": {
+    "message": "합치기"
   },
-  "en": {
-    "message": "English"
+  "displayModeFloating": {
+    "message": "팝오버"
   },
-  "fontSize" : {
-    "message" : "글자 크기"
+  "floatingBgColor": {
+    "message": "팝오버 배경색"
   },
-  "small" : {
-    "message" : "작게"
+  "startCapture": {
+    "message": "채팅 캡쳐 시작"
   },
-  "default" : {
-    "message" : "기본값"
+  "clearCollectedChats": {
+    "message": "저장된 채팅 초기화"
   },
-  "big" : {
-    "message" : "크게"
+  "chatPosition": {
+    "message": "채팅 위치"
   },
-  "bigger" : {
-    "message" : "더 크게"
+  "up": {
+    "message": "위쪽"
   },
-  "chatTime" : {
-    "message" : "채팅 시간 표시"
+  "down": {
+    "message": "아래쪽"
   },
-  "collectedChatMarker" : {
-    "message" : "원본 채팅에 수집 표시"
+  "p_filter_btn": {
+    "message": "필터 설정"
   },
-  "jumpToBottomButton" : {
-    "message" : "맨 아래로 버튼"
-  },
-  "chatPersistence" : {
-    "message" : "새로고침 후 채팅 유지"
-  },
-  "displayMode" : {
-    "message" : "표시 방식"
-  },
-  "displayModeInline" : {
-    "message" : "합치기"
-  },
-  "displayModeFloating" : {
-    "message" : "팝오버"
-  },
-  "floatingBgColor" : {
-    "message" : "팝오버 배경색"
-  },
-  "startCapture" : {
-    "message" : "채팅 캡쳐 시작"
-  },
-  "clearCollectedChats" : {
-    "message" : "저장된 채팅 초기화"
-  },
-  "chatPosition" : {
-    "message" : "채팅 위치"
-  },
-  "up" : {
-    "message" : "위쪽"
-  },
-  "down" : {
-    "message" : "아래쪽"
-  },
-  "dispCopiedChatmethod" : {
-    "message" : "채팅 표시 방법"
-  },
-  "local" : {
-    "message" : "트위치 UI 복사"
-  },
-  "remote" : {
-    "message" : "채팅 클라이언트"
-  },
-  "pointBoxAutoClick" : {
-    "message" : "포인트 상자 자동 클릭"
-  },
-  "on" : {
-    "message" : "켜기"
-  },
-  "off" : {
-    "message" : "끄기"
-  },
-  "p_filter_btn" : {
-    "message" : "필터 설정"
-  },
-  "p_save_chat_btn" : {
-    "message" : "채팅 저장"
-  },
-  "maximumNumberChats" : {
+  "maximumNumberChats": {
     "message": "채팅 최대 개수"
   },
-  "needRefresh" : {
+  "needRefresh": {
     "message": "새로고침 필요"
   },
-  "closePermanently" : {
-    "message": "다시 보지 않기"
-  },
-  "close" : {
-    "message": "닫기"
-  },
-  "donation" : {
-    "message" : "후원하기"
-  },
-  "donationMessage" : {
-    "message": "확장 프로그램을 유용하게 사용 중이라면 평가 또는 후원을 해주세요!"
-  },
-  "supportMessage" : {
-    "message": "프로그램이 유용하다면, 후원과 평가를 통해 서비스 개선과 지속적인 업데이트를 지원해주세요!"
-  },
-  "chzzkChatSide" : {
+  "chzzkChatSide": {
     "message": "채팅창 위치 (치지직)"
   },
-  "chzzkChatSideHint" : {
+  "chzzkChatSideHint": {
     "message": "채팅창과 메뉴 사이드바의 좌우를 맞바꿉니다"
   },
-  "chatSideLeft" : {
+  "chatSideLeft": {
     "message": "왼쪽"
   },
-  "chatSideRight" : {
+  "chatSideRight": {
     "message": "오른쪽"
   },
-  "chzzkChatRender" : {
+  "chzzkChatRender": {
     "message": "모아보기 채팅 모양 (치지직)"
   },
-  "chatRenderNative" : {
+  "chatRenderNative": {
     "message": "기본"
   },
-  "chatRenderTemplate" : {
+  "chatRenderTemplate": {
     "message": "커스텀"
   },
-  "templateSettingButton" : {
+  "templateSettingButton": {
     "message": "템플릿 설정"
+  },
+  "auto": {
+    "message": "자동"
+  },
+  "theme": {
+    "message": "테마"
+  },
+  "themeSystem": {
+    "message": "시스템"
+  },
+  "themeLight": {
+    "message": "라이트"
+  },
+  "themeDark": {
+    "message": "다크"
+  },
+  "diagNoActiveTab": {
+    "message": "활성 탭 없음"
+  },
+  "diagNoResponse": {
+    "message": "응답 없음 (치지직/트위치 페이지에서 실행)"
+  },
+  "onlyOnHostPage": {
+    "message": "치지직 또는 트위치 페이지에서만 동작합니다."
+  },
+  "otaBundled": {
+    "message": "OTA selectors: 번들 기본값"
+  },
+  "diagFailCount": {
+    "message": "실패 $1 / $2"
+  },
+  "diagRun": {
+    "message": "진단"
+  },
+  "diagRunning": {
+    "message": "진단중..."
+  },
+  "copy": {
+    "message": "복사"
+  },
+  "copied": {
+    "message": "복사됨"
+  },
+  "report": {
+    "message": "제보"
+  },
+  "reportSubmitting": {
+    "message": "제보중..."
+  },
+  "reportSubmitted": {
+    "message": "제보됨"
+  },
+  "reportFailed": {
+    "message": "실패"
+  },
+  "reportConsentTitle": {
+    "message": "Discord로 진단 데이터 전송"
+  },
+  "reportConsentBody": {
+    "message": "아래의 익명 데이터가 개발자에게 전송됩니다."
+  },
+  "reportConsentAccept": {
+    "message": "동의하고 전송"
+  },
+  "cancel": {
+    "message": "취소"
+  },
+  "scrollToBottom": {
+    "message": "맨 아래로"
+  },
+  "selectAll": {
+    "message": "전체 선택"
+  },
+  "deselectAll": {
+    "message": "전체 해제"
+  },
+  "selectedCount": {
+    "message": "$1개 선택됨"
+  },
+  "capturing": {
+    "message": "캡쳐 중..."
+  },
+  "downloadPng": {
+    "message": "PNG 다운로드"
+  },
+  "emoticonOnly": {
+    "message": "(이모티콘)"
+  },
+  "chatSource": {
+    "message": "채널: $1"
+  },
+  "chatSourceRestored": {
+    "message": "채널: $1 (복원)"
+  },
+  "dismiss": {
+    "message": "확인"
   }
 }

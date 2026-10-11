@@ -77,8 +77,8 @@ export default function Filter() {
                             },
                         }}
                     >
-                        <Tab value="twitch" label={getAdapter('twitch').displayName} />
-                        <Tab value="chzzk" label={getAdapter('chzzk').displayName} />
+                        <Tab value="twitch" label={t('platform.twitch')} />
+                        <Tab value="chzzk" label={t('platform.chzzk')} />
                     </Tabs>
 
                     <Stack

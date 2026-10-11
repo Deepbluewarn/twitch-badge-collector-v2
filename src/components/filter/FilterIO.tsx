@@ -25,7 +25,7 @@ export function ImportFilter() {
         if(platformFilter.length === 0) {
             addAlert({
                 serverity: 'info',
-                message: '추가 가능한 플랫폼 필터가 없습니다.',
+                message: t('alert.no_platform_filters'),
             })
             return;
         }

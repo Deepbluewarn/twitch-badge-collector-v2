@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { parseTemplate, TemplateError } from "./template";
+import { parseTemplate, TemplateError, type TemplateErrorCode } from "./template";
 import type { ChzzkTemplates } from "./chzzk-render";
 
 /**
@@ -27,17 +27,19 @@ export function sanitizeStoredTemplates(v: unknown): StoredTemplates {
     return out;
 }
 
-export type TemplateValidation = { ok: true } | { ok: false; message: string; index: number };
+export type TemplateValidation =
+    | { ok: true }
+    | { ok: false; code: TemplateErrorCode; params: Record<string, string | number>; index: number };
 
 export function validateTemplate(src: string): TemplateValidation {
     if (src.length > TEMPLATE_MAX_LENGTH) {
-        return { ok: false, message: `템플릿이 너무 깁니다 (최대 ${TEMPLATE_MAX_LENGTH}자)`, index: TEMPLATE_MAX_LENGTH };
+        return { ok: false, code: 'too_long', params: { max: TEMPLATE_MAX_LENGTH }, index: TEMPLATE_MAX_LENGTH };
     }
     try {
         parseTemplate(src);
         return { ok: true };
     } catch (e) {
-        if (e instanceof TemplateError) return { ok: false, message: e.message, index: e.index };
+        if (e instanceof TemplateError) return { ok: false, code: e.code, params: e.params, index: e.index };
         throw e;
     }
 }

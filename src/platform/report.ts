@@ -215,7 +215,7 @@ export async function submitReport(report: DiagnoseReport): Promise<void> {
     const cooldown = await getReportCooldownRemainingMs();
     if (cooldown > 0) {
         const min = Math.ceil(cooldown / 60000);
-        throw new Error(`cooldown: ${min}분 후 재제보 가능`);
+        throw new Error(`cooldown: ${min} min`);
     }
     const sanitized = sanitizeReport(report);
     const md = buildMarkdown(sanitized);

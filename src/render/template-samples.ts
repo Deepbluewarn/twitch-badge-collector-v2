@@ -20,10 +20,11 @@ function sample(over: Partial<ChzzkSocketChat> & { uid: string }): ChzzkSocketCh
     };
 }
 
+/** label은 i18n 키 `template.samples.<label>`. */
 export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: ChzzkSocketChat }[]> = {
     chat: [
         {
-            label: '배지 + 이모지',
+            label: 'badge_emoji',
             chat: sample({
                 uid: 'sample-a', nickname: '고양이집사', message: '오늘 방송 재밌다 {:mlb_13:}',
                 emojis: { mlb_13: `${G}/icon/mlb/13.png` },
@@ -31,32 +32,32 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
             }),
         },
         {
-            label: '매니저',
+            label: 'manager',
             chat: sample({
                 uid: 'sample-b', nickname: '방장대리', message: '공지 확인해주세요', userRoleCode: 'streaming_chat_manager',
                 badges: [`${G}/icon/manager.png`, `${G}/badge/cheatkey_12m.png`],
             }),
         },
         {
-            label: '2단계 구독자 닉네임 꾸미기 (그라데이션)',
+            label: 'nick_gradient',
             chat: sample({ uid: 'sample-sg', nickname: '반짝구독자', message: '그라데이션 닉네임', nicknameColorCode: 'SG001', badges: [`${G}/icon/12m.png`] }),
         },
         {
-            label: '2단계 구독자 닉네임 꾸미기 (하이라이트)',
+            label: 'nick_highlight',
             chat: sample({ uid: 'sample-sh', nickname: '형광펜구독자', message: '하이라이트 닉네임', nicknameColorCode: 'SH004', badges: [`${G}/icon/12m.png`] }),
         },
         {
-            label: '클린봇 (클릭하면 원문)',
+            label: 'cleanbot',
             chat: sample({ uid: 'sample-c', nickname: '지나가던사람', message: '가려진 원문입니다', status: 'CBOTBLIND' }),
         },
         {
-            label: '운영자 블라인드',
+            label: 'blinded',
             chat: sample({ uid: 'sample-d', nickname: '익명123', message: '보이면 안 되는 말', status: 'BLIND' }),
         },
     ],
     donation: [
         {
-            label: '후원',
+            label: 'donation',
             chat: sample({
                 uid: 'sample-e', type: 10, nickname: '치즈부자', message: '항상 잘 보고 있어요!',
                 badges: [`${G}/icon/gold.png`, `${G}/badge/fan_03.png`],
@@ -64,11 +65,11 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
             }),
         },
         {
-            label: '익명 후원 (메시지 없음)',
+            label: 'donation_anonymous',
             chat: sample({ uid: 'anonymous', type: 10, anonymous: true, nickname: '', message: '', extras: { payAmount: 1000, isAnonymous: true } }),
         },
         {
-            label: '미션 후원',
+            label: 'donation_mission',
             chat: sample({
                 uid: 'sample-f', type: 10, nickname: '미션왕', message: '',
                 extras: { payAmount: 5000, donationType: 'MISSION', missionText: '노래 한 곡 불러주세요' },
@@ -77,14 +78,14 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
     ],
     gift: [
         {
-            label: '채널에 구독권 선물',
+            label: 'gift_channel',
             chat: sample({
                 uid: 'sample-h', type: 12, nickname: '선물왕', message: '', badges: [`${G}/icon/12m.png`],
                 extras: { giftType: 'SUBSCRIPTION_GIFT', quantity: 5, giftTierName: '팬', giftTierNo: 1 },
             }),
         },
         {
-            label: '받은 사람 알림 (보낸 사람 익명)',
+            label: 'gift_receiver',
             chat: sample({
                 uid: 'anonymous', type: 12, anonymous: true, nickname: '', message: '',
                 extras: { giftType: 'SUBSCRIPTION_GIFT_RECEIVER', receiverNickname: '운좋은시청자', giftTierName: '팬', giftTierNo: 1 },
@@ -93,7 +94,7 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
     ],
     subscription: [
         {
-            label: '구독',
+            label: 'subscription',
             chat: sample({
                 uid: 'sample-g', type: 11, nickname: '오래된구독자', message: '1년 됐네요',
                 badges: [`${G}/icon/12m.png`],

@@ -179,7 +179,7 @@ export default function FilterInputForm(
                     {/* 메모 (선택) */}
                     <CustomTextField
                         value={filterGroupNote}
-                        label="메모 (선택)"
+                        label={t('common.note_optional')}
                         onChange={onFilterNoteChanged}
                         fullWidth
                     />
@@ -188,12 +188,12 @@ export default function FilterInputForm(
                     <Box>
                         <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.75 }}>
                             <Typography variant="caption" color="text.secondary">
-                                특정 채널에서만 적용 (선택)
+                                {t('common.channel_only')}
                             </Typography>
                             <IconButton
                                 size="small"
                                 onClick={() => setGuideOpen(true)}
-                                aria-label="채널 ID 안내"
+                                aria-label={t('channel_guide.title')}
                                 sx={{ p: 0.25 }}
                             >
                                 <HelpOutlineIcon sx={{ fontSize: 16 }} />
@@ -201,13 +201,13 @@ export default function FilterInputForm(
                         </Stack>
                         <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
                             <CustomTextField
-                                label="채널 ID"
+                                label={t('common.channel_id')}
                                 defaultValue={props.filterInput?.filterChannelId}
                                 inputRef={channelValue}
                                 sx={{ flex: 1 }}
                             />
                             <CustomTextField
-                                label="채널 이름"
+                                label={t('common.channel_name')}
                                 defaultValue={props.filterInput?.filterChannelName}
                                 inputRef={channelName}
                                 sx={{ flex: 1 }}
@@ -326,7 +326,7 @@ function BasicFilterInputForm(
             }
             <IconButton
                 onClick={resetFilterInput}
-                aria-label="초기화"
+                aria-label={t('common.reset')}
                 size="small"
                 sx={{ flexShrink: 0 }}
             >

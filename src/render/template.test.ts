@@ -62,19 +62,19 @@ describe('섹션', () => {
 describe('문법 오류', () => {
     it('닫히지 않은 섹션', () => {
         expect(() => parseTemplate('a{{#badges}}b')).toThrow(TemplateError);
-        expect(() => parseTemplate('a{{#badges}}b')).toThrow(/닫히지 않았습니다/);
+        expect(() => parseTemplate('a{{#badges}}b')).toThrow(/unclosed/);
     });
 
     it('엉뚱한 이름으로 닫음', () => {
-        expect(() => parseTemplate('{{#a}}{{/b}}')).toThrow(/\{\{#a\}\}을 \{\{\/b\}\}로/);
+        expect(() => parseTemplate('{{#a}}{{/b}}')).toThrow(/mismatched_close/);
     });
 
     it('여는 태그 없이 닫음', () => {
-        expect(() => parseTemplate('{{/a}}')).toThrow(/여는 태그 없이/);
+        expect(() => parseTemplate('{{/a}}')).toThrow(/unexpected_close/);
     });
 
     it('중괄호 짝 불일치', () => {
-        expect(() => parseTemplate('{{{a}}')).toThrow(/중괄호/);
+        expect(() => parseTemplate('{{{a}}')).toThrow(/unbalanced_braces/);
     });
 
     it('오류 위치를 알려준다', () => {
@@ -101,6 +101,6 @@ describe('줄바꿈 공백', () => {
     });
 
     it('오류 위치는 원문 기준', () => {
-        expect(() => compileTemplate('a\n  {{/x}}')).toThrow(/위치 4/);
+        expect(() => compileTemplate('a\n  {{/x}}')).toThrow(/at 4/);
     });
 });

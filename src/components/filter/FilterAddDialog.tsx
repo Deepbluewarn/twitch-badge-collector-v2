@@ -129,9 +129,9 @@ export default function FilterAddDialog({ open, onClose }: Props) {
                         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2, flexShrink: 0 }}>
                             <InfoOutlinedIcon color="primary" fontSize="small" />
                             <Typography variant="body2" color="textSecondary" sx={{ flex: 1 }}>
-                                채널 별 필터 설정이 가능합니다.
+                                {t('filter_dialog.per_channel_hint')}
                             </Typography>
-                            <Button size="small" onClick={() => setGuideOpen(true)}>자세히</Button>
+                            <Button size="small" onClick={() => setGuideOpen(true)}>{t('common.details')}</Button>
                         </Stack>
 
                         {advancedFilter === 'on' ? (
@@ -182,7 +182,7 @@ export default function FilterAddDialog({ open, onClose }: Props) {
                 </Stack>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>닫기</Button>
+                <Button onClick={onClose}>{t('common.close')}</Button>
             </DialogActions>
             <ChannelIdGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
         </Dialog>

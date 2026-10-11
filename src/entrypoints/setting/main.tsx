@@ -21,7 +21,9 @@ import { FilterGroupContext } from "@/context/FilterGroup";
 import Filter from "@/components/Filter";
 import TemplateSetting from "@/components/TemplateSetting";
 import "@/render/chzzk-chat.css";
-import '@/translate/i18n';
+import i18n from '@/translate/i18n';
+import { useTranslation } from 'react-i18next';
+import TranslationNotice from '@/components/TranslationNotice';
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
@@ -37,7 +39,7 @@ function App() {
     },
     queryCache: new QueryCache({
       onError: () =>
-        addAlert({ serverity: "error", message: '요청 실패' }),
+        addAlert({ serverity: "error", message: i18n.t('alert.network_error') }),
     }),
   });
 
@@ -50,11 +52,24 @@ function App() {
           <QueryClientProvider client={queryClient}>
             {globalStyles}
             <AlertContainer />
+            <SettingTranslationNotice />
             <Router />
           </QueryClientProvider>
         </AlertContext.Provider>
       </GlobalSettingContext.Provider>
     </ThemeProvider>
+  );
+}
+
+function SettingTranslationNotice() {
+  const { t, i18n } = useTranslation();
+  return (
+    <TranslationNotice
+      language={i18n.resolvedLanguage ?? i18n.language}
+      message={t('translation_notice')}
+      dismissLabel={t('common.dismiss')}
+      sx={{ borderRadius: 0 }}
+    />
   );
 }
 

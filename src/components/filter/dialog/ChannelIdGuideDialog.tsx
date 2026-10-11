@@ -1,8 +1,10 @@
 import { Box, Dialog, DialogContent, DialogTitle, IconButton, Paper, Stack, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { Trans, useTranslation } from "react-i18next";
 import { getAdapter } from "@/platform";
 
 export default function ChannelIdGuideDialog({ open, onClose }: { open: boolean, onClose: () => void }) {
+    const { t } = useTranslation();
     return (
         <Dialog
             open={open}
@@ -27,7 +29,7 @@ export default function ChannelIdGuideDialog({ open, onClose }: { open: boolean,
             }}
         >
             <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 1, py: 1.5 }}>
-                <span>채널 ID 입력 안내</span>
+                <span>{t('channel_guide.title')}</span>
                 <IconButton onClick={onClose} size="small" aria-label="close">
                     <CloseIcon fontSize="small" />
                 </IconButton>
@@ -35,17 +37,17 @@ export default function ChannelIdGuideDialog({ open, onClose }: { open: boolean,
             <DialogContent dividers>
                 <Stack spacing={2}>
                     <PlatformGuide
-                        name="트위치"
+                        name={t('platform.twitch')}
                         accent={getAdapter('twitch').brandColor}
-                        description="트위치 채널 ID는 채널 주소의 마지막 부분입니다."
+                        description={t('channel_guide.twitch')}
                         example="https://www.twitch.tv/abcd1234"
                         result="abcd1234"
                     />
                     <PlatformGuide
-                        name="치지직"
+                        name={t('platform.chzzk')}
                         accent={getAdapter('chzzk').brandColor}
                         description={
-                            <>치지직 채널 ID는 라이브 방송 주소에서 <b>/live/</b> 다음에 나오는 영문/숫자 ID입니다.</>
+                            <Trans i18nKey='channel_guide.chzzk' components={{ b: <b /> }} />
                         }
                         example="https://chzzk.naver.com/live/abcd1234"
                         result="abcd1234"
@@ -63,6 +65,7 @@ function PlatformGuide({ name, accent, description, example, result }: {
     example: string;
     result: string;
 }) {
+    const { t } = useTranslation();
     return (
         <Paper
             variant="outlined"
@@ -86,7 +89,7 @@ function PlatformGuide({ name, accent, description, example, result }: {
                 color: 'text.secondary',
                 fontSize: '0.875rem',
             }}>
-                <span>예시:</span>
+                <span>{t('channel_guide.example')}</span>
                 <Box component="code" sx={{
                     px: 0.75, py: 0.25,
                     bgcolor: 'action.hover',

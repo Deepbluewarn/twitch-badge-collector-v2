@@ -107,13 +107,11 @@ export default function FilterDialog(props: FilterDialogProps) {
 
     // 타입에 따른 다이얼로그 타이틀
     const getDialogTitle = () => {
-        const modeTitle = mode === 'add' ? '추가' : '수정';
-
         switch (type) {
-            case 'filter': return t(`하위 필터 ${modeTitle}`);
-            case 'channel': return t(`채널 ${modeTitle}`);
-            case 'note': return t(`메모 ${modeTitle}`);
-            default: return t('수정');
+            case 'filter': return t(mode === 'add' ? 'filter_dialog.add_filter' : 'filter_dialog.edit_filter');
+            case 'channel': return t(mode === 'add' ? 'filter_dialog.add_channel' : 'filter_dialog.edit_channel');
+            case 'note': return t(mode === 'add' ? 'filter_dialog.add_note' : 'filter_dialog.edit_note');
+            default: return t('common.edit');
         }
     };
 
@@ -127,7 +125,7 @@ export default function FilterDialog(props: FilterDialogProps) {
             case 'note':
                 return renderNoteContent();
             default:
-                return <div>{t('선택된 항목이 없습니다.')}</div>;
+                return <div>{t('filter_dialog.nothing_selected')}</div>;
         }
     };
 
@@ -176,11 +174,11 @@ export default function FilterDialog(props: FilterDialogProps) {
         return (
             <Stack spacing={2}>
                 <FormControl>
-                    <InputLabel id="filter-category-label">{'카테고리'}</InputLabel>
+                    <InputLabel id="filter-category-label">{t('common.category')}</InputLabel>
                     <Select
                         labelId="filter-category-label"
                         value={filterGroup.category || ''}
-                        label={'카테고리'}
+                        label={t('common.category')}
                         size='small'
                         onChange={(e) => {
                             setFilterGroup(filter => {
@@ -192,9 +190,9 @@ export default function FilterDialog(props: FilterDialogProps) {
                             handleFilterObjectChange({ category: e.target.value as FilterCategory }, filterId!);
                         }}
                     >
-                        <MenuItem value="name">{'닉네임'}</MenuItem>
-                        <MenuItem value="keyword">{'키워드'}</MenuItem>
-                        <MenuItem value="badge">{'배지'}</MenuItem>
+                        <MenuItem value="name">{t('common.nickname')}</MenuItem>
+                        <MenuItem value="keyword">{t('common.keyword')}</MenuItem>
+                        <MenuItem value="badge">{t('common.badge')}</MenuItem>
                     </Select>
                 </FormControl>
                 <Stack spacing={2} direction={'row'}>
@@ -202,7 +200,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                     {
                         filterGroup.category === 'badge' ? (
                             <CustomTextField
-                                label={'배지 이름'}
+                                label={t('common.badge_name')}
                                 value={filterGroup.badgeName || ''}
                                 onChange={e => {
                                     handleFilterObjectChange({ badgeName: e.target.value }, filterId!);
@@ -211,7 +209,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                             />
                         ) : (
                             <CustomTextField
-                                label={'내용'}
+                                label={t('common.content')}
                                 value={filterGroup.value || ''}
                                 onChange={e => {
                                     handleFilterObjectChange({ value: e.target.value }, filterId!);
@@ -223,19 +221,19 @@ export default function FilterDialog(props: FilterDialogProps) {
 
                     {/* 필터 조건 선택 추가 */}
                     <FormControl>
-                        <InputLabel id="filter-type-label">{'조건'}</InputLabel>
+                        <InputLabel id="filter-type-label">{t('common.condition')}</InputLabel>
                         <Select
                             labelId="filter-type-label"
                             value={filterGroup.type || 'include'}
-                            label={'조건'}
+                            label={t('common.condition')}
                             size="small"
                             onChange={(e) => {
                                 handleFilterObjectChange({ type: e.target.value as FilterType }, filterId!);
                             }}
                         >
-                            <MenuItem value="include">{'포함'}</MenuItem>
-                            <MenuItem value="exclude">{'제외'}</MenuItem>
-                            <MenuItem value="sleep">{'꺼짐'}</MenuItem>
+                            <MenuItem value="include">{t('filter.category.include')}</MenuItem>
+                            <MenuItem value="exclude">{t('filter.category.exclude')}</MenuItem>
+                            <MenuItem value="sleep">{t('filter.category.sleep')}</MenuItem>
                         </Select>
                     </FormControl>
                 </Stack>
@@ -269,7 +267,7 @@ export default function FilterDialog(props: FilterDialogProps) {
         return (
             <Stack spacing={2}>
                 <CustomTextField
-                    label={'채널명'}
+                    label={t('common.channel_name')}
                     value={filterGroupList.filterChannelName || ''}
                     onChange={e => {
                         handleListObjectChange({ filterChannelName: e.target.value });
@@ -277,7 +275,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                     fullWidth
                 />
                 <CustomTextField
-                    label={'채널 ID'}
+                    label={t('common.channel_id')}
                     value={filterGroupList.filterChannelId || ''}
                     onChange={e => {
                         handleListObjectChange({ filterChannelId: e.target.value });
@@ -294,7 +292,7 @@ export default function FilterDialog(props: FilterDialogProps) {
 
         return (
             <CustomTextField
-                label={'메모'}
+                label={t('common.note')}
                 value={filterGroupList.filterNote || ''}
                 onChange={e => {
                     handleListObjectChange({ filterNote: e.target.value });
@@ -324,7 +322,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                     <Button onClick={onClose}>{t('common.cancel')}</Button>
                     <Button onClick={() => handleSave()} color="primary">
                         {
-                            mode === 'edit' ? t('common.save') : t('추가')
+                            mode === 'edit' ? t('common.save') : t('common.add')
                         }
                     </Button>
                 </DialogActions>

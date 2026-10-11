@@ -28,15 +28,15 @@ const SubFilter: React.FC<SubFilterProps> = ({ filter }) => {
 							alt={filter.badgeName || 'badge'}
 						/>
 					) : (
-						<Typography>배지 없음</Typography>
+						<Typography>{t('common.no_badge')}</Typography>
 					)}
 				</Paper>
 				<Box>
-					<Typography variant="caption" color="text.secondary">배지 이름</Typography>
-					<Typography variant="body2">{filter.badgeName || '이름 없음'}</Typography>
+					<Typography variant="caption" color="text.secondary">{t('common.badge_name')}</Typography>
+					<Typography variant="body2">{filter.badgeName || t('common.no_name')}</Typography>
 				</Box>
 				<Box>
-					<Typography variant="caption" color="text.secondary">조건</Typography>
+					<Typography variant="caption" color="text.secondary">{t('common.condition')}</Typography>
 					<Typography variant="body2">{t(`filter.category.${filter.type}`)}</Typography>
 				</Box>
 			</Box>
@@ -49,12 +49,12 @@ const SubFilter: React.FC<SubFilterProps> = ({ filter }) => {
 			<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
 				<Box>
 					<Typography variant="caption" color="text.secondary">
-						{filter.category === 'name' ? '닉네임' : '키워드'}
+						{filter.category === 'name' ? t('common.nickname') : t('common.keyword')}
 					</Typography>
-					<Typography variant="body2">{filter.value || '값 없음'}</Typography>
+					<Typography variant="body2">{filter.value || t('common.no_value')}</Typography>
 				</Box>
 				<Box>
-					<Typography variant="caption" color="text.secondary">조건</Typography>
+					<Typography variant="caption" color="text.secondary">{t('common.condition')}</Typography>
 					<Typography variant="body2">{t(`filter.category.${filter.type}`)}</Typography>
 				</Box>
 			</Box>

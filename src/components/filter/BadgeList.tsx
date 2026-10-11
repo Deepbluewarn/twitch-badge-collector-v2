@@ -185,8 +185,8 @@ export default function BadgeList({
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ minHeight: 32 }}>
                     <Typography variant="body2" color="text.secondary">
                         {selectedIds.size > 0
-                            ? `${selectedIds.size}개 선택됨`
-                            : '여러 배지를 선택할 수 있습니다'}
+                            ? t('common.selected_count', { count: selectedIds.size })
+                            : t('badge_list.multi_select_hint')}
                     </Typography>
                     <Button
                         variant="contained"
@@ -217,8 +217,8 @@ export default function BadgeList({
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
                         <Typography variant="body2" color="text.secondary">
                             {channelScopeNeedsInput && channelQuery === ''
-                                ? '채널 이름을 입력하고 검색하세요'
-                                : '표시할 배지가 없습니다'}
+                                ? t('badge_list.search_hint')
+                                : t('badge_list.empty')}
                         </Typography>
                     </Box>
                 )}
@@ -258,6 +258,7 @@ function BadgeCard({
     onClick: () => void;
     onTypeRotate: () => void;
 }) {
+    const { t } = useTranslation();
     const { globalSetting } = useGlobalSettingContext();
     const adapter = getAdapter(globalSetting.platform);
     const showTypeChip = multiple && selected;
@@ -346,7 +347,7 @@ function BadgeCard({
                 <Box sx={{ display: 'flex', justifyContent: 'center', pb: 0.75 }}>
                     <Chip
                         size="small"
-                        label={badge.filterType === 'include' ? '포함' : '제외'}
+                        label={t(`filter.category.${badge.filterType === 'include' ? 'include' : 'exclude'}`)}
                         color={chipColor(badge.filterType)}
                         onClick={(e) => { e.stopPropagation(); onTypeRotate(); }}
                         sx={{ cursor: 'pointer' }}

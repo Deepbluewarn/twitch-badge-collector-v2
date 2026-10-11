@@ -20,15 +20,21 @@ import { useGlobalSettingContext } from '@/context/GlobalSetting';
 import { setChzzkCustomTemplate } from '@/reducer/setting';
 import { DEFAULT_CHZZK_TEMPLATES, renderChzzkChat, type ChzzkTemplates } from '@/render/chzzk-render';
 import type { ChzzkChatKind } from '@/render/chzzk-chat-view';
-import { TEMPLATE_KINDS, saveTemplates, useStoredTemplates, validateTemplate } from '@/render/template-store';
+import { TEMPLATE_KINDS, saveTemplates, useStoredTemplates, validateTemplate, type TemplateValidation } from '@/render/template-store';
 import { TEMPLATE_FIELDS, TEMPLATE_SAMPLES } from '@/render/template-samples';
 import { getPlatformConfig } from '@/platform/host-selectors';
 import SocialFooter from './SocialFooter';
+import i18n from '@/translate/i18n';
 
 /** 오류 위치(index)를 사람이 읽는 줄·칸으로. */
 function lineCol(src: string, index: number) {
     const before = src.slice(0, index).split('\n');
     return { line: before.length, col: before[before.length - 1].length + 1 };
+}
+
+/** 문법 오류 설명. 편집기 linter는 React 밖이라 i18n 인스턴스를 직접 쓴다. */
+function errorText(v: Extract<TemplateValidation, { ok: false }>) {
+    return i18n.t(`template.errors.${v.code}`, { ...v.params, interpolation: { escapeValue: false } });
 }
 
 /** 값 종류에 맞는 사용 예. 문구(i18n)에 넣으면 i18next가 {{ }}를 먹어서 여기서 만든다. */
@@ -54,21 +60,22 @@ const templateLinter = linter(view => {
     const from = Math.min(r.index, src.length);
     const close = src.indexOf('}}', from);
     const to = close >= 0 ? Math.min(close + (src[close + 2] === '}' ? 3 : 2), src.length) : Math.min(from + 1, src.length);
-    const d: Diagnostic = { from, to: Math.max(to, from), severity: 'error', message: r.message };
+    const d: Diagnostic = { from, to: Math.max(to, from), severity: 'error', message: errorText(r) };
     return [d];
 }, { delay: 150 });
 
 const EDITOR_EXTENSIONS = [html(), templateLinter, EditorView.lineWrapping];
 
 const SYNTAX_HELP: { code: string; key: string }[] = [
-    { code: '{{값}}', key: 'help_var' },
+    { code: '{{value}}', key: 'help_var' },
     { code: '{{{messageHtml}}}', key: 'help_raw' },
-    { code: '{{#값}}…{{/값}}', key: 'help_section' },
-    { code: '{{^값}}…{{/값}}', key: 'help_inverted' },
+    { code: '{{#value}}…{{/value}}', key: 'help_section' },
+    { code: '{{^value}}…{{/value}}', key: 'help_inverted' },
 ];
 
 /** 렌더러가 만든 요소를 그대로 붙인다 — 이미 sanitize된 요소다. */
 function Preview({ kind, template, dark }: { kind: ChzzkChatKind; template: string; dark: boolean }) {
+    const { t } = useTranslation();
     const ref = useRef<HTMLDivElement>(null);
     const verifiedIconUrl = getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined;
 
@@ -79,10 +86,10 @@ function Preview({ kind, template, dark }: { kind: ChzzkChatKind; template: stri
         for (const { label, chat } of TEMPLATE_SAMPLES[kind]) {
             const caption = document.createElement('div');
             caption.className = 'tbc-template-preview-caption';
-            caption.textContent = label;
+            caption.textContent = t(`template.samples.${label}`);
             box.append(caption, renderChzzkChat(chat, { templates: { [kind]: template }, verifiedIconUrl }));
         }
-    }, [kind, template, verifiedIconUrl]);
+    }, [kind, template, verifiedIconUrl, t]);
 
     return (
         <Box
@@ -182,7 +189,7 @@ export default function TemplateSetting() {
                         </Box>
                         {!v.ok && (
                             <Alert severity="error" sx={{ mt: 1 }}>
-                                {t('template.error', { ...lineCol(drafts[kind], v.index), message: v.message })}
+                                {t('template.error', { ...lineCol(drafts[kind], v.index), message: errorText(v), interpolation: { escapeValue: false } })}
                             </Alert>
                         )}
                         <Stack direction="row" spacing={1} sx={{ mt: 1 }} alignItems="center">
