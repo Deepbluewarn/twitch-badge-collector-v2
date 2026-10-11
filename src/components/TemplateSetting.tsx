@@ -34,6 +34,8 @@ function lineCol(src: string, index: number) {
 /** 값 종류에 맞는 사용 예. 문구(i18n)에 넣으면 i18next가 {{ }}를 먹어서 여기서 만든다. */
 function usageOf(name: string): string {
     if (name === 'messageHtml') return '{{{messageHtml}}}';
+    if (name === 'nickStyle') return 'style="{{nickStyle}}"';
+    if (name === 'nickEffect') return 'class="tbc-chat-nick--{{nickEffect}}"';
     if (name === 'badges') return '{{#badges}}<img src="{{url}}">{{/badges}}';
     if (['hasMessage', 'cleanbot', 'blinded', 'anonymous', 'donation.mission', 'verifiedIconUrl'].includes(name)) {
         return `{{#${name}}}…{{/${name}}}`;

@@ -1,5 +1,5 @@
 {
-  "source": "chzzk index bundle (b_, x_) + GET api.chzzk.naver.com/service/v1/nickname/color/codes, 2026-10-10",
+  "source": "chzzk index bundle (b_ 해시 팔레트, x_ CD 코드) + GET api.chzzk.naver.com/service/v2/nickname/color/codes (CC/SG/SH/SS), 2026-10-11",
   "hashPalette": {
     "light": [
       "#EB8644",
@@ -248,84 +248,181 @@
       "light": "#5CA314"
     },
     "CC001": {
-      "dark": "#E2BE61",
-      "light": "#ECB21B"
+      "light": "#ECB21B",
+      "dark": "#E2BE61"
     },
     "CC002": {
-      "dark": "#ECA843",
-      "light": "#EC983B"
+      "light": "#EC983B",
+      "dark": "#ECA843"
     },
     "CC003": {
-      "dark": "#EC8A43",
-      "light": "#F6822F"
+      "light": "#F6822F",
+      "dark": "#EC8A43"
     },
     "CC004": {
-      "dark": "#EA723D",
-      "light": "#EA642F"
+      "light": "#EA642F",
+      "dark": "#EA723D"
     },
     "CC005": {
-      "dark": "#E56B79",
-      "light": "#E4473F"
+      "light": "#E4473F",
+      "dark": "#E56B79"
     },
     "CC006": {
-      "dark": "#E68199",
-      "light": "#DA2E39"
+      "light": "#DA2E39",
+      "dark": "#E68199"
     },
     "CC007": {
-      "dark": "#E16CB5",
-      "light": "#D73181"
+      "light": "#D73181",
+      "dark": "#E16CB5"
     },
     "CC008": {
-      "dark": "#BC7ACC",
-      "light": "#B729A0"
+      "light": "#B729A0",
+      "dark": "#BC7ACC"
     },
     "CC009": {
-      "dark": "#A983E7",
-      "light": "#8929B7"
+      "light": "#8929B7",
+      "dark": "#A983E7"
     },
     "CC010": {
-      "dark": "#8B89E1",
-      "light": "#5545DA"
+      "light": "#5545DA",
+      "dark": "#8B89E1"
     },
     "CC011": {
-      "dark": "#7194EE",
-      "light": "#4150DB"
+      "light": "#4150DB",
+      "dark": "#7194EE"
     },
     "CC012": {
-      "dark": "#7994D0",
-      "light": "#2D63DD"
+      "light": "#2D63DD",
+      "dark": "#7994D0"
     },
     "CC013": {
-      "dark": "#71AAED",
-      "light": "#1878E9"
+      "light": "#1878E9",
+      "dark": "#71AAED"
     },
     "CC014": {
-      "dark": "#5FB7E8",
-      "light": "#2A87DC"
+      "light": "#2A87DC",
+      "dark": "#5FB7E8"
     },
     "CC015": {
-      "dark": "#80BDD3",
-      "light": "#00A1DA"
+      "light": "#00A1DA",
+      "dark": "#80BDD3"
     },
     "CC016": {
-      "dark": "#80D3CE",
-      "light": "#1D8C93"
+      "light": "#1D8C93",
+      "dark": "#80D3CE"
     },
     "CC017": {
-      "dark": "#99D3BA",
-      "light": "#068660"
+      "light": "#068660",
+      "dark": "#99D3BA"
     },
     "CC018": {
-      "dark": "#94D59A",
-      "light": "#198337"
+      "light": "#198337",
+      "dark": "#94D59A"
     },
     "CC019": {
-      "dark": "#BBE69A",
-      "light": "#2BA343"
+      "light": "#2BA343",
+      "dark": "#BBE69A"
     },
     "CC020": {
-      "dark": "#CCE57D",
-      "light": "#7AAF3E"
+      "light": "#7AAF3E",
+      "dark": "#CCE57D"
+    },
+    "SG001": {
+      "light": "#ECB21B",
+      "dark": "#F3E659",
+      "effect": {
+        "type": "gradient",
+        "lightEnd": "#FF6D65",
+        "darkEnd": "#FE7A86"
+      }
+    },
+    "SG002": {
+      "light": "#A7CC2E",
+      "dark": "#EEEC69",
+      "effect": {
+        "type": "gradient",
+        "lightEnd": "#12C770",
+        "darkEnd": "#24D881"
+      }
+    },
+    "SG003": {
+      "light": "#05D771",
+      "dark": "#6BE5AA",
+      "effect": {
+        "type": "gradient",
+        "lightEnd": "#3596ED",
+        "darkEnd": "#5DA8EC"
+      }
+    },
+    "SG004": {
+      "light": "#4DA5F5",
+      "dark": "#5DA8EC",
+      "effect": {
+        "type": "gradient",
+        "lightEnd": "#B726FF",
+        "darkEnd": "#D581FF"
+      }
+    },
+    "SG005": {
+      "light": "#D47FFF",
+      "dark": "#D581FF",
+      "effect": {
+        "type": "gradient",
+        "lightEnd": "#FF6466",
+        "darkEnd": "#FF8183"
+      }
+    },
+    "SH001": {
+      "light": "#2E3033",
+      "dark": "#C9CEDC",
+      "effect": {
+        "type": "highlight",
+        "lightBg": "#FADAD9",
+        "darkBg": "#501916"
+      }
+    },
+    "SH002": {
+      "light": "#2E3033",
+      "dark": "#C9CEDC",
+      "effect": {
+        "type": "highlight",
+        "lightBg": "#FBF0D1",
+        "darkBg": "#473508"
+      }
+    },
+    "SH003": {
+      "light": "#2E3033",
+      "dark": "#C9CEDC",
+      "effect": {
+        "type": "highlight",
+        "lightBg": "#D5EDD9",
+        "darkBg": "#11411B"
+      }
+    },
+    "SH004": {
+      "light": "#2E3033",
+      "dark": "#C9CEDC",
+      "effect": {
+        "type": "highlight",
+        "lightBg": "#D1E4FB",
+        "darkBg": "#0A305D"
+      }
+    },
+    "SH005": {
+      "light": "#2E3033",
+      "dark": "#C9CEDC",
+      "effect": {
+        "type": "highlight",
+        "lightBg": "#E7D4F1",
+        "darkBg": "#3E1252"
+      }
+    },
+    "SS001": {
+      "light": "#FFFFFF00",
+      "dark": "#00000000",
+      "effect": {
+        "type": "stealth"
+      }
     }
   }
 }

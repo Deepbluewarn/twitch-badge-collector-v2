@@ -166,6 +166,8 @@
             "badges": "배지 목록 — 항목마다 url",
             "verifiedIconUrl": "인증 마크 이미지 주소 (인증 사용자만)",
             "time": "시각 (예: 14:05)",
+            "nickStyle": "닉네임 색 CSS 변수 묶음 (꾸미기용 끝색·배경색 포함) — style 속성에 그대로",
+            "nickEffect": "2단계 구독자 닉네임 꾸미기: gradient / highlight / stealth / 빈 값",
             "nickColorLight": "밝은 테마 닉네임 색",
             "nickColorDark": "어두운 테마 닉네임 색",
             "cleanbot": "클린봇이 가린 채팅이면 참",

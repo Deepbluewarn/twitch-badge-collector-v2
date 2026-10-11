@@ -35,6 +35,29 @@
 .tbc-chat-verified {
     margin-left: -4px;
 }
+
+/* 2단계 구독자 닉네임 꾸미기 — 치지직 닉네임 컴포넌트와 같은 방식 (index-*.css의
+   _has_gradient_ / _has_highlight_ 규칙). 색은 nickStyle의 CSS 변수로 온다. */
+.tbc-chat-nick--gradient {
+    background-image: linear-gradient(to right, var(--tbc-nick-light), var(--tbc-nick-light-end));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+}
+.theme_dark .tbc-chat-nick--gradient {
+    background-image: linear-gradient(to right, var(--tbc-nick-dark), var(--tbc-nick-dark-end));
+}
+.tbc-chat-nick--highlight {
+    margin: -2px 2px -2px -2px;
+    padding: 2px;
+    background-color: var(--tbc-nick-light-bg);
+}
+.theme_dark .tbc-chat-nick--highlight {
+    background-color: var(--tbc-nick-dark-bg);
+}
+.tbc-chat-nick--stealth {
+    color: transparent !important;
+}
 .tbc-chat-emoji {
     width: 24px;
     height: 24px;

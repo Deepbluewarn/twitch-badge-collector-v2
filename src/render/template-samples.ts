@@ -38,6 +38,14 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
             }),
         },
         {
+            label: '2단계 구독자 닉네임 꾸미기 (그라데이션)',
+            chat: sample({ uid: 'sample-sg', nickname: '반짝구독자', message: '그라데이션 닉네임', nicknameColorCode: 'SG001', badges: [`${G}/icon/12m.png`] }),
+        },
+        {
+            label: '2단계 구독자 닉네임 꾸미기 (하이라이트)',
+            chat: sample({ uid: 'sample-sh', nickname: '형광펜구독자', message: '하이라이트 닉네임', nicknameColorCode: 'SH004', badges: [`${G}/icon/12m.png`] }),
+        },
+        {
             label: '클린봇 (클릭하면 원문)',
             chat: sample({ uid: 'sample-c', nickname: '지나가던사람', message: '가려진 원문입니다', status: 'CBOTBLIND' }),
         },
@@ -88,6 +96,8 @@ export const TEMPLATE_FIELDS: { name: string; kinds?: ChzzkChatKind[] }[] = [
     { name: 'badges' },
     { name: 'verifiedIconUrl' },
     { name: 'time' },
+    { name: 'nickStyle' },
+    { name: 'nickEffect' },
     { name: 'nickColorLight' },
     { name: 'nickColorDark' },
     { name: 'cleanbot' },

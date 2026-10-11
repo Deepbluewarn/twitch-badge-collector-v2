@@ -166,6 +166,8 @@
             "badges": "Badge list — url per item",
             "verifiedIconUrl": "Verified mark image (verified users only)",
             "time": "Time (e.g. 14:05)",
+            "nickStyle": "Nickname color CSS variables (incl. decoration end/background colors) — put into a style attribute",
+            "nickEffect": "Tier-2 subscriber nickname decoration: gradient / highlight / stealth / empty",
             "nickColorLight": "Nickname color, light theme",
             "nickColorDark": "Nickname color, dark theme",
             "cleanbot": "True if hidden by cleanbot",

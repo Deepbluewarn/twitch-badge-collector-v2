@@ -281,34 +281,42 @@ export function toChatInfo(chat: ChzzkSocketChat, verifiedBadgeUrl?: string): Ch
     };
 }
 
-export interface NicknameColor { light: string; dark: string }
+/** 2단계 구독자 닉네임 꾸미기 (v2 API `effectType`). */
+export type NicknameEffect =
+    | { type: 'gradient'; lightEnd: string; darkEnd: string }   // SG — 글자에 시작색→끝색
+    | { type: 'highlight'; lightBg: string; darkBg: string }    // SH — 글자 뒤 배경색
+    | { type: 'stealth' };                                       // SS — 투명 글자
+
+export interface NicknameColor {
+    light: string;
+    dark: string;
+    effect?: NicknameEffect;
+}
 
 interface NicknameColorTable {
     hashPalette: { light: string[]; dark: string[] };
-    codes: Record<string, { light?: string; dark?: string }>;
+    codes: Record<string, { light?: string; dark?: string; effect?: NicknameEffect }>;
 }
 
-const ROLE_CODES = new Set(['STREAMER', 'MANAGER', 'STREAMING_CHANNEL_MANAGER', 'STREAMING_CHAT_MANAGER']);
-
 /**
- * 치지직 번들 `makeMessage`의 닉네임 색 결정을 옮긴 것.
- *  1. 스트리머/매니저가 아니면 colorCode를 표에서 찾는다 (번들 CD001–040 + API CC001–020).
- *  2. 못 찾으면(실측 87%가 표에 없는 CC000) 칭호 색, 그것도 없으면
- *     userIdHash + chatChannelId 글자 코드 합으로 40색 해시 팔레트에서 고른다.
- *
- * host와 다른 점 하나: API는 라이트 색을 `whiteRgbValue`로 주는데 host는 `lightRgbValue`를
- * 읽어서 라이트 테마 CC 색이 비어 버린다. 우리는 whiteRgbValue를 라이트 색으로 쓴다.
- * 2단계 구독자 꾸미기(SG/SH 코드)는 공개 표에 없어 해시 팔레트로 대체된다.
+ * 치지직이 채팅 닉네임을 그릴 때의 색 결정(번들 닉네임 컴포넌트)을 옮긴 것.
+ *  1. 칭호 색이 있으면 그것 — 코드와 꾸미기를 모두 무시한다.
+ *  2. colorCode가 표에 있으면 그 색과 꾸미기(SG 그라데이션, SH 하이라이트, SS 투명).
+ *     표: v2 `/nickname/color/codes`(CC·SG·SH·SS) + 번들 내장 CD 코드. 그리는 단계에선
+ *     스트리머·매니저 예외가 없다(`makeMessage`의 역할 예외는 표에 없는 코드일 때만 의미가 있다).
+ *  3. 없으면(실측 87%가 표에 없는 CC000) userIdHash + chatChannelId 글자 코드 합으로
+ *     40색 해시 팔레트.
  */
 export function resolveNicknameColor(
-    chat: Pick<ChzzkSocketChat, 'uid' | 'anonymous' | 'userRoleCode' | 'nicknameColorCode' | 'titleColor' | 'chatChannelId'>,
-    table: NicknameColorTable = nicknameColors,
+    chat: Pick<ChzzkSocketChat, 'uid' | 'anonymous' | 'nicknameColorCode' | 'titleColor' | 'chatChannelId'>,
+    table: NicknameColorTable = nicknameColors as NicknameColorTable,
 ): NicknameColor {
-    if (chat.nicknameColorCode && !ROLE_CODES.has(chat.userRoleCode.toUpperCase())) {
-        const hit = table.codes[chat.nicknameColorCode];
-        if (hit?.dark) return { light: hit.light ?? hit.dark, dark: hit.dark };
-    }
     if (chat.titleColor) return { light: chat.titleColor, dark: chat.titleColor };
+
+    const hit = chat.nicknameColorCode ? table.codes[chat.nicknameColorCode] : undefined;
+    if (hit?.dark) {
+        return { light: hit.light ?? hit.dark, dark: hit.dark, ...(hit.effect ? { effect: hit.effect } : {}) };
+    }
 
     // host는 익명 후원에 userIdHash ''인 가짜 profile을 쓴다.
     const seed = (chat.anonymous ? '' : chat.uid) + (chat.chatChannelId ?? '');

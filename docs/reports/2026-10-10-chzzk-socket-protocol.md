@@ -131,20 +131,23 @@ host(`notiBlindListener`) 처리: `CANCEL`이면 이벤트에 같이 온 `messag
 
 ## 닉네임 색
 
-소켓에는 `streamingProperty.nicknameColor.colorCode` **코드만** 온다. host(`makeMessage`)의 결정 순서:
+소켓에는 `streamingProperty.nicknameColor.colorCode` **코드만** 온다. host가 채팅 닉네임을 그릴 때(번들 닉네임 컴포넌트)의 결정 순서:
 
-1. 스트리머/매니저(`STREAMER`, `MANAGER`, `STREAMING_CHANNEL_MANAGER`, `STREAMING_CHAT_MANAGER`)가 아니면 코드를 표에서 찾는다.
-   - 번들 내장 `CD001`–`CD040`
-   - `GET api.chzzk.naver.com/service/v1/nickname/color/codes` → `CC001`–`CC020` (비로그인 가능)
-2. 못 찾으면 `title.color`, 없으면 **해시 팔레트**: `userIdHash` + `chatChannelId`의 글자 코드 합 % 40 (라이트/다크 각 40색). 익명 후원은 `userIdHash` 대신 `''`.
+1. `title.color`(칭호 색)가 있으면 그것 — 코드와 꾸미기를 모두 무시한다.
+2. 코드가 표에 있으면 그 색과 꾸미기. 표는 `GET api.chzzk.naver.com/service/v2/nickname/color/codes`(비로그인 가능, 31개) + 번들 내장 `CD001`–`CD040`.
+   - `CC001`–`CC020` 일반 색 (`availableScope: CHEATKEY`)
+   - `SG001`–`SG005` **그라데이션** (`effectType: GRADATION`, `effectValue.{light,dark}RgbEndValue`) — 글자에 시작색→끝색, `background-clip: text`
+   - `SH001`–`SH005` **하이라이트** (`effectType: HIGHLIGHT`, `effectValue.{light,dark}RgbBackgroundValue`) — 글자 뒤 배경색, `margin:-2px; padding:2px`
+   - `SS001` **스텔스** (`effectType: STEALTH`) — 투명 글자
+   - SG·SH·SS는 2단계 구독자 전용(`availableScope: SUBSCRIPTION_TIER2`)
+   - 그리는 단계에는 스트리머·매니저 예외가 없다. (`makeMessage`가 캐시하는 색에는 역할 예외가 있지만, 표에 있는 코드면 그리는 컴포넌트가 표 값을 다시 쓴다.)
+3. 없으면 **해시 팔레트**: `userIdHash` + `chatChannelId`의 글자 코드 합 % 40 (라이트/다크 각 40색). 익명 후원은 `userIdHash` 대신 `''`.
 
-실측 코드 분포 (type 1, 31,579건): `CC000` 27,655 (87%, 표에 없음 → 해시 팔레트) / `SG001–005`, `SH004–005` 등 약 10%.
-`SG`(그라데이션)·`SH`(하이라이트)는 2단계 구독자용 닉네임 꾸미기인데 공개 API 목록에 없다. 출처는 **미확인**이다.
+실측 코드 분포 (type 1, 31,579건): `CC000` 27,655 (87%, 표에 없음 → 해시 팔레트) / `SG`·`SH` 약 10%.
 
-host의 작은 버그: API는 라이트 색을 `whiteRgbValue`로 주는데 host는 `lightRgbValue`를 읽는다. 그래서 라이트 테마에서 CC 색이 비어 기본 글자색이 된다.
+> 정정 (2026-10-11): 처음엔 v1(`/service/v1/nickname/color/codes`)을 보고 "SG/SH는 공개 표에 없다", "host가 `lightRgbValue`를 읽어 라이트 CC 색이 빈다(v1은 `whiteRgbValue`)"고 적었는데 틀렸다. host는 v2(axios 인스턴스 `To` = LIVE_SERVICE v2)를 쓰고, v2에는 `lightRgbValue`와 꾸미기 정보가 모두 있다.
 
-구현: `resolveNicknameColor()` (`src/platform/chzzk-socket.ts`), 표는 `src/platform/chzzk-nickname-colors.json` (번들 `b_`/`x_` + API 추출본).
-API의 `whiteRgbValue`를 라이트 색으로 쓴다(host와 다른 점).
+구현: `resolveNicknameColor()` (`src/platform/chzzk-socket.ts`), 표는 `src/platform/chzzk-nickname-colors.json` (v2 API + 번들 `b_`/`x_` 추출본). 템플릿 값 `nickEffect`·`nickStyle`, CSS `src/render/chzzk-chat.css`.
 
 ## host DOM과의 연결
 
@@ -155,7 +158,7 @@ host의 `chatMessage.key`는 `${uid}_${msgTime}_${랜덤}`이다(번들 `makeMes
 - **클린봇(`CBOTBLIND`)**: 기본으로 가린다. 클릭하면 원문을 **이탤릭체로** 보여준다. 사용자의 치지직 클린봇 설정은 따르지 않는다.
 - **운영자 블라인드(`BLIND`/`HIDDEN`, 94008 포함)**: 항상 가린다. 원문을 볼 수 없다(host와 동일).
 - **필터 판정은 원문 기준**: 가려진 채팅도 키워드 필터에 걸린다. 가리는 건 표시 단계에서만 한다.
-- **닉네임 색**: 공개 표(CD/CC) + 해시 팔레트로 충분하다. `SG`/`SH` 꾸미기는 해시 색으로 대체해도 받아들인다.
+- **닉네임 색**: v2 표(CC/SG/SH/SS) + 번들 CD + 해시 팔레트로 host와 같게 그린다. 2단계 구독자 꾸미기(그라데이션·하이라이트·스텔스)도 재현한다.
 - **SYSTEM(30)**: 수집 대상에서 제외한다.
 - **소켓 우선, HTML 안전망 없음**: 소켓이 한 번 동작하면 라이브 수집 여부는 소켓이 정한다. HTML로만 들어온 채팅(소켓이 놓친 채팅)이나 세션 중 소켓 탭 정지는 HTML 경로로 되살리지 않는다. 이런 변화는 CI canary가 주기적으로 잡는다 (안전망을 제안했으나 채택하지 않음).
 - **표시는 원본 우선 (사용자 설정 없음)**: host 원본을 기다렸다가 복제하고, 1.2초(p95 근처) 안에 안 그려지면 일단 직접 그리고, 원본이 10초 안에 오면 원본으로 교체한다(원본 우선). 원본을 찾으면 기존 HTML 경로와 같은 결과라 새 문제가 없고, 늦은 원본은 한 번 바뀌는 정도(교체 비율 ~5%). 원본/간결을 고르는 설정은 만들었다가 뺐다 — 처음 합의는 하나의 동작이었고, 간결의 이점(~0.4초 빠름)이 원래 컨셉에서 크지 않다.
@@ -165,7 +168,6 @@ host의 `chatMessage.key`는 `${uid}_${msgTime}_${랜덤}`이다(번들 `makeMes
 
 - type 12(구독 선물), 13(파티), 15(스트리머샵 구매) 실제 모양
 - 소켓 탭이 실제 브라우저에서 치지직보다 먼저 설치되는지 (MAIN `document_start`)
-- `SG`/`SH` 닉네임 꾸미기 값의 출처
 - 배지 목록 API가 한글 배지 URL을 어느 형태(원문/인코딩)로 주는지
 - 로그인 사용자로 접속했을 때 패킷 차이 (탭은 host 소켓을 그대로 보므로 로그인 상태 패킷을 받게 된다)
 

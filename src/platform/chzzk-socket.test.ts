@@ -209,12 +209,18 @@ describe('toChatInfo', () => {
     });
 });
 
-describe('resolveNicknameColor — host makeMessage 재현', () => {
+describe('resolveNicknameColor — host 닉네임 컴포넌트 재현', () => {
     const table = {
         hashPalette: { light: ['#L0', '#L1', '#L2'], dark: ['#D0', '#D1', '#D2'] },
-        codes: { CC001: { light: '#CCL', dark: '#CCD' }, CD001: { dark: '#CDD' } },
+        codes: {
+            CC001: { light: '#CCL', dark: '#CCD' },
+            CD001: { dark: '#CDD' },
+            SG001: { light: '#GL', dark: '#GD', effect: { type: 'gradient' as const, lightEnd: '#GLE', darkEnd: '#GDE' } },
+            SH001: { light: '#HL', dark: '#HD', effect: { type: 'highlight' as const, lightBg: '#HLB', darkBg: '#HDB' } },
+            SS001: { light: '#FFFFFF00', dark: '#00000000', effect: { type: 'stealth' as const } },
+        },
     };
-    const base = { uid: 'a', anonymous: false, userRoleCode: 'common_user', chatChannelId: 'b' };
+    const base = { uid: 'a', anonymous: false, chatChannelId: 'b' };
 
     it('표에 있는 코드면 그 색', () => {
         expect(resolveNicknameColor({ ...base, nicknameColorCode: 'CC001' }, table)).toEqual({ light: '#CCL', dark: '#CCD' });
@@ -229,12 +235,23 @@ describe('resolveNicknameColor — host makeMessage 재현', () => {
         expect(resolveNicknameColor({ ...base, nicknameColorCode: 'CC000' }, table)).toEqual({ light: '#L0', dark: '#D0' });
     });
 
-    it('스트리머/매니저는 코드를 무시한다', () => {
-        expect(resolveNicknameColor({ ...base, userRoleCode: 'streaming_chat_manager', nicknameColorCode: 'CC001' }, table).dark).toBe('#D0');
+    it('SG 그라데이션: 시작색 + 끝색', () => {
+        expect(resolveNicknameColor({ ...base, nicknameColorCode: 'SG001' }, table)).toEqual({
+            light: '#GL', dark: '#GD', effect: { type: 'gradient', lightEnd: '#GLE', darkEnd: '#GDE' },
+        });
     });
 
-    it('표에 없으면 칭호 색이 해시보다 우선', () => {
-        expect(resolveNicknameColor({ ...base, nicknameColorCode: 'SG004', titleColor: '#T' }, table)).toEqual({ light: '#T', dark: '#T' });
+    it('SH 하이라이트: 글자색 + 배경색', () => {
+        expect(resolveNicknameColor({ ...base, nicknameColorCode: 'SH001' }, table).effect)
+            .toEqual({ type: 'highlight', lightBg: '#HLB', darkBg: '#HDB' });
+    });
+
+    it('SS 스텔스: 투명 글자', () => {
+        expect(resolveNicknameColor({ ...base, nicknameColorCode: 'SS001' }, table)).toMatchObject({ dark: '#00000000', effect: { type: 'stealth' } });
+    });
+
+    it('칭호 색이 최우선 — 코드와 꾸미기를 무시한다', () => {
+        expect(resolveNicknameColor({ ...base, nicknameColorCode: 'SG001', titleColor: '#T' }, table)).toEqual({ light: '#T', dark: '#T' });
     });
 
     it('익명은 uid 대신 빈 문자열로 해시', () => {
@@ -242,9 +259,11 @@ describe('resolveNicknameColor — host makeMessage 재현', () => {
         expect(resolveNicknameColor({ ...base, uid: 'anonymous', anonymous: true }, table).dark).toBe('#D2');
     });
 
-    it('기본 표(번들 추출본)가 실제로 로드된다', () => {
-        const c = resolveNicknameColor({ ...base, nicknameColorCode: 'CC001' });
-        expect(c.dark).toMatch(/^#[0-9A-F]{6}$/i);
+    it('기본 표(v2 API + 번들 추출본)에 꾸미기 코드가 들어 있다', () => {
+        expect(resolveNicknameColor({ ...base, nicknameColorCode: 'CC001' }).dark).toMatch(/^#[0-9A-F]{6}$/i);
+        expect(resolveNicknameColor({ ...base, nicknameColorCode: 'SG001' }).effect?.type).toBe('gradient');
+        expect(resolveNicknameColor({ ...base, nicknameColorCode: 'SH004' }).effect?.type).toBe('highlight');
+        expect(resolveNicknameColor({ ...base, nicknameColorCode: 'SS001' }).effect?.type).toBe('stealth');
     });
 
     it('정규화 결과에 chatChannelId가 들어간다 (live bdy의 cid)', () => {

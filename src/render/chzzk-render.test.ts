@@ -74,6 +74,23 @@ describe('toChzzkChatView', () => {
         expect(v).toMatchObject({ kind: 'subscription', subscription: { month: 12, tierName: '아루냥' } });
     });
 
+    it('닉네임 꾸미기: SG 그라데이션은 끝색 변수까지, 표에 없는 코드는 꾸미기 없음', () => {
+        const sg = toChzzkChatView(chat({ nicknameColorCode: 'SG001' }));
+        expect(sg.nickEffect).toBe('gradient');
+        expect(sg.nickStyle).toMatch(/^--tbc-nick-light:#\w+;--tbc-nick-dark:#\w+;--tbc-nick-light-end:#\w+;--tbc-nick-dark-end:#\w+$/);
+        const sh = toChzzkChatView(chat({ nicknameColorCode: 'SH001' }));
+        expect(sh.nickEffect).toBe('highlight');
+        expect(sh.nickStyle).toMatch(/--tbc-nick-light-bg:#\w+;--tbc-nick-dark-bg:#\w+$/);
+        const plain = toChzzkChatView(chat({ nicknameColorCode: 'CC000' }));
+        expect(plain.nickEffect).toBe('');
+        expect(plain.nickStyle).toMatch(/^--tbc-nick-light:#\w+;--tbc-nick-dark:#\w+$/);
+    });
+
+    it('색 모양이 아닌 값은 nickStyle에 넣지 않는다', () => {
+        const v = toChzzkChatView(chat({ titleColor: 'red;background:url(x)' }));
+        expect(v.nickStyle).toBe('');
+    });
+
     it('인증 마크 URL은 인증 사용자에게만', () => {
         expect(toChzzkChatView(chat(), { verifiedIconUrl: 'v.png' }).verifiedIconUrl).toBeUndefined();
         expect(toChzzkChatView(chat({ verified: true }), { verifiedIconUrl: 'v.png' }).verifiedIconUrl).toBe('v.png');
@@ -95,6 +112,7 @@ describe('renderChzzkChat', () => {
         expect([...el.querySelectorAll('.tbc-chat-badge')].map(i => i.getAttribute('src'))).toEqual(['https://b/sub.png', 'https://b/fan.png']);
         expect(el.querySelector('.tbc-chat-nick')!.textContent).toBe('시청자');
         expect(el.querySelector('.tbc-chat-nick')!.getAttribute('style')).toMatch(/--tbc-nick-light:#\w+;--tbc-nick-dark:#\w+/);
+        expect(el.querySelector('.tbc-chat-nick')!.className).toBe('tbc-chat-nick tbc-chat-nick--');
         expect(el.querySelector('.tbc-chat-text img.tbc-chat-emoji')!.getAttribute('src')).toBe('https://e/c.gif');
     });
 
@@ -103,6 +121,12 @@ describe('renderChzzkChat', () => {
         expect(el.className).toBe('tbc-chat tbc-chat--donation');
         expect(el.querySelector('.tbc-chat-amount')!.textContent).toBe('1,000치즈');
         expect(el.querySelector('.tbc-chat-text')).toBeNull();
+    });
+
+    it('닉네임 꾸미기 클래스가 붙는다', () => {
+        const el = renderChzzkChat(chat({ nicknameColorCode: 'SH004' }));
+        expect(el.querySelector('.tbc-chat-nick')!.classList.contains('tbc-chat-nick--highlight')).toBe(true);
+        expect(el.querySelector('.tbc-chat-nick')!.getAttribute('style')).toContain('--tbc-nick-dark-bg:');
     });
 
     it('클린봇 채팅은 루트에 표시 클래스', () => {

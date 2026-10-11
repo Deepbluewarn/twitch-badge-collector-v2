@@ -1,4 +1,4 @@
-import { CHZZK_MSG_TYPE, resolveNicknameColor, type ChzzkSocketChat } from "@/platform/chzzk-socket";
+import { CHZZK_MSG_TYPE, resolveNicknameColor, type ChzzkSocketChat, type NicknameColor } from "@/platform/chzzk-socket";
 import { escapeHtml } from "./template";
 import { msToTime } from "@/utils/utils-common";
 
@@ -33,6 +33,16 @@ export interface ChzzkChatView {
     timestamp: number;
     nickColorLight: string;
     nickColorDark: string;
+    /**
+     * 2단계 구독자 닉네임 꾸미기: 'gradient'(SG) / 'highlight'(SH) / 'stealth'(SS) / ''(없음).
+     * 기본 템플릿은 `tbc-chat-nick--{{nickEffect}}` 클래스로 CSS에 넘긴다.
+     */
+    nickEffect: '' | 'gradient' | 'highlight' | 'stealth';
+    /**
+     * 닉네임 색 CSS 변수 묶음 — style 속성에 그대로 넣는다. 꾸미기에 필요한 끝색·배경색까지 담긴다.
+     * 예: `--tbc-nick-light:#ECB21B;--tbc-nick-dark:#F3E659;--tbc-nick-light-end:#FF6D65;…`
+     */
+    nickStyle: string;
     cleanbot: boolean;
     blinded: boolean;
     isChat: boolean;
@@ -82,6 +92,14 @@ export function messageToHtml(message: string, emojis: Record<string, string>): 
     return out + escapeHtml(message.slice(last));
 }
 
+function nickStyleOf(c: NicknameColor): string {
+    const vars: [string, string][] = [['light', c.light], ['dark', c.dark]];
+    if (c.effect?.type === 'gradient') vars.push(['light-end', c.effect.lightEnd], ['dark-end', c.effect.darkEnd]);
+    if (c.effect?.type === 'highlight') vars.push(['light-bg', c.effect.lightBg], ['dark-bg', c.effect.darkBg]);
+    // 값은 API·번들 색 문자열이지만, 템플릿에서 escape되더라도 속성을 벗어나지 못하게 색 모양만 통과시킨다.
+    return vars.filter(([, v]) => /^[#a-zA-Z0-9(),.\s%]+$/.test(v)).map(([k, v]) => `--tbc-nick-${k}:${v}`).join(';');
+}
+
 function kindOf(type: number): ChzzkChatKind {
     if (type === CHZZK_MSG_TYPE.DONATION) return 'donation';
     if (type === CHZZK_MSG_TYPE.SUBSCRIPTION) return 'subscription';
@@ -122,6 +140,8 @@ export function toChzzkChatView(chat: ChzzkSocketChat, opts: ChzzkViewOptions = 
         timestamp: chat.time,
         nickColorLight: color.light,
         nickColorDark: color.dark,
+        nickEffect: color.effect?.type ?? '',
+        nickStyle: nickStyleOf(color),
         cleanbot,
         blinded,
         isChat: kind === 'chat',

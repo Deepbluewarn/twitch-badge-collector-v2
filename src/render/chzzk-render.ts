@@ -18,7 +18,7 @@ const HEAD = `<span class="tbcv2-chat-time">{{time}}</span>
 {{#badges}}
     <img class="tbc-chat-badge" src="{{url}}" alt="">
 {{/badges}}
-<span class="tbc-chat-nick" style="--tbc-nick-light:{{nickColorLight}};--tbc-nick-dark:{{nickColorDark}}">{{nickname}}</span>
+<span class="tbc-chat-nick tbc-chat-nick--{{nickEffect}}" style="{{nickStyle}}">{{nickname}}</span>
 {{#verifiedIconUrl}}
     <img class="tbc-chat-verified" src="{{verifiedIconUrl}}" alt="">
 {{/verifiedIconUrl}}`;
