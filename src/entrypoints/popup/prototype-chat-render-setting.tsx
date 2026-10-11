@@ -7,7 +7,6 @@
  *       ?variant=A|B|C|D 로 전환. dev 빌드에서만 보이고, 고른 값은 실제 설정에 저장하지 않는다.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { keyframes } from '@emotion/react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -55,20 +54,13 @@ function FakeTemplateChat({ name = '고양이집사', text = '오늘 방송 재�
 
 // ─── A. 미니 시연 카드 ────────────────────────────────────────────────────────
 
-const appear = (start: number, end: number) => keyframes`
-  0%, ${start}% { opacity: 0; transform: translateY(4px); }
-  ${start + 4}%, ${end}% { opacity: 1; transform: none; }
-  ${end + 4}%, 100% { opacity: 0; }
-`;
-
-function Lane({ label, children, start }: { label: string; children: React.ReactNode; start: number }) {
+/** 꾸밀 수 있다는 걸 보여주는 예시 모양들 (말풍선, 형광펜). */
+function FakeBubbleChat({ name = '방장대리', text = '공지 확인해주세요' }: { name?: string; text?: string }) {
     return (
-        <Stack direction="row" alignItems="center" spacing={0.75}>
-            <Typography sx={{ fontSize: 10, color: 'text.secondary', width: 54, flex: 'none' }}>{label}</Typography>
-            <Box sx={{ flex: 1, minWidth: 0, height: 22, borderRadius: 1, bgcolor: 'action.hover', overflow: 'hidden' }}>
-                <Box sx={{ animation: `${appear(start, 85)} 3.2s ease-out infinite` }}>{children}</Box>
-            </Box>
-        </Stack>
+        <Box sx={{ fontSize: 12, lineHeight: '18px', px: 0.75, py: 0.25 }}>
+            <Box component="span" sx={{ fontWeight: 700, mr: 0.5, color: '#ff7ab6' }}>{name}</Box>
+            <Box component="span" sx={{ px: 0.75, py: '1px', borderRadius: 8, bgcolor: 'rgba(255,122,182,0.15)' }}>{text}</Box>
+        </Box>
     );
 }
 
@@ -87,23 +79,23 @@ function VariantA({ mode, setMode, openTemplate }: VariantProps) {
                 <Radio size="small" checked={mode === m} sx={{ p: 0 }} />
             </Stack>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, lineHeight: 1.3 }}>{line}</Typography>
-            <Stack spacing={0.5}>{demo}</Stack>
+            <Box sx={{ borderRadius: 1, bgcolor: 'action.hover', py: 0.25 }}>{demo}</Box>
         </Box>
     );
     return (
         <Stack spacing={1}>
-            <Typography variant="body2">모아보기 채팅 표시 (치지직)</Typography>
-            {card('native', '기본', '치지직 채팅창에 뜬 그 모양 그대로 따라 뜹니다.', <>
-                <Lane label="치지직 채팅" start={20}><FakeNativeChat /></Lane>
-                <Lane label="모아보기" start={30}><FakeNativeChat /></Lane>
+            <Typography variant="body2">모아보기 채팅 모양 (치지직)</Typography>
+            {card('native', '기본', '치지직 채팅창과 똑같은 모양으로 보여줍니다.', <>
+                <FakeNativeChat />
+                <FakeNativeChat name="방장대리" text="공지 확인해주세요" />
             </>)}
-            {card('template', '빠르게', '치지직보다 먼저, 확장이 그린 모양으로 뜹니다.', <>
-                <Lane label="치지직 채팅" start={30}><FakeNativeChat /></Lane>
-                <Lane label="모아보기" start={6}><FakeTemplateChat /></Lane>
+            {card('template', '커스텀', '원하는 모양으로 직접 꾸며서 보여줍니다.', <>
+                <FakeTemplateChat />
+                <FakeBubbleChat />
             </>)}
             {mode === 'template' && (
                 <Button size="small" variant="text" onClick={openTemplate} sx={{ alignSelf: 'flex-start', textTransform: 'none' }}>
-                    모양도 내 마음대로 꾸미기 →
+                    모양 꾸미러 가기 →
                 </Button>
             )}
         </Stack>
@@ -131,10 +123,10 @@ function VariantB({ mode, setMode, openTemplate }: VariantProps) {
             <Typography variant="body2" fontWeight={700}>모아보기 채팅, 어떻게 보여드릴까요?</Typography>
             <Typography variant="caption" color="text.secondary">치지직에서만 적용돼요</Typography>
             {option('native', '기본', ['🪞 치지직과 같은 모양', '⏱ 치지직이 보여줄 때 함께'])}
-            {option('template', '빠르게', ['⚡ 치지직보다 먼저 뜸', '✨ 깜빡임 없음', '🎨 모양 꾸미기 가능'],
+            {option('template', '커스텀', ['🎨 원하는 모양으로 꾸미기', '✨ 모양이 바뀌는 깜빡임 없음'],
                 mode === 'template' && (
                     <Button size="small" onClick={e => { e.stopPropagation(); openTemplate(); }} sx={{ mt: 0.5, px: 0, textTransform: 'none' }}>
-                        ✏️ 모양 직접 바꾸러 가기
+                        ✏️ 모양 꾸미러 가기
                     </Button>
                 ))}
             <Button size="small" color="inherit" onClick={() => setOpen(o => !o)} sx={{ px: 0, mt: 0.5, fontSize: 11, color: 'text.secondary', textTransform: 'none' }}>
@@ -142,9 +134,8 @@ function VariantB({ mode, setMode, openTemplate }: VariantProps) {
             </Button>
             <Collapse in={open}>
                 <Box component="ol" sx={{ m: 0, pl: 2.5, fontSize: 12, color: 'text.secondary', '& li': { mb: 0.5 } }}>
-                    <li>치지직은 채팅이 많으면 조금씩 늦게 보여줘요.</li>
-                    <li><b>기본</b>은 치지직이 보여준 채팅을 그대로 옮겨 와요. 아주 가끔, 잠깐 다른 모양이었다가 바뀔 수 있어요.</li>
-                    <li><b>빠르게</b>는 확장이 채팅을 먼저 받아 바로 그려요. 모양은 조금 다르지만 직접 꾸밀 수 있어요.</li>
+                    <li><b>기본</b>은 치지직 채팅창에 뜬 채팅을 똑같은 모양으로 옮겨 와요. 아주 가끔, 잠깐 다른 모양이었다가 바뀔 수 있어요.</li>
+                    <li><b>커스텀</b>은 내가 정한 모양으로 그려요. 처음엔 깔끔한 기본 꾸밈으로 시작하고, 글자색·배지·말풍선 등을 원하는 대로 바꿀 수 있어요.</li>
                 </Box>
             </Collapse>
         </Box>
@@ -156,15 +147,15 @@ function VariantB({ mode, setMode, openTemplate }: VariantProps) {
 function VariantC({ mode, setMode, openTemplate }: VariantProps) {
     const [open, setOpen] = useState(false);
     const rows: [string, string, string][] = [
-        ['모양', '치지직과 같음', '확장 모양 (꾸미기 가능)'],
-        ['뜨는 시점', '치지직이 보여줄 때', '치지직보다 먼저'],
-        ['깜빡임', '가끔 있음', '없음'],
+        ['모양', '치지직과 같음', '내가 꾸민 모양'],
+        ['꾸미기', '안 됨', '글자색·배지·말풍선 등'],
+        ['깜빡임', '아주 가끔', '없음'],
     ];
     return (
         <Box>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
                 <Stack direction="row" alignItems="center" sx={{ minWidth: 0 }}>
-                    <Typography variant="body2">모아보기 채팅 표시 (치지직)</Typography>
+                    <Typography variant="body2">모아보기 채팅 모양 (치지직)</Typography>
                     <IconButton size="small" onClick={() => setOpen(o => !o)} sx={{ p: 0.25 }}>
                         <HelpOutlineIcon sx={{ fontSize: 16 }} />
                     </IconButton>
@@ -174,17 +165,17 @@ function VariantC({ mode, setMode, openTemplate }: VariantProps) {
                     sx={{ '& .MuiToggleButton-root': { px: 1, py: 0.25, textTransform: 'none', fontSize: 12 } }}
                 >
                     <ToggleButton value="native">기본</ToggleButton>
-                    <ToggleButton value="template">빠른 표시</ToggleButton>
+                    <ToggleButton value="template">커스텀</ToggleButton>
                 </ToggleButtonGroup>
             </Stack>
             <Collapse in={open}>
                 <Box sx={{ mt: 1, p: 1, borderRadius: 1, bgcolor: 'action.hover' }}>
                     <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, '& td, & th': { py: 0.4, px: 0.5, textAlign: 'left', verticalAlign: 'top' }, '& th': { fontWeight: 700 } }}>
-                        <thead><tr><th /><th>기본</th><th>빠른 표시</th></tr></thead>
+                        <thead><tr><th /><th>기본</th><th>커스텀</th></tr></thead>
                         <tbody>{rows.map(r => <tr key={r[0]}><td style={{ opacity: 0.7 }}>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td></tr>)}</tbody>
                     </Box>
                     <Button size="small" variant="outlined" fullWidth onClick={openTemplate} sx={{ mt: 1, textTransform: 'none' }}>
-                        빠른 표시 모양 꾸미기
+                        커스텀 모양 꾸미기
                     </Button>
                 </Box>
             </Collapse>
@@ -205,13 +196,13 @@ function VariantD({ mode, setMode, openTemplate }: VariantProps) {
     return (
         <Box>
             <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Typography variant="body2">모아보기 채팅 표시 (치지직)</Typography>
+                <Typography variant="body2">모아보기 채팅 모양 (치지직)</Typography>
                 <ToggleButtonGroup
                     value={mode} exclusive size="small" onChange={(_e, v: Mode | null) => v && setMode(v)}
                     sx={{ '& .MuiToggleButton-root': { px: 1, py: 0.25, textTransform: 'none', fontSize: 12 } }}
                 >
                     <ToggleButton value="native">기본</ToggleButton>
-                    <ToggleButton value="template">빠른 표시</ToggleButton>
+                    <ToggleButton value="template">커스텀</ToggleButton>
                 </ToggleButtonGroup>
             </Stack>
             <Box sx={{ mt: 0.75, borderRadius: 1, border: 1, borderColor: 'divider', overflow: 'hidden' }}>
@@ -221,12 +212,12 @@ function VariantD({ mode, setMode, openTemplate }: VariantProps) {
                     : <Box ref={ref} className="tbcv2_chatTime_on" sx={{ py: 0.25, '& .tbc-chat': { fontSize: 12, py: '2px' } }} />}
                 <Typography sx={{ fontSize: 11, px: 1, pb: 0.75, color: 'text.secondary', lineHeight: 1.3 }}>
                     {mode === 'native'
-                        ? '치지직 채팅창과 똑같은 모양으로, 치지직이 보여줄 때 함께 뜹니다.'
-                        : '치지직보다 먼저 뜨고 깜빡임이 없습니다. 이 모양은 바꿀 수 있어요.'}
+                        ? '치지직 채팅창과 똑같은 모양으로 보여줍니다.'
+                        : '지금 설정된 커스텀 모양이에요. 원하는 대로 바꿀 수 있어요.'}
                 </Typography>
                 {mode === 'template' && (
                     <Button size="small" fullWidth onClick={openTemplate} sx={{ borderRadius: 0, borderTop: 1, borderColor: 'divider', textTransform: 'none' }}>
-                        이 모양 바꾸기 →
+                        이 모양 꾸미기 →
                     </Button>
                 )}
             </Box>
@@ -237,7 +228,7 @@ function VariantD({ mode, setMode, openTemplate }: VariantProps) {
 // ─── 전환 막대 ────────────────────────────────────────────────────────────────
 
 const VARIANTS = [
-    { key: 'A', name: '미니 시연 카드', C: VariantA },
+    { key: 'A', name: '미리보기 카드', C: VariantA },
     { key: 'B', name: '질문형 + 펼쳐보기', C: VariantB },
     { key: 'C', name: '한 줄 + 비교표', C: VariantC },
     { key: 'D', name: '미리보기 중심', C: VariantD },
