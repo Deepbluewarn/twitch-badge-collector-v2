@@ -1,7 +1,7 @@
 import { getReactProps } from "@/utils/react";
 import { Observer } from "../base/observer";
 import { CHAT_ATTR, TBC_CHAT_PASSED_ACTION, TbcChatPassedMessage } from "@/interfaces/chat-attributes";
-import { getPlatformConfig, getAtPath, manifestReady } from "@/platform/host-selectors";
+import { getPlatformConfig, getAtPath, manifestReady, onManifestChange } from "@/platform/host-selectors";
 
 let path = window.location.pathname.split('/')[1];
 
@@ -72,6 +72,9 @@ function init() {
     const sel = getPlatformConfig('twitch').selectors;
 
     // 매번 새 Observer 만듦 — manifest가 갱신됐을 수 있으므로 selector 다시 읽음.
+    // 이전 감시는 끊는다 — 안 끊으면 SPA 이동/manifest 갱신마다 쌓여 채팅이 중복 전달된다.
+    liveObserver?.disconnect();
+    vodObserver?.disconnect();
     liveObserver = new Observer(sel.chatRoomLive, false);
     vodObserver = new Observer(sel.chatRoomVod, false);
 
@@ -83,9 +86,10 @@ async function bootstrap() {
     // manifestReady 는 MAIN 에서 즉시 resolve 한다 — manifest 를 기다리지 않는다.
     // (ISOLATED 는 document_idle 이라 기다려봐야 못 받는다. host-selectors 주석 참고.)
     // bundled 로 먼저 붙고, manifest 가 도착하면 reactPropsPaths 는 매 채팅 다시 읽으므로
-    // 그 시점부터 자동으로 최신이 된다. chatRoomLive 만 다음 init() 까지 옛 값.
+    // 그 시점부터 자동으로 최신이 된다. chat room selector 는 새 manifest 가 오면 다시 붙는다.
     await manifestReady;
     init();
+    onManifestChange(() => init());
 }
 
 bootstrap();

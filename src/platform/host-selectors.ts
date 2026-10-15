@@ -71,6 +71,8 @@ const SUPPORTED_SCHEMA_VERSION = BUNDLED.schemaVersion;
 /** 현재 활성 manifest. setManifest로 갱신. */
 let CURRENT: SelectorsManifest = BUNDLED;
 
+const listeners = new Set<(m: SelectorsManifest) => void>();
+
 /** OTA / postMessage / storage 등 외부 source가 manifest 갱신할 때 호출. */
 export function setManifest(next: unknown): boolean {
     if (!isValidManifest(next)) {
@@ -86,7 +88,17 @@ export function setManifest(next: unknown): boolean {
         return false;
     }
     CURRENT = next;
+    listeners.forEach(cb => cb(next));
     return true;
+}
+
+/**
+ * manifest 가 실제로 바뀌었을 때(rev 상승) 알림. 반환값을 부르면 해제.
+ * MAIN 의 inject 처럼 selector 로 Observer 를 붙잡아두는 쪽이 새 selector 로 다시 붙는 데 쓴다.
+ */
+export function onManifestChange(cb: (m: SelectorsManifest) => void): () => void {
+    listeners.add(cb);
+    return () => listeners.delete(cb);
 }
 
 /** 현재 활성 manifest 반환 (OTA 적용됐으면 그것, 아니면 bundled). */
@@ -149,8 +161,7 @@ export const SELECTORS_REQUEST_TYPE = 'tbcv2-selectors-request';
  * 대신 **수신 리스너는 세션 내내 닫지 않는다.** 예전엔 200ms 타임아웃에 리스너까지 함께
  * 제거해서, 뒤늦게 도착한 manifest 가 받는 사람 없이 버려졌다. reactPropsPaths 처럼 매
  * 채팅 다시 읽는 값은 늦게 받아도 그 시점부터 바로 최신이 되므로 계속 들을 값어치가 있다.
- * (init() 이 붙잡아두는 chatRoomLive 만 다음 SPA 이동까지 옛 값으로 남는다 —
- *  host-selectors 의 "mid-session 재부착 안 함" 계약 그대로.)
+ * init() 이 Observer 로 붙잡아두는 chat room selector 는 onManifestChange 로 다시 붙는다.
  */
 export const manifestReady: Promise<void> = (async () => {
     // ISOLATED context: storage 직접 읽기

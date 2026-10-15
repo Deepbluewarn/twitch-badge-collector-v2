@@ -27,7 +27,9 @@ MAIN(inject, React props 접근용)은 `browser` 자체가 없다. **MAIN이 man
 - ISOLATED: storage 읽기가 끝나면 `manifestReady` resolve. 그 값이 곧 최신.
 - MAIN: **기다리지 않는다.** bundled로 즉시 resolve하고, 대신 수신 리스너를 세션 내내 열어둔다.
   `reactPropsPaths`처럼 매 채팅 다시 읽는 값은 늦게 받아도 그 시점부터 최신이 된다.
-  (`init()`이 붙잡아두는 `chatRoomLive`만 다음 SPA 이동까지 옛 값 — "mid-session 재부착 안 함" 계약 그대로.)
+  `init()`이 Observer로 붙잡아두는 `chatRoomLive`/`chatRoomVod`는 `onManifestChange`로 새 selector에 다시 붙는다.
+  (예전엔 다음 SPA 이동까지 옛 selector를 감시해서, 번들 selector가 깨졌을 때 OTA를 push해도
+  새로고침/직접 진입한 첫 페이지는 채팅이 비었다.)
 - 핸드셰이크는 양방향이다. ISOLATED는 뜨면서 manifest를 한 번 push하고, MAIN은 로드 시
   `tbcv2-selectors-request`를 쏜다. 어느 쪽이 먼저 뜨든 두 경로 중 하나는 걸린다.
 

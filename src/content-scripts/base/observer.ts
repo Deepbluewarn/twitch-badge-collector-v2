@@ -4,6 +4,7 @@ export class Observer {
     private observer: MutationObserver | null;
     private selector: string;
     private temporal: boolean;
+    private stopFinding: (() => void) | null = null;
 
     constructor(selector: string, temporal: boolean = true) {
         this.observer = null;
@@ -21,7 +22,7 @@ export class Observer {
             });
         }
 
-        findElement(this.selector, (elem) => {
+        this.stopFinding = findElement(this.selector, (elem) => {
             if (!elem) return;
             if (!this.observer) return;
 
@@ -36,5 +37,13 @@ export class Observer {
                 subtree: true,
             });
         })
+    }
+
+    /** 찾는 중이면 찾기를, 붙어 있으면 감시를 끊는다. 다시 붙이려면 새 Observer를 만든다. */
+    disconnect() {
+        this.stopFinding?.();
+        this.stopFinding = null;
+        this.observer?.disconnect();
+        this.observer = null;
     }
 }

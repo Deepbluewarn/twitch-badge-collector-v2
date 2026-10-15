@@ -102,7 +102,8 @@ export const getRandomBooleanWithProbability = (probability: number) => {
 // selector 매칭 실패 시 OTA 강제 갱신 트리거를 세션당 1회만 발화 — 중복 fetch 방지.
 let forceFetchTriggered = false;
 
-export function findElement(selector: string, cb: (elem: Element | null) => void) {
+/** 반환값을 부르면 찾기를 멈춘다 (이미 찾았으면 no-op). */
+export function findElement(selector: string, cb: (elem: Element | null) => void): () => void {
   let tryCount = 0;
   const loop = setInterval(() => {
     const targetNode = selectElement(selector);
@@ -133,6 +134,7 @@ export function findElement(selector: string, cb: (elem: Element | null) => void
 
     clearInterval(loop);
   }, 100);
+  return () => clearInterval(loop);
 }
 
 export function selectElement(selector: string): Element | null {

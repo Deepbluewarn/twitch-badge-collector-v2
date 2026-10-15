@@ -1,7 +1,7 @@
 import { getReactProps } from "@/utils/react";
 import { Observer } from "../base/observer";
 import { CHAT_ATTR, TBC_CHAT_PASSED_ACTION, TbcChatPassedMessage } from "@/interfaces/chat-attributes";
-import { getPlatformConfig, getAtPath, manifestReady } from "@/platform/host-selectors";
+import { getPlatformConfig, getAtPath, manifestReady, onManifestChange } from "@/platform/host-selectors";
 
 const callback = (_elem: Element | null, mr?: MutationRecord[]) => {
     if (!mr) return;
@@ -54,21 +54,24 @@ const callback = (_elem: Element | null, mr?: MutationRecord[]) => {
     });
 };
 
+let observers: Observer[] = [];
+
 function init() {
+    // 이전 감시를 끊고 붙는다 — 안 끊으면 SPA 이동/manifest 갱신마다 감시가 쌓여 채팅이 중복 전달된다.
+    observers.forEach(o => o.disconnect());
     const sel = getPlatformConfig('chzzk').selectors;
-    const liveObserver = new Observer(sel.chatRoomLive, false);
-    const vodObserver = new Observer(sel.chatRoomVod, false);
-    liveObserver.observe(callback);
-    vodObserver.observe(callback);
+    observers = [new Observer(sel.chatRoomLive, false), new Observer(sel.chatRoomVod, false)];
+    observers.forEach(o => o.observe(callback));
 }
 
 async function bootstrap() {
     // manifestReady 는 MAIN 에서 즉시 resolve 한다 — manifest 를 기다리지 않는다.
     // (ISOLATED 는 document_idle 이라 기다려봐야 못 받는다. host-selectors 주석 참고.)
-    // bundled 로 먼저 붙고, manifest 가 도착하면 reactPropsPaths 는 매 채팅 다시 읽으므로
-    // 그 시점부터 자동으로 최신이 된다. chatRoomLive 만 다음 init() 까지 옛 값.
+    // bundled 로 먼저 붙고, manifest 가 늦게 도착하면 새 selector 로 다시 붙는다.
+    // 번들 selector 가 깨졌을 때 OTA 만으로 첫 로드부터 고쳐지는 건 이 재부착 덕분이다.
     await manifestReady;
     init();
+    onManifestChange(() => init());
 }
 
 bootstrap();

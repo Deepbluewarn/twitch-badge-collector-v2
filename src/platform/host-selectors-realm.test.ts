@@ -93,6 +93,32 @@ describe('MAIN world (inject) — browser API 없음', () => {
         expect(mod.getManifest().rev).toBe(BASE_REV + 2);
     });
 
+    it('manifest 가 실제로 바뀔 때만 onManifestChange 구독자를 부른다', async () => {
+        // init() 이 붙잡은 Observer 를 새 selector 로 다시 붙이는 신호.
+        const mod = await loadFresh();
+        await mod.manifestReady;
+        const seen: number[] = [];
+        mod.onManifestChange((m) => seen.push(m.rev));
+
+        deliver({ type: mod.SELECTORS_MESSAGE_TYPE, manifest: manifestWithRev(BASE_REV + 1) });
+        deliver({ type: mod.SELECTORS_MESSAGE_TYPE, manifest: manifestWithRev(BASE_REV + 1) });
+        deliver({ type: mod.SELECTORS_MESSAGE_TYPE, manifest: manifestWithRev(BASE_REV) });
+
+        expect(seen).toEqual([BASE_REV + 1]);
+    });
+
+    it('onManifestChange 해제 후엔 부르지 않는다', async () => {
+        const mod = await loadFresh();
+        await mod.manifestReady;
+        const cb = vi.fn();
+        const off = mod.onManifestChange(cb);
+        off();
+
+        deliver({ type: mod.SELECTORS_MESSAGE_TYPE, manifest: manifestWithRev(BASE_REV + 1) });
+
+        expect(cb).not.toHaveBeenCalled();
+    });
+
     it('다른 type 의 postMessage 는 무시한다', async () => {
         const mod = await loadFresh();
         await mod.manifestReady;
