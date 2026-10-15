@@ -15,7 +15,7 @@
     {
       "name": "video",
       "required": false,
-      "present": false
+      "present": true
     },
     {
       "name": "displayName",
@@ -70,5 +70,5 @@
       "present": false
     }
   ],
-  "manifestRev": 17
+  "manifestRev": 18
 }
