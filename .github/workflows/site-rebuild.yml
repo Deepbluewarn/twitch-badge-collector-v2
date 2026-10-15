@@ -1,0 +1,22 @@
+name: Rebuild badgecollector.dev
+
+# 배지 사이트(Deepbluewarn/badgecollector-site)는 data/chzzk-badges.json을 빌드 때 받는다.
+# 이 파일이 바뀌면 Cloudflare Pages deploy hook으로 다시 빌드시킨다.
+on:
+  push:
+    branches: [master]
+    paths: ['data/chzzk-badges.json']
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Pages deploy hook
+        env:
+          HOOK: ${{ secrets.SITE_DEPLOY_HOOK }}
+        run: |
+          # jsDelivr를 안 거치고 raw에서 받으므로 push 직후 빌드해도 새 파일을 본다.
+          curl -fsS -X POST "$HOOK" | jq -e '.success' > /dev/null
