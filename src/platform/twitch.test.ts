@@ -1,25 +1,5 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-
-// API 클라이언트 모킹 — Adapter 생성자가 createTwitchAPI()를 호출하므로
-// hoisted된 vi.mock으로 항상 mock 인스턴스를 받게 함.
-const fetchUser = vi.fn();
-const fetchGlobalChatBadges = vi.fn();
-const fetchChannelChatBadges = vi.fn();
-vi.mock('@/api/twitch', () => ({
-    createTwitchAPI: () => ({
-        fetchUser,
-        fetchFollowedStreams: vi.fn(),
-        fetchChannelChatBadges,
-        fetchGlobalChatBadges,
-        fetchVideos: vi.fn(),
-        fetchClips: vi.fn(),
-        fetchEmoteSets: vi.fn(),
-        fetchCheermotes: vi.fn(),
-        fetchUsersFollows: vi.fn(),
-    }),
-}));
-
+import { describe, it, expect, afterEach } from 'vitest';
 import { TwitchAdapter } from './twitch';
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
 
@@ -173,70 +153,5 @@ describe('TwitchAdapter — extract', () => {
         const stray = document.createElement('div');
         document.body.appendChild(stray);
         expect(adapter.extract(stray)).toBeUndefined();
-    });
-});
-
-// ----- fetchBadges --------------------------------------------------------
-
-describe('TwitchAdapter — fetchBadges', () => {
-    beforeEach(() => {
-        fetchUser.mockReset();
-        fetchGlobalChatBadges.mockReset();
-        fetchChannelChatBadges.mockReset();
-    });
-
-    it('global scope: returns BadgeInterface[] from fetchGlobalChatBadges', async () => {
-        fetchGlobalChatBadges.mockResolvedValue(new Map([
-            ['subscriber/0', {
-                image_url_1x: 'u1', image_url_2x: 'u2', image_url_4x: 'u4',
-                description: 'sub', title: 'Subscriber',
-            }],
-        ]));
-        const adapter = new TwitchAdapter();
-
-        const badges = await adapter.fetchBadges({ scope: 'global' });
-
-        expect(badges).toHaveLength(1);
-        expect(badges[0].channel).toBe('Global');
-        expect(badges[0].badgeName).toBe('Subscriber');
-        expect(badges[0].badgeSetId).toBe('subscriber/0');
-        expect(badges[0].badgeImage.badge_img_url_1x).toBe('u1');
-    });
-
-    it('channel scope: chains user lookup → channel badges fetch', async () => {
-        fetchUser.mockResolvedValue({
-            data: [{ id: '26301881', login: 'cohh', display_name: 'CohhCarnage' }],
-        });
-        fetchChannelChatBadges.mockResolvedValue(new Map([
-            ['bits/100', {
-                image_url_1x: 'b1', image_url_2x: 'b2', image_url_4x: 'b4',
-                description: 'bits', title: 'Bits',
-            }],
-        ]));
-        const adapter = new TwitchAdapter();
-
-        const badges = await adapter.fetchBadges({ scope: 'channel', channelLogin: 'cohh' });
-
-        expect(fetchUser).toHaveBeenCalledWith('login', 'cohh');
-        expect(fetchChannelChatBadges).toHaveBeenCalledWith('26301881');
-        expect(badges).toHaveLength(1);
-        expect(badges[0].channel).toBe('CohhCarnage');
-        expect(badges[0].channelLogin).toBe('cohh');
-        expect(badges[0].channelId).toBe('26301881');
-    });
-
-    it('channel scope without channelLogin returns []', async () => {
-        const adapter = new TwitchAdapter();
-        const badges = await adapter.fetchBadges({ scope: 'channel' });
-        expect(badges).toEqual([]);
-        expect(fetchUser).not.toHaveBeenCalled();
-    });
-
-    it('channel scope: empty user lookup returns []', async () => {
-        fetchUser.mockResolvedValue({ data: [] });
-        const adapter = new TwitchAdapter();
-        const badges = await adapter.fetchBadges({ scope: 'channel', channelLogin: 'unknown' });
-        expect(badges).toEqual([]);
-        expect(fetchChannelChatBadges).not.toHaveBeenCalled();
     });
 });

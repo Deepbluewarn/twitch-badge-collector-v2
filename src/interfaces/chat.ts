@@ -1,12 +1,5 @@
 import { FilterType } from "./filter";
-import { Version } from "./api/twitchAPI";
 
-export interface ChatInfoContextInterface {
-    globalBadges: Map<string, Version>,
-    channelBadges: Map<string, Version>,
-    cheerMotes: Map<string, any>,
-    emoteSets: Map<string, any>
-}
 /**
  * ChatInfo에서 host DOM으로부터 값을 *확정하지 못한* 필드. Filter Category와 1:1 대응.
  *
