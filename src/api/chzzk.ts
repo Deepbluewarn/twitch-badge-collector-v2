@@ -16,7 +16,8 @@ export interface ChzzkBadgeGroup {
 }
 
 export async function fetchChzzkBadgeGroups(): Promise<ChzzkBadgeGroup[]> {
-    const res = await fetch(BADGES_URL);
+    // jsDelivr가 max-age 7일을 붙여 보낸다. badgeCache(7일)와 겹치지 않게 매번 재검증(ETag라 가볍다).
+    const res = await fetch(BADGES_URL, { cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     if (!Array.isArray(data?.groups)) throw new Error('unexpected badge list shape');
