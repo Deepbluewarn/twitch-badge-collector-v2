@@ -1,5 +1,6 @@
 import { CompositeFilterElement } from "@/interfaces/filter";
 import defaultFilter from "@/defaultFilters";
+import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
 
 export default defineBackground(() => {
@@ -87,18 +88,14 @@ export default defineBackground(() => {
   }
 
   // chzzk 배지 이미지 URL은 서버에서 바뀔 수 있어 install/update마다 재동기화.
-  // 실패는 치명적이지 않음 — 배지 아이콘만 옛 URL로 남고 필터 매칭은 이름 기준이라 동작.
+  // 필터 매칭은 이미지 URL 기준이라, 실패하면 URL이 바뀐 배지의 필터는 다음 동기화까지 안 걸린다.
   async function syncChzzkBadgeImages() {
-    const res = await fetch('https://api.badgecollector.dev/chzzk/badges', { method: 'GET' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    const chzzkBadgeList = await res.json();
-    if (!Array.isArray(chzzkBadgeList)) throw new Error('unexpected badge list shape');
+    const groups = await fetchChzzkBadgeGroups();
 
     const chzzkBadgeMap = new Map<string, string>();
-    chzzkBadgeList.forEach((b: any) => {
-      chzzkBadgeMap.set(b.name, b.image);
-    });
+    groups.forEach(g => g.badges.forEach(b => {
+      chzzkBadgeMap.set(b.name, b.imageUrl);
+    }));
 
     const filter: CompositeFilterElement[] = (await browser.storage.local.get('filter')).filter ?? [];
 
@@ -107,7 +104,9 @@ export default defineBackground(() => {
         return filterObj;
       }
       filterObj.filters = filterObj.filters.map(f => {
-        const name = f.badgeName?.split(':')[1]?.trim();
+        // badgeName은 `그룹: 이름`. 공식 이름 자체에 ':'가 들어간 배지가 있어 첫 ':' 뒤 전부를 쓴다.
+        const sep = f.badgeName?.indexOf(':') ?? -1;
+        const name = sep >= 0 ? f.badgeName!.slice(sep + 1).trim() : undefined;
 
         if (name && f.category === 'badge' && chzzkBadgeMap.has(name)) {
           f.value = chzzkBadgeMap.get(name)!;

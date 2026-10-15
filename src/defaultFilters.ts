@@ -117,7 +117,22 @@ const defaultFilter: CompositeFilterElement[] = [
                 "id": "v-Epvo6VlPk6jQD2gkzFx",
                 "type": "include",
                 "value": "https://ssl.pstatic.net/static/nng/glive/icon/streamer.png",
-                "badgeName": "Global: 스트리머"
+                "badgeName": "역할: 스트리머"
+            }
+        ],
+        "platform": "chzzk"
+    },
+    {
+        "filterType": "include",
+        "id": "E55_YANaL1A9rX-BA-xz-",
+        "filterNote": "",
+        "filters": [
+            {
+                "category": "badge",
+                "id": "VfLzvfvOu2TmG2UAA61Ys",
+                "type": "include",
+                "value": "https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png",
+                "badgeName": "역할: 인증 마크"
             }
         ],
         "platform": "chzzk"
@@ -132,7 +147,7 @@ const defaultFilter: CompositeFilterElement[] = [
                 "id": "0se_daH9IWMnTCZuXXmmg",
                 "type": "include",
                 "value": "https://ssl.pstatic.net/static/nng/glive/icon/manager.png",
-                "badgeName": "Global: 매니저"
+                "badgeName": "역할: 채널 관리자"
             }
         ],
         "platform": "chzzk"

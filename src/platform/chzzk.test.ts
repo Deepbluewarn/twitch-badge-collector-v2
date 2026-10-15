@@ -1,10 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-const fetchBadgesApi = vi.fn();
-vi.mock('@/api/chzzk', () => ({
-    createChzzkAPI: () => ({ fetchBadges: fetchBadgesApi }),
-}));
+const { fetchChzzkBadgeGroups } = vi.hoisted(() => ({ fetchChzzkBadgeGroups: vi.fn() }));
+vi.mock('@/api/chzzk', () => ({ fetchChzzkBadgeGroups }));
 
 import { ChzzkAdapter } from './chzzk';
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
@@ -470,23 +468,30 @@ describe('ChzzkAdapter — extract', () => {
 
 describe('ChzzkAdapter — fetchBadges', () => {
     beforeEach(() => {
-        fetchBadgesApi.mockReset();
+        fetchChzzkBadgeGroups.mockReset();
     });
 
-    it('returns BadgeInterface[] regardless of scope (Chzzk has no channel scope)', async () => {
-        fetchBadgesApi.mockResolvedValue([
-            { id: 'b1', image: 'https://nng.naver.com/b1.png', name: 'Streamer' },
-            { id: 'b2', image: 'https://nng.naver.com/b2.png', name: 'Manager' },
+    it('flattens groups into BadgeInterface[] regardless of scope (Chzzk has no channel scope)', async () => {
+        fetchChzzkBadgeGroups.mockResolvedValue([
+            { id: 'role', title: '역할', badges: [
+                { name: '스트리머', imageUrl: 'https://nng.naver.com/b1.png' },
+                { name: '채널 관리자', imageUrl: 'https://nng.naver.com/b2.png', condition: '채널 관리자, 채팅 운영자' },
+            ] },
+            { id: 'rank', title: '후원 순위', badges: [
+                { name: '영광의 1등', imageUrl: 'https://nng.naver.com/b3.png' },
+            ] },
         ]);
         const adapter = new ChzzkAdapter();
 
         const fromGlobal = await adapter.fetchBadges({ scope: 'global' });
         const fromChannel = await adapter.fetchBadges({ scope: 'channel', channelLogin: 'whatever' });
 
-        expect(fromGlobal).toHaveLength(2);
-        expect(fromGlobal[0].channel).toBe('Global');
-        expect(fromGlobal[0].badgeName).toBe('Streamer');
+        expect(fromGlobal).toHaveLength(3);
+        expect(fromGlobal[0].channel).toBe('역할');
+        expect(fromGlobal[0].badgeName).toBe('스트리머');
         expect(fromGlobal[0].badgeImage.badge_img_url_1x).toBe('https://nng.naver.com/b1.png');
+        expect(fromGlobal[1].note).toBe('채널 관리자, 채팅 운영자');
+        expect(fromGlobal[2].channel).toBe('후원 순위');
         // channelLogin이 들어와도 Chzzk는 무시 — 결과 동일
         expect(fromChannel).toEqual(fromGlobal);
     });

@@ -21,3 +21,7 @@ Single-context layout — `CONTEXT.md` + `docs/adr/` at the repo root. See `docs
 ### OTA — host selector hotfix
 
 호스트 DOM이 바뀌어 selector가 깨졌을 때 코드 재배포 없이 JSON push로 hotfix. 절차/주의사항: `docs/ota-selectors.md`.
+
+### 치지직 배지 목록
+
+배지 선택 화면의 치지직 배지는 `data/chzzk-badges.json`을 jsDelivr로 받는다. 새 배지 추가 절차: `docs/chzzk-badges.md`.

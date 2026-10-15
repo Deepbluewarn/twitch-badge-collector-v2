@@ -1,7 +1,7 @@
 import { BadgeInterface, ChatInfo, UnavailableChatField } from "@/interfaces/chat";
 import type { PlatformAdapter } from "./";
 import { msToTime } from "@/utils/utils-common";
-import { createChzzkAPI, ChzzkAPI } from "@/api/chzzk";
+import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 import { getPlatformConfig, detectPageMode, extractChannelId } from "./host-selectors";
 
@@ -28,8 +28,6 @@ export class ChzzkAdapter implements PlatformAdapter {
     readonly supportsChannelBadgeQuery = false;
 
     readonly supportsChatPersistence = true;
-
-    private api: ChzzkAPI = createChzzkAPI();
 
     extract(node: Node): ChatInfo | undefined {
         const nodeElement = node as HTMLElement;
@@ -161,18 +159,19 @@ export class ChzzkAdapter implements PlatformAdapter {
 
     async fetchBadges(_opts: { scope: 'global' | 'channel'; channelLogin?: string }): Promise<BadgeInterface[]> {
         // Chzzk는 채널별 배지 개념이 없어 scope/channelLogin 모두 무시.
-        const badges = await this.api.fetchBadges();
-        return badges.map(badge => ({
-            id: badge.id,
+        // channel 자리에 그룹 이름(역할, 후원 순위 …)을 넣어 카드에 표시하고 검색에도 걸리게 한다.
+        const groups = await fetchChzzkBadgeGroups();
+        return groups.flatMap(group => group.badges.map(badge => ({
+            id: badge.imageUrl,
             badgeImage: {
-                badge_img_url_1x: badge.image,
-                badge_img_url_2x: badge.image,
-                badge_img_url_4x: badge.image,
+                badge_img_url_1x: badge.imageUrl,
+                badge_img_url_2x: badge.imageUrl,
+                badge_img_url_4x: badge.imageUrl,
             },
-            channel: 'Global',
-            note: badge.name,
+            channel: group.title,
+            note: badge.condition ?? '',
             badgeName: badge.name,
             filterType: 'include',
-        } as BadgeInterface));
+        } as BadgeInterface)));
     }
 }

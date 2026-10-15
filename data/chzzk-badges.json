@@ -1,0 +1,408 @@
+{
+  "groups": [
+    {
+      "id": "role",
+      "title": "역할",
+      "badges": [
+        {
+          "name": "치지직 운영자",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/owner.png"
+        },
+        {
+          "name": "스트리머",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/streamer.png"
+        },
+        {
+          "name": "인증 마크",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png",
+          "condition": "공식 인증 계정"
+        },
+        {
+          "name": "채널 관리자",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/manager.png",
+          "condition": "채널 관리자, 채팅 운영자"
+        }
+      ]
+    },
+    {
+      "id": "rank",
+      "title": "후원 순위",
+      "badges": [
+        {
+          "name": "영광의 1등",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/gold.png",
+          "condition": "주간 후원 1위"
+        },
+        {
+          "name": "기회를 노리는 2등",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/silver.png",
+          "condition": "주간 후원 2위"
+        },
+        {
+          "name": "무한한 잠재력의 3등",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/bronze.png",
+          "condition": "주간 후원 3위"
+        }
+      ]
+    },
+    {
+      "id": "donation",
+      "title": "후원",
+      "badges": [
+        {
+          "name": "방금 입덕 완료",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/fan_01.png",
+          "condition": "첫 후원"
+        },
+        {
+          "name": "따끈한 입덕 완료",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/fan_02.png"
+        },
+        {
+          "name": "입덕 완료",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/fan_03.png"
+        },
+        {
+          "name": "밥 잘 사주는 예쁜 팬",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/cheese01.png",
+          "condition": "누적 10만 치즈"
+        },
+        {
+          "name": "오늘도 밥 잘 사주는 예쁜 팬",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/recent_cheese01.png",
+          "condition": "누적 10만 치즈, 최근 후원"
+        },
+        {
+          "name": "시켜줘 명예 후원자!",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/cheese02.png",
+          "condition": "누적 100만 치즈"
+        },
+        {
+          "name": "오늘도 시켜줘 명예 후원자!",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/recent_cheese02.png",
+          "condition": "누적 100만 치즈, 최근 후원"
+        },
+        {
+          "name": "내 마음.. 꽤나 뜨거울지도?",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/cheese03.png",
+          "condition": "누적 1,000만 치즈"
+        },
+        {
+          "name": "오늘도 내 마음.. 꽤나 뜨거울지도?",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/recent_cheese03.png",
+          "condition": "누적 1,000만 치즈, 최근 후원"
+        },
+        {
+          "name": "괜찮겠어? 난 멈추는 방법을 모르는 팬인데.",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/cheese04.png",
+          "condition": "누적 1억 치즈"
+        },
+        {
+          "name": "오늘도 괜찮겠어? 난 멈추는 방법을 모르는 팬인데.",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/recent_cheese04.png",
+          "condition": "누적 1억 치즈, 최근 후원"
+        }
+      ]
+    },
+    {
+      "id": "subscription",
+      "title": "구독 선물",
+      "badges": [
+        {
+          "name": "1호 팬",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/1st.png",
+          "condition": "첫 구독자 50명"
+        },
+        {
+          "name": "구독 나눔 팬",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/gift_sub_1.png",
+          "condition": "구독권 선물 1개"
+        },
+        {
+          "name": "감동 주는 팬",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/gift_sub_10.png",
+          "condition": "구독권 선물 10개"
+        },
+        {
+          "name": "아낌없이 주는 팬",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/gift_sub_50.png",
+          "condition": "구독권 선물 50개"
+        },
+        {
+          "name": "이 채널 홍보대사",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/gift_sub_100.png",
+          "condition": "구독권 선물 100개"
+        },
+        {
+          "name": "이 채널의 빛과 소금",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/gift_sub_250.png",
+          "condition": "구독권 선물 250개"
+        },
+        {
+          "name": "왕 많이 선물해서 왕 좋은 천사",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/gift_sub_500.png",
+          "condition": "구독권 선물 500개"
+        },
+        {
+          "name": "뭐든 줄게! 서프라이즈 산타",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/gift_sub_1000.png",
+          "condition": "구독권 선물 1,000개"
+        }
+      ]
+    },
+    {
+      "id": "cheatkey",
+      "title": "치트키",
+      "badges": [
+        {
+          "name": "치트키 보유자 1개월",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/cheatkey_1m.png"
+        },
+        {
+          "name": "치트키 보유자 2개월",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/cheatkey_2m.png"
+        },
+        {
+          "name": "치트키 보유자 3개월",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/cheatkey_3m.png"
+        },
+        {
+          "name": "치트키 보유자 6개월",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/cheatkey_6m.png"
+        },
+        {
+          "name": "치트키 보유자 9개월",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/cheatkey_9m.png"
+        },
+        {
+          "name": "치트키 보유자 12개월",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/cheatkey_12m.png"
+        },
+        {
+          "name": "치트키 보유자 18개월",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/cheatkey_18m.png"
+        },
+        {
+          "name": "치트키 보유자 24개월",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/cheatkey_24m.png"
+        },
+        {
+          "name": "치트키 보유자 30개월",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/cheatkey_30m.png"
+        },
+        {
+          "name": "치트키 보유자 36개월",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/cheatkey_36m.png"
+        }
+      ]
+    },
+    {
+      "id": "recap",
+      "title": "올타임 시청자",
+      "badges": [
+        {
+          "name": "24년 올타임 시청자",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/recap_2024.png",
+          "condition": "2024년 채널 시청 상위 5명"
+        },
+        {
+          "name": "25년 올타임 시청자",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/badge/recap_25.png",
+          "condition": "2025년 채널 활동 상위 5명"
+        }
+      ]
+    },
+    {
+      "id": "popup",
+      "title": "팝업스토어",
+      "badges": [
+        {
+          "name": "김도",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_김도.png"
+        },
+        {
+          "name": "레바",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_레바.png"
+        },
+        {
+          "name": "서새봄",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_서새봄냥.png"
+        },
+        {
+          "name": "칸나",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_칸나.png"
+        },
+        {
+          "name": "유니",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_유니.png"
+        },
+        {
+          "name": "리제",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_리제.png"
+        },
+        {
+          "name": "마시로",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_마시로.png"
+        },
+        {
+          "name": "타비",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_타비.png"
+        },
+        {
+          "name": "히나",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_히나.png"
+        },
+        {
+          "name": "옥냥이",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_옥냥이.png"
+        },
+        {
+          "name": "풍월량",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/디지털뱃지_풍월량.png"
+        }
+      ]
+    },
+    {
+      "id": "achievement",
+      "title": "스트리머 업적",
+      "badges": [
+        {
+          "name": "치락실 D&D 1등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNDEwMzBfNDAg/MDAxNzMwMjc3OTY4NTQw.sjD5L1OayJsWNmL6s903rqcqHWTDeNHWCbgZsElP6Ckg.Va3FHdP1-ZH4DMKf3TyHPJo71HgXr5KLJIHsZOYzazgg.PNG/DD_1%EB%93%B1_h128.png"
+        },
+        {
+          "name": "치락실 D&D 2등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNDEwMzBfMTM4/MDAxNzMwMjc3OTgzNzYy.RLDp2VQdZ87PHPZL4GkfeL_LCO63LWuBm8Z7z-jUA_0g.031CDAFmE-JaVlyh362zhEkPQXfwwtYDl8mIVuZvWPgg.PNG/DD_2%EB%93%B1_h128.png"
+        },
+        {
+          "name": "치락실 D&D 3등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNDEwMzBfNDYg/MDAxNzMwMjc4MzEwNDIx.s9sEEWQwOBQoi6UQHzy3arqUjLIXUbZ8I7goGidrLuog.Jh2Ws30-ibxDQYe49K8Euuc-qvYX4X-uEVKLRG4Mve0g.PNG/DD_3%EB%93%B1_h128.png"
+        },
+        {
+          "name": "치락실 D&D TOP10",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNDEwMzBfMjIg/MDAxNzMwMjc4Mzk1OTM0.6XPdGEI-VStDumkzDZoo62Dm31wE7jFDf64J4LQmWGgg.pkJnwxoxvjJLk89MQ3eRsbx81y7kYfgSwnQlbsLFTeMg.PNG/DD_4%EB%93%B1-10%EB%93%B1_h128.png"
+        },
+        {
+          "name": "치락실 D&D 참가상",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNDEwMzBfMjA4/MDAxNzMwMjc4NDI4MzE3.R3ZswKy5mvqZb5OUmEGFEt2lSxCAXzDWfEjhsmslU7Qg.T88VDfi-M6JKqcwVI-hWyaQMpczIZcWrgCl2vMFygNgg.PNG/DD_%EC%B0%B8%EA%B0%80%EC%83%81_h128.png"
+        },
+        {
+          "name": "치스티벌_폴가이즈 우승 팀장",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNDEyMjBfMTEx/MDAxNzM0NjY1NDc3Njg1.YaC7hHZb0CzgcMgNpLjpRJgqjMHHAWV16_V8plcXf7sg.sEWIiMWzrNV6C2kBUSCPJwBlFjjqs-Ue7npiN27GG5Eg.PNG/%EC%B9%98%EC%8A%A4%ED%8B%B0%EB%B2%8C_1%ED%9A%8C%EC%B0%A8.png"
+        },
+        {
+          "name": "치스티벌_파티애니멀즈 우승 팀장",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNDEyMjBfMTg0/MDAxNzM0NjY1NTI2Mzk4.1--5ZJYhgS5dD6DRZn5RaIIYJ4oNFhNmO8lB5dEDyy0g.SDZuY8dP9egGD0-kiZiLzuZ8wKhUAoOPoxErvvOBh60g.PNG/%EC%B9%98%EC%8A%A4%ED%8B%B0%EB%B2%8C_2%ED%9A%8C%EC%B0%A8.png"
+        },
+        {
+          "name": "치스티벌_배틀그라운드 우승 팀장",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNDEyMjBfMTA1/MDAxNzM0NjY1NTgzOTY4.I-aSeAhhOOvI0dK73_lOpxHr3jVGU2gJvBLO62q89kUg.kEwySFgJnPpyMpT27jNvh0ScEkTI-7l7OkMsEI0L_VAg.PNG/%EC%B9%98%EC%8A%A4%ED%8B%B0%EB%B2%8C_3%ED%9A%8C%EC%B0%A8.png"
+        },
+        {
+          "name": "치락실 PAC-MAN 256 1등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTAyMTNfMTM0/MDAxNzM5NDU4NjQxMzIw.i6wn8EZPCETxBA8BZJ1trQoCkFYcsUFSNsoz5ixOH1cg.TD3kefULabiF92ii7r2NdqZr2AbCuAEIHMbcgRoNCa8g.PNG/chraksil_pacman_1_128.png"
+        },
+        {
+          "name": "치락실 PAC-MAN 256 2등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTAyMTNfMjk1/MDAxNzM5NDU4NzU1ODIw.VQ3Bv3KKu7sRIwskRJstz5ibpNAgDKrY0Ex6hn7j7N8g.w3SXOkyJt6VDz9PK7ln2Qg8JnBh-r79lSd817wBBruMg.PNG/chraksil_pacman_2_128.png"
+        },
+        {
+          "name": "치락실 PAC-MAN 3등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTAyMTRfODUg/MDAxNzM5NDU4ODMyNzIz.YIIBQ5WfjLW6MQRgFwKnBd_mRiuLdSL7LprSEhfk5awg.T8ViM2p0EGgp3WHDAMLegPf66etjLUqm4-QNJUh70R0g.PNG/chraksil_pacman_3_128.png"
+        },
+        {
+          "name": "치락실 PAC-MAN 256 TOP10",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTAyMTRfMTM5/MDAxNzM5NDU4ODc5NDcx.SLyfXq52ne1bQWC3Q_sOT3Iy8wMswkeRvBPsEOlY5z8g.Tlj3EAxaKXGbYoMw-EBq6XgczMTgN5UceH_vNNVe_9og.PNG/chraksil_pacman_4_128.png"
+        },
+        {
+          "name": "치락실 PAC-MAN 256 참가상",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTAyMTRfMTI5/MDAxNzM5NDU4OTc0OTY1.0C_uz2pQWiXXY-KYhrb8BMA5dx6sV5W1PIvma7mDyiYg.65ed25-goXCeZCi06wUlSENrC9QmKeM-Rabi2neWuv8g.PNG/chraksil_pacman_5_128.png"
+        },
+        {
+          "name": "치스티벌_헤드뱅어즈: 리듬로얄 우승 팀장",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTA0MDFfMTEw/MDAxNzQzNDk5MzA4Njk4.i5A4Yl4pBKtezupKxWw4sWXKs-IJAi23zE_di9D8lfEg.SGOtQXxQH6LQ78pQlsDEVJOMPSDvrzz9vOvSXuyvvUAg.PNG/%EC%B9%98%EC%8A%A4%ED%8B%B0%EB%B2%8C_4%ED%9A%8C%EC%B0%A8.png"
+        },
+        {
+          "name": "fco우당탕축구단 명장",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTA2MjhfMTYy/MDAxNzUxMDkyNDQ2NDUz.2AyKLN4E3LGHikzPJ1NSP40ZOqAE67wQvDR9WaaPb8sg.gS3TfMGN2ReP3wwbhYb9T75G3Ikwq0zX5Vpdx7rT1jQg.PNG/FCO_%EC%9A%B0%EB%8B%B9%ED%83%95_%EC%B6%95%EA%B5%AC%EB%8B%A8_%EB%B0%B0%EC%A7%80_128px.png"
+        },
+        {
+          "name": "치락실 TENGAI 1등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTA3MDRfNTMg/MDAxNzUxNjIxNjMyOTk0.MrNhd7e6Gqnbh5bWL5t7Gma3q8blc0q31Df7bdZ7Ra0g.rN5VoZPCg-xdMi0PZV6B_Q_RF_UhsLWkt2w83rgvl5Ig.PNG/%ED%85%90%EA%B0%80%EC%9D%B4_1%EB%93%B1_128px.png"
+        },
+        {
+          "name": "치락실 TENGAI 2등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTA3MDRfMTUg/MDAxNzUxNjIxNjgxNjc4.uQyCT3BJwSYOl2rf-9j88OAyiyJwXX8Gd3e15oLU-x8g.JjAesrBJVkWlvsGtUrcTTh4-XniEY6VocCdIR6q4nn4g.PNG/%ED%85%90%EA%B0%80%EC%9D%B4_2%EB%93%B1_128px.png"
+        },
+        {
+          "name": "치락실 TENGAI 3등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTA3MDRfMzIg/MDAxNzUxNjIxNzEwODA0.EVqMa4g8ekgTMId_aCtf3GBbZ13z8q27Ku1qKw351sYg._vjZqxkCAi97oFs0_M7AvSD2JztPU8enhMlyGYcsWEcg.PNG/%ED%85%90%EA%B0%80%EC%9D%B4_3%EB%93%B1_128px.png"
+        },
+        {
+          "name": "치락실 TENGAI TOP10",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTA3MDRfNyAg/MDAxNzUxNjIxNzY1MTU0.W6IT_o0OMLZ8qgf1xE7u_QZWdiho3ti3VJkapgaHw30g.Oq8UpqNYE1et7IVgIjsoBtCvyHkQ30IOTCj70oNOXH0g.PNG/%ED%85%90%EA%B0%80%EC%9D%B4_410%EB%93%B1_128px.png"
+        },
+        {
+          "name": "치락실 TENGAI 참가상",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTA3MDRfMjc4/MDAxNzUxNjIxNzk1NjUz.3qqlqb86KvS1bIletC1eMjZ67teJjse-AiVFleZvvWIg.zoiwYobtKUygxwxSewrt4Nn3W-R29uu7LAyM0mBNcaog.PNG/%ED%85%90%EA%B0%80%EC%9D%B4_%EC%B0%B8%EA%B0%80%EC%83%81_128px.png"
+        },
+        {
+          "name": "치스티벌_오버쿡드2 우승팀장",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTA4MjVfMjkx/MDAxNzU2MDk4MDg5MTYz.OB6AzJj3XW235D3_RoL-RCc0RIQyMl5HbZmRWJTBwdwg.p2TicS08K052ZCv_VosAn4seKuMu7cNLInBpZJU9jlAg.PNG/%EC%B9%98%EC%8A%A4%ED%8B%B0%EB%B2%8C_5%ED%9A%8C%EC%B0%A8_%EC%98%A4%EB%B2%84%EC%BF%A1%EB%93%9C2_128px.png"
+        },
+        {
+          "name": "치락실 SNOW BROS.2 SPECIAL 1등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTExMDdfMzAw/MDAxNzYyNTA5MDcyMDQy.T-YnO75xMoS3EFMN2xP2N5oBVayBjzUVhibX8nKl8UAg.dq0jBmfqB_2pMj4A-ZdmDOc0Y05AVcwyt6_yeJoyJVEg.PNG/1%EB%93%B1.png"
+        },
+        {
+          "name": "치락실 SNOW BROS.2 SPECIAL 2등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTExMDdfMTgg/MDAxNzYyNTA5MDk2Nzcw.ShEg68UNdcykxIEakEocMWTd96rqcIg4j2yyBiILPOgg.H5ZXJzQj-z7rDN-nJcz-zLIi0F4qW38IAxhwKnVwaLwg.PNG/2%EB%93%B1.png"
+        },
+        {
+          "name": "치락실 SNOW BROS.2 SPECIAL 3등",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTExMDdfNDMg/MDAxNzYyNTA5MTE2NzM5.R_vXQmdOQi7y9EhwzpcDOqAUvPAxN_QW4i0GeuVyc_cg.KNvJEnrCaUnb6EFERedTu42wbZEUQoQnvmy-0_Sq-pAg.PNG/3%EB%93%B1.png"
+        },
+        {
+          "name": "치락실 SNOW BROS.2 SPECIAL TOP 10",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTExMDdfMTU1/MDAxNzYyNTA5MTQyNDI2.4RF6Z72g7l3QAEvI1T7DR_qFhuSDbjE3GAjdD_4OSM4g.s97HxPGhxDoKIYyhYt6zu_Kidct79-Y0mRY8hNXLvuMg.PNG/4%EB%93%B1-10%EB%93%B1.png"
+        },
+        {
+          "name": "치락실 SNOW BROS.2 SPECIAL 참가상",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTExMDdfODMg/MDAxNzYyNTA5MTg0NDM0.kGhGOxxutQBbG686OlWm4PouUj14U9e8TwmbkiiSiuYg.FkLaSf7uWY9siO1MxJ098sPGH725VOpFfEpqf2agijog.PNG/%EC%B0%B8%EA%B0%80%EC%83%81.png"
+        },
+        {
+          "name": "2025 치지직컵 우승:도개걸운모",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTEyMzBfMjU4/MDAxNzY3MDgxODczNjA2.WSIGn-NlCjbGAKomslHWdyPOADmnaX5cvBfCskSwEsQg.dZDFrMbTTVAPZBBOE6sUOGAk6D_DYvL-dsQK9wKdZbQg.PNG/%EC%9A%B0%EC%8A%B9%ED%8C%80.png"
+        },
+        {
+          "name": "2025 치지직컵 2위:앰큐베이턱",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTEyMzBfMTc2/MDAxNzY3MDgyMDEyNDAw.DmMhs-TROPuxmXoT-fur1EUdbl74UsFGaG4D_0TN9NMg.gaAhW1wR3LsotwdAIn3K8Bx5-7pwZ_-UO39gWYO4NLEg.PNG/2%EC%9C%84.png"
+        },
+        {
+          "name": "2025 치지직컵 3위:부산행",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNTEyMzBfMjg0/MDAxNzY3MDgyMTQxMjkw.yqUbAh_oHqq4ERj59MXoLakFSNSOL9ov7oN5HG0O9N4g.vDSQBKar0DZ0uxDtQ-4JM_U_xD9t1iaEy6JVxxUHizQg.PNG/3%EC%9C%84.png"
+        },
+        {
+          "name": "치스티벌_소닉레이싱크로스월드 우승팀장",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNjAyMDNfMTMw/MDAxNzcwMDkxMTM1NTQ2.9l3zJeubb3WfOm2a243pWy304a1TN4I0Ss6iPOWM5wIg.GaSsvEn7BqwLkc7C-tVumzF_ImRuLNsApz26y_xxaiEg.PNG/%EC%B9%98%EC%8A%A4%ED%8B%B0%EB%B2%8C_%EC%9A%B0%EC%8A%B9_%EB%B0%B0%EC%A7%80_6%ED%9A%8C%EC%B0%A8_128px.png"
+        },
+        {
+          "name": "2026 치지직 오픈컵 우승 : 24시간이 모자라",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNjA4MzFfMjA4/MDAxNzg4MTUyNDYzNzIx.n4bUzo6SJ4S8n31pkbB3_gI9OmJZF48jR6t0ZERGayAg.0PXwykFB7voFglPiPurnjTxCnJNvqCNSKQFrjJK2mVog.PNG/1%EC%9C%84.png"
+        },
+        {
+          "name": "2026 치지직 오픈컵 2위 : 영명보의 이리교실",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNjA4MzFfMTIz/MDAxNzg4MTUyNjkyODQy.YH27ysL9OHVKiri3UvOzoGOaYvqnBJUCbulz4SsVPM4g.XU1ocFsNd9YK5a2YjVgI4GGE7-mVI92G-QitPI3tHDog.PNG/2%EC%9C%84.png"
+        },
+        {
+          "name": "2026 치지직 오픈컵 3위 : 루미널의 자존심",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNjA4MzFfOTUg/MDAxNzg4MTUyODE3MDM2.grjB2YLSzNM4yBNlsxia_XD9d-ozxxoBAeb-jqa6JcQg.e7VBfF-gOrYQaB_dYe3xWIX63y-dkoqkayYV45ej5qEg.PNG/3%EC%9C%84.png"
+        },
+        {
+          "name": "2026 치지직 오픈컵 참가상",
+          "imageUrl": "https://nng-phinf.pstatic.net/MjAyNjA4MzFfMjM5/MDAxNzg4MTUyOTM2MjU1.hkR7clu52DuHfOUXt2m4d3eRrDMhg3vS1_-81KcIWXkg.Hl1mOCp2cfqXD_q6S9SoqEyfWiQiMQdcymDGn83hYckg.PNG/4-10%EC%9C%84.png"
+        }
+      ]
+    }
+  ]
+}

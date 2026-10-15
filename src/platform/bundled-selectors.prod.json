@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "rev": 17,
+  "rev": 18,
   "platforms": {
     "twitch": {
       "livePathRegex": "^/(?!videos/)",
@@ -36,7 +36,7 @@
       "channelIdPathIndex": 2,
       "selectors": {
         "chatRoomLive": "aside#aside-chatting [class*=\"_wrapper_\"]:has(> [class*=\"_list_bottom_\"])",
-        "chatRoomVod": "aside#vod-aside [class*=\"_list_\"]",
+        "chatRoomVod": "aside#vod-aside [class*=\"_list_\"]:has(> [class*=\"_list_bottom_\"])",
         "video": ".webplayer-internal-source-wrapper video",
         "displayName": "button[aria-haspopup=\"true\"] [class*=\"_text_\"], [class*=\"_nickname_\"] [class*=\"_text_\"]",
         "messageText": "[class*=\"_chatting_message_\"] > [class*=\"_text_\"]",
