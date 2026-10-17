@@ -26,6 +26,9 @@ import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, 
 import { SettingInterface } from "@/interfaces/setting";
 import { getPlatformConfig, manifestReady } from "@/platform/host-selectors";
 import { ensureRolloutBucket, isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
+// PROTOTYPE — 디자인 시안 (개발 빌드 전용). 결정 후 제거.
+import { PROTOTYPE_ENABLED, PrototypeSwitcher, useVariant } from "@/components/prototype/PrototypeSwitcher";
+import { POPUP_VARIANTS, POPUP_VARIANT_NAMES } from "./prototype/PopupPrototype";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -670,6 +673,26 @@ function Popup() {
   );
 }
 
+/** PROTOTYPE — 시안 전환. '0'은 지금 팝업. */
+function PopupPrototypeHost() {
+  const keys = ['0', ...Object.keys(POPUP_VARIANTS)];
+  const [variant, setVariant] = useVariant('popup', keys);
+  const V = POPUP_VARIANTS[variant as keyof typeof POPUP_VARIANTS];
+  // 팝업은 포커스를 잃으면 닫혀서 시안 비교는 별도 탭(설정 페이지의 /popup-preview)에서 한다.
+  // '0'(지금 팝업)이면 그대로 연다. 되돌리기는 미리보기 페이지 위쪽 스위치에서.
+  useEffect(() => {
+    if (!V || location.search.includes('variant=')) return;
+    browser.tabs.create({ url: browser.runtime.getURL('/setting.html?initialPath=popup-preview') });
+    window.close();
+  }, []);
+  return (
+    <>
+      {V ? <V /> : <RouterProvider router={router} />}
+      <PrototypeSwitcher keys={keys} names={POPUP_VARIANT_NAMES} current={variant} onChange={setVariant} />
+    </>
+  );
+}
+
 const ContextRouter = () => {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   // 사용자 설정(system/light/dark)을 boolean으로 해석.
@@ -681,7 +704,7 @@ const ContextRouter = () => {
         value={{ globalSetting, dispatchGlobalSetting }}
       >
         {PopupGlobalStyle}
-        <RouterProvider router={router} />
+        {PROTOTYPE_ENABLED ? <PopupPrototypeHost /> : <RouterProvider router={router} />}
       </GlobalSettingContext.Provider>
     </ThemeProvider>
   )

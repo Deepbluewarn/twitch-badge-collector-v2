@@ -24,6 +24,9 @@ import "@/render/chzzk-chat.css";
 import i18n from '@/translate/i18n';
 import { useTranslation } from 'react-i18next';
 import TranslationNotice from '@/components/TranslationNotice';
+import { PROTOTYPE_ENABLED, PrototypeSwitcher, useVariant } from "@/components/prototype/PrototypeSwitcher";
+import { FILTER_VARIANTS, FILTER_VARIANT_NAMES } from "@/components/filter/prototype/FilterPrototype";
+import { PopupPreviewPage } from "@/entrypoints/popup/prototype/PopupPrototype";
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
@@ -73,6 +76,19 @@ function SettingTranslationNotice() {
   );
 }
 
+/** PROTOTYPE — 필터 페이지 시안 전환 (개발 빌드 전용). '0'은 지금 페이지. 결정 후 제거. */
+function FilterPrototypeHost() {
+  const keys = ['0', ...Object.keys(FILTER_VARIANTS)];
+  const [variant, setVariant] = useVariant('filter', keys);
+  const V = FILTER_VARIANTS[variant as keyof typeof FILTER_VARIANTS];
+  return (
+    <>
+      {V ? <V /> : <Filter />}
+      <PrototypeSwitcher keys={keys} names={FILTER_VARIANT_NAMES} current={variant} onChange={setVariant} />
+    </>
+  );
+}
+
 function Router() {
   const { globalSetting } = useGlobalSettingContext();
   const _filterGroupHooks = useFilterGroup(globalSetting.platform, false);
@@ -81,8 +97,9 @@ function Router() {
     <FilterGroupContext.Provider value={_filterGroupHooks}>
       <MemoryRouter initialEntries={[`/${getQueryParams("initialPath")}`]}>
         <Routes>
-          <Route path="/filter" element={<Filter />} />
+          <Route path="/filter" element={PROTOTYPE_ENABLED ? <FilterPrototypeHost /> : <Filter />} />
           <Route path="/template" element={<TemplateSetting />} />
+          {PROTOTYPE_ENABLED && <Route path="/popup-preview" element={<PopupPreviewPage />} />}
           <Route path="*" element={<Navigate to="/filter" replace />} />
         </Routes>
       </MemoryRouter>

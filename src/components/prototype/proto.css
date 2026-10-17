@@ -1,0 +1,116 @@
+/* PROTOTYPE — 팝업·필터 페이지 디자인 시안 전용. 배지 사이트(badgecollector-site global.css) 토큰을 옮겨 왔다.
+   흰 종이 + 형광펜 노랑 + 검정 잉크. 상자·그림자·그라데이션 대신 굵은 선과 노란 면으로 나눈다.
+   다크: 단순 반전은 흰 굵은 선이 거칠어서 별로였다. 따뜻한 검정 종이 + 크림 글자로 두고, 굵은 구분선(--rule)은
+   노랑으로, 컨트롤 테두리(--line)는 낮춘 크림으로. 노란 면 위 글자는 어느 테마든 검정. */
+.pt {
+    --paper: #ffffff;
+    --ink: #111111;
+    --yellow: #ffd60a;
+    --yellow-soft: #fff6c2;
+    --hair: #e7e5df;
+    --tint: #f5f4ef;
+    --muted: #6b6a66;
+    --danger: #e5484d;
+    --on-yellow: #111111;
+    --line: var(--ink);   /* 버튼·입력·카드 테두리 */
+    --rule: var(--ink);   /* 머리·구획 굵은 선 */
+    font-family: 'Pretendard Variable', Pretendard, 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+    background: var(--paper);
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    -webkit-font-smoothing: antialiased;
+}
+.pt.dark {
+    --paper: #161512;
+    --ink: #f4f1e6;
+    --yellow-soft: #3b3413;
+    --hair: #2c2a25;
+    --tint: #23211c;
+    --muted: #a19d90;
+    --line: #6a665a;
+    --rule: var(--yellow);
+    color-scheme: dark;
+}
+.pt *, .pt *::before, .pt *::after { box-sizing: border-box; }
+.pt h1, .pt h2, .pt h3 { margin: 0; line-height: 1.2; letter-spacing: -0.03em; }
+.pt ::selection { background: var(--yellow); color: var(--on-yellow); }
+.pt :focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.pt :where(button) { font: inherit; color: inherit; }
+.pt img { display: block; }
+
+.pt-mark { background: linear-gradient(transparent 55%, var(--yellow) 55%, var(--yellow) 92%, transparent 92%); padding: 0 0.06em; }
+.pt.dark .pt-mark { background: linear-gradient(transparent 60%, rgba(255, 214, 10, 0.45) 60%, rgba(255, 214, 10, 0.45) 92%, transparent 92%); }
+/* 다크에서 "잉크로 칠한 면"(선택된 빼기, 켜진 타일)은 크림 대신 노란 테두리의 어두운 면으로 */
+.pt.dark .pt-tag.ink { background: var(--paper); color: var(--yellow); box-shadow: inset 0 0 0 1.5px var(--yellow); }
+.pt.dark .pt-btn:hover { background: var(--yellow); color: var(--on-yellow); border-color: var(--yellow); }
+.pt.dark .pt-switch::after { background: var(--muted); }
+.pt-muted { color: var(--muted); }
+
+/* 버튼 */
+.pt-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 16px;
+    border-radius: 8px; border: 2px solid var(--line); background: var(--paper); color: var(--ink);
+    font-weight: 800; cursor: pointer; white-space: nowrap; text-decoration: none;
+}
+.pt-btn:hover { background: var(--ink); color: var(--paper); }
+.pt-btn.primary { background: var(--yellow); color: var(--on-yellow); }
+.pt-btn.primary:hover { background: var(--ink); color: var(--yellow); }
+.pt-btn.small { height: 32px; padding: 0 12px; font-size: 13px; }
+.pt-btn.block { width: 100%; }
+.pt-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pt-btn:disabled:hover { background: var(--paper); color: var(--ink); }
+.pt-link { background: none; border: 0; padding: 0; cursor: pointer; font-weight: 700; text-decoration: underline; text-decoration-color: var(--yellow); text-decoration-thickness: 3px; text-underline-offset: 2px; }
+.pt-link:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 세그먼트 (토글 그룹) */
+.pt-seg { display: inline-flex; border: 2px solid var(--line); border-radius: 8px; overflow: hidden; flex: none; }
+.pt-seg button { border: 0; background: var(--paper); padding: 4px 10px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.pt-seg button + button { border-left: 2px solid var(--line); }
+.pt-seg button[aria-pressed='true'] { background: var(--yellow); color: var(--on-yellow); }
+.pt-seg button:hover:not([aria-pressed='true']) { background: var(--yellow-soft); }
+
+/* 스위치 — 노란 면 + 잉크 테두리 */
+.pt-switch { position: relative; width: 40px; height: 24px; flex: none; border: 2px solid var(--line); border-radius: 999px; background: var(--paper); cursor: pointer; padding: 0; }
+.pt-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); transition: transform 0.12s; }
+.pt-switch[aria-checked='true'] { background: var(--yellow); }
+.pt-switch[aria-checked='true']::after { transform: translateX(16px); background: var(--on-yellow); }
+
+.pt-input { height: 36px; padding: 0 10px; border: 2px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); font: inherit; min-width: 0; }
+.pt-input:focus { outline: none; background: var(--yellow-soft); }
+
+/* 섹션 머리: 위 굵은 선 + 굵은 제목 */
+.pt-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 10px; border-top: 2px solid var(--rule); margin-bottom: 4px; }
+.pt-section-head h2 { font-size: 15px; font-weight: 900; }
+.pt-section-head small { color: var(--muted); font-size: 12px; font-weight: 600; }
+
+/* 설정 한 줄 */
+.pt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--hair); min-height: 44px; }
+.pt-row:last-child { border-bottom: 0; }
+.pt-row-label { flex: 1; min-width: 0; font-weight: 600; }
+.pt-row-label small { display: block; font-size: 12px; font-weight: 500; color: var(--muted); line-height: 1.3; }
+
+.pt-tag { display: inline-block; font-size: 11px; font-weight: 800; padding: 1px 6px; border-radius: 4px; background: var(--tint); color: var(--muted); white-space: nowrap; }
+.pt-tag.yellow { background: var(--yellow); color: var(--on-yellow); }
+.pt-tag.ink { background: var(--ink); color: var(--paper); }
+
+.pt-tabs { display: flex; gap: 20px; border-bottom: 1px solid var(--hair); }
+.pt-tabs button { border: 0; background: none; padding: 10px 0; margin-bottom: -1px; border-bottom: 4px solid transparent; font-weight: 800; color: var(--muted); cursor: pointer; }
+.pt-tabs button[aria-selected='true'] { color: var(--ink); border-bottom-color: var(--yellow); }
+
+.pt-badge-tile { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; background: var(--tint); flex: none; }
+.pt-badge-tile img { width: 28px; height: 28px; object-fit: contain; }
+
+.pt-swatch { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); flex: none; }
+
+/* 플로팅 시안 전환 바 — 디자인과 섞이지 않게 반대 색 알약 */
+.pt-switcher {
+    position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 2147483647;
+    display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 999px;
+    background: #ff2d87; color: #fff; font: 700 12px/1 system-ui, sans-serif; box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    white-space: nowrap;
+}
+.pt-switcher button { width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.2); color: #fff; cursor: pointer; font: inherit; }
+.pt-switcher span { padding: 0 8px; }
