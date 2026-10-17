@@ -83,6 +83,13 @@ describe('useFilteredChatBuffer', () => {
         expect(result.current.chats.map(c => c.key)).toEqual(['b', 'c', 'd']);
     });
 
+    it('newest-bottom: prevKey가 null인 새 채팅은 끝에 붙고, 꽉 찬 상태에서도 살아남는다', () => {
+        const { result } = renderHook(() => useFilteredChatBuffer(makeAdapter('newest-bottom'), 3));
+        for (const key of ['a', 'b', 'c']) act(() => result.current.addChat(passed({ key, prevKey: `host-${key}` })));
+        act(() => result.current.addChat(passed({ key: 'd', prevKey: null })));
+        expect(result.current.savedChats.map(c => c.key)).toEqual(['b', 'c', 'd']);
+    });
+
     it('newest-top: when maxChats is reached, trims from the end (oldest)', () => {
         const { result } = renderHook(() => useFilteredChatBuffer(makeAdapter('newest-top'), 3));
 
