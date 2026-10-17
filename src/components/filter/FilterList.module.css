@@ -75,6 +75,8 @@
     align-items: center;
     gap: 12px;
     min-height: 40px;
+    /* 위(머리 줄과의 간격 16 = 바깥 Stack gap)와 아래(표 선까지)를 같게 */
+    margin-bottom: 16px;
     padding: 0 4px;
     flex-wrap: wrap;
 }
