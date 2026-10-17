@@ -7,6 +7,7 @@
     --ui-yellow-hover: #ffe45c;
     --ui-on-yellow: #111111;
     --ui-line: #111111;
+    --ui-rule: #111111;   /* 구획 굵은 선 (표 머리 아래 등) */
     --ui-hair: #e7e5df;
     --ui-tint: #f5f4ef;
     --ui-soft: #fff6c2;
@@ -28,6 +29,7 @@
     --ui-paper: #161512;
     --ui-ink: #f4f1e6;
     --ui-line: #6a665a;
+    --ui-rule: #6a665a;   /* 글자색(크림) 2px 선은 너무 밝아 낮춘다 */
     --ui-hair: #2c2a25;
     --ui-tint: #23211c;
     --ui-soft: #3b3413;
