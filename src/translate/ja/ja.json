@@ -90,7 +90,6 @@
         },
         "save": "保存",
         "saved": "保存しました",
-        "reset": "デフォルトに戻す",
         "unsaved": "未保存の変更があります",
         "error": "構文エラー（{{line}} 行 {{col}} 列）: {{message}}",
         "preview": "プレビュー",
@@ -149,7 +148,23 @@
             "gift_channel": "チャンネルへのサブスクギフト",
             "gift_receiver": "受け取った人への通知（送り主匿名）",
             "subscription": "サブスク"
-        }
+        },
+        "look_title": "見た目",
+        "look_layout": "レイアウト",
+        "layout_inline": "1行",
+        "layout_stacked": "2行",
+        "layout_bubble": "吹き出し",
+        "look_badges": "バッジ",
+        "badges_show": "表示",
+        "badges_hide": "非表示",
+        "look_size": "文字サイズ",
+        "size_normal": "標準",
+        "size_large": "大きく",
+        "look_custom": "HTML を直接編集したテンプレートです。上で選ぶと編集内容は上書きされます。",
+        "edit_html": "HTML を直接編集",
+        "edit_html_close": "エディターを閉じる",
+        "insert_hint": "クリックでエディターに挿入",
+        "reset_kind": "{{kind}}を既定に戻す"
     },
     "platform": {
         "twitch": "Twitch",

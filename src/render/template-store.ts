@@ -55,12 +55,17 @@ export async function saveTemplates(templates: StoredTemplates): Promise<void> {
 
 /** 저장된 템플릿을 읽고, 다른 곳(설정 페이지)에서 바꾸면 따라간다. */
 export function useStoredTemplates(): StoredTemplates {
-    const [templates, setTemplates] = useState<StoredTemplates>({});
+    return useStoredTemplatesState().templates;
+}
+
+/** useStoredTemplates + 처음 읽기가 끝났는지. 읽기 전의 빈 값을 "저장된 게 없음"과 구별할 때. */
+export function useStoredTemplatesState(): { templates: StoredTemplates; loaded: boolean } {
+    const [state, setState] = useState<{ templates: StoredTemplates; loaded: boolean }>({ templates: {}, loaded: false });
     useEffect(() => {
         let alive = true;
-        loadTemplates().then(t => { if (alive) setTemplates(t); });
+        loadTemplates().then(templates => { if (alive) setState({ templates, loaded: true }); });
         const listener = (changes: Record<string, { newValue?: unknown }>) => {
-            if (TEMPLATE_STORAGE_KEY in changes) setTemplates(sanitizeStoredTemplates(changes[TEMPLATE_STORAGE_KEY].newValue));
+            if (TEMPLATE_STORAGE_KEY in changes) setState({ templates: sanitizeStoredTemplates(changes[TEMPLATE_STORAGE_KEY].newValue), loaded: true });
         };
         browser.storage.local.onChanged.addListener(listener);
         return () => {
@@ -68,5 +73,5 @@ export function useStoredTemplates(): StoredTemplates {
             browser.storage.local.onChanged.removeListener(listener);
         };
     }, []);
-    return templates;
+    return state;
 }

@@ -90,7 +90,6 @@
         },
         "save": "저장",
         "saved": "저장했습니다",
-        "reset": "기본값으로",
         "unsaved": "저장하지 않은 변경이 있습니다",
         "error": "문법 오류 ({{line}}줄 {{col}}칸): {{message}}",
         "preview": "미리보기",
@@ -149,7 +148,23 @@
             "gift_channel": "채널에 구독권 선물",
             "gift_receiver": "받은 사람 알림 (보낸 사람 익명)",
             "subscription": "구독"
-        }
+        },
+        "look_title": "모양",
+        "look_layout": "배치",
+        "layout_inline": "한 줄",
+        "layout_stacked": "두 줄",
+        "layout_bubble": "말풍선",
+        "look_badges": "배지",
+        "badges_show": "표시",
+        "badges_hide": "숨김",
+        "look_size": "글자 크기",
+        "size_normal": "보통",
+        "size_large": "크게",
+        "look_custom": "HTML을 직접 고친 템플릿입니다. 위에서 고르면 고친 내용을 덮어씁니다.",
+        "edit_html": "HTML 직접 편집",
+        "edit_html_close": "편집기 닫기",
+        "insert_hint": "눌러서 편집기에 넣기",
+        "reset_kind": "{{kind}} 기본값으로"
     },
     "platform": {
         "twitch": "트위치",

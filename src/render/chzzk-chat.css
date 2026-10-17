@@ -113,3 +113,26 @@
 .tbc-chat-blinded {
     opacity: 0.6;
 }
+
+/* 설정 페이지 "모양" 선택지가 만드는 템플릿 (src/render/chzzk-templates.ts) */
+.tbc-chat-bubble {
+    display: inline-block;
+    margin-top: 2px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(128, 128, 128, 0.16);
+}
+.tbc-chat-large {
+    font-size: 18px;
+    line-height: 26px;
+}
+.tbc-chat-large .tbc-chat-badge,
+.tbc-chat-large .tbc-chat-verified {
+    width: 22px;
+    height: 22px;
+    vertical-align: -5px;
+}
+.tbc-chat-large .tbc-chat-emoji {
+    width: 30px;
+    height: 30px;
+}

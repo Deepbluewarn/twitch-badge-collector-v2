@@ -90,7 +90,6 @@
         },
         "save": "保存",
         "saved": "已保存",
-        "reset": "恢复默认",
         "unsaved": "有未保存的更改",
         "error": "语法错误（第 {{line}} 行，第 {{col}} 列）：{{message}}",
         "preview": "预览",
@@ -149,7 +148,23 @@
             "gift_channel": "向频道赠送订阅",
             "gift_receiver": "接收者通知（赠送者匿名）",
             "subscription": "订阅"
-        }
+        },
+        "look_title": "外观",
+        "look_layout": "布局",
+        "layout_inline": "单行",
+        "layout_stacked": "两行",
+        "layout_bubble": "气泡",
+        "look_badges": "徽章",
+        "badges_show": "显示",
+        "badges_hide": "隐藏",
+        "look_size": "文字大小",
+        "size_normal": "正常",
+        "size_large": "大",
+        "look_custom": "这些模板已手动编辑。在上方选择会覆盖你的修改。",
+        "edit_html": "直接编辑 HTML",
+        "edit_html_close": "关闭编辑器",
+        "insert_hint": "点击插入到编辑器",
+        "reset_kind": "将{{kind}}恢复默认"
     },
     "platform": {
         "twitch": "Twitch",

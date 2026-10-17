@@ -90,7 +90,6 @@
         },
         "save": "Salvar",
         "saved": "Salvo",
-        "reset": "Restaurar padrão",
         "unsaved": "Você tem alterações não salvas",
         "error": "Erro de sintaxe (linha {{line}}, col. {{col}}): {{message}}",
         "preview": "Prévia",
@@ -149,7 +148,23 @@
             "gift_channel": "Inscrição presenteada ao canal",
             "gift_receiver": "Aviso ao destinatário (remetente anônimo)",
             "subscription": "Inscrição"
-        }
+        },
+        "look_title": "Aparência",
+        "look_layout": "Layout",
+        "layout_inline": "Uma linha",
+        "layout_stacked": "Duas linhas",
+        "layout_bubble": "Balão",
+        "look_badges": "Emblemas",
+        "badges_show": "Mostrar",
+        "badges_hide": "Ocultar",
+        "look_size": "Tamanho do texto",
+        "size_normal": "Normal",
+        "size_large": "Grande",
+        "look_custom": "Estes templates foram editados à mão. Escolher uma opção acima substitui suas edições.",
+        "edit_html": "Editar HTML",
+        "edit_html_close": "Fechar editor",
+        "insert_hint": "Clique para inserir no editor",
+        "reset_kind": "Redefinir {{kind}}"
     },
     "platform": {
         "twitch": "Twitch",

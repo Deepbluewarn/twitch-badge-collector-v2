@@ -90,7 +90,6 @@
         },
         "save": "儲存",
         "saved": "已儲存",
-        "reset": "還原預設值",
         "unsaved": "有尚未儲存的變更",
         "error": "語法錯誤（第 {{line}} 行，第 {{col}} 欄）：{{message}}",
         "preview": "預覽",
@@ -149,7 +148,23 @@
             "gift_channel": "向頻道贈送訂閱",
             "gift_receiver": "接收者通知（贈送者匿名）",
             "subscription": "訂閱"
-        }
+        },
+        "look_title": "外觀",
+        "look_layout": "版面",
+        "layout_inline": "單行",
+        "layout_stacked": "兩行",
+        "layout_bubble": "對話框",
+        "look_badges": "徽章",
+        "badges_show": "顯示",
+        "badges_hide": "隱藏",
+        "look_size": "文字大小",
+        "size_normal": "一般",
+        "size_large": "大",
+        "look_custom": "這些範本已手動編輯。在上方選擇會覆蓋你的修改。",
+        "edit_html": "直接編輯 HTML",
+        "edit_html_close": "關閉編輯器",
+        "insert_hint": "點擊插入到編輯器",
+        "reset_kind": "將{{kind}}恢復預設"
     },
     "platform": {
         "twitch": "Twitch",

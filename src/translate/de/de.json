@@ -90,7 +90,6 @@
         },
         "save": "Speichern",
         "saved": "Gespeichert",
-        "reset": "Auf Standard zurücksetzen",
         "unsaved": "Du hast ungespeicherte Änderungen",
         "error": "Syntaxfehler (Zeile {{line}}, Spalte {{col}}): {{message}}",
         "preview": "Vorschau",
@@ -149,7 +148,23 @@
             "gift_channel": "Abo-Geschenk an den Kanal",
             "gift_receiver": "Empfängermeldung (Absender anonym)",
             "subscription": "Abo"
-        }
+        },
+        "look_title": "Aussehen",
+        "look_layout": "Anordnung",
+        "layout_inline": "Einzeilig",
+        "layout_stacked": "Zweizeilig",
+        "layout_bubble": "Sprechblase",
+        "look_badges": "Abzeichen",
+        "badges_show": "Anzeigen",
+        "badges_hide": "Ausblenden",
+        "look_size": "Textgröße",
+        "size_normal": "Normal",
+        "size_large": "Groß",
+        "look_custom": "Diese Vorlagen wurden von Hand bearbeitet. Eine Auswahl oben überschreibt deine Änderungen.",
+        "edit_html": "HTML bearbeiten",
+        "edit_html_close": "Editor schließen",
+        "insert_hint": "Klicken, um in den Editor einzufügen",
+        "reset_kind": "{{kind}} zurücksetzen"
     },
     "platform": {
         "twitch": "Twitch",

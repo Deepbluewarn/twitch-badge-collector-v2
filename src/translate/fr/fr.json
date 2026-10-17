@@ -90,7 +90,6 @@
         },
         "save": "Enregistrer",
         "saved": "Enregistré",
-        "reset": "Rétablir par défaut",
         "unsaved": "Modifications non enregistrées",
         "error": "Erreur de syntaxe (ligne {{line}}, col. {{col}}) : {{message}}",
         "preview": "Aperçu",
@@ -149,7 +148,23 @@
             "gift_channel": "Abonnements offerts à la chaîne",
             "gift_receiver": "Avis au destinataire (expéditeur anonyme)",
             "subscription": "Abonnement"
-        }
+        },
+        "look_title": "Apparence",
+        "look_layout": "Disposition",
+        "layout_inline": "Sur une ligne",
+        "layout_stacked": "Sur deux lignes",
+        "layout_bubble": "Bulle",
+        "look_badges": "Badges",
+        "badges_show": "Afficher",
+        "badges_hide": "Masquer",
+        "look_size": "Taille du texte",
+        "size_normal": "Normale",
+        "size_large": "Grande",
+        "look_custom": "Ces modèles ont été modifiés à la main. Choisir une option ci-dessus écrase vos modifications.",
+        "edit_html": "Modifier le HTML",
+        "edit_html_close": "Fermer l’éditeur",
+        "insert_hint": "Cliquez pour insérer dans l’éditeur",
+        "reset_kind": "Réinitialiser : {{kind}}"
     },
     "platform": {
         "twitch": "Twitch",

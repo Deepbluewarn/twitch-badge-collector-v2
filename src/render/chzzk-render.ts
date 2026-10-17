@@ -2,6 +2,7 @@ import DOMPurify from "dompurify";
 import type { ChzzkSocketChat } from "@/platform/chzzk-socket";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 import { compileTemplate, type CompiledTemplate } from "./template";
+import { DEFAULT_CHZZK_TEMPLATES, type ChzzkTemplates } from "./chzzk-templates";
 import { CHZZK_VIEW_RAW_FIELDS, toChzzkChatView, type ChzzkChatKind, type ChzzkViewOptions } from "./chzzk-chat-view";
 
 /**
@@ -11,65 +12,7 @@ import { CHZZK_VIEW_RAW_FIELDS, toChzzkChatView, type ChzzkChatKind, type ChzzkV
  * 저장(persistence), 캡처는 손대지 않는다. 그래서 루트에 같은 CHAT_ATTR을 단다.
  */
 
-export type ChzzkTemplates = Record<ChzzkChatKind, string>;
-
-/** 이름 앞 공통 부분: 시각 · 배지 · 닉네임 · 인증 마크. */
-const HEAD = `<span class="tbcv2-chat-time">{{time}}</span>
-{{#badges}}
-    <img class="tbc-chat-badge" src="{{url}}" alt="">
-{{/badges}}
-<span class="tbc-chat-nick tbc-chat-nick--{{nickEffect}}" style="{{nickStyle}}">{{nickname}}</span>
-{{#verifiedIconUrl}}
-    <img class="tbc-chat-verified" src="{{verifiedIconUrl}}" alt="">
-{{/verifiedIconUrl}}`;
-
-const indent = (s: string) => s.split('\n').map(l => `    ${l}`).join('\n');
-
-/**
- * 기본 템플릿. 편집기에 그대로 보이므로 읽기 좋게 줄을 나눠 둔다 — 줄바꿈 공백은 렌더 때
- * 지워진다(stripNewlineWhitespace).
- */
-export const DEFAULT_CHZZK_TEMPLATES: ChzzkTemplates = {
-    chat: `${HEAD}
-<span class="tbc-chat-text">{{{messageHtml}}}</span>
-`,
-    donation: `<div class="tbc-chat-event-head">
-${indent(HEAD)}
-    <strong class="tbc-chat-amount">{{donation.amountText}}</strong>
-</div>
-{{#donation.missionText}}
-    <div class="tbc-chat-mission">{{donation.missionText}}</div>
-{{/donation.missionText}}
-{{#hasMessage}}
-    <div class="tbc-chat-text">{{{messageHtml}}}</div>
-{{/hasMessage}}
-`,
-    subscription: `<div class="tbc-chat-event-head">
-${indent(HEAD)}
-    <strong class="tbc-chat-amount">{{subscription.month}}개월 구독</strong>
-    {{#subscription.tierName}}
-        <span class="tbc-chat-tier">{{subscription.tierName}}</span>
-    {{/subscription.tierName}}
-</div>
-{{#hasMessage}}
-    <div class="tbc-chat-text">{{{messageHtml}}}</div>
-{{/hasMessage}}
-`,
-    // 채널 선물은 보낸 사람 줄, 받은 사람 알림은 보낸 사람이 익명이라 받는 사람을 주어로.
-    gift: `{{#gift.toChannel}}
-    <div class="tbc-chat-event-head">
-${indent(indent(HEAD))}
-        <strong class="tbc-chat-amount">{{gift.tierName}} 구독권 {{gift.quantity}}개 선물</strong>
-    </div>
-{{/gift.toChannel}}
-{{^gift.toChannel}}
-    <div class="tbc-chat-event-head">
-        <span class="tbcv2-chat-time">{{time}}</span>
-        <strong class="tbc-chat-gift-receiver">{{gift.receiverNickname}}</strong>님에게 {{gift.tierName}} 구독권 선물
-    </div>
-{{/gift.toChannel}}
-`,
-};
+export { DEFAULT_CHZZK_TEMPLATES, type ChzzkTemplates } from "./chzzk-templates";
 
 const cache = new Map<string, CompiledTemplate>();
 function compiled(src: string): CompiledTemplate {
