@@ -254,7 +254,7 @@ export default function useFilteredChatBuffer(
             if (adapter.supportsChatPersistence && prev.some(c => c.time === time)) return prev;
 
             // 삽입 위치는 host DOM에서의 prevSibling을 기준으로 결정.
-            // - prevKey === null     → host DOM 맨 앞 → buffer 맨 앞에 prepend.
+            // - prevKey === null     → host DOM 맨 앞 → newest-top은 buffer 맨 앞, newest-bottom은 맨 끝.
             // - prevKey가 buffer에 존재 → 그 chat 바로 뒤에 splice insert.
             // - prevKey가 buffer에 없음  → chatOrder 기본값(newest-top=prepend, oldest-top=append).
             //
@@ -264,7 +264,10 @@ export default function useFilteredChatBuffer(
             const newEntry: SavedChat = { key, time, html: clone.outerHTML, restored: false, nickname, text, channel: persistenceKey };
             let next: SavedChat[];
             if (prevKey === null) {
-                next = [newEntry, ...prev];
+                // newest-bottom(twitch)에서 null은 "앞에 key 달린 형제가 없음"이다 — 처음 들어온
+                // 채팅이거나 매니저가 채팅창을 비운 직후. 둘 다 새 채팅이라 끝(최신 쪽)에 붙인다.
+                // 맨 앞에 넣으면 순서가 뒤집히고, 개수가 꽉 찼을 땐 아래 트림이 방금 넣은 걸 바로 지운다.
+                next = adapter.chatOrder === 'newest-top' ? [newEntry, ...prev] : [...prev, newEntry];
             } else {
                 const idx = prev.findIndex(c => c.key === prevKey);
                 if (idx === -1) {
