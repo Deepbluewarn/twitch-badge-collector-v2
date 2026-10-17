@@ -47,6 +47,8 @@ export default function BadgeList({
     const [channelQuery, setChannelQuery] = useState('');
     const [search, setSearch] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    // 여러 개 고르기(고급 설정)를 끄거나 켜면 고른 것을 비운다 — 모드를 오가며 남은 선택이 보이지 않게.
+    useEffect(() => { setSelectedIds(new Set()); }, [multiple]);
     const [badges, setBadges] = useState<BadgeInterface[]>([]);
 
     // 플랫폼 변경 시 상태 초기화 — 기존 검색/선택이 다른 플랫폼에 의미 없음.
@@ -231,7 +233,7 @@ function BadgeCard({
     const identity = adapter.getBadgeIdentity(badge.badgeImage.badge_img_url_1x);
 
     return (
-        <Card className={selected ? `${s.tile} ${s.selected}` : s.tile}>
+        <Card className={selected && multiple ? `${s.tile} ${s.selected}` : s.tile}>
             <button type="button" className={s.tileBtn} onClick={onClick} aria-pressed={multiple ? selected : undefined}>
                 <span className={s.img}>
                     <img
