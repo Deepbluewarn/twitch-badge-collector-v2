@@ -24,7 +24,7 @@ export function Button({ variant = 'secondary', size = 'md', icon, block, classN
     return (
         <button type={type} className={cx(s.btn, variant !== 'secondary' && s[variant], size === 'sm' && s.sm, block && s.block, className)} {...rest}>
             {icon && <Icon name={icon} />}
-            {children}
+            {children != null && children !== false && <span className={s.label}>{children}</span>}
         </button>
     );
 }
@@ -35,7 +35,7 @@ export function LinkButton({ variant = 'secondary', size = 'md', icon, block, cl
     return (
         <a className={cx(s.btn, variant !== 'secondary' && s[variant], size === 'sm' && s.sm, block && s.block, className)} {...rest}>
             {icon && <Icon name={icon} />}
-            {children}
+            {children != null && children !== false && <span className={s.label}>{children}</span>}
         </a>
     );
 }
@@ -46,7 +46,7 @@ export function LabelButton({ variant = 'secondary', size = 'md', icon, classNam
     return (
         <label className={cx(s.btn, variant !== 'secondary' && s[variant], size === 'sm' && s.sm, className)} {...rest}>
             {icon && <Icon name={icon} />}
-            {children}
+            {children != null && children !== false && <span className={s.label}>{children}</span>}
         </label>
     );
 }

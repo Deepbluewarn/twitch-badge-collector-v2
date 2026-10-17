@@ -53,6 +53,9 @@
 .btn.text:hover {
     background: transparent;
     color: var(--ui-ink);
+}
+/* 밑줄은 글자에만 — 버튼 전체에 걸면 아이콘과 글자에 따로 그어져 끊긴다 */
+.btn.text:hover .label {
     text-decoration: underline;
     text-decoration-color: var(--ui-yellow);
     text-decoration-thickness: 3px;
