@@ -342,10 +342,28 @@ export default function Local({
         });
         ro.observe(cloneEl);
 
+        // newest-bottom(twitch)은 위 ResizeObserver만으론 못 따라간다 — cloneEl은 높이가 고정이라
+        // 채팅이 쌓여도 자기 크기가 안 바뀐다. 내용 변화(채팅 추가·교체)와 이미지 로드를 직접 본다.
+        // newest-top(chzzk)은 column-reverse라 브라우저가 바닥을 유지해 주므로 손대지 않는다.
+        // MutationObserver 콜백은 렌더링(IntersectionObserver 판정) 전에 돌아서, 밀려난 sentinel 때문에
+        // following이 꺼지기 전에 바닥으로 붙인다.
+        let mo: MutationObserver | undefined;
+        const stickToBottom = () => {
+            if (followingRef.current) sentinel.scrollIntoView({ block: 'end', behavior: 'instant' as ScrollBehavior });
+        };
+        if (adapter.chatOrder !== 'newest-top') {
+            mo = new MutationObserver(stickToBottom);
+            mo.observe(cloneEl, { childList: true });
+            // load는 버블링하지 않아 capture로 받는다 (배지·이모트 이미지).
+            cloneEl.addEventListener('load', stickToBottom, true);
+        }
+
         return () => {
             io.disconnect();
             ro.disconnect();
+            mo?.disconnect();
             cloneEl.removeEventListener('scroll', onScroll);
+            cloneEl.removeEventListener('load', stickToBottom, true);
         };
     }, [type, updateFollowingFromScroll]);
 
