@@ -1,15 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import IconButton from "@mui/material/IconButton";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import useFilterGroup from "@/hooks/useFilterGroup";
 import useChatStream from "@/hooks/useChatStream";
 import { useStoredTemplates } from "@/render/template-store";
 import useFilteredChatBuffer from "@/hooks/useFilteredChatBuffer";
 import { findElement } from "@/utils/utils-common";
-import { styled } from "@mui/material/styles";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { SettingInterface } from "@/interfaces/setting";
 import { PlatformAdapter } from "@/platform";
@@ -17,9 +12,7 @@ import { Logger } from "@/utils/logger";
 import { captureChats } from "@/utils/captureChat";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 
-const Wrapper = styled('div')({
-    height: '100%',
-})
+import "./Local.css";
 
 // Container 안의 채팅 흐름:
 //   useChatStream         — host page DOM 감시 + Adapter extract + filter + clone prep
@@ -404,12 +397,11 @@ export default function Local({
     const allSelected = savedChats.length > 0 && selectedKeys.size === savedChats.length;
 
     return (
-        <Wrapper
+        <div
             ref={containerRef}
-            className={globalSetting.chatTime === 'on' ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'}
+            className={`tbcv2-local ${globalSetting.chatTime === 'on' ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'}`}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            sx={{ position: 'relative' }}
         >
             <style>{`
                 .tbcv2-capture-mode { cursor: pointer; user-select: none; -webkit-user-select: none; }
@@ -445,28 +437,21 @@ export default function Local({
                 hover 없이 항상 떠 있던 게 거슬린다는 피드백. 스크롤 자체가 hover 동반이므로
                 discoverability 손실 없음. */}
             {showJumpToBottom && globalSetting.jumpToBottomButton !== 'off' && (
-                <IconButton
+                <button
+                    type="button"
+                    className="tbcv2-jump"
                     onClick={jumpToBottom}
                     aria-label={browser.i18n.getMessage('scrollToBottom' as any)}
-                    sx={{
-                        position: 'absolute',
+                    style={{
                         bottom: captureMode ? 64 : 12,
-                        right: 12,
-                        zIndex: 11,
-                        width: 28,
-                        height: 28,
-                        bgcolor: jumpFabColors.bg,
+                        background: jumpFabColors.bg,
                         color: jumpFabColors.fg,
                         opacity: hovered ? 1 : 0,
                         pointerEvents: hovered ? 'auto' : 'none',
-                        transition: 'opacity 0.15s ease, background-color 0.15s ease',
-                        backdropFilter: 'blur(4px)',
-                        '&:hover': { bgcolor: jumpFabColors.bg, filter: 'brightness(1.3)' },
-                        '& .MuiSvgIcon-root': { fontSize: 18 },
                     }}
                 >
-                    <KeyboardArrowDownIcon />
-                </IconButton>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z" fill="currentColor" /></svg>
+                </button>
             )}
 
             {/* 캡쳐 진입은 popup 버튼 → runtime.sendMessage('tbc-start-capture')로 트리거.
@@ -474,43 +459,19 @@ export default function Local({
 
             {/* 캡쳐 모드 — 하단 full-width 액션 바. 채팅 layout 보존 (overlay). */}
             {captureMode && (
-                <Box
-                    sx={{
-                        position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10,
-                        bgcolor: 'rgba(20,20,22,0.95)',
-                        backdropFilter: 'blur(6px)',
-                        borderTop: '1px solid rgba(255,255,255,0.1)',
-                        p: 1, display: 'flex', gap: 1, alignItems: 'center',
-                    }}
-                >
-                    <ToolbarButton onClick={() => setCaptureMode(false)} disabled={capturing}>{browser.i18n.getMessage('cancel' as any)}</ToolbarButton>
-                    <ToolbarButton onClick={onSelectAllClick} disabled={capturing || savedChats.length === 0}>
+                <div className="tbcv2-capture-bar">
+                    <button type="button" className="tbcv2-capture-btn" onClick={() => setCaptureMode(false)} disabled={capturing}>{browser.i18n.getMessage('cancel' as any)}</button>
+                    <button type="button" className="tbcv2-capture-btn" onClick={onSelectAllClick} disabled={capturing || savedChats.length === 0}>
                         {browser.i18n.getMessage((allSelected ? 'deselectAll' : 'selectAll') as any)}
-                    </ToolbarButton>
-                    <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(255,255,255,0.7)' }}>
+                    </button>
+                    <span className="tbcv2-capture-count">
                         {browser.i18n.getMessage('selectedCount' as any, [String(selectedKeys.size)])}
-                    </Typography>
-                    <ToolbarButton
-                        onClick={onCaptureClick}
-                        disabled={selectedKeys.size === 0 || capturing}
-                        sx={{ bgcolor: 'rgba(124,138,239,0.6)', borderColor: 'rgba(124,138,239,0.8)', '&:hover': { bgcolor: 'rgba(124,138,239,0.8)' } }}
-                    >
+                    </span>
+                    <button type="button" className="tbcv2-capture-btn primary" onClick={onCaptureClick} disabled={selectedKeys.size === 0 || capturing}>
                         {browser.i18n.getMessage((capturing ? 'capturing' : 'downloadPng') as any)}
-                    </ToolbarButton>
-                </Box>
+                    </button>
+                </div>
             )}
-        </Wrapper>
+        </div>
     );
 }
-
-const ToolbarButton = styled('button')({
-    background: 'transparent',
-    border: '1px solid rgba(255,255,255,0.2)',
-    color: 'white',
-    padding: '4px 10px',
-    borderRadius: 4,
-    cursor: 'pointer',
-    fontSize: 12,
-    '&:hover': { background: 'rgba(255,255,255,0.08)' },
-    '&:disabled': { opacity: 0.5, cursor: 'default' },
-});

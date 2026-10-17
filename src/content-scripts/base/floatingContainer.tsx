@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { Badge, Box, IconButton } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import "./floatingContainer.css";
 import App from "@/components/Extension/App";
 import { PlatformAdapter } from "@/platform";
 import { SettingInterface } from "@/interfaces/setting";
@@ -230,99 +229,44 @@ function FloatingShell({ adapter, type, anchor }: ShellProps) {
     };
 
     return (
-        <Box sx={{ position: 'relative' }}>
+        <div
+            className="tbcv2-float"
+            style={{
+                '--tbcv2-bar-bg': colors.barBg, '--tbcv2-bar-text': colors.barText, '--tbcv2-bar-hover': colors.barHover,
+                '--tbcv2-pop-bg': colors.popBg, '--tbcv2-pop-border': colors.popBorder,
+            } as React.CSSProperties}
+        >
             {/* Bar — in-flow. aside 자식이라 chzzk 콘텐츠가 자연스럽게 아래로 밀림.
                   색상은 chzzk 테마(다크/라이트) luminance로 자동 감지.
                   수집된 chat이 한 건도 없을 땐 bar 자체를 숨김 — chzzk 콘텐츠 영역을 32px
                   덜 가져감. 첫 수집 시점에 등장. */}
-            <Box
-                ref={barRef}
-                onClick={toggle}
-                sx={{
-                    display: latestChat ? 'flex' : 'none',
-                    height: 32,
-                    bgcolor: colors.barBg,
-                    color: colors.barText,
-                    alignItems: 'center',
-                    gap: 1,
-                    px: 1.5,
-                    cursor: 'pointer',
-                    fontSize: 13,
-                    fontWeight: 500,
-                    transition: 'background-color 0.15s ease',
-                    '&:hover': { bgcolor: colors.barHover },
-                }}
-            >
-                <Box
-                    component="img"
-                    src={browser.runtime.getURL('/assets/icon.png')}
-                    alt=""
-                    sx={{ width: 18, height: 18, flexShrink: 0 }}
-                />
-                <Box
-                    sx={{
-                        flex: 1,
-                        minWidth: 0,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                    }}
-                >
+            <div ref={barRef} className="tbcv2-float-bar" onClick={toggle} style={{ display: latestChat ? 'flex' : 'none' }}>
+                <img src={browser.runtime.getURL('/assets/icon.png')} alt="" />
+                <div className="tbcv2-float-latest">
                     {latestChat && (
                         <>
-                            <Box component="span" sx={{ fontWeight: 600, mr: 0.5 }}>{latestChat.nickname}</Box>
-                            {latestChat.text || <Box component="span" sx={{ opacity: 0.6 }}>{browser.i18n.getMessage('emoticonOnly' as any)}</Box>}
+                            <span className="tbcv2-float-nick">{latestChat.nickname}</span>
+                            {latestChat.text || <span className="tbcv2-float-muted">{browser.i18n.getMessage('emoticonOnly' as any)}</span>}
                         </>
                     )}
-                </Box>
-                <Badge
-                    color="warning"
-                    badgeContent={unreadCount}
-                    max={99}
-                    invisible={unreadCount === 0}
-                    sx={{ flexShrink: 0, '& .MuiBadge-badge': { position: 'static', transform: 'none' } }}
-                />
-            </Box>
+                </div>
+                {unreadCount > 0 && <span className="tbcv2-float-unread">{unreadCount > 99 ? '99+' : unreadCount}</span>}
+            </div>
 
             {/* popover는 항상 mount 유지 — App 안의 useChatStream listener가 살아 있어야
                   팝오버 닫힌 동안에도 채팅 수집/필터 동작. open 토글은 시각적 display로만. */}
-            <Box
-                ref={popRef}
-                sx={{
-                    position: 'absolute',
-                    // Bar 바로 아래, 패널 너비 가득.
-                    left: 0,
-                    top: 32,
-                    right: 0,
-                    height: POPOVER_HEIGHT,
-                    zIndex: 99999,
-                    bgcolor: colors.popBg,
-                    border: `1px solid ${colors.popBorder}`,
-                    borderRadius: 1,
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.7), 0 4px 10px rgba(0,0,0,0.4)',
-                    display: open ? 'flex' : 'none',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                }}
-            >
-                    {/* 헤더 — 닫기 버튼만 (타이틀 텍스트 제거). */}
-                    <Box
-                        sx={{
-                            display: 'flex', justifyContent: 'flex-end',
-                            px: 0.5, py: 0.25,
-                            borderBottom: `1px solid ${colors.popBorder}`,
-                            color: colors.barText,
-                        }}
-                    >
-                        <IconButton size="small" onClick={() => setOpen(false)} sx={{ color: colors.barText }}>
-                            <CloseIcon sx={{ fontSize: 16 }} />
-                        </IconButton>
-                    </Box>
-                    {/* App 본체 — Local 컨테이너가 chats 렌더. */}
-                    <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                        <App type={type} adapter={adapter} />
-                    </Box>
-                </Box>
-        </Box>
+            <div ref={popRef} className="tbcv2-float-pop" style={{ height: POPOVER_HEIGHT, display: open ? 'flex' : 'none' }}>
+                {/* 헤더 — 닫기 버튼만 (타이틀 텍스트 제거). */}
+                <div className="tbcv2-float-head">
+                    <button type="button" className="tbcv2-float-close" onClick={() => setOpen(false)} aria-label={browser.i18n.getMessage('close' as any)}>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor" /></svg>
+                    </button>
+                </div>
+                {/* App 본체 — Local 컨테이너가 chats 렌더. */}
+                <div className="tbcv2-float-body">
+                    <App type={type} adapter={adapter} />
+                </div>
+            </div>
+        </div>
     );
 }

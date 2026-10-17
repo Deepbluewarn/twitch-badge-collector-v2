@@ -181,5 +181,8 @@
   },
   "dismiss": {
     "message": "Verstanden"
+  },
+  "close": {
+    "message": "Schließen"
   }
 }

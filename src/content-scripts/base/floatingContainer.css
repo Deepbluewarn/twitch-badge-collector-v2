@@ -1,0 +1,95 @@
+/* 팝오버 표시 방식(floating)의 막대 + 팝오버. 색은 호스트 테마 밝기로 고른 값을 CSS 변수로 inline. */
+.tbcv2-float {
+    position: relative;
+}
+.tbcv2-float-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 12px;
+    background: var(--tbcv2-bar-bg);
+    color: var(--tbcv2-bar-text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.tbcv2-float-bar:hover {
+    background: var(--tbcv2-bar-hover);
+}
+.tbcv2-float-bar img {
+    flex: none;
+    width: 18px;
+    height: 18px;
+}
+.tbcv2-float-latest {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tbcv2-float-nick {
+    font-weight: 600;
+    margin-right: 4px;
+}
+.tbcv2-float-muted {
+    opacity: 0.6;
+}
+.tbcv2-float-unread {
+    flex: none;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: #ed6c02;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 20px;
+    text-align: center;
+}
+.tbcv2-float-pop {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 32px;
+    z-index: 99999;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--tbcv2-pop-bg);
+    border: 1px solid var(--tbcv2-pop-border);
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.tbcv2-float-head {
+    display: flex;
+    justify-content: flex-end;
+    padding: 2px 4px;
+    border-bottom: 1px solid var(--tbcv2-pop-border);
+}
+.tbcv2-float-close {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--tbcv2-bar-text);
+    cursor: pointer;
+}
+.tbcv2-float-close:hover {
+    background: var(--tbcv2-bar-hover);
+}
+.tbcv2-float-close svg {
+    width: 16px;
+    height: 16px;
+}
+.tbcv2-float-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}

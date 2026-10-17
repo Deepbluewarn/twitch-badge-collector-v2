@@ -181,5 +181,8 @@
   },
   "dismiss": {
     "message": "OK"
+  },
+  "close": {
+    "message": "閉じる"
   }
 }

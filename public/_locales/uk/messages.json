@@ -181,5 +181,8 @@
   },
   "dismiss": {
     "message": "Зрозуміло"
+  },
+  "close": {
+    "message": "Закрити"
   }
 }
