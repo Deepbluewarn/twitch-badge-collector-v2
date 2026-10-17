@@ -10,7 +10,7 @@ import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, I
 import GlobalStyles from "@mui/material/GlobalStyles";
 import { styled, ThemeProvider } from "@mui/material/styles";
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
-import { useCustomTheme } from "@/hooks/useCustomTheme";
+import { useThemeVariant } from "@/components/prototype/PrototypeSwitcher";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -674,9 +674,11 @@ const ContextRouter = () => {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   // 사용자 설정(system/light/dark)을 boolean으로 해석.
   const isDark = useResolvedDarkMode(globalSetting.darkTheme);
+  const themeVariant = useThemeVariant(isDark);
 
   return (
-    <ThemeProvider theme={useCustomTheme(isDark)}>
+    // PROTOTYPE — 테마 시안 (개발 빌드 전용). 결정 후 useCustomTheme(isDark)로 되돌린다.
+    <ThemeProvider theme={themeVariant.theme}>
       <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >

@@ -6,10 +6,14 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import { useContext } from 'react';
+// PROTOTYPE — 디자인 시안에선 표 주변 글자 단계(13px / 700)에 맞춘다. 결정 후 정리.
+import { ProtoVariantContext } from '@/components/prototype/PrototypeSwitcher';
 export default function SocialFooter({ showExtensionInfo = true }: { showExtensionInfo?: boolean }) {
     const iconUrl = browser.runtime.getURL('/icon/icon.png');
     const name = browser.i18n.getMessage('ExtensionName') || 'Badge Collector';
     const version = browser.runtime.getManifest().version;
+    const proto = useContext(ProtoVariantContext) !== '0';
 
     return (
         <Stack
@@ -36,15 +40,15 @@ export default function SocialFooter({ showExtensionInfo = true }: { showExtensi
                     direction='row'
                     alignItems='center'
                     spacing={0.75}
-                    sx={{ flex: 1, justifyContent: 'flex-end', color: 'text.disabled' }}
+                    sx={{ flex: 1, justifyContent: 'flex-end', color: proto ? 'text.secondary' : 'text.disabled' }}
                 >
                     <Box
                         component='img'
                         src={iconUrl}
                         alt={name}
-                        sx={{ width: 16, height: 16, opacity: 0.7 }}
+                        sx={{ width: 16, height: 16, opacity: proto ? 1 : 0.7 }}
                     />
-                    <Typography variant='caption' sx={{ fontSize: '0.72rem' }}>
+                    <Typography variant='caption' sx={proto ? { fontSize: 13, fontWeight: 700 } : { fontSize: '0.72rem' }}>
                         {name} v{version}
                     </Typography>
                 </Stack>

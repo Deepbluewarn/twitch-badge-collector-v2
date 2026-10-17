@@ -7,8 +7,12 @@ import { CustomToolbarItemStyle } from "../datagrid/toolbar";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import { useCallback, useRef } from "react";
 import { useAlertContext } from "@/context/Alert";
+import Button from "@mui/material/Button";
 
-export function ImportFilter() {
+/** PROTOTYPE — asButton: 표 위 글자 링크 대신 머리의 테두리 버튼으로 (디자인 시안). */
+type IOProps = { asButton?: boolean };
+
+export function ImportFilter({ asButton }: IOProps = {}) {
     const {globalSetting} = useGlobalSettingContext();
     const { filterGroup, setFilterGroup, addCompositeFilters } = useFilterGroupContext();
     const { t } = useTranslation();
@@ -50,6 +54,14 @@ export function ImportFilter() {
         };
     };
     
+    if (asButton) return (
+        <>
+            <Button variant="outlined" component="label" htmlFor="upload-filter" startIcon={<span className="material-icons-round">file_upload</span>}>
+                {t('common.filter_import')}
+            </Button>
+            <input ref={inputRef} type='file' accept='.tbc' className='hidden' id='upload-filter' onChange={handleChange}></input>
+        </>
+    );
     return (
         <>
             <label htmlFor='upload-filter'>
@@ -63,7 +75,7 @@ export function ImportFilter() {
     )
 }
 
-export function ExportFilter() {
+export function ExportFilter({ asButton }: IOProps = {}) {
     const { globalSetting } = useGlobalSettingContext();
     const { filterGroup } = useFilterGroupContext();
     const { t } = useTranslation();
@@ -80,6 +92,11 @@ export function ExportFilter() {
         downloadFile(JSON.stringify(platformFilter), `${dateString}_${platform}_filter_backup.tbc`, 'text/json');
     }, [filterGroup, globalSetting.platform])
 
+    if (asButton) return (
+        <Button variant="outlined" onClick={clickHandler} startIcon={<span className="material-icons-round">file_download</span>}>
+            {t('common.filter_export')}
+        </Button>
+    );
     return (
         <CustomToolbarItemStyle direction='row' onClick={clickHandler}>
             <span className="material-icons-round">file_download</span>

@@ -13,11 +13,14 @@ import { SettingInterface } from '@/interfaces/setting';
 import SocialFooter from './SocialFooter';
 import FilterAddDialog from './filter/FilterAddDialog';
 import { getAdapter } from '@/platform';
+import { ImportFilter, ExportFilter } from './filter/FilterIO';
+import { ProtoVariantContext } from '@/components/prototype/PrototypeSwitcher';
 
 export default function Filter() {
     const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
     const { t } = useTranslation();
     const [addOpen, setAddOpen] = useState(false);
+    const protoVariant = React.useContext(ProtoVariantContext);
 
     const onPlatformChange = (_e: React.SyntheticEvent, platform: SettingInterface['platform']) => {
         dispatchGlobalSetting({ type: 'SET_PLATFORM', payload: platform });
@@ -91,13 +94,17 @@ export default function Filter() {
                             <Typography variant="h6">
                                 {t('setting.filter.filter_list')}
                             </Typography>
-                            <Button
-                                variant="contained"
-                                startIcon={<AddIcon />}
-                                onClick={() => setAddOpen(true)}
-                            >
-                                {t('setting.filter.filter_add')}
-                            </Button>
+                            <Stack direction="row" gap={1} alignItems="center">
+                                {/* PROTOTYPE — 시안에선 가져오기·내보내기를 표 위 글자 링크에서 여기 버튼으로 */}
+                                {protoVariant !== '0' && <><ImportFilter asButton /><ExportFilter asButton /></>}
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AddIcon />}
+                                    onClick={() => setAddOpen(true)}
+                                >
+                                    {t('setting.filter.filter_add')}
+                                </Button>
+                            </Stack>
                         </Stack>
 
                         <FilterGroupList />

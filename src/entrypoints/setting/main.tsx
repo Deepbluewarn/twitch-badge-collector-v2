@@ -14,7 +14,7 @@ import useFilterGroup from "@/hooks/useFilterGroup";
 import useAlert from "@/hooks/useAlert";
 import { GlobalSettingContext, useGlobalSettingContext } from "@/context/GlobalSetting";
 import { AlertContext } from "@/context/Alert";
-import { useCustomTheme } from "@/hooks/useCustomTheme";
+import { PROTOTYPE_ENABLED, PrototypeSwitcher, PopupPreviewPage, ProtoVariantContext, useThemeVariant } from "@/components/prototype/PrototypeSwitcher";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import AlertContainer from "@/components/AlertContainer";
 import { FilterGroupContext } from "@/context/FilterGroup";
@@ -30,6 +30,7 @@ function App() {
   const { alerts, setAlerts, addAlert } = useAlert();
   // 사용자 설정(system/light/dark)을 boolean으로 해석. 'system'이면 prefers-color-scheme 따라감.
   const isDark = useResolvedDarkMode(globalSetting.darkTheme);
+  const themeVariant = useThemeVariant(isDark);
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -44,7 +45,8 @@ function App() {
   });
 
   return (
-    <ThemeProvider theme={useCustomTheme(isDark)}>
+    // PROTOTYPE — 테마 시안 (개발 빌드 전용). 결정 후 useCustomTheme(isDark)로 되돌린다.
+    <ThemeProvider theme={themeVariant.theme}>
       <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
@@ -53,7 +55,10 @@ function App() {
             {globalStyles}
             <AlertContainer />
             <SettingTranslationNotice />
-            <Router />
+            <ProtoVariantContext.Provider value={PROTOTYPE_ENABLED ? themeVariant.variant : '0'}>
+              <Router />
+            </ProtoVariantContext.Provider>
+            {PROTOTYPE_ENABLED && <PrototypeSwitcher current={themeVariant.variant} onChange={themeVariant.setVariant} />}
           </QueryClientProvider>
         </AlertContext.Provider>
       </GlobalSettingContext.Provider>
@@ -83,6 +88,7 @@ function Router() {
         <Routes>
           <Route path="/filter" element={<Filter />} />
           <Route path="/template" element={<TemplateSetting />} />
+          {PROTOTYPE_ENABLED && <Route path="/popup-preview" element={<PopupPreviewPage />} />}
           <Route path="*" element={<Navigate to="/filter" replace />} />
         </Routes>
       </MemoryRouter>

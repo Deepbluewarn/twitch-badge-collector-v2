@@ -12,6 +12,29 @@ import BadgeList from './BadgeList';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
+// PROTOTYPE — 디자인 시안(0이 아닌 쪽)에선 채널·메모 대화상자를 다시 그린다. 결정 후 정리.
+import { ProtoVariantContext } from '@/components/prototype/PrototypeSwitcher';
+
+/** 채널 주소를 붙여 넣으면 ID만 뽑는다. 치지직: 32자리 hex, 트위치: 로그인 아이디. 주소가 아니면 그대로. */
+function channelIdFromInput(raw: string, platform: string): string {
+    const v = raw.trim();
+    if (platform === 'chzzk') {
+        const m = /chzzk\.naver\.com\/(?:live\/)?([0-9a-f]{32})/i.exec(v);
+        return m ? m[1] : v;
+    }
+    const m = /twitch\.tv\/(?:popout\/)?([A-Za-z0-9_]+)/i.exec(v);
+    return m ? m[1].toLowerCase() : v;
+}
+
+/** 칸 위 이름표 (칸 안에 떠 있는 라벨 대신). 설명 문구는 달지 않는다. */
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+        <Stack spacing={0.5}>
+            <Typography component="label" sx={{ fontSize: 13, fontWeight: 800 }}>{label}</Typography>
+            {children}
+        </Stack>
+    );
+}
 
 // 모달 타입 정의
 export type DialogType = 'filter' | 'channel' | 'note' | null;
@@ -43,6 +66,7 @@ export default function FilterDialog(props: FilterDialogProps) {
     const { globalSetting } = useGlobalSettingContext();
     const adapter = getAdapter(globalSetting.platform);
     const { t } = useTranslation();
+    const proto = React.useContext(ProtoVariantContext) !== '0';
 
     // 새 필터 추가를 위한 기본 필터 객체 생성
     const _defaultAtomicFilter = defaultAtomicFilter();
@@ -263,6 +287,26 @@ export default function FilterDialog(props: FilterDialogProps) {
     // 채널 수정 폼
     const renderChannelContent = () => {
         if (!filterGroupList) return;
+        if (proto) return (
+            <Stack spacing={2.5}>
+                <Field label={t('common.channel_id')}>
+                    <CustomTextField
+                        autoFocus
+                        placeholder={globalSetting.platform === 'chzzk' ? 'https://chzzk.naver.com/…' : 'https://twitch.tv/…'}
+                        value={filterGroupList.filterChannelId || ''}
+                        onChange={e => handleListObjectChange({ filterChannelId: channelIdFromInput(e.target.value, globalSetting.platform) })}
+                        fullWidth
+                    />
+                </Field>
+                <Field label={t('common.channel_name')}>
+                    <CustomTextField
+                        value={filterGroupList.filterChannelName || ''}
+                        onChange={e => handleListObjectChange({ filterChannelName: e.target.value })}
+                        fullWidth
+                    />
+                </Field>
+            </Stack>
+        );
 
         return (
             <Stack spacing={2}>
@@ -289,6 +333,18 @@ export default function FilterDialog(props: FilterDialogProps) {
     // 비고 수정 폼
     const renderNoteContent = () => {
         if (!filterGroupList) return;
+        if (proto) return (
+            <Field label={t('common.note')}>
+                <CustomTextField
+                    autoFocus
+                    value={filterGroupList.filterNote || ''}
+                    onChange={e => handleListObjectChange({ filterNote: e.target.value })}
+                    fullWidth
+                    multiline
+                    rows={3}
+                />
+            </Field>
+        );
 
         return (
             <CustomTextField
@@ -309,23 +365,35 @@ export default function FilterDialog(props: FilterDialogProps) {
             <Dialog
                 open={open}
                 onClose={onClose}
-                fullWidth={false}
-                maxWidth="lg"
+                // 시안: 채널·메모는 좁고 고정된 폭 (필터 편집은 배지 목록이 있어 그대로 넓게)
+                fullWidth={proto && type !== 'filter'}
+                maxWidth={proto && type !== 'filter' ? 'xs' : 'lg'}
             >
-                <DialogTitle>{getDialogTitle()}</DialogTitle>
+                <DialogTitle sx={proto ? { fontWeight: 900, pb: 1 } : undefined}>{getDialogTitle()}</DialogTitle>
                 <DialogContent>
                     <Box sx={{ p: 1 }}>
                         {renderContent()}
                     </Box>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={onClose}>{t('common.cancel')}</Button>
-                    <Button onClick={() => handleSave()} color="primary">
-                        {
-                            mode === 'edit' ? t('common.save') : t('common.add')
-                        }
-                    </Button>
-                </DialogActions>
+                {proto ? (
+                    <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+                        <Button variant="outlined" onClick={onClose}>{t('common.cancel')}</Button>
+                        <Button variant="contained" onClick={() => handleSave()}
+                            // 채널은 ID가 있어야 동작한다
+                            disabled={type === 'channel' && !filterGroupList?.filterChannelId?.trim()}>
+                            {mode === 'edit' ? t('common.save') : t('common.add')}
+                        </Button>
+                    </DialogActions>
+                ) : (
+                    <DialogActions>
+                        <Button onClick={onClose}>{t('common.cancel')}</Button>
+                        <Button onClick={() => handleSave()} color="primary">
+                            {
+                                mode === 'edit' ? t('common.save') : t('common.add')
+                            }
+                        </Button>
+                    </DialogActions>
+                )}
             </Dialog>
         </>
     );

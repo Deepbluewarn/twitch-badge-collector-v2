@@ -23,6 +23,9 @@ import FilterDialog, { DialogMode, DialogType } from "./FilterDialog";
 import RoundAddButton from '../common/RoundAddButton';
 import { CustomDataGrid } from "../datagrid/customDataGrid";
 import { getAdapter, getBadgeSrcSet } from '@/platform';
+// PROTOTYPE — 시안 A에선 DataGrid 대신 직접 그린 목록 (결정 후 정리).
+import { ProtoVariantContext } from '@/components/prototype/PrototypeSwitcher';
+import { PlainFilterTable } from '@/components/prototype/PlainFilterTable';
 
 const ChipListStyle = styled(Stack)({
     display: 'flex',
@@ -302,9 +305,44 @@ export function FilterGroupList() {
         );
     }
 
+    const protoVariant = React.useContext(ProtoVariantContext);
+
     return (
         <>
-            <CustomDataGrid
+            {protoVariant !== '0' ? (
+                <PlainFilterTable
+                    variant={protoVariant}
+                    adapter={adapter}
+                    actions={{
+                        editAtom: (row, atomId) => openFilterDialog({ type: 'filter', filterList: row, selectedFilterId: atomId, mode: 'edit' }),
+                        addAtom: (row) => openFilterDialog({ type: 'filter', filterList: row, mode: 'add' }),
+                        removeAtom: (row, atomId) => removeSubFilter(row.id, atomId),
+                        editChannel: (row) => openFilterDialog({ type: 'channel', filterList: row, mode: row.filterChannelName ? 'edit' : 'add' }),
+                        removeChannel: (row) => { removeFilterField(row.id, 'filterChannelId'); removeFilterField(row.id, 'filterChannelName'); },
+                        editNote: (row) => openFilterDialog({ type: 'note', filterList: row, mode: row.filterNote ? 'edit' : 'add' }),
+                        removeNote: (row) => removeFilterField(row.id, 'filterNote'),
+                        rotateType: (row) => onFilterTypeChipClick({ field: 'filterType', value: row.filterType, id: row.id } as any, setFilterGroup),
+                        setColor: (row, c) => upsertCompositeFilter({ ...row, markerColor: c }),
+                    }}
+                    rows={platformFilters}
+                    columns={getColumns()}
+                    toolbar={(selected) => (
+                        <>
+                            {/* 가져오기·내보내기는 시안에서 머리(새 필터 추가 옆)로 옮겼다 — Filter.tsx */}
+                            <Box component="button" type="button" onClick={() => deleteSelectedFilter(setFilterGroup, selected)}
+                                sx={{
+                                    // 사이트 버튼 모양(2px 테두리·8px 모서리)에 위험 동작이라 빨강. 올리면 빨간 면.
+                                    height: 30, px: 1.5, borderRadius: '8px', border: 2, borderColor: 'error.main', bgcolor: 'transparent',
+                                    cursor: 'pointer', font: 'inherit', fontSize: 13, fontWeight: 700, color: 'error.main',
+                                    '&:hover': { bgcolor: 'error.main', color: '#fff' },
+                                }}>
+                                {t('common.delete_selected')}
+                            </Box>
+                        </>
+                    )}
+                    emptyText={t('common.filter')}
+                />
+            ) : <CustomDataGrid
                 rows={platformFilters}
                 columns={getColumns()}
                 slots={{ toolbar: CustomToolbar }}
@@ -334,7 +372,7 @@ export function FilterGroupList() {
                     setShowDeleteButton(actualSelectedCount > 0);
                 }}
                 checkboxSelection
-            />
+            />}
             <FilterDialog
                 open={dialogOpen}
                 onClose={() => setDialogOpen(false)}
