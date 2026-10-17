@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import type { PlatformAdapter } from '@/platform';
 import type { AtomicFilterElement, CompositeFilterElement, FilterType } from '@/interfaces/filter';
@@ -190,9 +191,20 @@ function Meta({ label, value, onEdit, onRemove }: { label: string; value?: strin
  */
 function MarkerColor({ row, onChange }: { row: Row; onChange: (c: string) => void }) {
     const { t } = useTranslation();
-    const [open, setOpen] = useState(false);
+    // 열려 있으면 팔레트 위치(화면 기준). 표가 안에서 스크롤해서 팔레트는 body에 띄운다.
+    const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+    const open = pos !== null;
     const slot = useRef<HTMLDivElement>(null);
+    const panel = useRef<HTMLDivElement>(null);
     const picker = useRef<HTMLInputElement>(null);
+    const setOpen = (v: boolean) => setPos(v ? place() : null);
+    /** 색 칸 아래에, 화면 아래가 모자라면 위에. */
+    const place = () => {
+        const r = slot.current!.getBoundingClientRect();
+        const PANEL_H = 140;
+        const below = r.bottom + 8;
+        return { top: below + PANEL_H > window.innerHeight ? r.top - 8 - PANEL_H : below, left: Math.max(8, r.left - 6) };
+    };
     const color = row.markerColor || DEFAULT_MARKER_COLOR;
 
     useEffect(() => {
@@ -205,21 +217,31 @@ function MarkerColor({ row, onChange }: { row: Row; onChange: (c: string) => voi
 
     useEffect(() => {
         if (!open) return;
-        const onDown = (e: MouseEvent) => { if (!slot.current?.contains(e.target as Node)) setOpen(false); };
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+        const onDown = (e: MouseEvent) => {
+            const t = e.target as Node;
+            if (!slot.current?.contains(t) && !panel.current?.contains(t)) setPos(null);
+        };
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPos(null); };
+        // 표나 페이지가 스크롤되면 위치가 어긋나므로 닫는다.
+        const onScroll = (e: Event) => { if (!panel.current?.contains(e.target as Node)) setPos(null); };
         document.addEventListener('mousedown', onDown);
         document.addEventListener('keydown', onKey);
-        return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+        window.addEventListener('scroll', onScroll, true);
+        return () => {
+            document.removeEventListener('mousedown', onDown);
+            document.removeEventListener('keydown', onKey);
+            window.removeEventListener('scroll', onScroll, true);
+        };
     }, [open]);
 
     if (row.filterType !== 'include') return <div className={s.swatchSlot} />;
     const pick = (c: string) => { onChange(c); setOpen(false); };
     return (
         <div className={s.swatchSlot} ref={slot}>
-            <button type="button" className={s.swatch} style={{ background: color }} onClick={() => setOpen(o => !o)}
+            <button type="button" className={s.swatch} style={{ background: color }} onClick={() => setOpen(!open)}
                 aria-label={t('filter_list.marker_color')} aria-expanded={open} />
-            {open && (
-                <div className={s.palette} role="dialog" aria-label={t('filter_list.marker_color')}>
+            {pos && createPortal(
+                <div ref={panel} className={`${s.root} ${s.palette}`} style={{ top: pos.top, left: pos.left }} role="dialog" aria-label={t('filter_list.marker_color')}>
                     <span className={s.paletteTitle}>{t('filter_list.marker_color')}</span>
                     <div className={s.paletteGrid}>
                         {SWATCHES.map(c => (
@@ -229,7 +251,8 @@ function MarkerColor({ row, onChange }: { row: Row; onChange: (c: string) => voi
                         <button type="button" className={`${s.swatch} ${s.custom}`} onClick={() => picker.current?.click()} aria-label={t('filter_list.custom_color')} />
                     </div>
                     <input ref={picker} type="color" defaultValue={color} tabIndex={-1} style={{ position: 'absolute', visibility: 'hidden', width: 0, height: 0 }} />
-                </div>
+                </div>,
+                document.body,
             )}
         </div>
     );

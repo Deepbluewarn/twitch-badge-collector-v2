@@ -110,6 +110,15 @@
 /* ── 표 ─────────────────────────────── */
 .table {
     border-top: 2px solid var(--ui-ink);
+    border-bottom: 1px solid var(--ui-hair);
+    /* 높이 고정 — 10줄(줄 44 + 선 1). 페이지·필터 수가 바뀌어도 페이지가 덜컹거리지 않고,
+       페이지당 20개 이상이면 안에서 스크롤한다. */
+    height: calc(45px * 10);
+    overflow-y: auto;
+}
+/* 마지막 줄의 아래 선은 표 아래 선과 겹치지 않게 */
+.table > .row:last-child {
+    border-bottom-color: transparent;
 }
 .row {
     display: flex;
@@ -135,6 +144,9 @@
     opacity: 1;
 }
 .empty {
+    display: grid;
+    place-items: center;
+    height: 100%;
     padding: 32px 0;
     text-align: center;
     font-size: 14px;
@@ -280,10 +292,8 @@
     outline: none;
 }
 .palette {
-    position: absolute;
-    top: 28px;
-    left: -6px;
-    z-index: 10;
+    position: fixed;
+    z-index: 1200;
     padding: 12px;
     border: 2px solid var(--ui-line);
     border-radius: 10px;
