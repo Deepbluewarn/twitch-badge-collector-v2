@@ -1,0 +1,11 @@
+/* 설정 페이지(필터·템플릿) 바탕. 공통 바탕은 src/ui/base.css. */
+body {
+    height: 100vh;
+    overflow: hidden;
+    overscroll-behavior: contain;
+}
+#root {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}

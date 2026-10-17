@@ -1,0 +1,115 @@
+.meta {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ui-muted);
+}
+
+.scroller {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    position: relative;
+}
+
+.spinner {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+}
+
+.empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ui-muted);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+    gap: 6px;
+}
+
+/* 대화상자 안 Card는 옅은 면이 되므로(.dialog .card) 선택 표시는 겹친 선택자로 이긴다 */
+.tile.tile {
+    position: relative;
+    border-radius: 10px;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+}
+.tile.tile:hover {
+    outline-color: var(--ui-hair);
+}
+.tile.tile.selected {
+    background: var(--ui-soft);
+    outline-color: var(--ui-ink);
+}
+
+.tileBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    padding: 6px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: inherit;
+}
+.tileBtn:focus-visible {
+    outline: 2px solid var(--ui-ink);
+    outline-offset: -2px;
+}
+
+.img {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+}
+.img img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.name,
+.channel {
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+.name {
+    font-size: 12px;
+    font-weight: 800;
+}
+.channel {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ui-muted);
+}
+
+.check {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    color: var(--ui-ink);
+    pointer-events: none;
+}
+
+.chipRow {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 6px;
+}

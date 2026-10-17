@@ -102,9 +102,9 @@ export function Switch({ checked, onChange, label, disabled, className }: {
 }
 
 // ── 입력 ───────────────────────────
-export function Field({ label, children, className, htmlFor }: { label: React.ReactNode; children: React.ReactNode; className?: string; htmlFor?: string }) {
+export function Field({ label, children, className, htmlFor, style }: { label: React.ReactNode; children: React.ReactNode; className?: string; htmlFor?: string; style?: React.CSSProperties }) {
     return (
-        <div className={cx(s.field, className)}>
+        <div className={cx(s.field, className)} style={style}>
             <label className={s.fieldLabel} htmlFor={htmlFor}>{label}</label>
             {children}
         </div>
@@ -131,13 +131,13 @@ export function TextArea({ className, ...rest }: React.TextareaHTMLAttributes<HT
 
 export function Select<T extends string>({ value, options, onChange, size = 'md', className, ...rest }: {
     value: T;
-    options: { value: T; label: string }[];
+    options: { value: T; label: string; disabled?: boolean }[];
     onChange: (v: T) => void;
     size?: 'md' | 'sm';
 } & Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'value' | 'onChange' | 'size'>) {
     return (
         <select className={cx(s.select, size === 'sm' && s.sm, className)} value={value} onChange={e => onChange(e.target.value as T)} {...rest}>
-            {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            {options.map(o => <option key={o.value} value={o.value} disabled={o.disabled}>{o.label}</option>)}
         </select>
     );
 }
@@ -163,7 +163,10 @@ export function Tabs<T extends string>({ value, items, onChange, className }: {
 }
 
 // ── 대화상자 ───────────────────────────
-/** 바깥(어두운 막)을 누르거나 Esc로 닫힌다. 열릴 때 안의 첫 입력에 초점. */
+/** 열린 대화상자들 (겹쳐 열리면 맨 위 것만 Esc를 받는다). */
+const openDialogs: symbol[] = [];
+
+/** 바깥(어두운 막)을 누르거나 Esc로 닫힌다. 열릴 때 한 번 안의 첫 입력에 초점. */
 export function Dialog({ open, onClose, title, actions, headerExtra, width = 'sm', children, bodyClassName }: {
     open: boolean;
     onClose: () => void;
@@ -177,17 +180,28 @@ export function Dialog({ open, onClose, title, actions, headerExtra, width = 'sm
 }) {
     const titleId = useId();
     const box = useRef<HTMLDivElement>(null);
+    // onClose가 렌더마다 새 함수여도 리스너를 다시 붙이거나 초점을 다시 옮기지 않게 ref로 든다.
+    const closeRef = useRef(onClose);
+    closeRef.current = onClose;
     useEffect(() => {
         if (!open) return;
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        const me = Symbol('dialog');
+        openDialogs.push(me);
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape' || openDialogs[openDialogs.length - 1] !== me) return;
+            e.stopPropagation();
+            closeRef.current();
+        };
         document.addEventListener('keydown', onKey);
-        const first = box.current?.querySelector<HTMLElement>('[autofocus], input, textarea, select');
-        first?.focus();
-        return () => document.removeEventListener('keydown', onKey);
-    }, [open, onClose]);
+        box.current?.querySelector<HTMLElement>('[autofocus], input, textarea, select')?.focus();
+        return () => {
+            document.removeEventListener('keydown', onKey);
+            openDialogs.splice(openDialogs.indexOf(me), 1);
+        };
+    }, [open]);
     if (!open) return null;
     return createPortal(
-        <div className={s.backdrop} onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+        <div className={s.backdrop} onMouseDown={e => { if (e.target === e.currentTarget) closeRef.current(); }}>
             <div ref={box} className={cx(s.dialog, s[width])} role="dialog" aria-modal="true" aria-labelledby={titleId}>
                 <div className={s.dialogHead}>
                     <h2 id={titleId} className={s.dialogTitle}>{title}</h2>

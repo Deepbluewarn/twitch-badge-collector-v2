@@ -1,0 +1,215 @@
+/* 새 필터 추가 대화상자 (FilterAddDialog · FilterInputForm · FilterInputFormList · ChannelIdGuideDialog) */
+
+/* 대화상자 본문 — 안쪽 칸이 따로 스크롤하려면 높이가 정해져 있어야 한다.
+   클래스를 두 번 써서 키트 .dialogBody보다 앞서게 한다. */
+.body.body {
+    display: flex;
+    flex-direction: column;
+    height: 70vh;
+    padding: 0;
+    overflow: hidden;
+    border-top: 1px solid var(--ui-hair);
+    border-bottom: 1px solid var(--ui-hair);
+}
+
+.split {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.left {
+    flex: 0 0 560px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    padding: 16px;
+    overflow: hidden;
+    border-right: 1px solid var(--ui-hair);
+}
+
+.right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    padding: 16px;
+    overflow: auto;
+}
+
+@media (max-width: 899px) {
+    .split {
+        flex-direction: column;
+    }
+    .left {
+        flex: 0 0 auto;
+        max-height: 50%;
+        border-right: 0;
+        border-bottom: 1px solid var(--ui-hair);
+    }
+}
+
+.hintRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+.hintText {
+    flex: 1;
+    font-size: 13px;
+    color: var(--ui-muted);
+}
+
+.sectionTitle {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+/* ── 폼 카드 ── */
+.simpleCard {
+    flex-shrink: 0;
+}
+.advancedCard {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.cardContent {
+    padding: 16px;
+}
+.advancedCard .cardContent {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+.cardActions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+}
+
+.channelLabel {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+.channelInputs {
+    display: flex;
+    gap: 8px;
+}
+.channelInputs > * {
+    flex: 1;
+}
+@media (max-width: 599px) {
+    .channelInputs {
+        flex-direction: column;
+    }
+}
+
+.badgeBox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 64px;
+    height: 40px;
+    border: 2px solid var(--ui-line);
+    border-radius: 8px;
+    background: var(--ui-paper);
+}
+
+/* 고급 모드 빈 상태 */
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 8rem;
+    text-align: center;
+}
+.emptyIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--ui-off-bg);
+    color: var(--ui-muted);
+}
+.emptyTitle {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ui-muted);
+}
+.emptyHint {
+    max-width: 280px;
+    margin: 0;
+    font-size: 12px;
+    color: var(--ui-muted);
+}
+
+/* 조건(포함/제외/꺼짐) — 고른 칸을 상태 색으로 */
+.typeSeg button:nth-child(1)[aria-pressed='true'] {
+    background: var(--ui-ok-bg);
+    color: var(--ui-ok-fg);
+}
+.typeSeg button:nth-child(2)[aria-pressed='true'] {
+    background: var(--ui-bad-bg);
+    color: var(--ui-bad-fg);
+}
+.typeSeg button:nth-child(3)[aria-pressed='true'] {
+    background: var(--ui-off-bg);
+    color: var(--ui-off-fg);
+}
+
+/* 채널 ID 안내 */
+.guide {
+    padding: 16px;
+}
+.guideName {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 800;
+}
+.guideDesc {
+    margin: 0 0 8px;
+    font-size: 14px;
+}
+.guideExample {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--ui-muted);
+}
+.guideExample code {
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--ui-off-bg);
+    font-family: monospace;
+    font-size: 13px;
+}
+.guideExample b {
+    color: var(--ui-ink);
+}
+
+.grow {
+    flex: 1;
+}

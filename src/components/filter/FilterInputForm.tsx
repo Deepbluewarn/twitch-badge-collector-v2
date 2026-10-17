@@ -6,25 +6,7 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import Divider from "@mui/material/Divider";
-import { SelectChangeEvent } from '@mui/material/Select';
-import { TextFieldProps } from "@mui/material/TextField";
-import Stack from "@mui/material/Stack";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Paper from '@mui/material/Paper';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import CheckIcon from '@mui/icons-material/Check';
-import BlockIcon from '@mui/icons-material/Block';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { Button, Card, Divider, Field, IconButton, TextInput } from '@/ui';
 import {
     AtomicFilterElement,
     FilterCategory,
@@ -32,13 +14,13 @@ import {
 } from "../../interfaces/filter";
 import { useFilterGroupContext } from '../../context/FilterGroup';
 import { nanoid } from 'nanoid';
-import { FilterSelectorType, FilterCategorySelector } from './FilterComponents';
+import { FilterSelectorType, FilterCategorySelector, FilterTypeSegmented } from './FilterComponents';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
-import CustomTextField from '@/components/TextField/CustomTextField';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
 import ChannelIdGuideDialog from './dialog/ChannelIdGuideDialog';
 import { useAlertContext } from '@/context/Alert';
+import s from './FilterAddDialog.module.css';
 
 export default function FilterInputForm(
     props: {
@@ -53,16 +35,15 @@ export default function FilterInputForm(
     const { addAlert } = useAlertContext();
     const [filterGroupNote, setFilterGroupNote] = useState('');
     const [guideOpen, setGuideOpen] = useState(false);
-    const filterContentValue = useRef<TextFieldProps>(null);
-    const channelValue = useRef<TextFieldProps>(null);
-    const channelName = useRef<TextFieldProps>(null);
+    const filterContentValue = useRef<HTMLInputElement>(null);
+    const channelValue = useRef<HTMLInputElement>(null);
+    const channelName = useRef<HTMLInputElement>(null);
 
     const onFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFilterGroupNote(event.target.value);
     }
 
-    const onConditionChange = (_e: React.MouseEvent<HTMLElement>, value: FilterType | null) => {
-        if (!value) return;
+    const onConditionChange = (value: FilterType) => {
         props.setFilterInput(l => l ? { ...l, type: value } : l);
     }
 
@@ -72,13 +53,13 @@ export default function FilterInputForm(
         if (channelValue.current === null || channelName.current === null) return;
 
         const contentValueRef = filterContentValue.current;
-        const _contentValue = contentValueRef?.value as string;
+        const _contentValue = contentValueRef.value;
 
         const channelValueRef = channelValue.current;
-        const _channelValue = channelValueRef?.value as string;
+        const _channelValue = channelValueRef.value;
 
         const channelNameRef = channelName.current;
-        const _channelName = channelNameRef?.value as string;
+        const _channelName = channelNameRef.value;
 
         if (props.filterInput.category === 'badge') {
             props.filterInput.badgeName = _contentValue;
@@ -111,17 +92,8 @@ export default function FilterInputForm(
     }, [props.filterInput, filterGroupNote, props.onAddSuccess])
 
     return (
-        <Card
-            variant="outlined"
-            sx={{
-                bgcolor: 'background.default',
-                // simple 모드: 짧은 content. column 내 vertical center (my:auto) +
-                // shrink 차단(overflow:hidden로 잘리는 거 방지).
-                my: 'auto',
-                flexShrink: 0,
-            }}
-        >
-            <CardContent>
+        <Card className={s.simpleCard}>
+            <div className={s.cardContent}>
                 <BasicFilterInputForm
                     filterInput={props.filterInput}
                     setFilterInput={props.setFilterInput}
@@ -129,100 +101,59 @@ export default function FilterInputForm(
                     channelValue={channelValue}
                     channelName={channelName}
                 />
-            </CardContent>
+            </div>
 
             <Divider />
 
-            <CardActions sx={{ p: 2, display: 'block' }}>
-                <Stack spacing={1.75}>
-                    {/* 조건 (filterType) — segmented toggle */}
-                    <Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
-                            {t('common.condition')}
-                        </Typography>
-                        <ToggleButtonGroup
-                            value={props.filterInput?.type ?? 'include'}
-                            exclusive
-                            size="small"
-                            onChange={onConditionChange}
-                            sx={{
-                                '& .MuiToggleButton-root': {
-                                    px: 2,
-                                    textTransform: 'none',
-                                    gap: 0.5,
-                                },
-                                '& .MuiToggleButton-root.Mui-selected[value="include"]': {
-                                    color: 'success.main',
-                                    bgcolor: (theme) => theme.palette.success.main + '20',
-                                },
-                                '& .MuiToggleButton-root.Mui-selected[value="exclude"]': {
-                                    color: 'error.main',
-                                    bgcolor: (theme) => theme.palette.error.main + '20',
-                                },
-                            }}
-                        >
-                            <ToggleButton value="include">
-                                <CheckIcon sx={{ fontSize: 18 }} />
-                                {t('filter.category.include')}
-                            </ToggleButton>
-                            <ToggleButton value="exclude">
-                                <BlockIcon sx={{ fontSize: 18 }} />
-                                {t('filter.category.exclude')}
-                            </ToggleButton>
-                            <ToggleButton value="sleep">
-                                <VisibilityOffIcon sx={{ fontSize: 18 }} />
-                                {t('filter.category.sleep')}
-                            </ToggleButton>
-                        </ToggleButtonGroup>
-                    </Box>
+            <div className={s.cardActions}>
+                {/* 조건 (filterType) — segmented toggle */}
+                <FilterTypeSegmented
+                    value={props.filterInput?.type ?? 'include'}
+                    onChange={onConditionChange}
+                />
 
-                    {/* 메모 (선택) */}
-                    <CustomTextField
+                {/* 메모 (선택) */}
+                <Field label={t('common.note_optional')}>
+                    <TextInput
                         value={filterGroupNote}
-                        label={t('common.note_optional')}
                         onChange={onFilterNoteChanged}
-                        fullWidth
                     />
+                </Field>
 
-                    {/* 채널 섹션 — header에 help icon */}
-                    <Box>
-                        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.75 }}>
-                            <Typography variant="caption" color="text.secondary">
-                                {t('common.channel_only')}
-                            </Typography>
-                            <IconButton
-                                size="small"
-                                onClick={() => setGuideOpen(true)}
-                                aria-label={t('channel_guide.title')}
-                                sx={{ p: 0.25 }}
-                            >
-                                <HelpOutlineIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
-                        </Stack>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
-                            <CustomTextField
-                                label={t('common.channel_id')}
+                {/* 채널 섹션 — header에 help icon */}
+                <div>
+                    <div className={s.channelLabel}>
+                        <span>{t('common.channel_only')}</span>
+                        <IconButton
+                            icon="help_outline"
+                            size="sm"
+                            onClick={() => setGuideOpen(true)}
+                            label={t('channel_guide.title')}
+                        />
+                    </div>
+                    <div className={s.channelInputs}>
+                        <Field label={t('common.channel_id')}>
+                            <TextInput
                                 defaultValue={props.filterInput?.filterChannelId}
-                                inputRef={channelValue}
-                                sx={{ flex: 1 }}
+                                ref={channelValue}
                             />
-                            <CustomTextField
-                                label={t('common.channel_name')}
+                        </Field>
+                        <Field label={t('common.channel_name')}>
+                            <TextInput
                                 defaultValue={props.filterInput?.filterChannelName}
-                                inputRef={channelName}
-                                sx={{ flex: 1 }}
+                                ref={channelName}
                             />
-                        </Stack>
-                    </Box>
+                        </Field>
+                    </div>
+                </div>
 
-                    {/* primary CTA */}
-                    <Stack direction="row" justifyContent="flex-end">
-                        <Button onClick={addFilter} variant="contained">
-                            {t('common.add_filter')}
-                        </Button>
-                    </Stack>
-                </Stack>
-            </CardActions>
+                {/* primary CTA */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button onClick={addFilter} variant="primary">
+                        {t('common.add_filter')}
+                    </Button>
+                </div>
+            </div>
 
             <ChannelIdGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
         </Card>
@@ -233,17 +164,16 @@ function BasicFilterInputForm(
     props: {
         filterInput: AtomicFilterElement | undefined,
         setFilterInput: React.Dispatch<React.SetStateAction<AtomicFilterElement | undefined>>,
-        filterContentValue: React.MutableRefObject<TextFieldProps | null>,
-        channelValue: React.MutableRefObject<TextFieldProps | null>,
-        channelName: React.MutableRefObject<TextFieldProps | null>,
+        filterContentValue: React.RefObject<HTMLInputElement | null>,
+        channelValue: React.RefObject<HTMLInputElement | null>,
+        channelName: React.RefObject<HTMLInputElement | null>,
     }
 ) {
     const { globalSetting } = useGlobalSettingContext();
     const adapter = getAdapter(globalSetting.platform);
     const { t } = useTranslation();
 
-    const selectorChanged = (event: SelectChangeEvent<FilterCategory | FilterType>, selectorType: FilterSelectorType) => {
-        const newValue = event.target.value;
+    const selectorChanged = (newValue: FilterCategory | FilterType, selectorType: FilterSelectorType) => {
 
         props.setFilterInput(l => {
             if (!l) return l;
@@ -272,7 +202,7 @@ function BasicFilterInputForm(
     useEffect(() => {
         if (!props.filterInput) return;
         if (props.filterInput.category === 'badge') {
-            props.filterContentValue.current!.value = props.filterInput.badgeName;
+            props.filterContentValue.current!.value = props.filterInput.badgeName ?? '';
         }
     }, [props.filterInput]);
 
@@ -281,57 +211,45 @@ function BasicFilterInputForm(
     }, [globalSetting.platform])
 
     return (
-        <Stack direction="row" spacing={1} alignItems="center">
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
             {
                 props.filterInput && props.filterInput.category === 'badge' ? (
                     <>
-                        <Paper
-                            variant="outlined"
-                            sx={{
-                                minWidth: 64,
-                                height: 40,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                flexShrink: 0,
-                            }}
-                        >
+                        <div className={s.badgeBox}>
                             <img
                                 style={{ width: '20px', height: '20px' }}
                                 src={adapter.getBadgeImageUrl(props.filterInput.value, '1x')}
                                 srcSet={getBadgeSrcSet(adapter, props.filterInput.value)}
                             />
-                        </Paper>
-                        <CustomTextField
-                            label={t('common.badge_name')}
-                            defaultValue={props.filterInput.badgeName}
-                            inputRef={props.filterContentValue}
-                            sx={{ flex: 1 }}
-                        />
+                        </div>
+                        <Field label={t('common.badge_name')} className={s.grow}>
+                            <TextInput
+                                defaultValue={props.filterInput.badgeName}
+                                ref={props.filterContentValue}
+                            />
+                        </Field>
                     </>
                 ) : (
                     <>
                         <FilterCategorySelector
-                            value={props.filterInput?.category}
-                            onChange={(e) => selectorChanged(e, 'category')}
+                            value={props.filterInput?.category ?? 'name'}
+                            onChange={(v) => selectorChanged(v, 'category')}
                         />
-                        <CustomTextField
-                            label={t('common.value')}
-                            defaultValue={props.filterInput?.value}
-                            inputRef={props.filterContentValue}
-                            sx={{ flex: 1 }}
-                        />
+                        <Field label={t('common.value')} className={s.grow}>
+                            <TextInput
+                                defaultValue={props.filterInput?.value}
+                                ref={props.filterContentValue}
+                            />
+                        </Field>
                     </>
                 )
             }
             <IconButton
+                icon="restart_alt"
                 onClick={resetFilterInput}
-                aria-label={t('common.reset')}
-                size="small"
-                sx={{ flexShrink: 0 }}
-            >
-                <RestartAltIcon />
-            </IconButton>
-        </Stack>
+                label={t('common.reset')}
+                style={{ flexShrink: 0 }}
+            />
+        </div>
     )
 }

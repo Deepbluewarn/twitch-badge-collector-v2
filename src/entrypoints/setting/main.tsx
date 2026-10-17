@@ -6,15 +6,13 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { ThemeProvider } from "@mui/material/styles";
 import { getQueryParams } from "@/utils/utils-common";
-import globalStyles from "@/style/global";
+import "./setting.css";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
 import useFilterGroup from "@/hooks/useFilterGroup";
 import useAlert from "@/hooks/useAlert";
 import { GlobalSettingContext, useGlobalSettingContext } from "@/context/GlobalSetting";
 import { AlertContext } from "@/context/Alert";
-import { useCustomTheme } from "@/hooks/useCustomTheme";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import AlertContainer from "@/components/AlertContainer";
 import { FilterGroupContext } from "@/context/FilterGroup";
@@ -46,20 +44,17 @@ function App() {
   });
 
   return (
-    <ThemeProvider theme={useCustomTheme(isDark)}>
       <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
         <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
           <QueryClientProvider client={queryClient}>
-            {globalStyles}
             <AlertContainer />
             <SettingTranslationNotice />
             <Router />
           </QueryClientProvider>
         </AlertContext.Provider>
       </GlobalSettingContext.Provider>
-    </ThemeProvider>
   );
 }
 

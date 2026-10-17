@@ -1,18 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Stack from '@mui/material/Stack';
-import Card from '@mui/material/Card';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Switch from '@mui/material/Switch';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Button from '@mui/material/Button';
-import Alert from '@mui/material/Alert';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { useTheme } from '@mui/material/styles';
+import { Button, Card, Notice, Segmented, Switch, Tabs } from '@/ui';
 import CodeMirror, { EditorView, type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { html } from '@codemirror/lang-html';
 import { linter, type Diagnostic } from '@codemirror/lint';
@@ -26,6 +14,20 @@ import { TEMPLATE_FIELDS, TEMPLATE_SAMPLES } from '@/render/template-samples';
 import { getPlatformConfig } from '@/platform/host-selectors';
 import SocialFooter from './SocialFooter';
 import i18n from '@/translate/i18n';
+import s from './TemplateSetting.module.css';
+
+/** 페이지 테마(<html data-theme>)가 어두운지. 바뀌면 따라간다. */
+function useDocumentDark(): boolean {
+    const read = () => document.documentElement.dataset.theme === 'dark';
+    const [dark, setDark] = useState(read);
+    useEffect(() => {
+        const obs = new MutationObserver(() => setDark(read()));
+        obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        setDark(read());
+        return () => obs.disconnect();
+    }, []);
+    return dark;
+}
 
 /** 오류 위치(index)를 사람이 읽는 줄·칸으로. */
 function lineCol(src: string, index: number) {
@@ -93,20 +95,10 @@ function Preview({ kind, template, dark }: { kind: ChzzkChatKind; template: stri
     }, [kind, template, verifiedIconUrl, t]);
 
     return (
-        <Box
+        <div
             ref={ref}
             // 렌더러 CSS가 쓰는 클래스: theme_dark(닉네임 색), tbcv2_chatTime_on(시각 표시)
-            className={`tbcv2_chatTime_on ${dark ? 'theme_dark' : ''}`}
-            sx={{
-                p: 1.5,
-                borderRadius: 1,
-                bgcolor: dark ? '#141517' : '#ffffff',
-                color: dark ? '#e6e6e6' : '#141517',
-                border: 1,
-                borderColor: 'divider',
-                minHeight: 160,
-                '& .tbc-template-preview-caption': { fontSize: 11, opacity: 0.5, mt: 1, mb: 0.25, px: '6px' },
-            }}
+            className={`tbcv2_chatTime_on ${dark ? 'theme_dark' : ''} ${s.preview} ${dark ? s.previewDark : s.previewLight}`}
         />
     );
 }
@@ -120,10 +112,8 @@ function LookRow<T extends string>({ label, value, options, onChange }: {
 }) {
     return (
         <>
-            <Typography variant="body2" color="text.secondary">{label}</Typography>
-            <ToggleButtonGroup size="small" exclusive value={value} onChange={(_e, v: T | null) => v && onChange(v)} aria-label={label}>
-                {options.map(o => <ToggleButton key={o.value} value={o.value} sx={{ px: 2 }}>{o.label}</ToggleButton>)}
-            </ToggleButtonGroup>
+            <span className={s.label}>{label}</span>
+            <Segmented size="sm" value={value} options={options} onChange={onChange} label={label} />
         </>
     );
 }
@@ -131,13 +121,9 @@ function LookRow<T extends string>({ label, value, options, onChange }: {
 /** 누르면 편집기 커서 자리에 넣는 코드 조각. */
 function Code({ children, onClick }: { children: string; onClick: () => void }) {
     return (
-        <Button
-            size="small"
-            onClick={onClick}
-            sx={{ textTransform: 'none', fontFamily: 'ui-monospace, Menlo, Consolas, monospace', fontSize: 12, fontWeight: 400, justifyContent: 'flex-start', px: 0.75, minWidth: 0, textAlign: 'left' }}
-        >
+        <button type="button" className={s.code} onClick={onClick}>
             {children}
-        </Button>
+        </button>
     );
 }
 
@@ -174,7 +160,7 @@ export default function TemplateSetting() {
     const allValid = TEMPLATE_KINDS.every(k => validations[k].ok);
     const v = validations[kind];
     const custom = globalSetting.chzzkCustomTemplate === 'on';
-    const muiTheme = useTheme();
+    const pageDark = useDocumentDark();
     const look = useMemo(() => detectLook(drafts), [drafts]);
 
     // 직접 고친 상태에서 하나를 고르면 나머지는 기본 모양에서 시작한다.
@@ -195,29 +181,26 @@ export default function TemplateSetting() {
     };
 
     return (
-        <Stack spacing={2} sx={{ maxWidth: 1080, width: '100%', margin: '0 auto', p: 2, boxSizing: 'border-box' }}>
-            <Card variant="outlined" sx={{ p: 2 }}>
-                <Typography variant="h6">{t('template.title')}</Typography>
-                <FormControlLabel
-                    sx={{ mt: 1 }}
-                    control={
-                        <Switch
-                            checked={custom}
-                            onChange={(_e, on) => dispatchGlobalSetting(setChzzkCustomTemplate(on ? 'on' : 'off'))}
-                        />
-                    }
-                    label={t('template.use_custom')}
-                />
-                <Typography variant="body2" color="text.secondary">
+        <div className={s.page}>
+            <Card className={s.card}>
+                <h1 className={s.title}>{t('template.title')}</h1>
+                <div style={{ marginTop: 12, marginBottom: 6 }}>
+                    <Switch
+                        checked={custom}
+                        onChange={on => dispatchGlobalSetting(setChzzkCustomTemplate(on ? 'on' : 'off'))}
+                        label={t('template.use_custom')}
+                    />
+                </div>
+                <div className={s.meta}>
                     {custom ? t('template.use_custom_hint_on') : t('template.use_custom_hint_off')}
-                </Typography>
+                </div>
             </Card>
 
             {/* 저장된 값을 읽기 전엔 기본 템플릿을 저장된 것처럼 보이지 않게 그리지 않는다 */}
             {loaded && <>
-            <Card variant="outlined" sx={{ p: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>{t('template.look_title')}</Typography>
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', alignItems: 'center', columnGap: 2, rowGap: 1 }}>
+            <Card className={s.card}>
+                <h2 className={s.subtitle}>{t('template.look_title')}</h2>
+                <div className={s.lookGrid}>
                     <LookRow
                         label={t('template.look_layout')}
                         value={look?.layout ?? null}
@@ -227,7 +210,7 @@ export default function TemplateSetting() {
                     <LookRow
                         label={t('template.look_badges')}
                         value={look ? (look.badges ? 'show' : 'hide') : null}
-                        options={[{ value: 'show', label: t('template.badges_show') }, { value: 'hide', label: t('template.badges_hide') }]}
+                        options={[{ value: 'show' as const, label: t('template.badges_show') }, { value: 'hide' as const, label: t('template.badges_hide') }]}
                         onChange={v => pickLook({ badges: v === 'show' })}
                     />
                     <LookRow
@@ -236,25 +219,30 @@ export default function TemplateSetting() {
                         options={LOOK_SIZES.map(z => ({ value: z, label: t(`template.size_${z}`) }))}
                         onChange={size => pickLook({ size })}
                     />
-                </Box>
-                {!look && <Alert severity="info" role="status" sx={{ mt: 1.5 }}>{t('template.look_custom')}</Alert>}
+                </div>
+                {!look && <div style={{ marginTop: 12 }}><Notice tone="info" role="status">{t('template.look_custom')}</Notice></div>}
 
-                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 2, mb: 1 }}>
-                    <Tabs value={kind} onChange={(_e, k: ChzzkChatKind) => setKind(k)} variant="scrollable" scrollButtons="auto">
-                        {TEMPLATE_KINDS.map(k => (
-                            <Tab key={k} value={k} label={`${t(`template.kinds.${k}`)}${validations[k].ok ? '' : ' ⚠'}`} />
-                        ))}
-                    </Tabs>
-                    <ToggleButtonGroup size="small" exclusive value={dark ? 'dark' : 'light'} onChange={(_e, m) => m && setDark(m === 'dark')}>
-                        <ToggleButton value="dark">{t('template.preview_dark')}</ToggleButton>
-                        <ToggleButton value="light">{t('template.preview_light')}</ToggleButton>
-                    </ToggleButtonGroup>
-                </Stack>
+                <div className={s.kindBar}>
+                    <Tabs
+                        value={kind}
+                        onChange={setKind}
+                        items={TEMPLATE_KINDS.map(k => ({ value: k, label: `${t(`template.kinds.${k}`)}${validations[k].ok ? '' : ' ⚠'}` }))}
+                    />
+                    <Segmented
+                        size="sm"
+                        value={dark ? 'dark' : 'light'}
+                        onChange={m => setDark(m === 'dark')}
+                        options={[
+                            { value: 'dark' as const, label: t('template.preview_dark') },
+                            { value: 'light' as const, label: t('template.preview_light') },
+                        ]}
+                    />
+                </div>
 
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                <div className={s.panes}>
                     {editorOpen && (
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Box sx={{ border: 1, borderColor: v.ok ? 'divider' : 'error.main', borderRadius: 1, overflow: 'hidden', fontSize: 13 }}>
+                        <div className={s.pane}>
+                            <div className={`${s.editor} ${v.ok ? '' : s.editorError}`}>
                                 <CodeMirror
                                     ref={editorRef}
                                     // 탭마다 편집 기록(실행 취소)을 따로 두려고 key로 다시 만든다.
@@ -262,55 +250,58 @@ export default function TemplateSetting() {
                                     value={drafts[kind]}
                                     onChange={val => setDrafts(d => ({ ...d, [kind]: val }))}
                                     extensions={EDITOR_EXTENSIONS}
-                                    theme={muiTheme.palette.mode === 'dark' ? 'dark' : 'light'}
+                                    theme={pageDark ? 'dark' : 'light'}
                                     minHeight="280px"
                                     basicSetup={{ foldGutter: false, highlightActiveLine: false }}
                                 />
-                            </Box>
+                            </div>
                             {!v.ok && (
-                                <Alert severity="error" sx={{ mt: 1 }}>
-                                    {t('template.error', { ...lineCol(drafts[kind], v.index), message: errorText(v), interpolation: { escapeValue: false } })}
-                                </Alert>
+                                <div style={{ marginTop: 8 }}>
+                                    <Notice tone="error">
+                                        {t('template.error', { ...lineCol(drafts[kind], v.index), message: errorText(v), interpolation: { escapeValue: false } })}
+                                    </Notice>
+                                </div>
                             )}
                             <Button
-                                size="small"
-                                sx={{ mt: 1 }}
+                                variant="text"
+                                size="sm"
+                                style={{ marginTop: 8 }}
                                 onClick={() => setDrafts(d => ({ ...d, [kind]: DEFAULT_CHZZK_TEMPLATES[kind] }))}
                                 disabled={drafts[kind] === DEFAULT_CHZZK_TEMPLATES[kind]}
                             >
                                 {t('template.reset_kind', { kind: t(`template.kinds.${kind}`) })}
                             </Button>
-                        </Box>
+                        </div>
                     )}
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <div className={s.pane}>
                         {/* 문법 오류 중엔 저장된(또는 기본) 템플릿으로 보여준다 — 렌더러와 같은 대체 규칙 */}
                         <Preview kind={kind} template={v.ok ? drafts[kind] : current[kind]} dark={dark} />
-                    </Box>
-                </Stack>
+                    </div>
+                </div>
 
-                <Stack direction="row" spacing={1} sx={{ mt: 2 }} alignItems="center">
-                    <Button variant="contained" onClick={onSave} disabled={!dirty || !allValid}>
+                <div className={s.actions}>
+                    <Button variant="primary" onClick={onSave} disabled={!dirty || !allValid}>
                         {t('template.save')}
                     </Button>
-                    <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
+                    <span className={`${s.meta} ${s.status}`}>
                         {dirty ? t('template.unsaved') : savedAt ? t('template.saved') : ''}
-                    </Typography>
-                    <Button size="small" onClick={() => setEditorOpen(o => !o)} aria-expanded={editorOpen}>
+                    </span>
+                    <Button variant="text" size="sm" onClick={() => setEditorOpen(o => !o)} aria-expanded={editorOpen}>
                         {editorOpen ? t('template.edit_html_close') : t('template.edit_html')}
                     </Button>
-                </Stack>
+                </div>
             </Card>
 
             {editorOpen && (
-                <Card variant="outlined" sx={{ p: 2 }}>
-                    <Typography variant="subtitle2">{t('template.fields_title')}</Typography>
-                    <Typography variant="caption" color="text.secondary">{t('template.insert_hint')}</Typography>
-                    <Box component="table" sx={{ mt: 1, borderCollapse: 'collapse', width: '100%', fontSize: 13, '& td': { py: 0.25, pr: 2, verticalAlign: 'middle' } }}>
+                <Card className={s.card}>
+                    <h2 className={s.subtitle} style={{ marginBottom: 2 }}>{t('template.fields_title')}</h2>
+                    <div className={s.meta}>{t('template.insert_hint')}</div>
+                    <table className={s.fields}>
                         <tbody>
                             {SYNTAX_HELP.map(h => (
                                 <tr key={h.key}><td><Code onClick={() => insertField(h.code)}>{h.code}</Code></td><td>{t(`template.${h.key}`)}</td></tr>
                             ))}
-                            <tr><td colSpan={2}><Typography variant="caption" color="text.secondary">{t('template.help_safety')}</Typography></td></tr>
+                            <tr><td colSpan={2}><span className={s.meta}>{t('template.help_safety')}</span></td></tr>
                             {TEMPLATE_FIELDS.filter(f => !f.kinds || f.kinds.includes(kind)).map(f => (
                                 // i18next는 키의 '.'을 계층으로 읽어서 문구 키는 '_'로 바꿔 둔다.
                                 <tr key={f.name}>
@@ -319,12 +310,12 @@ export default function TemplateSetting() {
                                 </tr>
                             ))}
                         </tbody>
-                    </Box>
+                    </table>
                 </Card>
             )}
             </>}
 
             <SocialFooter />
-        </Stack>
+        </div>
     );
 }

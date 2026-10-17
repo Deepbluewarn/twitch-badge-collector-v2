@@ -184,5 +184,8 @@
   },
   "close": {
     "message": "关闭"
+  },
+  "back": {
+    "message": "返回"
   }
 }

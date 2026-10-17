@@ -1,87 +1,23 @@
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import CustomTextField from "@/components/CustomTextField";
-import Selector from "@/components/Selector";
 import SocialFooter from "@/components/SocialFooter";
 import TranslationNotice from "@/components/TranslationNotice";
 import { GlobalSettingContext, useGlobalSettingContext } from "@/context/GlobalSetting";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
-import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Switch, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
-import GlobalStyles from "@mui/material/GlobalStyles";
-import { styled, ThemeProvider } from "@mui/material/styles";
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
-import { useCustomTheme } from "@/hooks/useCustomTheme";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import FilterAltIcon from "@mui/icons-material/FilterAlt";
-import SettingsIcon from "@mui/icons-material/Settings";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
-import PhotoCameraOutlinedIcon from "@mui/icons-material/PhotoCameraOutlined";
-import DeleteSweepOutlinedIcon from "@mui/icons-material/DeleteSweepOutlined";
-import LightModeIcon from "@mui/icons-material/LightMode";
-import DarkModeIcon from "@mui/icons-material/DarkMode";
-import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide, setChzzkCustomTemplate } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
 import { getPlatformConfig, manifestReady } from "@/platform/host-selectors";
 import { ensureRolloutBucket, isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
+import { Button, Dialog, IconButton, Segmented, Stack, Switch, Tag, TextInput } from "@/ui";
+import "./popup.css";
 
-const PopupGlobalStyle = (
-  <GlobalStyles
-    styles={(theme) => ({
-      "*, *::before, *::after": {
-        boxSizing: "border-box",
-      },
-      "*::-webkit-scrollbar": {
-        width: "6px",
-        backgroundColor: "rgba(255, 255, 255, 0)",
-      },
-      "*::-webkit-scrollbar-thumb": {
-        borderRadius: "4px",
-        margin: "2px",
-        backgroundColor: theme.palette.divider,
-      },
-      body: {
-        fontFamily: `
-          'Pretendard Variable',
-          -apple-system,
-          BlinkMacSystemFont,
-          system-ui,
-          Roboto,
-          'Helvetica Neue',
-          'Segoe UI',
-          'Apple SD Gothic Neo',
-          'Noto Sans KR',
-          'Malgun Gothic',
-          sans-serif
-        `,
-        padding: "0",
-        margin: "0",
-        width: "22rem",
-        lineHeight: "1.5",
-        backgroundColor: theme.palette.background.default,
-        color: theme.palette.text.primary,
-      },
-      "a, a:link, a:visited, a:hover, a:active": {
-        color: "inherit",
-        textDecoration: "inherit",
-        fontWeight: "inherit",
-      },
-      "#root": {
-        maxHeight: "24rem",
-        overflow: "auto",
-        userSelect: "none",
-      },
-    })}
-  ></GlobalStyles>
-);
-
-const Icon = styled('img')({
-  width: '1rem',
-  height: '1rem'
-})
+/** 진단 줄의 작은 글자 버튼 — 좁은 팝업 하단 한 줄에 들어가게. */
+const metaButtonStyle: React.CSSProperties = { height: 24, fontSize: 12, fontWeight: 700 };
+const metaTextStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, lineHeight: 1.2 };
 
 const routes = [
   {
@@ -113,15 +49,15 @@ function BgColorPicker({ value, onChange }: { value: string; onChange: (c: strin
     return () => el.removeEventListener('change', handler);
   }, [onChange]);
   return (
-    <Stack direction='row' spacing={0.5} alignItems='center'>
-      <Box
+    <Stack dir='row' gap={4} align='center'>
+      <div
         onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
-        sx={{
+        style={{
           width: 24, height: 24, borderRadius: '50%',
           // 빈 값(자동)일 땐 체커보드 패턴으로 "색 미지정" 시각화 — 팝업 배경과 동화 방지.
           backgroundColor: value || undefined,
-          backgroundImage: value ? 'none' : 'conic-gradient(rgba(255,255,255,0.15) 0deg 90deg, rgba(255,255,255,0.3) 90deg 180deg, rgba(255,255,255,0.15) 180deg 270deg, rgba(255,255,255,0.3) 270deg 360deg)',
-          border: `1px solid ${value ? 'rgba(128,128,128,0.4)' : 'rgba(128,128,128,0.6)'}`,
+          backgroundImage: value ? 'none' : 'conic-gradient(rgba(128,128,128,0.15) 0deg 90deg, rgba(128,128,128,0.4) 90deg 180deg, rgba(128,128,128,0.15) 180deg 270deg, rgba(128,128,128,0.4) 270deg 360deg)',
+          border: '2px solid var(--ui-line)',
           cursor: 'pointer',
         }}
       >
@@ -131,9 +67,9 @@ function BgColorPicker({ value, onChange }: { value: string; onChange: (c: strin
           defaultValue={value || '#2a2a30'}
           style={{ position: 'absolute', visibility: 'hidden', width: 0, height: 0 }}
         />
-      </Box>
+      </div>
       {value && (
-        <Button size='small' variant='text' onClick={() => onChange('')} sx={{ minWidth: 0, p: 0.25, fontSize: '0.7rem' }}>
+        <Button size='sm' variant='text' onClick={() => onChange('')} style={metaButtonStyle}>
           {browser.i18n.getMessage('auto' as any)}
         </Button>
       )}
@@ -248,6 +184,9 @@ function PopupSetting() {
     setConsentDialog({ open: true, preview });
   };
 
+  // Dialog의 Esc 리스너가 onClose 바뀔 때마다 다시 붙지 않게 고정.
+  const closeConsentDialog = React.useCallback(() => setConsentDialog({ open: false, preview: '' }), []);
+
   const onConsentAccept = async () => {
     const { REPORT_CONSENT_STORAGE_KEY } = await import('@/platform/report');
     await browser.storage.local.set({ [REPORT_CONSENT_STORAGE_KEY]: true });
@@ -256,98 +195,78 @@ function PopupSetting() {
   };
 
   return (
-    <Stack spacing={1.5} sx={{ p: 1.5 }}>
+    <Stack gap={12} style={{ padding: 12 }}>
       {/* 헤더 */}
-      <Stack direction='row' alignItems='center' spacing={1}>
-        <IconButton onClick={() => router.navigate('/')} size='small'>
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+      <Stack dir='row' align='center' gap={8}>
+        <IconButton icon='arrow_back' label={t('back')} size='sm' onClick={() => router.navigate('/')} />
+        <span style={{ fontSize: 16, fontWeight: 900 }}>
           {t('generalSetting')}
-        </Typography>
+        </span>
       </Stack>
 
       {/* 테마 — 시스템 / 라이트 / 다크 */}
       <SettingRow label={t('theme')}>
-        <ToggleButtonGroup
+        <Segmented<SettingInterface['darkTheme']>
+          size='sm'
+          label={t('theme')}
           value={globalSetting.darkTheme}
-          exclusive
-          size='small'
-          onChange={(_e, v: SettingInterface['darkTheme'] | null) => {
-            if (v) dispatchGlobalSetting(setDarkTheme(v));
-          }}
-          sx={{ '& .MuiToggleButton-root': { px: 1.25, py: 0.25, gap: 0.5, textTransform: 'none' } }}
-        >
-          <ToggleButton value='system'>
-            <SettingsBrightnessIcon sx={{ fontSize: 16 }} />
-            {t('themeSystem')}
-          </ToggleButton>
-          <ToggleButton value='light'>
-            <LightModeIcon sx={{ fontSize: 16 }} />
-            {t('themeLight')}
-          </ToggleButton>
-          <ToggleButton value='dark'>
-            <DarkModeIcon sx={{ fontSize: 16 }} />
-            {t('themeDark')}
-          </ToggleButton>
-        </ToggleButtonGroup>
+          onChange={(v) => dispatchGlobalSetting(setDarkTheme(v))}
+          options={[
+            { value: 'system', icon: 'settings_brightness', label: t('themeSystem') },
+            { value: 'light', icon: 'light_mode', label: t('themeLight') },
+            { value: 'dark', icon: 'dark_mode', label: t('themeDark') },
+          ]}
+        />
       </SettingRow>
 
       {/* 채팅 위치 — 위/아래 토글 */}
       <SettingRow label={t('chatPosition')}>
-        <ToggleButtonGroup
+        <Segmented<SettingInterface['position']>
+          size='sm'
+          label={t('chatPosition')}
           value={globalSetting.position}
-          exclusive
-          size='small'
-          onChange={(_e, v: SettingInterface['position'] | null) => {
-            if (v) dispatchGlobalSetting(setPosition(v));
-          }}
-          sx={{ '& .MuiToggleButton-root': { px: 1.5, py: 0.25, textTransform: 'none' } }}
-        >
-          <ToggleButton value='up'>{t('up')}</ToggleButton>
-          <ToggleButton value='down'>{t('down')}</ToggleButton>
-        </ToggleButtonGroup>
+          onChange={(v) => dispatchGlobalSetting(setPosition(v))}
+          options={[
+            { value: 'up', label: t('up') },
+            { value: 'down', label: t('down') },
+          ]}
+        />
       </SettingRow>
 
       {/* 채팅창 좌/우 — 치지직 전용. 호스트 사이드바(원본 채팅 + 모아보기)를 통째로 옮긴다. */}
       <SettingRow label={t('chzzkChatSide')} hint={t('chzzkChatSideHint')}>
-        <ToggleButtonGroup
+        <Segmented<SettingInterface['chzzkChatSide']>
+          size='sm'
+          label={t('chzzkChatSide')}
           value={globalSetting.chzzkChatSide}
-          exclusive
-          size='small'
-          onChange={(_e, v: SettingInterface['chzzkChatSide'] | null) => {
-            if (v) dispatchGlobalSetting(setChzzkChatSide(v));
-          }}
-          sx={{ '& .MuiToggleButton-root': { px: 1.5, py: 0.25, textTransform: 'none' } }}
-        >
-          <ToggleButton value='left'>{t('chatSideLeft')}</ToggleButton>
-          <ToggleButton value='right'>{t('chatSideRight')}</ToggleButton>
-        </ToggleButtonGroup>
+          onChange={(v) => dispatchGlobalSetting(setChzzkChatSide(v))}
+          options={[
+            { value: 'left', label: t('chatSideLeft') },
+            { value: 'right', label: t('chatSideRight') },
+          ]}
+        />
       </SettingRow>
 
       {/* 모아보기 채팅 모양 — 치지직 전용. 기본(치지직 원본 복제) / 커스텀(사용자 템플릿).
           설명은 두지 않는다 — 비개발자에게 내부 동작(원본 대기·속도)을 풀어 쓰면 오히려 헷갈린다
           (prototype/chat-render-setting 브랜치의 시안 비교 결과). 커스텀을 고르면 템플릿 설정으로 가는 버튼. */}
       {socketRenderEnabled && <SettingRow label={t('chzzkChatRender')}>
-        <ToggleButtonGroup
+        <Segmented<SettingInterface['chzzkCustomTemplate']>
+          size='sm'
+          label={t('chzzkChatRender')}
           value={globalSetting.chzzkCustomTemplate === 'on' ? 'on' : 'off'}
-          exclusive
-          size='small'
-          onChange={(_e, v: SettingInterface['chzzkCustomTemplate'] | null) => {
-            if (v) dispatchGlobalSetting(setChzzkCustomTemplate(v));
-          }}
-          sx={{ '& .MuiToggleButton-root': { px: 1.5, py: 0.25, textTransform: 'none' } }}
-        >
-          <ToggleButton value='off'>{t('chatRenderNative')}</ToggleButton>
-          <ToggleButton value='on'>{t('chatRenderTemplate')}</ToggleButton>
-        </ToggleButtonGroup>
+          onChange={(v) => dispatchGlobalSetting(setChzzkCustomTemplate(v))}
+          options={[
+            { value: 'off', label: t('chatRenderNative') },
+            { value: 'on', label: t('chatRenderTemplate') },
+          ]}
+        />
       </SettingRow>}
       {socketRenderEnabled && globalSetting.chzzkCustomTemplate === 'on' && (
         <Button
-          size='small'
-          variant='outlined'
+          size='sm'
           onClick={() => browser.tabs.create({ url: browser.runtime.getURL('/setting.html?initialPath=template') })}
-          sx={{ alignSelf: 'flex-end', mt: -0.5, py: 0.25, textTransform: 'none' }}
+          style={{ alignSelf: 'flex-end', marginTop: -4 }}
         >
           {t('templateSettingButton')}
         </Button>
@@ -358,13 +277,14 @@ function PopupSetting() {
         label={t('maximumNumberChats')}
         hint={t('needRefresh')}
       >
-        <TextField
+        <TextInput
           type='number'
-          size='small'
+          size='sm'
+          min={1}
+          aria-label={t('maximumNumberChats')}
           value={globalSetting.maximumNumberChats}
           onChange={(e) => dispatchGlobalSetting(setMaximumNumberChats(Number(e.target.value)))}
-          sx={{ width: 100 }}
-          inputProps={{ min: 1 }}
+          style={{ width: 100 }}
         />
       </SettingRow>
 
@@ -372,7 +292,7 @@ function PopupSetting() {
       <SettingRow label={t('chatTime')}>
         <Switch
           checked={globalSetting.chatTime === 'on'}
-          onChange={(e) => dispatchGlobalSetting(setChatTime(e.target.checked ? 'on' : 'off'))}
+          onChange={(checked) => dispatchGlobalSetting(setChatTime(checked ? 'on' : 'off'))}
         />
       </SettingRow>
 
@@ -380,7 +300,7 @@ function PopupSetting() {
       <SettingRow label={t('collectedChatMarker')}>
         <Switch
           checked={globalSetting.collectedChatMarker !== 'off'}
-          onChange={(e) => dispatchGlobalSetting(setCollectedChatMarker(e.target.checked ? 'on' : 'off'))}
+          onChange={(checked) => dispatchGlobalSetting(setCollectedChatMarker(checked ? 'on' : 'off'))}
         />
       </SettingRow>
 
@@ -388,7 +308,7 @@ function PopupSetting() {
       <SettingRow label={t('jumpToBottomButton' as any)}>
         <Switch
           checked={globalSetting.jumpToBottomButton !== 'off'}
-          onChange={(e) => dispatchGlobalSetting(setJumpToBottomButton(e.target.checked ? 'on' : 'off'))}
+          onChange={(checked) => dispatchGlobalSetting(setJumpToBottomButton(checked ? 'on' : 'off'))}
         />
       </SettingRow>
 
@@ -396,24 +316,22 @@ function PopupSetting() {
       <SettingRow label={t('chatPersistence' as any)}>
         <Switch
           checked={globalSetting.chatPersistence !== 'off'}
-          onChange={(e) => dispatchGlobalSetting(setChatPersistence(e.target.checked ? 'on' : 'off'))}
+          onChange={(checked) => dispatchGlobalSetting(setChatPersistence(checked ? 'on' : 'off'))}
         />
       </SettingRow>
 
       {/* 표시 방식 — inline(합치기) / floating(아이콘+팝오버). 새로고침 필요. */}
       <SettingRow label={t('displayMode' as any)} hint={t('needRefresh')}>
-        <ToggleButtonGroup
+        <Segmented<NonNullable<SettingInterface['displayMode']>>
+          size='sm'
+          label={t('displayMode' as any)}
           value={globalSetting.displayMode ?? 'inline'}
-          exclusive
-          size='small'
-          onChange={(_e, v: SettingInterface['displayMode'] | null) => {
-            if (v) dispatchGlobalSetting(setDisplayMode(v));
-          }}
-          sx={{ '& .MuiToggleButton-root': { px: 1, py: 0.25, textTransform: 'none' } }}
-        >
-          <ToggleButton value='inline'>{t('displayModeInline' as any)}</ToggleButton>
-          <ToggleButton value='floating'>{t('displayModeFloating' as any)}</ToggleButton>
-        </ToggleButtonGroup>
+          onChange={(v) => dispatchGlobalSetting(setDisplayMode(v))}
+          options={[
+            { value: 'inline', label: t('displayModeInline' as any) },
+            { value: 'floating', label: t('displayModeFloating' as any) },
+          ]}
+        />
       </SettingRow>
 
       {/* floating 팝오버 배경색 — 비어 있으면 자동 감지. 사용자가 chzzk 톤에 맞게 직접 지정 가능. */}
@@ -427,40 +345,38 @@ function PopupSetting() {
       )}
 
       {/* OTA selector 버전 + 진단 — 하단 caption row. 문제 보고 시 참고용. */}
-      <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={1} sx={{ mt: 0.5 }}>
-        <Typography
-          variant='caption'
-          color='text.secondary'
-          sx={{ flex: 1, fontSize: '0.65rem', lineHeight: 1.2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}
+      <Stack dir='row' align='center' justify='space-between' gap={8} style={{ marginTop: 4 }}>
+        <span
+          style={{ ...metaTextStyle, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--ui-muted)' }}
         >
           {otaInfo.rev !== null
             ? `OTA selectors rev ${otaInfo.rev}${otaInfo.fetchedAt ? ` (${new Date(otaInfo.fetchedAt).toLocaleString()})` : ''}`
             : t('otaBundled')}
-        </Typography>
-        <Stack direction='row' spacing={0.5} alignItems='center'>
+        </span>
+        <Stack dir='row' gap={2} align='center'>
           {diag.kind === 'done' && (
-            <Typography variant='caption' color={diag.failCount > 0 ? 'error' : 'success.main'} sx={{ fontSize: '0.65rem' }}>
+            <span style={{ ...metaTextStyle, color: diag.failCount > 0 ? 'var(--ui-bad-fg)' : 'var(--ui-ok-fg)' }}>
               {diag.failCount > 0 ? browser.i18n.getMessage('diagFailCount' as any, [String(diag.failCount), String(diag.passCount + diag.failCount)]) : `OK ${diag.passCount}`}
-            </Typography>
+            </span>
           )}
           {diag.kind === 'error' && (
-            <Typography variant='caption' color='error' sx={{ fontSize: '0.65rem' }}>{diag.message}</Typography>
+            <span style={{ ...metaTextStyle, color: 'var(--ui-bad-fg)' }}>{diag.message}</span>
           )}
           <Button
-            size='small'
+            size='sm'
             variant='text'
             onClick={runDiagnose}
             disabled={diag.kind === 'running'}
-            sx={{ minWidth: 0, px: 0.75, py: 0, fontSize: '0.65rem', lineHeight: 1.4 }}
+            style={metaButtonStyle}
           >
             {diag.kind === 'running' ? t('diagRunning') : t('diagRun')}
           </Button>
           {diag.kind === 'done' && (
             <Button
-              size='small'
+              size='sm'
               variant='text'
               onClick={copyReport}
-              sx={{ minWidth: 0, px: 0.75, py: 0, fontSize: '0.65rem', lineHeight: 1.4 }}
+              style={metaButtonStyle}
             >
               {copyState === 'copied' ? t('copied') : t('copy')}
             </Button>
@@ -478,11 +394,11 @@ function PopupSetting() {
               t('report');
             return (
               <Button
-                size='small'
+                size='sm'
                 variant='text'
                 onClick={onSubmitClick}
                 disabled={disabled}
-                sx={{ minWidth: 0, px: 0.75, py: 0, fontSize: '0.65rem', lineHeight: 1.4 }}
+                style={metaButtonStyle}
               >
                 {label}
               </Button>
@@ -491,45 +407,40 @@ function PopupSetting() {
         </Stack>
       </Stack>
       {submitError && (
-        <Typography variant='caption' color='error' sx={{ fontSize: '0.65rem', textAlign: 'right' }}>
+        <span style={{ ...metaTextStyle, color: 'var(--ui-bad-fg)', textAlign: 'right' }}>
           {submitError}
-        </Typography>
+        </span>
       )}
       {/* 첫 제보 시 동의 다이얼로그 — sanitize된 실 payload 미리보기 후 승인. */}
       <Dialog
         open={consentDialog.open}
-        onClose={() => setConsentDialog({ open: false, preview: '' })}
-        maxWidth='sm'
-        fullWidth
-        PaperProps={{ sx: { m: 1, maxHeight: 'calc(100% - 16px)' } }}
+        onClose={closeConsentDialog}
+        width='sm'
+        title={t('reportConsentTitle')}
+        actions={<>
+          <Button size='sm' onClick={closeConsentDialog}>{t('cancel')}</Button>
+          <Button size='sm' variant='primary' onClick={onConsentAccept}>{t('reportConsentAccept')}</Button>
+        </>}
       >
-        <DialogTitle sx={{ fontSize: '0.9rem', py: 1 }}>{t('reportConsentTitle')}</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', p: 2, gap: 1 }}>
-          <Typography variant='caption' color='text.secondary'>
+        <Stack gap={8}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ui-muted)' }}>
             {t('reportConsentBody')}
-          </Typography>
-          <Box
-            component='pre'
-            sx={{
-              flex: 1,
-              minHeight: 0,
-              fontSize: '0.6rem',
-              overflow: 'auto',
-              bgcolor: 'action.hover',
-              p: 1,
-              borderRadius: 1,
-              m: 0,
+          </span>
+          <pre
+            style={{
+              fontSize: 10,
+              margin: 0,
+              padding: 8,
+              borderRadius: 8,
+              background: 'var(--ui-tint)',
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-all',
+              userSelect: 'text',
             }}
           >
             {consentDialog.preview}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button size='small' onClick={() => setConsentDialog({ open: false, preview: '' })}>{t('cancel')}</Button>
-          <Button size='small' variant='contained' onClick={onConsentAccept}>{t('reportConsentAccept')}</Button>
-        </DialogActions>
+          </pre>
+        </Stack>
       </Dialog>
     </Stack>
   );
@@ -538,15 +449,15 @@ function PopupSetting() {
 /** 좌측 라벨(+선택 hint) + 우측 컨트롤 한 줄 레이아웃. 컴팩트한 설정 행 패턴. */
 function SettingRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={1}>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography variant='body2'>{label}</Typography>
+    <Stack dir='row' align='center' justify='space-between' gap={8}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 800 }}>{label}</div>
         {hint && (
-          <Typography variant='caption' color='text.secondary' sx={{ display: 'block', lineHeight: 1.2 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.2, color: 'var(--ui-muted)' }}>
             {hint}
-          </Typography>
+          </div>
         )}
-      </Box>
+      </div>
       {children}
     </Stack>
   );
@@ -595,18 +506,14 @@ function Popup() {
   }, []);
 
   return (
-    <Stack sx={{ p: 1.5 }} gap={1}>
+    <Stack gap={8} style={{ padding: 12 }}>
       {/* 헤더: 로고 + 이름 + 버전 chip */}
-      <Stack direction='row' alignItems='center' spacing={1}>
-        <Icon src={browser.runtime.getURL('/assets/icon.png')} alt="" />
-        <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }}>
+      <Stack dir='row' align='center' gap={8}>
+        <img src={browser.runtime.getURL('/assets/icon.png')} alt="" style={{ width: '1rem', height: '1rem' }} />
+        <span style={{ fontSize: 14, fontWeight: 800, flex: 1 }}>
           {browser.i18n.getMessage('ExtensionName')}
-        </Typography>
-        <Chip
-          label={`v${browser.runtime.getManifest().version}`}
-          size="small"
-          sx={{ height: 20, fontSize: '0.7rem', fontWeight: 500 }}
-        />
+        </span>
+        <Tag>{`v${browser.runtime.getManifest().version}`}</Tag>
       </Stack>
 
       <TranslationNotice
@@ -617,18 +524,19 @@ function Popup() {
 
       {/* primary CTA: 필터 설정 (가장 자주 쓰는 액션) */}
       <Button
-        variant='contained'
-        startIcon={<FilterAltIcon />}
+        variant='primary'
+        icon='filter_alt'
+        block
         onClick={() => onPageButtonClicked("filter")}
-        sx={{ mt: 0.5 }}
+        style={{ marginTop: 4 }}
       >
         {browser.i18n.getMessage("p_filter_btn")}
       </Button>
 
       {/* secondary: 일반 설정 */}
       <Button
-        variant="outlined"
-        startIcon={<SettingsIcon />}
+        icon='settings'
+        block
         onClick={() => router.navigate("/setting")}
       >
         {browser.i18n.getMessage("generalSetting")}
@@ -636,8 +544,8 @@ function Popup() {
 
       {/* 채팅 캡쳐 시작 — 활성 탭의 content script로 메시지 */}
       <Button
-        variant="outlined"
-        startIcon={<PhotoCameraOutlinedIcon />}
+        icon='photo_camera'
+        block
         onClick={() => sendToActiveContent('tbc-start-capture')}
       >
         {browser.i18n.getMessage('startCapture' as any)}
@@ -645,8 +553,8 @@ function Popup() {
 
       {/* 저장된 채팅 비우기 */}
       <Button
-        variant="outlined"
-        startIcon={<DeleteSweepOutlinedIcon />}
+        icon='delete_sweep'
+        block
         onClick={() => sendToActiveContent('tbc-clear-chats')}
       >
         {browser.i18n.getMessage('clearCollectedChats' as any)}
@@ -654,19 +562,19 @@ function Popup() {
 
       {/* tertiary: 비율 초기화 — 가끔 쓰는 액션은 text variant로 demote */}
       <Button
-        variant="text"
-        size="small"
-        startIcon={<RestartAltIcon />}
+        variant='text'
+        size='sm'
+        icon='restart_alt'
         onClick={onRatioResetButtonClicked}
-        sx={{ alignSelf: 'flex-start', color: 'text.secondary' }}
+        style={{ alignSelf: 'flex-start', color: 'var(--ui-muted)' }}
       >
         {browser.i18n.getMessage('reset_chat_ratio')}
       </Button>
 
       {/* 푸터: socials only */}
-      <Box sx={{ mt: 0.5, borderTop: 1, borderColor: 'divider', pt: 1 }}>
+      <div style={{ marginTop: 4, borderTop: '1px solid var(--ui-hair)', paddingTop: 8 }}>
         <SocialFooter showExtensionInfo={false} />
-      </Box>
+      </div>
     </Stack>
   );
 }
@@ -678,14 +586,11 @@ const ContextRouter = () => {
   useDocumentTheme(isDark);
 
   return (
-    <ThemeProvider theme={useCustomTheme(isDark)}>
-      <GlobalSettingContext.Provider
-        value={{ globalSetting, dispatchGlobalSetting }}
-      >
-        {PopupGlobalStyle}
-        <RouterProvider router={router} />
-      </GlobalSettingContext.Provider>
-    </ThemeProvider>
+    <GlobalSettingContext.Provider
+      value={{ globalSetting, dispatchGlobalSetting }}
+    >
+      <RouterProvider router={router} />
+    </GlobalSettingContext.Provider>
   )
 }
 

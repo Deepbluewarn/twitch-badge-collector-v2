@@ -184,5 +184,8 @@
   },
   "close": {
     "message": "Schließen"
+  },
+  "back": {
+    "message": "Zurück"
   }
 }
