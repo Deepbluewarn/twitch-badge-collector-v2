@@ -70,7 +70,7 @@ function SettingTranslationNotice() {
       language={i18n.resolvedLanguage ?? i18n.language}
       message={t('translation_notice')}
       dismissLabel={t('common.dismiss')}
-      sx={{ borderRadius: 0 }}
+      flat
     />
   );
 }

@@ -1,0 +1,456 @@
+/* 확장 UI 부품 — docs/design-system.md "컴포넌트". 색은 tokens.css 토큰만 쓴다. */
+
+/* ── 버튼 ───────────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 16px;
+    border: 2px solid var(--ui-line);
+    border-radius: 8px;
+    background: var(--ui-paper);
+    color: var(--ui-ink);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+.btn:hover {
+    background: var(--ui-ink);
+    color: var(--ui-paper);
+}
+.btn.primary {
+    border-color: var(--ui-ink);
+    background: var(--ui-yellow);
+    color: var(--ui-on-yellow);
+}
+.btn.primary:hover {
+    background: var(--ui-ink);
+    color: var(--ui-yellow);
+}
+:global([data-theme='dark']) .btn.primary {
+    border-color: var(--ui-yellow);
+}
+:global([data-theme='dark']) .btn.primary:hover {
+    background: var(--ui-yellow-hover);
+    color: var(--ui-on-yellow);
+}
+:global([data-theme='dark']) .btn:not(.primary):not(.text):not(.danger):hover {
+    background: var(--ui-yellow);
+    border-color: var(--ui-yellow);
+    color: var(--ui-on-yellow);
+}
+.btn.text {
+    border-color: transparent;
+    background: transparent;
+    padding: 0 6px;
+}
+.btn.text:hover {
+    background: transparent;
+    color: var(--ui-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--ui-yellow);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 3px;
+}
+.btn.danger {
+    border-color: var(--ui-danger);
+    background: transparent;
+    color: var(--ui-danger);
+}
+.btn.danger:hover {
+    background: var(--ui-danger);
+    color: #fff;
+}
+.btn.sm {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+.btn.text.sm {
+    padding: 0 4px;
+}
+.btn.block {
+    width: 100%;
+}
+.btn:disabled,
+.btn[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.btn .icon {
+    font-size: 18px;
+}
+
+.iconBtn {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ui-ink);
+    font-size: 20px;
+    cursor: pointer;
+}
+.iconBtn.sm {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+}
+.iconBtn:hover {
+    background: var(--ui-soft);
+}
+.iconBtn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* ── 토글 묶음 ───────────────────────────── */
+.seg {
+    display: inline-flex;
+    flex: none;
+    width: fit-content;
+    border: 2px solid var(--ui-line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.seg button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border: 0;
+    background: var(--ui-paper);
+    color: var(--ui-ink);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.seg button + button {
+    border-left: 2px solid var(--ui-line);
+}
+.seg button:hover {
+    background: var(--ui-soft);
+}
+.seg button[aria-pressed='true'] {
+    background: var(--ui-yellow);
+    color: var(--ui-on-yellow);
+}
+.seg.sm button {
+    padding: 2px 10px;
+    font-size: 12px;
+}
+.seg button .icon {
+    font-size: 16px;
+}
+
+/* ── 스위치 ───────────────────────────── */
+.switch {
+    position: relative;
+    flex: none;
+    width: 40px;
+    height: 24px;
+    padding: 0;
+    border: 2px solid var(--ui-line);
+    border-radius: 999px;
+    background: var(--ui-paper);
+    cursor: pointer;
+}
+.switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--ui-ink);
+    transition: transform 0.12s;
+}
+:global([data-theme='dark']) .switch::after {
+    background: var(--ui-muted);
+}
+.switch[aria-checked='true'] {
+    background: var(--ui-yellow);
+}
+:global([data-theme='dark']) .switch[aria-checked='true'] {
+    border-color: var(--ui-yellow);
+}
+.switch[aria-checked='true']::after {
+    transform: translateX(16px);
+    background: var(--ui-on-yellow);
+}
+.switch:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+.switchLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* ── 입력 ───────────────────────────── */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.fieldLabel {
+    font-size: 13px;
+    font-weight: 800;
+}
+.input,
+.select,
+.textarea {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+    border: 2px solid var(--ui-line);
+    border-radius: 8px;
+    background: var(--ui-paper);
+    color: var(--ui-ink);
+    font: inherit;
+    font-size: 14px;
+}
+.input.sm,
+.select.sm {
+    height: 34px;
+    font-size: 13px;
+}
+.textarea {
+    height: auto;
+    padding: 10px 12px;
+    resize: vertical;
+    line-height: 1.5;
+}
+.input::placeholder,
+.textarea::placeholder {
+    color: var(--ui-muted);
+}
+.input:focus,
+.select:focus,
+.textarea:focus {
+    outline: none;
+    background: var(--ui-soft);
+}
+.select {
+    appearance: none;
+    padding-right: 32px;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+.inputWrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.inputWrap .input {
+    padding-left: 36px;
+}
+.inputWrap .lead {
+    position: absolute;
+    left: 10px;
+    color: var(--ui-muted);
+    font-size: 20px;
+    pointer-events: none;
+}
+.inputWrap .trail {
+    position: absolute;
+    right: 4px;
+}
+
+/* ── 카드 ───────────────────────────── */
+.card {
+    border: 2px solid var(--ui-line);
+    border-radius: 12px;
+    background: var(--ui-paper);
+}
+/* 굵은 외곽선은 가장 바깥 상자 하나만 — 카드·대화상자 안의 카드는 옅은 면 */
+.card .card,
+.dialog .card {
+    border: 0;
+    background: var(--ui-tint);
+}
+
+/* ── 탭 ───────────────────────────── */
+.tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--ui-hair);
+    overflow-x: auto;
+}
+.tabs button {
+    min-width: 96px;
+    padding: 12px 16px 10px;
+    margin-bottom: -1px;
+    border: 0;
+    border-bottom: 4px solid transparent;
+    background: none;
+    color: var(--ui-muted);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.tabs button:hover {
+    color: var(--ui-ink);
+}
+.tabs button[aria-selected='true'] {
+    color: var(--ui-ink);
+    border-bottom-color: var(--ui-yellow);
+}
+
+/* ── 대화상자 ───────────────────────────── */
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.45);
+}
+.dialog {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: calc(100vh - 32px);
+    border: 2px solid var(--ui-line);
+    border-radius: 14px;
+    background: var(--ui-paper);
+    color: var(--ui-ink);
+    overflow: hidden;
+}
+.dialog.xs { max-width: 444px; }
+.dialog.sm { max-width: 600px; }
+.dialog.md { max-width: 900px; }
+.dialog.lg { max-width: 1200px; }
+.dialogHead {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 24px 8px;
+}
+.dialogTitle {
+    flex: 1;
+    margin: 0;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+.dialogBody {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 8px 24px 16px;
+}
+.dialogActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 24px 20px;
+}
+
+/* ── 알림 ───────────────────────────── */
+.notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 2px solid var(--ui-line);
+    border-radius: 10px;
+    background: var(--ui-paper);
+    font-size: 13px;
+    font-weight: 600;
+}
+.notice .noticeIcon {
+    flex: none;
+    font-size: 18px;
+}
+.notice .noticeBody {
+    flex: 1;
+    min-width: 0;
+}
+.notice.info .noticeIcon { color: var(--ui-ink); }
+.notice.success { border-color: var(--ui-ok-fg); }
+.notice.success .noticeIcon { color: var(--ui-ok-fg); }
+.notice.error { border-color: var(--ui-bad-fg); }
+.notice.error .noticeIcon { color: var(--ui-bad-fg); }
+.notice.warning { border-color: #c77700; }
+.notice.warning .noticeIcon { color: #c77700; }
+.notice.flat {
+    border-width: 0 0 1px;
+    border-radius: 0;
+    border-color: var(--ui-hair);
+    background: var(--ui-soft);
+}
+
+/* ── 태그 · 칩 ───────────────────────────── */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.tag.round {
+    border-radius: 999px;
+}
+.tag.ok { background: var(--ui-ok-bg); color: var(--ui-ok-fg); }
+.tag.bad { background: var(--ui-bad-bg); color: var(--ui-bad-fg); }
+.tag.off { background: var(--ui-off-bg); color: var(--ui-off-fg); }
+.tag.neutral { background: var(--ui-tint); color: var(--ui-muted); }
+.tag.yellow { background: var(--ui-yellow); color: var(--ui-on-yellow); }
+button.tag {
+    border: 0;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* ── 그 밖 ───────────────────────────── */
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--ui-hair);
+    border-top-color: var(--ui-ink);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.divider {
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background: var(--ui-hair);
+}
+.muted {
+    color: var(--ui-muted);
+}

@@ -6,7 +6,7 @@ import {
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import { useCallback, useRef } from "react";
 import { useAlertContext } from "@/context/Alert";
-import Button from "@mui/material/Button";
+import { Button, LabelButton } from "@/ui";
 
 export function ImportFilter() {
     const {globalSetting} = useGlobalSettingContext();
@@ -52,9 +52,9 @@ export function ImportFilter() {
     
     return (
         <>
-            <Button variant="outlined" component="label" htmlFor="upload-filter" startIcon={<span className="material-icons-round">file_upload</span>}>
+            <LabelButton htmlFor="upload-filter" icon="file_upload">
                 {t('common.filter_import')}
-            </Button>
+            </LabelButton>
             <input ref={inputRef} type='file' accept='.tbc' className='hidden' id='upload-filter' onChange={handleChange}></input>
         </>
     )
@@ -78,7 +78,7 @@ export function ExportFilter() {
     }, [filterGroup, globalSetting.platform])
 
     return (
-        <Button variant="outlined" onClick={clickHandler} startIcon={<span className="material-icons-round">file_download</span>}>
+        <Button icon="file_download" onClick={clickHandler}>
             {t('common.filter_export')}
         </Button>
     );
