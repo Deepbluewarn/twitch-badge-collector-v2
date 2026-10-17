@@ -292,7 +292,8 @@ export default function FilterDialog(props: FilterDialogProps) {
             open={open}
             onClose={onClose}
             title={getDialogTitle()}
-            width={type === 'filter' ? 'lg' : 'xs'}
+            // 배지 조건만 배지 목록 때문에 넓게. 이름·키워드 조건은 좁게, 채널·메모는 더 좁게.
+            width={type === 'filter' ? (filterGroup?.category === 'badge' ? 'lg' : 'sm') : 'xs'}
             actions={<>
                 <Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
                 <Button variant="primary" disabled={saveDisabled} onClick={() => handleSave()}>
