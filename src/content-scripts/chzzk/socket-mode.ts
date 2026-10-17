@@ -10,6 +10,8 @@ import { getPlatformConfig } from "@/platform/host-selectors";
  *  2. OTA `platforms.chzzk.constants.socketRender` — 0이면 전원 끔. 비상 스위치.
  *  3. OTA `constants.socketRenderPercent` (0~100) — 설치별 숫자(0~99)가 이 값보다 작으면 켬.
  *     값이 없으면 100(전원 켬). 절차: docs/ota-selectors.md 시나리오 D.
+ *     개발 빌드(`npm run dev`)는 비율을 무시하고 켠다 — 실행마다 새 프로필이라 숫자를 새로 뽑아서
+ *     켜졌다 꺼졌다 한다. 비상 스위치는 따른다.
  *
  * 설치별 숫자는 처음 필요할 때 무작위로 뽑아 storage.local에 두고 계속 쓴다 — 같은 사용자는
  * 비율을 올려도 켜진 쪽에서 꺼지지 않는다. 밖으로 보내지 않는다.
@@ -47,11 +49,14 @@ export function isSocketRenderEnabled(
     constants: Record<string, string | number> | undefined = getPlatformConfig('chzzk').constants,
     local: string | null = readLocal(),
     installBucket: number | undefined = bucket,
+    // vitest는 mode가 'test'라 여기 걸리지 않는다.
+    devBuild: boolean = import.meta.env.MODE === 'development',
 ): boolean {
     if (local === '0') return false;
     if (local === '1') return true;
     const kill = constants?.socketRender;
     if (kill === 0 || kill === '0') return false;
+    if (devBuild) return true;
     const raw = constants?.socketRenderPercent;
     if (raw === undefined || raw === '') return true;
     const percent = Math.max(0, Math.min(100, Number(raw)));

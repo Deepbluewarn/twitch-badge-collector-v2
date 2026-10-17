@@ -184,13 +184,14 @@ fetch(browser.runtime.getURL('platform/bundled-selectors.json')).then(r => r.jso
 ### D. 치지직 소켓 렌더 모드 — 비율 배포와 비상 끄기
 치지직은 채팅 소켓을 탭해 채팅을 판정한다(`src/content-scripts/chzzk/socket-mode.ts`). 켜는 범위를 OTA로 조절한다.
 - `platforms.chzzk.constants.socketRenderPercent` (0~100): 설치마다 무작위로 정해 저장해 둔 숫자(0~99)가 이 값보다 작은 사용자만 켠다. 값이 없으면 100(전원). 같은 사용자는 비율을 올려도 켜진 쪽에 남는다.
+  개발 빌드(`npm run dev`)는 이 값을 무시하고 켠다 (`socketRender: 0`은 따른다).
 - `constants.socketRender: 0`: 비율과 상관없이 **전원 끄기**(비상 스위치).
 - 둘 다 ISOLATED가 읽으므로 사용자 쪽에선 manifest 갱신 후 **페이지 새로고침 시점부터** 적용된다.
 - 꺼진 사용자에게는 팝업의 "모아보기 채팅 모양" 항목도 숨겨진다(커스텀 템플릿이 소켓 모드에서만 동작하므로).
 
 절차: 값을 바꾸고 `rev` +1 → 푸시 → (급하면) jsDelivr purge. 문제가 생기면 `socketRenderPercent: 0` 또는 `socketRender: 0`.
 
-**현재 상태 (2026-10-13, rev 17): `socketRenderPercent: 10`** — v2.20.0은 꺼진 채(rev 16, 0%) 배포했고 rev 17에서 10%로 올렸다. 계획: 10% → 며칠 지켜보기 → 50% → 100%.
+**현재 상태 (2026-10-17, rev 19): `socketRenderPercent: 30`** — v2.20.0은 꺼진 채(rev 16, 0%) 배포했고 rev 17에서 10%, rev 19에서 30%로 올렸다.
 
 MAIN world의 소켓 탭 자체는 이 값과 관계없이 설치된다(listener만 붙는 수동 탭). 개별 디버그는 치지직 페이지 콘솔에서 `localStorage.setItem('tbc:socket-render', '0' | '1')` — OTA보다 우선한다(팝업 항목은 OTA·비율만 본다).
 

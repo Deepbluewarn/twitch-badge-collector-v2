@@ -44,6 +44,12 @@ describe('isSocketRenderEnabled', () => {
         expect(isSocketRenderEnabled({ socketRenderPercent: 'abc' }, null, 0)).toBe(false);
     });
 
+    it('개발 빌드는 비율을 무시하고 켜되 비상 스위치는 따른다', () => {
+        expect(isSocketRenderEnabled({ socketRenderPercent: 30 }, null, 99, true)).toBe(true);
+        expect(isSocketRenderEnabled({ socketRenderPercent: 30 }, null, undefined, true)).toBe(true);
+        expect(isSocketRenderEnabled({ socketRender: 0 }, null, 0, true)).toBe(false);
+    });
+
     it('localStorage가 OTA보다 우선', () => {
         expect(isSocketRenderEnabled({ socketRender: 0 }, '1', 0)).toBe(true);
         expect(isSocketRenderEnabled({ socketRenderPercent: 0 }, '1', 99)).toBe(true);
