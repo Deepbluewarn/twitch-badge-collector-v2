@@ -191,5 +191,20 @@
         "chzzk": "CHZZK のチャンネル ID は、ライブ配信 URL の <b>/live/</b> の後に続く英数字の ID です。",
         "example": "例:"
     },
-    "translation_notice": "Badge Collector は韓国語で作られているため、一部の翻訳が不自然な場合があります。"
+    "translation_notice": "Badge Collector は韓国語で作られているため、一部の翻訳が不自然な場合があります。",
+    "filter_list": {
+        "select_all": "すべて選択",
+        "select": "選択",
+        "selected": "{{count}}件選択",
+        "select_every": "フィルター{{count}}件をすべて選択",
+        "clear_selection": "選択解除",
+        "total": "フィルター{{count}}件",
+        "empty": "フィルターなし",
+        "per_page": "1ページあたり",
+        "condition": "条件",
+        "marker_color": "マーカーの色",
+        "custom_color": "色を選ぶ",
+        "prev_page": "前のページ",
+        "next_page": "次のページ"
+    }
 }

@@ -191,5 +191,20 @@
         "chzzk": "CHZZK 频道 ID 是直播网址中 <b>/live/</b> 后面由字母和数字组成的 ID。",
         "example": "示例："
     },
-    "translation_notice": "Badge Collector 以韩语开发，部分翻译可能不够自然。"
+    "translation_notice": "Badge Collector 以韩语开发，部分翻译可能不够自然。",
+    "filter_list": {
+        "select_all": "全选",
+        "select": "选择",
+        "selected": "已选 {{count}} 个",
+        "select_every": "选择全部 {{count}} 个筛选器",
+        "clear_selection": "取消选择",
+        "total": "{{count}} 个筛选器",
+        "empty": "没有筛选器",
+        "per_page": "每页",
+        "condition": "条件",
+        "marker_color": "标记颜色",
+        "custom_color": "自定义颜色",
+        "prev_page": "上一页",
+        "next_page": "下一页"
+    }
 }

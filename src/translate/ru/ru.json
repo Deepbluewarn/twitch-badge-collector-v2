@@ -191,5 +191,20 @@
         "chzzk": "ID канала CHZZK — это ID из букв и цифр после <b>/live/</b> в адресе трансляции.",
         "example": "Пример:"
     },
-    "translation_notice": "Badge Collector создан на корейском языке, поэтому некоторые переводы могут звучать неестественно."
+    "translation_notice": "Badge Collector создан на корейском языке, поэтому некоторые переводы могут звучать неестественно.",
+    "filter_list": {
+        "select_all": "Выбрать все",
+        "select": "Выбрать",
+        "selected": "Выбрано: {{count}}",
+        "select_every": "Выбрать все фильтры ({{count}})",
+        "clear_selection": "Снять выбор",
+        "total": "Фильтров: {{count}}",
+        "empty": "Нет фильтров",
+        "per_page": "На странице",
+        "condition": "Условие",
+        "marker_color": "Цвет метки",
+        "custom_color": "Свой цвет",
+        "prev_page": "Предыдущая страница",
+        "next_page": "Следующая страница"
+    }
 }

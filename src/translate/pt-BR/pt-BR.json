@@ -191,5 +191,20 @@
         "chzzk": "O ID de um canal do CHZZK é o código de letras e números depois de <b>/live/</b> na URL da live.",
         "example": "Exemplo:"
     },
-    "translation_notice": "O Badge Collector é feito em coreano, então algumas traduções podem soar estranhas."
+    "translation_notice": "O Badge Collector é feito em coreano, então algumas traduções podem soar estranhas.",
+    "filter_list": {
+        "select_all": "Selecionar tudo",
+        "select": "Selecionar",
+        "selected": "{{count}} selecionados",
+        "select_every": "Selecionar todos os {{count}} filtros",
+        "clear_selection": "Limpar seleção",
+        "total": "{{count}} filtros",
+        "empty": "Nenhum filtro",
+        "per_page": "Por página",
+        "condition": "Condição",
+        "marker_color": "Cor do marcador",
+        "custom_color": "Cor personalizada",
+        "prev_page": "Página anterior",
+        "next_page": "Próxima página"
+    }
 }

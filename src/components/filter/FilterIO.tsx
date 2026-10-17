@@ -3,10 +3,10 @@ import { useFilterGroupContext } from "@/context/FilterGroup";
 import { 
     CompositeFilterElement, 
 } from "@/interfaces/filter";
-import { CustomToolbarItemStyle } from "../datagrid/toolbar";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import { useCallback, useRef } from "react";
 import { useAlertContext } from "@/context/Alert";
+import Button from "@mui/material/Button";
 
 export function ImportFilter() {
     const {globalSetting} = useGlobalSettingContext();
@@ -52,12 +52,9 @@ export function ImportFilter() {
     
     return (
         <>
-            <label htmlFor='upload-filter'>
-                <CustomToolbarItemStyle direction='row'>
-                    <span className="material-icons-round">file_upload</span>
-                    <span>{t('common.filter_import')}</span>
-                </CustomToolbarItemStyle>
-            </label>
+            <Button variant="outlined" component="label" htmlFor="upload-filter" startIcon={<span className="material-icons-round">file_upload</span>}>
+                {t('common.filter_import')}
+            </Button>
             <input ref={inputRef} type='file' accept='.tbc' className='hidden' id='upload-filter' onChange={handleChange}></input>
         </>
     )
@@ -81,10 +78,9 @@ export function ExportFilter() {
     }, [filterGroup, globalSetting.platform])
 
     return (
-        <CustomToolbarItemStyle direction='row' onClick={clickHandler}>
-            <span className="material-icons-round">file_download</span>
-            <span>{t('common.filter_export')}</span>
-        </CustomToolbarItemStyle>
+        <Button variant="outlined" onClick={clickHandler} startIcon={<span className="material-icons-round">file_download</span>}>
+            {t('common.filter_export')}
+        </Button>
     );
 }
 

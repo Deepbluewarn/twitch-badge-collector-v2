@@ -1,0 +1,362 @@
+/* 필터 목록 (표 F) — docs/design-system.md "필터 목록". 색은 src/ui/tokens.css 토큰. */
+
+.root {
+    font-family: var(--ui-font);
+    color: var(--ui-ink);
+}
+
+/* ── 체크박스 ─────────────────────────────── */
+.check {
+    appearance: none;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 2px solid var(--ui-line);
+    border-radius: 4px;
+    background: var(--ui-paper) no-repeat center / 12px;
+    cursor: pointer;
+}
+.check:checked,
+.check:indeterminate {
+    border-color: var(--ui-ink);
+    background-color: var(--ui-ink);
+}
+.check:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.5 4.8 9 10 3' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E");
+}
+:global([data-theme='dark']) .check:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.5 4.8 9 10 3' fill='none' stroke='%23161512' stroke-width='2'/%3E%3C/svg%3E");
+}
+.check:indeterminate {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6h7' stroke='white' stroke-width='2'/%3E%3C/svg%3E");
+}
+:global([data-theme='dark']) .check:indeterminate {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6h7' stroke='%23161512' stroke-width='2'/%3E%3C/svg%3E");
+}
+.check:focus-visible {
+    outline: 3px solid var(--ui-ink);
+    outline-offset: 2px;
+}
+.check:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* ── 글자 버튼 ─────────────────────────────── */
+.link {
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ui-muted);
+    cursor: pointer;
+    white-space: nowrap;
+}
+.link:hover {
+    color: var(--ui-ink);
+}
+.link.underline {
+    text-decoration: underline;
+    text-decoration-color: var(--ui-yellow);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 3px;
+}
+.link:focus-visible {
+    outline: 3px solid var(--ui-ink);
+    outline-offset: 2px;
+}
+
+/* ── 머리 줄 (전체 선택 · 선택 동작) ─────────────────────────────── */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 40px;
+    padding: 0 4px;
+    flex-wrap: wrap;
+}
+.muted {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ui-muted);
+}
+.strong {
+    font-size: 13px;
+    font-weight: 800;
+}
+.danger {
+    height: 30px;
+    padding: 0 12px;
+    border: 2px solid var(--ui-danger);
+    border-radius: 8px;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ui-danger);
+    cursor: pointer;
+}
+.danger:hover {
+    background: var(--ui-danger);
+    color: #fff;
+}
+.spacer {
+    margin-left: auto;
+}
+
+/* ── 표 ─────────────────────────────── */
+.table {
+    border-top: 2px solid var(--ui-ink);
+}
+.row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 4px;
+    border-bottom: 1px solid var(--ui-hair);
+}
+.row:hover {
+    background: var(--ui-soft);
+}
+.row.selected {
+    background: color-mix(in srgb, var(--ui-yellow) 28%, transparent);
+}
+/* 줄을 볼 때만 보이는 것: 추가 링크 */
+.reveal {
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+.row:hover .reveal,
+.row:focus-within .reveal {
+    opacity: 1;
+}
+.empty {
+    padding: 32px 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--ui-muted);
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.atoms {
+    min-width: 0;
+    flex: 0 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+}
+.plus {
+    flex: none;
+    font-size: 12px;
+    color: var(--ui-muted);
+}
+.meta {
+    flex: none;
+    display: flex;
+    gap: 12px;
+    margin-left: auto;
+}
+.metaItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 200px;
+    min-width: 0;
+}
+.metaItem .link {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.metaValue {
+    color: var(--ui-ink);
+}
+
+/* ── 조건 칩 · 상태 태그 (상태 색: ok 맞음/포함, bad 아님/제외, off 꺼짐) ─────────────────────────────── */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    height: 26px;
+    padding: 0 6px 0 8px;
+    border-radius: 999px;
+}
+.chip.badge {
+    padding-left: 4px;
+}
+.chipBody {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: inherit;
+    cursor: pointer;
+}
+.chipBody img {
+    flex: none;
+    width: 18px;
+    height: 18px;
+}
+.chipLabel {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.x {
+    opacity: 0;
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-size: 15px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+}
+.chip:hover .x,
+.metaItem:hover .x,
+.x:focus-visible {
+    opacity: 1;
+}
+.metaItem .x {
+    color: var(--ui-muted);
+}
+
+.ok { background: var(--ui-ok-bg); color: var(--ui-ok-fg); }
+.bad { background: var(--ui-bad-bg); color: var(--ui-bad-fg); }
+.off { background: var(--ui-off-bg); color: var(--ui-off-fg); }
+.off .chipBody img { opacity: 0.5; }
+
+.tag {
+    flex: none;
+    min-width: 44px;
+    padding: 2px 8px;
+    border: 0;
+    border-radius: 4px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* ── 수집 표시 색 ─────────────────────────────── */
+.swatchSlot {
+    position: relative;
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+.swatch {
+    display: block;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 2px solid var(--ui-paper);
+    border-radius: 5px;
+    box-shadow: 0 0 0 1px var(--ui-hair);
+    cursor: pointer;
+    transition: box-shadow 0.12s;
+}
+.swatch:hover,
+.swatch:focus-visible {
+    box-shadow: 0 0 0 2px var(--ui-ink);
+    outline: none;
+}
+.palette {
+    position: absolute;
+    top: 28px;
+    left: -6px;
+    z-index: 10;
+    padding: 12px;
+    border: 2px solid var(--ui-line);
+    border-radius: 10px;
+    background: var(--ui-paper);
+}
+.paletteTitle {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.paletteGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 28px);
+    gap: 8px;
+}
+.paletteGrid .swatch {
+    width: 28px;
+    height: 28px;
+}
+.paletteGrid .current {
+    box-shadow: 0 0 0 2px var(--ui-ink);
+}
+.custom {
+    background: conic-gradient(#f44, #fd0, #4d4, #4cf, #a4f, #f44);
+}
+
+/* ── 아래 줄 (페이지당 · 페이지) ─────────────────────────────── */
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 12px;
+}
+.sizes,
+.pager {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.pager {
+    margin-left: auto;
+}
+.num {
+    min-width: 34px;
+    height: 28px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ui-muted);
+    cursor: pointer;
+}
+.num:hover:not(:disabled) {
+    background: var(--ui-soft);
+    color: var(--ui-ink);
+}
+.num.current {
+    background: var(--ui-yellow);
+    color: var(--ui-on-yellow);
+}
+.num:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+.range {
+    margin-right: 8px;
+    font-variant-numeric: tabular-nums;
+}

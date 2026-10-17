@@ -1,0 +1,42 @@
+/* 확장 UI 디자인 토큰 — docs/design-system.md. 팝업·설정 페이지 전용 (콘텐츠 스크립트는 호스트 테마를 따른다).
+   테마는 <html data-theme="light|dark">로 고른다 (useDocumentTheme). */
+:root {
+    --ui-paper: #ffffff;
+    --ui-ink: #111111;
+    --ui-yellow: #ffd60a;
+    --ui-yellow-hover: #ffe45c;
+    --ui-on-yellow: #111111;
+    --ui-line: #111111;
+    --ui-hair: #e7e5df;
+    --ui-tint: #f5f4ef;
+    --ui-soft: #fff6c2;
+    --ui-muted: #6b6a66;
+    --ui-danger: #e5484d;
+
+    --ui-ok-fg: #137a47;
+    --ui-ok-bg: rgba(31, 164, 99, 0.12);
+    --ui-bad-fg: #c22b31;
+    --ui-bad-bg: rgba(229, 72, 77, 0.1);
+    --ui-off-fg: var(--ui-muted);
+    --ui-off-bg: rgba(17, 17, 17, 0.07);
+
+    --ui-font: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI',
+        'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+}
+
+:root[data-theme='dark'] {
+    --ui-paper: #161512;
+    --ui-ink: #f4f1e6;
+    --ui-line: #6a665a;
+    --ui-hair: #2c2a25;
+    --ui-tint: #23211c;
+    --ui-soft: #3b3413;
+    --ui-muted: #a19d90;
+
+    --ui-ok-fg: #5fd39a;
+    --ui-ok-bg: rgba(31, 164, 99, 0.2);
+    --ui-bad-fg: #ff8a8e;
+    --ui-bad-bg: rgba(229, 72, 77, 0.22);
+    --ui-off-bg: rgba(244, 241, 230, 0.07);
+    color-scheme: dark;
+}

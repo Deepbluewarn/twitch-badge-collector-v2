@@ -26,6 +26,7 @@ import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, 
 import { SettingInterface } from "@/interfaces/setting";
 import { getPlatformConfig, manifestReady } from "@/platform/host-selectors";
 import { ensureRolloutBucket, isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
+import { useDocumentTheme } from "@/ui/useDocumentTheme";
 
 const PopupGlobalStyle = (
   <GlobalStyles
@@ -674,6 +675,7 @@ const ContextRouter = () => {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   // 사용자 설정(system/light/dark)을 boolean으로 해석.
   const isDark = useResolvedDarkMode(globalSetting.darkTheme);
+  useDocumentTheme(isDark);
 
   return (
     <ThemeProvider theme={useCustomTheme(isDark)}>

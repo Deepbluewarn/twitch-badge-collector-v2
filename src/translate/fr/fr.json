@@ -191,5 +191,20 @@
         "chzzk": "L'ID d'une chaîne CHZZK est la suite de lettres et de chiffres qui suit <b>/live/</b> dans l'URL du direct.",
         "example": "Exemple :"
     },
-    "translation_notice": "Badge Collector est conçu en coréen ; certaines traductions peuvent donc sembler maladroites."
+    "translation_notice": "Badge Collector est conçu en coréen ; certaines traductions peuvent donc sembler maladroites.",
+    "filter_list": {
+        "select_all": "Tout sélectionner",
+        "select": "Sélectionner",
+        "selected": "{{count}} sélectionné(s)",
+        "select_every": "Sélectionner les {{count}} filtres",
+        "clear_selection": "Effacer la sélection",
+        "total": "{{count}} filtres",
+        "empty": "Aucun filtre",
+        "per_page": "Par page",
+        "condition": "Condition",
+        "marker_color": "Couleur du marqueur",
+        "custom_color": "Couleur personnalisée",
+        "prev_page": "Page précédente",
+        "next_page": "Page suivante"
+    }
 }

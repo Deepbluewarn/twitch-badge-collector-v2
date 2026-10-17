@@ -190,5 +190,20 @@
         "twitch": "트위치 채널 ID는 채널 주소의 마지막 부분입니다.",
         "chzzk": "치지직 채널 ID는 라이브 방송 주소에서 <b>/live/</b> 다음에 나오는 영문/숫자 ID입니다.",
         "example": "예시:"
+    },
+    "filter_list": {
+        "select_all": "전체 선택",
+        "select": "선택",
+        "selected": "{{count}}개 선택",
+        "select_every": "필터 {{count}}개 모두 선택",
+        "clear_selection": "선택 해제",
+        "total": "필터 {{count}}개",
+        "empty": "필터 없음",
+        "per_page": "페이지당",
+        "condition": "조건",
+        "marker_color": "수집 표시 색",
+        "custom_color": "직접 고르기",
+        "prev_page": "이전 페이지",
+        "next_page": "다음 페이지"
     }
 }

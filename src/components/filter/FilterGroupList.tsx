@@ -1,340 +1,52 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { GridColDef, GridRenderCellParams, GridRowId } from "@mui/x-data-grid";
-import { Box } from "@mui/material";
-import { useTranslation } from "react-i18next";
-import { styled } from "@mui/material/styles";
-import Tooltip from "@mui/material/Tooltip";
-import Avatar from "@mui/material/Avatar";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
-import CloseIcon from '@mui/icons-material/Close';
-import CheckIcon from '@mui/icons-material/Check';
-import BlockIcon from '@mui/icons-material/Block';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import { ImportFilter, ExportFilter } from "./FilterIO";
-import { chipColor, onFilterTypeChipClick } from "../chip/FilterTypeChip";
-import { CustomToolbarItemStyle } from "@/components/datagrid/toolbar";
+import React, { useMemo, useState } from "react";
 import { useFilterGroupContext } from "@/context/FilterGroup";
-import { AtomicFilterElement, CompositeFilterElement, FilterType } from "../../interfaces/filter";
-import RelaxedChip from "../chip/RelaxedChip";
+import { CompositeFilterElement } from "../../interfaces/filter";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import FilterDialog, { DialogMode, DialogType } from "./FilterDialog";
-import RoundAddButton from '../common/RoundAddButton';
-import { CustomDataGrid } from "../datagrid/customDataGrid";
-import { getAdapter, getBadgeSrcSet } from '@/platform';
+import { getAdapter } from '@/platform';
+import { rotateFilterType } from "../chip/FilterTypeChip";
+import { FilterList, FilterListActions } from "./FilterList";
 
-const ChipListStyle = styled(Stack)({
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '4px',
-    width: '100%',
-    overflow: 'auto',
-    lineHeight: '1.5',
-    alignItems: 'center',
-
-    '.chip-label-filterBadgeImage': {
-        display: 'inline-block',
-        verticalAlign: 'middle',
-    },
-    '.MuiChip-outlined': {
-        maxWidth: '10rem',
-    }
-})
-
-/**
- * 그룹별 마커 색상 swatch + 네이티브 color picker. 스와치 클릭 시 hidden
- * `<input type="color">`를 programmatically 열어 OS native picker 띄움 — 라이브러리 의존성 0.
- *
- * native color input은 사용자가 색을 드래그할 때마다 'input' 이벤트가 연속 발화 →
- * React onChange로 받으면 storage write가 폭주. 'change' 이벤트는 picker가 닫힐 때
- * 한 번만 발화하므로 그걸로 commit. React onChange는 'input'을 매핑하므로 사용 X,
- * defaultValue + native addEventListener('change') 패턴 사용.
- */
-function ColorSwatch({ value, onChange }: { value: string; onChange: (c: string) => void }) {
-    const inputRef = React.useRef<HTMLInputElement>(null);
-    React.useEffect(() => {
-        const el = inputRef.current;
-        if (!el) return;
-        const onChangeHandler = (e: Event) => {
-            const v = (e.target as HTMLInputElement).value;
-            onChange(v);
-        };
-        el.addEventListener('change', onChangeHandler);
-        return () => el.removeEventListener('change', onChangeHandler);
-    }, [onChange]);
-    return (
-        <Box
-            onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
-            sx={{
-                width: 24, height: 24, borderRadius: '50%', backgroundColor: value,
-                cursor: 'pointer', border: '1px solid rgba(0,0,0,0.2)',
-            }}
-        >
-            <input
-                ref={inputRef}
-                type="color"
-                defaultValue={value}
-                onClick={(e) => e.stopPropagation()}
-                style={{ position: 'absolute', visibility: 'hidden', width: 0, height: 0 }}
-            />
-        </Box>
-    );
-}
-
+/** 지금 플랫폼의 필터 목록 + 필터 편집 대화상자. 목록 모양은 FilterList, 저장은 필터 그룹 context. */
 export function FilterGroupList() {
     const { globalSetting } = useGlobalSettingContext();
     const adapter = getAdapter(globalSetting.platform);
     const { filterGroup, setFilterGroup, upsertCompositeFilter, removeSubFilter, removeFilterField } = useFilterGroupContext();
-    const [platformFilters, setPlatformFilters] = useState<CompositeFilterElement[]>(filterGroup);
-    const [selectionModel, setSelectionModel] = React.useState<Set<GridRowId>>(new Set());
-    const [showDeleteButton, setShowDeleteButton] = React.useState(false);
-    const { t } = useTranslation();
+    const platformFilters = useMemo(() => filterGroup.filter(f => f.platform === globalSetting.platform), [filterGroup, globalSetting.platform]);
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogType, setDialogType] = useState<DialogType>(null);
     const [dialogMode, setDialogMode] = useState<DialogMode>(null);
     const [selectedFilterList, setSelectedFilterList] = useState<CompositeFilterElement>();
     const [selectedFilterId, setSelectedFilterId] = useState<string | undefined>('');
-    
-    // 필터 수정 모달 열기 함수
-    const openFilterDialog = ({
-        type,
-        filterList,
-        selectedFilterId,
-        mode = 'edit'
-    }: {
-        type: DialogType,
-        filterList?: CompositeFilterElement,
-        selectedFilterId?: string,
-        mode?: DialogMode
-    }) => {
+
+    const openFilterDialog = (type: DialogType, filterList: CompositeFilterElement, mode: DialogMode, filterId?: string) => {
         setDialogType(type);
         setSelectedFilterList(filterList);
-        setSelectedFilterId(selectedFilterId);
-        setDialogOpen(true);
+        setSelectedFilterId(filterId);
         setDialogMode(mode);
+        setDialogOpen(true);
     };
 
-    const getColumns = useCallback(() => {
-        return [
-            { 
-                field: 'filters', headerName: t('common.filter'), flex: 0.6, display: 'flex',
-                renderCell: (params: GridRenderCellParams<CompositeFilterElement, AtomicFilterElement[]>) => {
-                    if(!params.value) return null;
-
-                    if(platformFilters.length > 0 && platformFilters[0].platform !== globalSetting.platform) return null;
-    
-                    const chips = params.value.map(af => {
-                        let title = `${t(`filter.type.${af.category || ''}`)}: ${af.value}`;
-                        let badgeAvatar;
-                        if(af.category === 'badge'){
-                            const badgeUUID = af.value;
-                            title = af.badgeName || '';
-                            badgeAvatar = (
-                                <Avatar
-                                    alt={af.badgeName}
-                                    src={adapter.getBadgeImageUrl(badgeUUID, '1x')}
-                                    srcSet={getBadgeSrcSet(adapter, badgeUUID)}
-                                />
-                            )
-                        }
-                        return (
-                            <Tooltip key={`${title}-${af.id}`} title={title} placement="top">
-                                <RelaxedChip
-                                    label={title}
-                                    avatar={badgeAvatar}
-                                    color={chipColor(af.type)}
-                                    variant="outlined"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        openFilterDialog({
-                                            type: 'filter',
-                                            filterList: params.row,
-                                            selectedFilterId: af.id,
-                                            mode: 'edit'
-                                        });
-                                     }}
-                                     onDelete={() => {
-                                        removeSubFilter(params.row.id, af.id);
-                                     }}
-                                />
-                            </Tooltip >
-                        )
-                    });
-    
-                    return (
-                        <ChipListStyle direction='row'>
-                            {chips}
-                            <RoundAddButton
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    openFilterDialog({
-                                        type: 'filter',
-                                        mode: 'add',
-                                        filterList: params.row,
-                                    });
-                                }}
-                            />
-                        </ChipListStyle>
-                    )
-                }
-            },
-            {
-                field: 'filterChannelName', headerName: t('common.channel'), flex: 0.2, display: 'flex',
-                renderCell: (params: GridRenderCellParams<any, string>) => {
-                    if (!params.value) {
-                        return (
-                            <RoundAddButton
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    openFilterDialog({
-                                        type: 'channel',
-                                        filterList: params.row,
-                                        mode: 'add'
-                                    });
-                                }}
-                            />
-                        )
-                    }
-                    // chip 대신 텍스트 + delete 아이콘 — 데이터 셀에 적합한 lightweight 표현
-                    return (
-                        <TextCell
-                            label={params.value}
-                            tooltip={params.row.filterChannelId}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                openFilterDialog({
-                                    type: 'channel',
-                                    filterList: params.row,
-                                    mode: 'edit'
-                                });
-                            }}
-                            onDelete={(e) => {
-                                e.stopPropagation();
-                                removeFilterField(params.row.id, 'filterChannelId');
-                                removeFilterField(params.row.id, 'filterChannelName');
-                            }}
-                        />
-                    )
-                }
-            },
-            {
-                field: 'filterNote', headerName: t('common.note'), flex: 0.2, display: 'flex',
-                renderCell: (params: GridRenderCellParams<any, string>) => {
-                    if (!params.value) {
-                        return (
-                            <RoundAddButton
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    openFilterDialog({
-                                        type: 'note',
-                                        filterList: params.row,
-                                        mode: 'add'
-                                    });
-                                }}
-                            />
-                        )
-                    }
-                    return (
-                        <TextCell
-                            label={params.value}
-                            tooltip={params.value}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                openFilterDialog({
-                                    type: 'note',
-                                    filterList: params.row,
-                                    mode: 'edit'
-                                });
-                            }}
-                            onDelete={(e) => {
-                                e.stopPropagation();
-                                removeFilterField(params.row.id, 'filterNote');
-                            }}
-                        />
-                    )
-                }
-            },
-            {
-                field: 'filterType', headerName: t('common.condition'), flex: 0.18, display: 'flex',
-                renderCell: (params: GridRenderCellParams) => {
-                    if (!params.value) return null;
-                    return (
-                        <ConditionLabel
-                            value={params.value as FilterType}
-                            label={t(`filter.category.${params.value}`)}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onFilterTypeChipClick(params, setFilterGroup);
-                            }}
-                        />
-                    )
-                }
-            },
-            {
-                field: 'markerColor', headerName: t('common.color'), flex: 0.1, display: 'flex',
-                renderCell: (params: GridRenderCellParams) => {
-                    const row = params.row as CompositeFilterElement;
-                    const value = (params.value as string) || '#FFC107';
-                    return (
-                        <ColorSwatch
-                            value={value}
-                            onChange={(c) => upsertCompositeFilter({ ...row, markerColor: c })}
-                        />
-                    );
-                }
-            }
-        ] as GridColDef[];
-    }, [globalSetting.platform, platformFilters, upsertCompositeFilter]);
-
-    useEffect(() => {
-        setPlatformFilters(filterGroup.filter(af => af.platform === globalSetting.platform));
-    }, [filterGroup, globalSetting.platform]);
-
-    function CustomToolbar() {
-        return (
-            <Box sx={{ p: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
-                <ImportFilter />
-                <ExportFilter />
-                <DeleteButton selectionModel={selectionModel} showDeleteButton={showDeleteButton} />
-            </Box>
-        );
-    }
+    const actions: FilterListActions = {
+        editAtom: (row, atomId) => openFilterDialog('filter', row, 'edit', atomId),
+        addAtom: (row) => openFilterDialog('filter', row, 'add'),
+        removeAtom: (row, atomId) => removeSubFilter(row.id, atomId),
+        editChannel: (row) => openFilterDialog('channel', row, row.filterChannelName ? 'edit' : 'add'),
+        removeChannel: (row) => {
+            removeFilterField(row.id, 'filterChannelId');
+            removeFilterField(row.id, 'filterChannelName');
+        },
+        editNote: (row) => openFilterDialog('note', row, row.filterNote ? 'edit' : 'add'),
+        removeNote: (row) => removeFilterField(row.id, 'filterNote'),
+        rotateType: (row) => setFilterGroup(rows => rows.map(r => (r.id === row.id ? { ...r, filterType: rotateFilterType(r.filterType) } : r))),
+        setColor: (row, color) => upsertCompositeFilter({ ...row, markerColor: color }),
+        deleteMany: (ids) => setFilterGroup(rows => rows.filter(r => !ids.has(r.id))),
+    };
 
     return (
         <>
-            <CustomDataGrid
-                rows={platformFilters}
-                columns={getColumns()}
-                slots={{ toolbar: CustomToolbar }}
-                showToolbar
-                onRowSelectionModelChange={(selModel) => {
-
-                    // v7의 새로운 selection model 처리
-                    let actualSelectedCount = 0;
-                    let actualSelectedIds = new Set<GridRowId>();
-
-                    if (selModel.type === 'include') {
-                        // include 타입: ids에 포함된 항목들의 개수
-                        actualSelectedCount = selModel.ids.size;
-                        actualSelectedIds = selModel.ids;
-                    } else {
-                        // exclude 타입: 전체에서 ids에 제외된 항목들을 뺀 개수
-                        actualSelectedCount = platformFilters.length - selModel.ids.size;
-                        // exclude 타입에서는 선택된 항목들을 계산
-                        actualSelectedIds = new Set(
-                            platformFilters
-                                .filter(filter => !selModel.ids.has(filter.id))
-                                .map(filter => filter.id)
-                        );
-                    }
-
-                    setSelectionModel(actualSelectedIds);
-                    setShowDeleteButton(actualSelectedCount > 0);
-                }}
-                checkboxSelection
-            />
+            <FilterList rows={platformFilters} adapter={adapter} actions={actions} />
             <FilterDialog
                 open={dialogOpen}
                 onClose={() => setDialogOpen(false)}
@@ -342,134 +54,11 @@ export function FilterGroupList() {
                 mode={dialogMode}
                 selectedFilterList={selectedFilterList}
                 filterId={selectedFilterId}
-                onSave={(type, updatedData) => {
+                onSave={(_type, updatedData) => {
                     if (!updatedData) return;
-
                     upsertCompositeFilter(updatedData);
                 }}
             />
         </>
-    )
-}
-
-const DeleteButtonStyle = styled('div')({
-    color: '#f44336'
-})
-
-function DeleteButton(props: { selectionModel: Set<GridRowId>, showDeleteButton: boolean }) {
-    const { t } = useTranslation();
-    const { setFilterGroup } = useFilterGroupContext();
-
-    if (!props.showDeleteButton) return null;
-
-    return (
-        <DeleteButtonStyle>
-            <CustomToolbarItemStyle direction='row' onClick={() => { deleteSelectedFilter(setFilterGroup, props.selectionModel) }}>
-                <span className="material-icons-round">delete</span>
-                <span>{t('common.delete_selected')}</span>
-            </CustomToolbarItemStyle>
-        </DeleteButtonStyle>
-    )
-}
-
-function deleteSelectedFilter(setRows: React.Dispatch<React.SetStateAction<CompositeFilterElement[]>>, selectionModel: Set<GridRowId>) {
-    setRows(row => {
-        const newRow = row.filter(r => {
-            return !Array.from(selectionModel).includes(r.id);
-        });
-        return newRow;
-    });
-}
-
-/**
- * 채널/메모 셀 — chip 대신 텍스트 + hover 시 미니 delete 버튼.
- * chip은 시각 무게가 너무 무거워서 데이터 그리드에서 산만함.
- */
-function TextCell({
-    label, tooltip, onClick, onDelete,
-}: {
-    label: string;
-    tooltip?: string;
-    onClick: (e: React.MouseEvent) => void;
-    onDelete: (e: React.MouseEvent) => void;
-}) {
-    const { t } = useTranslation();
-    const content = (
-        <Stack
-            direction="row"
-            alignItems="center"
-            gap={0.5}
-            onClick={onClick}
-            sx={{
-                cursor: 'pointer',
-                width: '100%',
-                py: 0.25,
-                px: 0.5,
-                borderRadius: 1,
-                '&:hover': {
-                    bgcolor: 'action.hover',
-                    '& .tbcv2-cell-delete': { opacity: 1 },
-                },
-            }}
-        >
-            <Typography
-                variant="body2"
-                sx={{
-                    flex: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                }}
-            >
-                {label}
-            </Typography>
-            <IconButton
-                size="small"
-                onClick={onDelete}
-                className="tbcv2-cell-delete"
-                aria-label={t('common.remove')}
-                sx={{ opacity: 0, transition: 'opacity 0.15s', p: 0.25 }}
-            >
-                <CloseIcon sx={{ fontSize: 14 }} />
-            </IconButton>
-        </Stack>
-    );
-    return tooltip ? <Tooltip title={tooltip} placement="top">{content}</Tooltip> : content;
-}
-
-/**
- * 조건 라벨 — chip 대신 아이콘 + 색있는 텍스트. include/exclude 의미 색상 유지하되
- * 배경 fill 없이 inline.
- */
-function ConditionLabel({
-    value, label, onClick,
-}: {
-    value: FilterType;
-    label: string;
-    onClick: (e: React.MouseEvent) => void;
-}) {
-    const Icon = value === 'include' ? CheckIcon : value === 'exclude' ? BlockIcon : VisibilityOffIcon;
-    const color =
-        value === 'include' ? 'success.main' :
-        value === 'exclude' ? 'error.main' :
-        'text.secondary';
-    return (
-        <Stack
-            direction="row"
-            alignItems="center"
-            gap={0.5}
-            onClick={onClick}
-            sx={{
-                cursor: 'pointer',
-                color,
-                py: 0.25,
-                px: 0.5,
-                borderRadius: 1,
-                '&:hover': { bgcolor: 'action.hover' },
-            }}
-        >
-            <Icon sx={{ fontSize: 16 }} />
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>{label}</Typography>
-        </Stack>
     );
 }

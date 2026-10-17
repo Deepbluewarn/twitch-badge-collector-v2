@@ -24,12 +24,14 @@ import "@/render/chzzk-chat.css";
 import i18n from '@/translate/i18n';
 import { useTranslation } from 'react-i18next';
 import TranslationNotice from '@/components/TranslationNotice';
+import { useDocumentTheme } from "@/ui/useDocumentTheme";
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
   // 사용자 설정(system/light/dark)을 boolean으로 해석. 'system'이면 prefers-color-scheme 따라감.
   const isDark = useResolvedDarkMode(globalSetting.darkTheme);
+  useDocumentTheme(isDark);
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {

@@ -36,15 +36,16 @@ export default function SocialFooter({ showExtensionInfo = true }: { showExtensi
                     direction='row'
                     alignItems='center'
                     spacing={0.75}
-                    sx={{ flex: 1, justifyContent: 'flex-end', color: 'text.disabled' }}
+                    sx={{ flex: 1, justifyContent: 'flex-end', color: 'text.secondary' }}
                 >
                     <Box
                         component='img'
                         src={iconUrl}
                         alt={name}
-                        sx={{ width: 16, height: 16, opacity: 0.7 }}
+                        sx={{ width: 16, height: 16 }}
                     />
-                    <Typography variant='caption' sx={{ fontSize: '0.72rem' }}>
+                    {/* 표 주변 보조 글자와 같은 단계 (docs/design-system.md "글자") */}
+                    <Typography variant='caption' sx={{ fontSize: 13, fontWeight: 700 }}>
                         {name} v{version}
                     </Typography>
                 </Stack>
