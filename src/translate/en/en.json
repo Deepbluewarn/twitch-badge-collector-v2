@@ -214,7 +214,9 @@
         "broad_count": "{{count}} broad filter(s)",
         "broad_explain": "This filter collects almost every chat.",
         "search": "Find filters",
-        "search_clear": "Clear"
+        "search_clear": "Clear",
+        "deleted": "Deleted {{count}} filter(s).",
+        "undo": "Undo"
     },
     "filter_test": {
         "button": "Test filters",

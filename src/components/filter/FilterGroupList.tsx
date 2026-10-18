@@ -80,7 +80,26 @@ export function FilterGroupList() {
         removeNote: (row) => removeFilterField(row.id, 'filterNote'),
         rotateType: (row) => setFilterGroup(rows => rows.map(r => (r.id === row.id ? { ...r, filterType: rotateFilterType(r.filterType) } : r))),
         setColor: (row, color) => upsertCompositeFilter({ ...row, markerColor: color }),
-        deleteMany: (ids) => setFilterGroup(rows => rows.filter(r => !ids.has(r.id))),
+        // 선택 삭제는 몇 초 동안 되돌릴 수 있다 — 전체 선택으로 수백 개를 잘못 지우면 복구할 길이 없어서.
+        deleteMany: (ids) => {
+            const removed = filterGroup.map((r, i) => [i, r] as const).filter(([, r]) => ids.has(r.id));
+            if (!removed.length) return;
+            setFilterGroup(rows => rows.filter(r => !ids.has(r.id)));
+            addAlert({
+                serverity: 'info',
+                message: t('filter_list.deleted', { count: removed.length }),
+                ttl: 8000,
+                action: {
+                    label: t('filter_list.undo'),
+                    // 원래 자리에 다시 끼운다(앞 번호부터 넣어야 뒤 번호가 맞는다). 그사이 같은 필터가 다시 생겼으면 건너뛴다.
+                    onClick: () => setFilterGroup(rows => {
+                        const next = [...rows];
+                        for (const [i, r] of removed) if (!next.some(x => x.id === r.id)) next.splice(Math.min(i, next.length), 0, r);
+                        return next;
+                    }),
+                },
+            });
+        },
         explainBroad: () => addAlert({ serverity: 'warning', message: t('filter_list.broad_explain') }),
     };
 

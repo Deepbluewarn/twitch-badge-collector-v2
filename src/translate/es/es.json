@@ -214,7 +214,9 @@
         "broad_count": "{{count}} filtro(s) demasiado amplio(s)",
         "broad_explain": "Se recopilará casi todo el chat.",
         "search": "Buscar filtros",
-        "search_clear": "Borrar"
+        "search_clear": "Borrar",
+        "deleted": "Se eliminaron {{count}} filtro(s).",
+        "undo": "Deshacer"
     },
     "filter_test": {
         "button": "Probar filtros",

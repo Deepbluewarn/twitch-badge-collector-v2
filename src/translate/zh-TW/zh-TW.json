@@ -214,7 +214,9 @@
         "broad_count": "範圍過寬的篩選器 {{count}} 個",
         "broad_explain": "幾乎所有聊天都會被收集。",
         "search": "尋找篩選器",
-        "search_clear": "清除"
+        "search_clear": "清除",
+        "deleted": "已刪除 {{count}} 個篩選器。",
+        "undo": "復原"
     },
     "filter_test": {
         "button": "測試篩選器",

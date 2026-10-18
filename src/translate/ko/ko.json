@@ -213,7 +213,9 @@
         "broad_count": "범위가 넓은 필터 {{count}}개",
         "broad_explain": "대부분의 채팅이 수집됩니다.",
         "search": "필터 찾기",
-        "search_clear": "지우기"
+        "search_clear": "지우기",
+        "deleted": "필터 {{count}}개를 삭제했습니다.",
+        "undo": "되돌리기"
     },
     "filter_test": {
         "button": "필터 시험",

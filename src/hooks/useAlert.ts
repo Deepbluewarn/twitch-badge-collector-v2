@@ -41,7 +41,7 @@ export default function useAlert() {
         dismissTimeoutRef.current = window.setTimeout(() => {
             shiftAlert();
             dismissTimeoutRef.current = null;
-        }, ALERT_TTL_MS);
+        }, alerts[0].ttl ?? ALERT_TTL_MS);
 
         return () => {
             if (dismissTimeoutRef.current !== null) {
@@ -55,5 +55,7 @@ export default function useAlert() {
 }
 
 function isDuplicate(a: AlertInterface, b: AlertInterface): boolean {
+    // 버튼이 있는 알림(되돌리기 등)은 같은 문구라도 매번 다른 일을 되돌리니 합치지 않는다.
+    if (a.action || b.action) return false;
     return a.message === b.message && a.serverity === b.serverity;
 }

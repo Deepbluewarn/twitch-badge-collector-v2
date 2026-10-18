@@ -214,7 +214,9 @@
         "broad_count": "{{count}} zu breite Filter",
         "broad_explain": "Fast alle Chats werden gesammelt.",
         "search": "Filter suchen",
-        "search_clear": "Löschen"
+        "search_clear": "Löschen",
+        "deleted": "{{count}} Filter gelöscht.",
+        "undo": "Rückgängig"
     },
     "filter_test": {
         "button": "Filter testen",
