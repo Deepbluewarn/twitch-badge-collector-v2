@@ -514,10 +514,12 @@ function Popup() {
     <Stack gap={8} style={{ padding: 12 }}>
       {/* 헤더: 로고 + 이름 + 버전 chip */}
       <Stack dir='row' align='center' gap={8}>
-        <img src={browser.runtime.getURL('/assets/icon.png')} alt="" style={{ width: '1rem', height: '1rem' }} />
-        <span style={{ fontSize: 14, fontWeight: 800, flex: 1 }}>
-          {browser.i18n.getMessage('ExtensionName')}
-        </span>
+        {/* 로고 + 이름 = badgecollector.dev 링크 (사이트 로고가 확장 아이콘과 같다) */}
+        <a href='https://badgecollector.dev' target='_blank' rel='noreferrer' className='tbc-brand-link'
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flex: 1, fontSize: 14, fontWeight: 800, color: 'inherit', textDecoration: 'none' }}>
+          <img src={browser.runtime.getURL('/assets/icon.png')} alt="" style={{ width: '1rem', height: '1rem' }} />
+          <span>{browser.i18n.getMessage('ExtensionName')}</span>
+        </a>
         <Tag>{`v${browser.runtime.getManifest().version}`}</Tag>
       </Stack>
 
