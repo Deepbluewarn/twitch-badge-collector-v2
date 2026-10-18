@@ -206,7 +206,10 @@
         "marker_color": "标记颜色",
         "custom_color": "自定义颜色",
         "prev_page": "上一页",
-        "next_page": "下一页"
+        "next_page": "下一页",
+        "channel_all": "所有频道",
+        "channel_none": "未指定频道",
+        "open_channel": "打开频道"
     },
     "filter_test": {
         "button": "测试筛选器",
@@ -222,5 +225,11 @@
         "excluded": "已排除",
         "matched": "匹配的筛选器",
         "excluded_by": "排除的筛选器"
+    },
+    "channel_search": {
+        "button": "搜索频道",
+        "placeholder": "频道名称",
+        "empty": "无搜索结果",
+        "error": "无法搜索"
     }
 }

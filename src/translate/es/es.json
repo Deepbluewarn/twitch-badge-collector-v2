@@ -206,7 +206,10 @@
         "marker_color": "Color de marca",
         "custom_color": "Color personalizado",
         "prev_page": "Página anterior",
-        "next_page": "Página siguiente"
+        "next_page": "Página siguiente",
+        "channel_all": "Todos los canales",
+        "channel_none": "Sin canal",
+        "open_channel": "Abrir canal"
     },
     "filter_test": {
         "button": "Probar filtros",
@@ -222,5 +225,11 @@
         "excluded": "Excluido",
         "matched": "Coinciden",
         "excluded_by": "Excluido por"
+    },
+    "channel_search": {
+        "button": "Buscar canal",
+        "placeholder": "Nombre del canal",
+        "empty": "Sin resultados",
+        "error": "No se pudo buscar"
     }
 }

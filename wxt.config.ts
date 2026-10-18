@@ -37,7 +37,15 @@ export default defineConfig({
     permissions: [
       "storage",
       "webNavigation",
-      "downloads"
+      "downloads",
+      // 치지직 채널 검색: 이 확장의 api.chzzk.naver.com 요청에서 Origin을 지운다(src/api/chzzk-channel.ts).
+      // WithHostAccess는 설치·업데이트 때 경고가 없다 — 실제 동작은 아래 optional 호스트 권한을 받은 뒤부터.
+      "declarativeNetRequestWithHostAccess"
+    ],
+
+    // 처음 채널을 검색할 때 요청한다 (업데이트만으로 확장이 꺼지지 않게 optional).
+    optional_host_permissions: [
+      "https://api.chzzk.naver.com/*"
     ],
 
     // 호스트 권한
@@ -65,5 +73,13 @@ export default defineConfig({
         ]
       }
     ]
+  },
+  hooks: {
+    // MV2(Firefox)엔 optional_host_permissions가 없어 WXT가 버린다 — optional_permissions로 옮긴다.
+    'build:manifestGenerated': (wxt, manifest) => {
+      if (wxt.config.manifestVersion !== 2) return;
+      const hosts = (manifest as { optional_host_permissions?: string[] }).optional_host_permissions ?? ["https://api.chzzk.naver.com/*"];
+      manifest.optional_permissions = [...(manifest.optional_permissions ?? []), ...hosts];
+    },
   },
 });

@@ -206,7 +206,10 @@
         "marker_color": "Markierungsfarbe",
         "custom_color": "Eigene Farbe",
         "prev_page": "Vorherige Seite",
-        "next_page": "Nächste Seite"
+        "next_page": "Nächste Seite",
+        "channel_all": "Alle Kanäle",
+        "channel_none": "Kein Kanal",
+        "open_channel": "Kanal öffnen"
     },
     "filter_test": {
         "button": "Filter testen",
@@ -222,5 +225,11 @@
         "excluded": "Ausgeschlossen",
         "matched": "Treffer",
         "excluded_by": "Ausgeschlossen durch"
+    },
+    "channel_search": {
+        "button": "Kanal suchen",
+        "placeholder": "Kanalname",
+        "empty": "Keine Ergebnisse",
+        "error": "Suche fehlgeschlagen"
     }
 }

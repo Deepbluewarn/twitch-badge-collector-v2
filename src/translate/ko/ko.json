@@ -205,7 +205,10 @@
         "marker_color": "수집 표시 색",
         "custom_color": "직접 고르기",
         "prev_page": "이전 페이지",
-        "next_page": "다음 페이지"
+        "next_page": "다음 페이지",
+        "channel_all": "모든 채널",
+        "channel_none": "채널 지정 안 함",
+        "open_channel": "채널 열기"
     },
     "filter_test": {
         "button": "필터 시험",
@@ -221,5 +224,11 @@
         "excluded": "제외됨",
         "matched": "걸린 필터",
         "excluded_by": "제외한 필터"
+    },
+    "channel_search": {
+        "button": "채널 검색",
+        "placeholder": "채널 이름",
+        "empty": "검색 결과 없음",
+        "error": "검색할 수 없음"
     }
 }

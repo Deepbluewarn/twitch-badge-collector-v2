@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import type { PlatformAdapter } from '@/platform';
 import type { AtomicFilterElement, CompositeFilterElement, FilterType } from '@/interfaces/filter';
 import type { RowTest } from './FilterTester';
+import { ChannelAvatar } from './ChannelSearch';
+import { Icon } from '@/ui';
 import s from './FilterList.module.css';
 
 /**
@@ -163,7 +165,7 @@ function FilterRow({ row, adapter, actions, selected, onToggle, test }: { row: R
                     <button type="button" className={`${s.link} ${s.reveal}`} onClick={() => actions.addAtom(row)}>+ {t('filter_list.condition')}</button>
                 </div>
                 <div className={s.meta}>
-                    <Meta label={t('common.channel')} value={row.filterChannelName} onEdit={() => actions.editChannel(row)} onRemove={() => actions.removeChannel(row)} />
+                    <ChannelMeta row={row} onEdit={() => actions.editChannel(row)} onRemove={() => actions.removeChannel(row)} />
                     <Meta label={t('common.note')} value={row.filterNote} onEdit={() => actions.editNote(row)} onRemove={() => actions.removeNote(row)} />
                 </div>
             </div>
@@ -209,6 +211,35 @@ export function FilterChips({ row, adapter }: { row: Row; adapter: PlatformAdapt
                     <AtomChip atom={a} adapter={adapter} />
                 </React.Fragment>
             ))}
+        </span>
+    );
+}
+
+/** 채널 페이지 주소 */
+function channelUrl(platform: string, id?: string) {
+    if (!id) return undefined;
+    if (platform === 'chzzk') return `https://chzzk.naver.com/${id}`;
+    if (platform === 'twitch') return `https://www.twitch.tv/${id}`;
+}
+
+/** 채널: 프로필 사진(있으면) + 이름. 이름을 누르면 수정, ↗는 채널 페이지(새 탭). */
+function ChannelMeta({ row, onEdit, onRemove }: { row: Row; onEdit: () => void; onRemove: () => void }) {
+    const { t } = useTranslation();
+    const name = row.filterChannelName || row.filterChannelId;
+    if (!name) return <button type="button" className={`${s.link} ${s.reveal}`} onClick={onEdit}>+ {t('common.channel')}</button>;
+    const url = channelUrl(row.platform, row.filterChannelId);
+    return (
+        <span className={s.metaItem}>
+            <button type="button" className={`${s.link} ${s.channel}`} onClick={onEdit}>
+                {row.filterChannelImage ? <ChannelAvatar src={row.filterChannelImage} size={18} /> : <>{t('common.channel')} </>}
+                <span className={s.metaValue}>{name}</span>
+            </button>
+            {url && (
+                <a className={s.open} href={url} target="_blank" rel="noreferrer" aria-label={t('filter_list.open_channel')}>
+                    <Icon name="open_in_new" />
+                </a>
+            )}
+            <button type="button" className={s.x} onClick={onRemove} aria-label={t('common.remove')}>×</button>
         </span>
     );
 }

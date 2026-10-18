@@ -2,6 +2,7 @@ import { CompositeFilterElement } from "@/interfaces/filter";
 import defaultFilter from "@/defaultFilters";
 import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
+import { installChzzkApiOriginRule } from "@/api/chzzk-channel";
 
 export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id });
@@ -25,6 +26,8 @@ export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(() => { fetchAndApplyOta(); });
   browser.runtime.onStartup.addListener(() => { fetchIfStale(); });
   fetchIfStale();
+
+  installChzzkApiOriginRule().catch(e => console.warn('[tbcv2 bg] chzzk api rule failed', e));
 
 
   // 설정 기본값 채우기 — 없는 key만 write. 몇 번 호출해도 안전(idempotent).

@@ -106,6 +106,9 @@
     color: #fff;
 }
 .spacer {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     margin-left: auto;
 }
 
@@ -263,6 +266,30 @@
 }
 .metaItem .x {
     color: var(--ui-muted);
+}
+/* 채널: 사진 + 이름, 올리면 ↗(채널 페이지) */
+.metaItem .channel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.channel .metaValue {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.open {
+    display: none;
+    color: var(--ui-muted);
+    font-size: 15px;
+    line-height: 1;
+}
+.open:hover {
+    color: var(--ui-ink);
+}
+.metaItem:hover .open,
+.metaItem:focus-within .open {
+    display: inline-flex;
 }
 
 .ok { background: var(--ui-ok-bg); color: var(--ui-ok-fg); }

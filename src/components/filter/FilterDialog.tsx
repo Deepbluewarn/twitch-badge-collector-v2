@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FilterCategory, AtomicFilterElement, CompositeFilterElement, FilterType } from '@/interfaces/filter';
 import { Button, Card, Dialog, Field, Select, Stack, TextArea, TextInput } from '@/ui';
 import BadgeList from './BadgeList';
+import { ChannelSearch } from './ChannelSearch';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
@@ -248,11 +249,15 @@ export default function FilterDialog(props: FilterDialogProps) {
 
         return (
             <Stack gap={16}>
+                <ChannelSearch platform={globalSetting.platform} onPick={c => handleListObjectChange({
+                    filterChannelId: c.id, filterChannelName: c.name, filterChannelImage: c.imageUrl,
+                })} />
                 <Field label={t('common.channel_id')}>
                     <TextInput
                         value={filterGroupList.filterChannelId || ''}
                         onChange={e => {
-                            handleListObjectChange({ filterChannelId: extractChannelId(e.target.value, globalSetting.platform) });
+                            // ID를 직접 바꾸면 사진은 다른 채널 것이 되므로 뺀다.
+                            handleListObjectChange({ filterChannelId: extractChannelId(e.target.value, globalSetting.platform), filterChannelImage: undefined });
                         }}
                     />
                 </Field>

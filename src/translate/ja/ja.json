@@ -206,7 +206,10 @@
         "marker_color": "マーカーの色",
         "custom_color": "色を選ぶ",
         "prev_page": "前のページ",
-        "next_page": "次のページ"
+        "next_page": "次のページ",
+        "channel_all": "すべてのチャンネル",
+        "channel_none": "チャンネル指定なし",
+        "open_channel": "チャンネルを開く"
     },
     "filter_test": {
         "button": "フィルターを試す",
@@ -222,5 +225,11 @@
         "excluded": "除外",
         "matched": "一致したフィルター",
         "excluded_by": "除外したフィルター"
+    },
+    "channel_search": {
+        "button": "チャンネル検索",
+        "placeholder": "チャンネル名",
+        "empty": "検索結果なし",
+        "error": "検索できません"
     }
 }

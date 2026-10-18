@@ -1,0 +1,66 @@
+/* 채널 검색 (채널 대화상자·새 필터 추가). 색은 src/ui/tokens.css 토큰. */
+
+.root {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.list {
+    display: flex;
+    flex-direction: column;
+    max-height: 232px;
+    margin: 0;
+    padding: 4px;
+    overflow-y: auto;
+    list-style: none;
+    border-radius: 10px;
+    background: var(--ui-tint);
+}
+.item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ui-ink);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+.item:hover,
+.item:focus-visible {
+    background: var(--ui-soft);
+}
+.name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.verified.verified {
+    font-size: 16px;
+    color: var(--ui-ok-fg);
+}
+.empty {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--ui-tint);
+    color: var(--ui-muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+.avatar {
+    flex: none;
+    display: inline-block;
+    border-radius: 50%;
+    object-fit: cover;
+    vertical-align: middle;
+}
+.blank {
+    background: var(--ui-soft);
+}

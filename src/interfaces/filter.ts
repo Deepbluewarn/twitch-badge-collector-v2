@@ -32,6 +32,8 @@ export interface CompositeFilterElement {
     filterNote: string;
     filterChannelId?: string; // 채널별 필터 적용 기능
     filterChannelName?: string;
+    /** 채널 프로필 사진 주소 (치지직 채널 검색·정보에서). 목록 표시용 */
+    filterChannelImage?: string;
     filters: AtomicFilterElement[];
     platform: SettingInterface['platform'];
     /** 호스트 채팅창에서 이 그룹에 매칭된 채팅의 좌측 마커 색. 미지정 시 기본 노랑(#FFC107). */

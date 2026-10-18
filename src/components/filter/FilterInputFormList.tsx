@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Button, Card, Divider, Field, Icon, IconButton, TextInput } from '@/ui';
 import ChannelIdGuideDialog from './dialog/ChannelIdGuideDialog';
+import { ChannelSearch } from './ChannelSearch';
 import {
     AtomicFilterElement,
     FilterCategory,
@@ -34,6 +35,8 @@ export default function FilterInputFormList(
     const [nameFilterAvail, setNameFilterAvail] = React.useState(false);
     const [channelId, setChannelId] = useState('');
     const [channelName, setChannelName] = useState('');
+    // 채널 검색으로 고른 채널의 사진. ID 칸이 그 채널 그대로일 때만 저장한다.
+    const [picked, setPicked] = useState<{ id: string; image?: string }>();
     const [guideOpen, setGuideOpen] = useState(false);
 
     const { t } = useTranslation();
@@ -63,16 +66,18 @@ export default function FilterInputFormList(
             platform: globalSetting.platform,
             filterChannelId: channelId,
             filterChannelName: channelName,
+            filterChannelImage: picked?.id === channelId ? picked.image : undefined,
         }]);
         if (added) {
             resetFilterGroupInputList();
             setFilterGroupNote('');
             setChannelId('');
             setChannelName('');
+            setPicked(undefined);
             addAlert({ serverity: 'success', message: t('alert.filter_added') });
             props.onAddSuccess?.();
         }
-    }, [filterGroupType, filterGroupNote, globalSetting.platform, channelId, channelName, props.onAddSuccess]);
+    }, [filterGroupType, filterGroupNote, globalSetting.platform, channelId, channelName, picked, props.onAddSuccess]);
 
     const resetFilterGroupInputList = () => {
         props.setAfInputRow([]);
@@ -163,6 +168,9 @@ export default function FilterInputFormList(
                             onClick={() => setGuideOpen(true)}
                             label={t('channel_guide.title')}
                         />
+                    </div>
+                    <div className={s.channelSearch}>
+                        <ChannelSearch platform={globalSetting.platform} onPick={c => { setChannelId(c.id); setChannelName(c.name); setPicked({ id: c.id, image: c.imageUrl }); }} />
                     </div>
                     <div className={s.channelInputs}>
                         <Field label={t('common.channel_id')}>

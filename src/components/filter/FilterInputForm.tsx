@@ -19,6 +19,7 @@ import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
 import ChannelIdGuideDialog from './dialog/ChannelIdGuideDialog';
+import { ChannelSearch } from './ChannelSearch';
 import { useAlertContext } from '@/context/Alert';
 import s from './FilterAddDialog.module.css';
 
@@ -38,6 +39,8 @@ export default function FilterInputForm(
     const filterContentValue = useRef<HTMLInputElement>(null);
     const channelValue = useRef<HTMLInputElement>(null);
     const channelName = useRef<HTMLInputElement>(null);
+    // 채널 검색으로 고른 채널의 사진. ID 칸이 그 채널 그대로일 때만 저장한다.
+    const [picked, setPicked] = useState<{ id: string; image?: string }>();
 
     const onFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFilterGroupNote(event.target.value);
@@ -79,6 +82,7 @@ export default function FilterInputForm(
             platform: globalSetting.platform,
             filterChannelId: _channelValue,
             filterChannelName: _channelName,
+            filterChannelImage: picked?.id === _channelValue ? picked.image : undefined,
         }]);
         if (added) {
             setFilterGroupNote('');
@@ -86,10 +90,11 @@ export default function FilterInputForm(
             contentValueRef.value = '';
             channelValue.current.value = '';
             channelName.current.value = '';
+            setPicked(undefined);
             addAlert({ serverity: 'success', message: t('alert.filter_added') });
             props.onAddSuccess?.();
         }
-    }, [props.filterInput, filterGroupNote, props.onAddSuccess])
+    }, [props.filterInput, filterGroupNote, props.onAddSuccess, picked])
 
     return (
         <Card className={s.simpleCard}>
@@ -130,6 +135,13 @@ export default function FilterInputForm(
                             onClick={() => setGuideOpen(true)}
                             label={t('channel_guide.title')}
                         />
+                    </div>
+                    <div className={s.channelSearch}>
+                        <ChannelSearch platform={globalSetting.platform} onPick={c => {
+                            if (channelValue.current) channelValue.current.value = c.id;
+                            if (channelName.current) channelName.current.value = c.name;
+                            setPicked({ id: c.id, image: c.imageUrl });
+                        }} />
                     </div>
                     <div className={s.channelInputs}>
                         <Field label={t('common.channel_id')}>

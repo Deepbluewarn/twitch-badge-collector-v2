@@ -206,7 +206,10 @@
         "marker_color": "Marker color",
         "custom_color": "Custom color",
         "prev_page": "Previous page",
-        "next_page": "Next page"
+        "next_page": "Next page",
+        "channel_all": "All channels",
+        "channel_none": "No channel",
+        "open_channel": "Open channel"
     },
     "filter_test": {
         "button": "Test filters",
@@ -222,5 +225,11 @@
         "excluded": "Excluded",
         "matched": "Matched",
         "excluded_by": "Excluded by"
+    },
+    "channel_search": {
+        "button": "Search channel",
+        "placeholder": "Channel name",
+        "empty": "No results",
+        "error": "Search failed"
     }
 }

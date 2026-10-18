@@ -206,7 +206,10 @@
         "marker_color": "標記顏色",
         "custom_color": "自訂顏色",
         "prev_page": "上一頁",
-        "next_page": "下一頁"
+        "next_page": "下一頁",
+        "channel_all": "所有頻道",
+        "channel_none": "未指定頻道",
+        "open_channel": "開啟頻道"
     },
     "filter_test": {
         "button": "測試篩選器",
@@ -222,5 +225,11 @@
         "excluded": "已排除",
         "matched": "符合的篩選器",
         "excluded_by": "排除的篩選器"
+    },
+    "channel_search": {
+        "button": "搜尋頻道",
+        "placeholder": "頻道名稱",
+        "empty": "沒有搜尋結果",
+        "error": "無法搜尋"
     }
 }

@@ -206,7 +206,10 @@
         "marker_color": "Couleur du marqueur",
         "custom_color": "Couleur personnalisée",
         "prev_page": "Page précédente",
-        "next_page": "Page suivante"
+        "next_page": "Page suivante",
+        "channel_all": "Toutes les chaînes",
+        "channel_none": "Aucune chaîne",
+        "open_channel": "Ouvrir la chaîne"
     },
     "filter_test": {
         "button": "Tester les filtres",
@@ -222,5 +225,11 @@
         "excluded": "Exclu",
         "matched": "Filtres correspondants",
         "excluded_by": "Exclu par"
+    },
+    "channel_search": {
+        "button": "Rechercher une chaîne",
+        "placeholder": "Nom de la chaîne",
+        "empty": "Aucun résultat",
+        "error": "Recherche impossible"
     }
 }

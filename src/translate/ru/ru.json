@@ -206,7 +206,10 @@
         "marker_color": "Цвет метки",
         "custom_color": "Свой цвет",
         "prev_page": "Предыдущая страница",
-        "next_page": "Следующая страница"
+        "next_page": "Следующая страница",
+        "channel_all": "Все каналы",
+        "channel_none": "Без канала",
+        "open_channel": "Открыть канал"
     },
     "filter_test": {
         "button": "Проверить фильтры",
@@ -222,5 +225,11 @@
         "excluded": "Исключено",
         "matched": "Совпали",
         "excluded_by": "Исключили"
+    },
+    "channel_search": {
+        "button": "Поиск канала",
+        "placeholder": "Название канала",
+        "empty": "Ничего не найдено",
+        "error": "Не удалось найти"
     }
 }
