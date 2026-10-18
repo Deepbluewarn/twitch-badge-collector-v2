@@ -196,5 +196,8 @@
   },
   "turnOn": {
     "message": "Turn on"
+  },
+  "extensionUpdated": {
+    "message": "Extension updated. Click to reload"
   }
 }

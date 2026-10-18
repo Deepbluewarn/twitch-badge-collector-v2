@@ -40,7 +40,9 @@ export default defineConfig({
       "downloads",
       // 치지직 채널 검색: 이 확장의 api.chzzk.naver.com 요청에서 Origin을 지운다(src/api/chzzk-channel.ts).
       // WithHostAccess는 설치·업데이트 때 경고가 없다 — 실제 동작은 아래 optional 호스트 권한을 받은 뒤부터.
-      "declarativeNetRequestWithHostAccess"
+      "declarativeNetRequestWithHostAccess",
+      // 업데이트 직후 열린 탭에 새 콘텐츠 스크립트를 다시 넣는다(background reinjectContentScripts). 경고 없음.
+      "scripting"
     ],
 
     // 처음 채널을 검색할 때 요청한다 (업데이트만으로 확장이 꺼지지 않게 optional).

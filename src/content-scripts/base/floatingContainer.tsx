@@ -5,6 +5,7 @@ import App from "@/components/Extension/App";
 import { PlatformAdapter } from "@/platform";
 import { SettingInterface } from "@/interfaces/setting";
 import { Observer } from "./observer";
+import { onTeardown } from './lifecycle';
 
 // FloatingShell(parent) useEffect는 useChatStream(child)의 Phase 1 스캔 뒤에 실행 →
 // 그 사이 dispatch된 tbc-filtered-chat 유실 (bar preview 첫 신규 채팅까지 null).
@@ -59,6 +60,8 @@ export class FloatingContainer {
         // temporal=false — readiness selector 매칭 후 chzzk가 후속 reconcile해도
         // 계속 callback 발화 → 위치 재정렬 가능.
         this.observer = new Observer(readinessSelector, false);
+        // 확장 연결이 끊기면(업데이트) 걷는다 — 새 스크립트와 겹치지 않게.
+        onTeardown(() => { this.observer.disconnect(); this.destroy(); });
     }
 
     create() {

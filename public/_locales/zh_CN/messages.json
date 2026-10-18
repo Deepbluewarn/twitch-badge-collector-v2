@@ -196,5 +196,8 @@
   },
   "turnOn": {
     "message": "开启"
+  },
+  "extensionUpdated": {
+    "message": "扩展程序已更新。点击刷新"
   }
 }

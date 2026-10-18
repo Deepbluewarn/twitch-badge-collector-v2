@@ -4,28 +4,18 @@ import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
 import { installChzzkApiOriginRule } from "@/api/chzzk-channel";
 import { CHANNEL_OFF_BADGE_MESSAGE } from "@/utils/channel-off";
+import { clearAllChatHistory } from "@/utils/chat-history-store";
 
 export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id });
-
-  // storage.session은 기본적으로 background/popup 등 trusted context에서만 접근 가능.
-  // 채팅 유지 기능이 content script에서 set/get 하므로 untrusted까지 풀어줌.
-  // SW 재시작 시마다 호출해도 안전(idempotent).
-  //
-  // setAccessLevel은 Chrome 전용 — Firefox엔 함수 자체가 없어 호출 시 동기 TypeError.
-  // .catch는 sync throw 못 잡으므로 typeof check로 가드. 가드 없으면 background 전체
-  // crash → onInstalled 등록 안 됨 → 기본 필터 set 안 됨.
-  if (typeof browser.storage.session?.setAccessLevel === 'function') {
-    browser.storage.session.setAccessLevel({
-      accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS',
-    }).catch((e) => console.warn('storage.session setAccessLevel failed', e));
-  }
 
   // OTA selectors fetch — install/update 시 즉시 + browser startup + 매 SW wake 시 stale 체크.
   // alarms permission 안 씀 — MV3 SW는 다양한 이벤트(content msg, tab nav 등)로 자주 깨므로
   // 능동 사용자에겐 사실상 6시간 내 갱신됨. 비활동 사용자는 다음 사용 시 갱신.
   browser.runtime.onInstalled.addListener(() => { fetchAndApplyOta(); });
   browser.runtime.onStartup.addListener(() => { fetchIfStale(); });
+  // 채팅 유지는 브라우저를 다시 켜면 비운다(storage.local에 두지만 수명은 예전 storage.session과 같게).
+  browser.runtime.onStartup.addListener(() => { clearAllChatHistory().catch(e => console.warn('[tbcv2 bg] chat history clear failed', e)); });
   fetchIfStale();
 
   installChzzkApiOriginRule().catch(e => console.warn('[tbcv2 bg] chzzk api rule failed', e));
@@ -127,6 +117,14 @@ export default defineBackground(() => {
   // 기본값은 네트워크와 무관하게 항상. SW wake마다 불리지만 위 조기 return 덕에
   // 정상 상태에선 storage read 1회로 끝난다.
   ensureDefaultSettings().catch(e => console.warn('[tbcv2 bg] ensureDefaultSettings failed', e));
+
+  // 업데이트 직후, 이미 열린 치지직·트위치 탭에 새 콘텐츠 스크립트를 넣는다 — 옛 스크립트는 확장과 끊겨
+  // 수집이 멈춘다(content-scripts/base/lifecycle.ts가 정리하고 안내를 띄운다). Chrome은 열린 탭에 새 스크립트를
+  // 넣어 주지 않는다. Firefox는 설치·업데이트 때 열린 탭에 선언된 콘텐츠 스크립트를 스스로 넣어서 건너뛴다.
+  // 페이지 쪽 스크립트(*-main.js, MAIN world)는 업데이트 뒤에도 페이지에 살아 있어 다시 넣지 않는다.
+  browser.runtime.onInstalled.addListener(details => {
+    if (details.reason === 'update' && import.meta.env.BROWSER !== 'firefox') reinjectContentScripts();
+  });
 
   browser.runtime.onInstalled.addListener(async function (details) {
     // 기존 필터가 있으면 두지 않는다. Firefox는 같은 ID의 확장을 about:debugging으로 임시 로드해도
@@ -295,5 +293,27 @@ async function setChannelOffBadge(tabId: number, off: boolean) {
     else await action.setIcon({ tabId, path: ICON_PATH });
   } catch (e) {
     console.warn('[tbcv2 bg] channel off icon failed', e);
+  }
+}
+
+const REINJECT_TARGETS: { patterns: string[]; js: string; css: string }[] = [
+  { patterns: ['*://chzzk.naver.com/*'], js: 'content-scripts/chzzk.js', css: 'content-scripts/chzzk.css' },
+  { patterns: ['*://*.twitch.tv/*'], js: 'content-scripts/twitch.js', css: 'content-scripts/twitch.css' },
+];
+
+async function reinjectContentScripts() {
+  if (!browser.scripting?.executeScript) return;
+  for (const t of REINJECT_TARGETS) {
+    const tabs = await browser.tabs.query({ url: t.patterns }).catch(() => []);
+    for (const tab of tabs) {
+      if (tab.id == null || tab.discarded) continue;
+      const target = { tabId: tab.id, allFrames: true };
+      try {
+        await browser.scripting.insertCSS({ target, files: [t.css] });
+        await browser.scripting.executeScript({ target, files: [t.js] });
+      } catch (e) {
+        console.warn('[tbcv2 bg] reinject failed', tab.id, e);
+      }
+    }
   }
 }

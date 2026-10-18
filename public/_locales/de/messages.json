@@ -196,5 +196,8 @@
   },
   "turnOn": {
     "message": "Aktivieren"
+  },
+  "extensionUpdated": {
+    "message": "Erweiterung aktualisiert. Zum Neuladen klicken"
   }
 }

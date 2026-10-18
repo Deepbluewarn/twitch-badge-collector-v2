@@ -7,6 +7,7 @@ import { selectElement } from "@/utils/utils-common";
 import { Logger } from "@/utils/logger";
 import { Observer } from "./observer";
 import { applyPosition, applyRatio } from "./layout";
+import { onTeardown } from "./lifecycle";
 
 export class BaseContainer {
   theme: 'dark' | 'light';
@@ -48,6 +49,17 @@ export class BaseContainer {
     this.root = null;
     this.container = document.createElement('div');
     this.container.id = `${this.type}-container`;
+    // 확장 연결이 끊기면(업데이트) 감시를 끊고 창을 걷는다 — 새 스크립트와 겹치지 않게.
+    onTeardown(() => this.destroy());
+  }
+
+  destroy() {
+    this.observer.disconnect();
+    this.root?.unmount();
+    this.root = null;
+    // 자기 요소만 — 같은 id를 쓰는 새 스크립트의 창·손잡이를 건드리지 않게.
+    this.container.remove();
+    this.handle.getHandle().remove();
   }
 
   // DOM API로 "#tbc_container" 요소를 생성하고 반환하는 메소드

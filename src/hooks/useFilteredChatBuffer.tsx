@@ -3,6 +3,7 @@ import DOMPurify from "dompurify";
 import { PlatformAdapter } from "@/platform";
 import { convertToJSX } from "@/utils/converter";
 import { PassedChat } from "./useChatStream";
+import { hasChatHistoryStore, loadChatHistory, removeChatHistory, saveChatHistory } from "@/utils/chat-history-store";
 
 interface ChatWrapperProps {
     time: number;
@@ -59,24 +60,17 @@ const PERSIST_DEBOUNCE_MS = 500;
 const EVICTION_DROP_RATIO = 0.1;
 
 /**
- * 채팅 유지는 *세션* 단위 — 새로고침/탭 이동엔 살아남되 브라우저 재시작엔 깨끗이 비움.
- * MV3의 `storage.session`은 메모리 기반 + 브라우저 종료 시 자동 삭제.
+ * 채팅 유지는 *세션* 단위 — 새로고침/탭 이동/확장 업데이트엔 살아남되 브라우저 재시작엔 깨끗이 비움.
+ * 저장소와 수명 관리는 src/utils/chat-history-store.ts (storage.local + 브라우저 시작 시 삭제).
  *
  * 저장. quota 초과 시 오래된 쪽부터 10%씩 drop하고 재시도.
  */
-// storage.session은 Firefox 115+에서만 지원. 미지원 환경에선 채팅 유지 기능 자체를 skip.
-// (Firefox 109-114 사용자가 신버전 받으면 그냥 persistence 동작 안 함 — crash X).
-// typeof로 평가하여 테스트 환경(browser undefined)에서도 안전.
-const hasSessionStorage = typeof browser !== 'undefined'
-    && typeof browser.storage !== 'undefined'
-    && typeof browser.storage.session !== 'undefined';
-
 async function saveWithEviction(key: string, payload: PersistedPayload): Promise<void> {
-    if (!hasSessionStorage) return;
+    if (!hasChatHistoryStore()) return;
     let attempt = payload;
     while (attempt.chats.length > 0) {
         try {
-            await browser.storage.session.set({ [key]: attempt });
+            await saveChatHistory(key, attempt);
             return;
         } catch {
             const evictCount = Math.max(1, Math.floor(attempt.chats.length * EVICTION_DROP_RATIO));
@@ -86,9 +80,8 @@ async function saveWithEviction(key: string, payload: PersistedPayload): Promise
 }
 
 async function loadPersisted(key: string): Promise<SavedChat[]> {
-    if (!hasSessionStorage) return [];
-    const res = await browser.storage.session.get(key);
-    const payload = res[key] as PersistedPayload | undefined;
+    if (!hasChatHistoryStore()) return [];
+    const payload = await loadChatHistory<PersistedPayload>(key);
     if (!payload || payload.version !== 1) return [];
     // v1 payload에 nickname/text 없던 시절 데이터도 있을 수 있음 — 없으면 빈 문자열로 채워
     // preview에 최소한의 뷰 유지 (다음 신규 chat이 곧 갱신).
@@ -219,28 +212,33 @@ export default function useFilteredChatBuffer(
         emitPreview({ nickname: latest.nickname, text: latest.text, time: latest.time });
     }, [savedChats, adapter.chatOrder]);
 
-    // savedChats 변경 시: persistenceKey 있으면 debounced save.
+    // savedChats 변경 시: persistenceKey 있으면 저장 — 많아야 PERSIST_DEBOUNCE_MS마다 한 번.
+    // 예전엔 바뀔 때마다 타이머를 다시 걸어(debounce), 채팅이 쉬지 않고 들어오는 방송에선 저장이 계속 밀려
+    // 새로고침·업데이트 때 최근 채팅이 빠졌다. 이미 예약돼 있으면 두고, 터질 때 최신 상태를 저장한다.
+    const latestChatsRef = useRef(savedChats);
+    latestChatsRef.current = savedChats;
     useEffect(() => {
         if (!persistenceKey || !isHydratedRef.current) return;
-        if (persistTimerRef.current !== null) {
-            window.clearTimeout(persistTimerRef.current);
-        }
+        if (persistTimerRef.current !== null) return;
         persistTimerRef.current = window.setTimeout(() => {
-            // fire 시점 URL 재확인 — 디바운스 중 채널 이동했으면 옛 key로 저장 X (corruption 방지).
+            persistTimerRef.current = null;
+            // fire 시점 URL 재확인 — 기다리는 사이 채널 이동했으면 옛 key로 저장 X (corruption 방지).
             // persistenceKey = `chatHistory:${type}:${channelId}:live` — 3번째 세그먼트가 channelId.
             if (adapter.getCurrentChannelId() !== persistenceKey.split(':')[2]) return;
             const payload: PersistedPayload = {
                 version: 1,
-                chats: savedChats.map(({ key, time, html, nickname, text, channel }) => ({ key, time, html, nickname, text, channel })),
+                chats: latestChatsRef.current.map(({ key, time, html, nickname, text, channel }) => ({ key, time, html, nickname, text, channel })),
             };
             void saveWithEviction(persistenceKey, payload);
         }, PERSIST_DEBOUNCE_MS);
-        return () => {
-            if (persistTimerRef.current !== null) {
-                window.clearTimeout(persistTimerRef.current);
-            }
-        };
     }, [savedChats, persistenceKey]);
+    // key가 바뀌거나(채널 이동) 언마운트되면 예약된 저장을 취소.
+    useEffect(() => () => {
+        if (persistTimerRef.current !== null) {
+            window.clearTimeout(persistTimerRef.current);
+            persistTimerRef.current = null;
+        }
+    }, [persistenceKey]);
 
     const addChat = useCallback(({ clone, key, time, prevKey, nickname, text }: PassedChat) => {
         setSavedChats(prev => {
@@ -321,8 +319,8 @@ export default function useFilteredChatBuffer(
         setSavedChats([]);
         // persisted storage도 즉시 비움 — 디바운스된 save가 결국 빈 payload를 쓰겠지만
         // 사용자가 "초기화" 클릭 직후 새로고침해도 깨끗해야 함.
-        if (persistenceKey && hasSessionStorage) {
-            void browser.storage.session.remove(persistenceKey).catch(() => {});
+        if (persistenceKey) {
+            void removeChatHistory(persistenceKey).catch(() => {});
         }
         emitPreviewCleared();
     }, [persistenceKey]);

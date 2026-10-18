@@ -196,5 +196,8 @@
   },
   "turnOn": {
     "message": "開啟"
+  },
+  "extensionUpdated": {
+    "message": "擴充功能已更新。點擊重新整理"
   }
 }

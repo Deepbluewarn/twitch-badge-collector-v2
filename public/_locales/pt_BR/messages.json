@@ -196,5 +196,8 @@
   },
   "turnOn": {
     "message": "Ativar"
+  },
+  "extensionUpdated": {
+    "message": "Extensão atualizada. Clique para recarregar"
   }
 }

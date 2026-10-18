@@ -10,8 +10,11 @@ import {
 } from "@/platform/host-selectors";
 import { registerDiagnoseListener } from "@/platform/diagnose";
 import { setupChannelOff } from "../base/channel-off";
+import { onTeardown, startInstance } from "../base/lifecycle";
 
 async function bootstrap() {
+    // 업데이트 전 버전의 스크립트를 물러나게 하고 남은 창을 치운 뒤, 연결이 끊기는지 지켜본다.
+    startInstance('twitch');
     // Manifest(OTA 또는 bundled) 적용 완료까지 대기 후 observer 부착.
     // 안 그러면 bundled selector로 attach해서 OTA 효과 못 봄.
     await manifestReady;
@@ -71,7 +74,9 @@ async function bootstrap() {
 
     // 포인트 상자 자동 클릭
     if (SEL.pointButtonContainer && SEL.pointButton) {
-        new Observer(SEL.pointButtonContainer, false).observe(async (elem) => {
+        const pointObserver = new Observer(SEL.pointButtonContainer, false);
+        onTeardown(() => pointObserver.disconnect());
+        pointObserver.observe(async (elem) => {
             if (!elem) return;
             const boxBtn = elem.querySelector<HTMLButtonElement>(SEL.pointButton!);
             if (!boxBtn) return;

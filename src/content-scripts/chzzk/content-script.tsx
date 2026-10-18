@@ -14,8 +14,11 @@ import { applyChatSide, trackSidebarSwap } from "./chat-side";
 import { ensureRolloutBucket } from "./socket-mode";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { setupChannelOff } from "../base/channel-off";
+import { onTeardown, startInstance } from "../base/lifecycle";
 
 async function bootstrap() {
+    // 업데이트 전 버전의 스크립트를 물러나게 하고 남은 창을 치운 뒤, 연결이 끊기는지 지켜본다.
+    startInstance('chzzk');
     // 소켓 모드 비율 배포 판정(isSocketRenderEnabled)은 동기라, 설치별 숫자를 먼저 읽어 둔다.
     await Promise.all([manifestReady, ensureRolloutBucket()]);
 
@@ -122,7 +125,9 @@ async function bootstrap() {
     setupFullscreenKeepAlive();
 
     if (SEL.pointButton) {
-        new Observer(SEL.pointButton, false).observe(async (elem) => {
+        const pointObserver = new Observer(SEL.pointButton, false);
+        onTeardown(() => pointObserver.disconnect());
+        pointObserver.observe(async (elem) => {
             if (!elem) return;
             if (channelOff.isOff()) return;
             const isPointAutoOn = (await browser.storage.local.get('pointBoxAuto')).pointBoxAuto;
