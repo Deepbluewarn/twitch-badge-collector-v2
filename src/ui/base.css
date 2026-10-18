@@ -36,7 +36,16 @@ body {
 a {
     color: inherit;
 }
-/* 브랜드(로고 + 이름) = badgecollector.dev 링크. 평소엔 글자 그대로, 올리면 노란 밑줄 */
+/* 브랜드(로고 + 이름) = badgecollector.dev 링크. 링크로 보이게 늘 옅은 밑줄 + ↗, 올리면 노란 밑줄 */
+.tbc-brand-link span {
+    text-decoration: underline;
+    text-decoration-color: var(--ui-hair);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+}
+.tbc-brand-link span::after {
+    content: ' ↗';
+}
 .tbc-brand-link:hover span {
     color: var(--ui-ink);
     text-decoration: underline;
