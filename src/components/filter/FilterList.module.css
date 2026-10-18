@@ -212,7 +212,12 @@
     padding-right: 8px;
 }
 .chip.badge {
-    padding-left: 5px;
+    /* 그림 쪽(왼쪽)은 그림이 둥근 여백 역할을 해서 좁게, 글자 쪽(오른쪽)도 같은 눈대중으로 */
+    padding: 0 7px 0 5px;
+}
+.chip.badge:hover,
+.chip.badge:focus-within {
+    padding-right: 6px;
 }
 .chipBody {
     display: inline-flex;
