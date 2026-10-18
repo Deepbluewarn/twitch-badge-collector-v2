@@ -113,3 +113,15 @@ html[data-tbc-chzzk-sidebar-swapped] #layout-body {
     padding-right: var(--tbc-sidebar-w);
 }
 
+/* 이 채널에서 끄기(팝업) — 모아보기 창·손잡이·수집 표시를 숨기고 원본 채팅을 원래 크기로 (content-scripts/base/channel-off.ts) */
+html.tbcv2-channel-off #chzzk-container,
+html.tbcv2-channel-off #handle-container,
+html.tbcv2-channel-off #tbc-floating-chzzk {
+    display: none !important;
+}
+html.tbcv2-channel-off #tbc-chzzk-chat-list-wrapper {
+    height: 100% !important;
+}
+html.tbcv2-channel-off .tbcv2-highlight > :first-child:before {
+    content: none;
+}

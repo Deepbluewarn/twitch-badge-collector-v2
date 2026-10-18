@@ -187,5 +187,8 @@
   },
   "back": {
     "message": "Retour"
+  },
+  "channelEnabled": {
+    "message": "Utiliser sur cette chaîne"
   }
 }

@@ -184,5 +184,8 @@
   },
   "back": {
     "message": "뒤로"
+  },
+  "channelEnabled": {
+    "message": "이 채널에서 사용"
   }
 }

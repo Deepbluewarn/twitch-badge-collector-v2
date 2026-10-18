@@ -187,5 +187,8 @@
   },
   "back": {
     "message": "返回"
+  },
+  "channelEnabled": {
+    "message": "在此頻道啟用"
   }
 }

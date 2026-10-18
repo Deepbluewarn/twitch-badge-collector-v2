@@ -187,5 +187,8 @@
   },
   "back": {
     "message": "Back"
+  },
+  "channelEnabled": {
+    "message": "Use on this channel"
   }
 }

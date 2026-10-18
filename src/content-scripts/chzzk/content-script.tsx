@@ -13,6 +13,7 @@ import { registerDiagnoseListener } from "@/platform/diagnose";
 import { applyChatSide, trackSidebarSwap } from "./chat-side";
 import { ensureRolloutBucket } from "./socket-mode";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
+import { setupChannelOff } from "../base/channel-off";
 
 async function bootstrap() {
     // 소켓 모드 비율 배포 판정(isSocketRenderEnabled)은 동기라, 설치별 숫자를 먼저 읽어 둔다.
@@ -40,11 +41,17 @@ async function bootstrap() {
     // 설정 변경 즉시 반영 — CSS 스위치라 reload가 필요 없다 (displayMode와 다른 점).
     addStorageUpdateListener((key, newValue) => {
         if (key !== 'chzzkChatSide') return;
-        applyChatSide(newValue);
+        applyChatSide(channelOff.isOff() ? undefined : newValue);
         trackSidebarSwap();
     });
 
     const adapter = new ChzzkAdapter();
+    // 이 채널에서 끄기 — 끄면 화면 조정도 원래대로, 다시 켜면 창을 만든다(이미 있으면 숨김만 풀린다).
+    const channelOff = setupChannelOff(adapter, async off => {
+        applyChatSide(off ? undefined : (await browser.storage.local.get('chzzkChatSide')).chzzkChatSide);
+        trackSidebarSwap();
+        if (!off) init();
+    });
     registerDiagnoseListener(adapter, 'chzzk');
 
     const SEL = getPlatformConfig('chzzk').selectors;
@@ -72,6 +79,7 @@ async function bootstrap() {
     // (양쪽 container destroy/swap 복잡성 회피).
     let lastDisplayMode: 'inline' | 'floating' | null = null;
     async function init() {
+        if (await channelOff.evaluate()) return;
         const mode = adapter.getPageMode();
         const setting = await browser.storage.local.get('displayMode');
         const displayMode: 'inline' | 'floating' = setting.displayMode === 'floating' ? 'floating' : 'inline';
@@ -116,6 +124,7 @@ async function bootstrap() {
     if (SEL.pointButton) {
         new Observer(SEL.pointButton, false).observe(async (elem) => {
             if (!elem) return;
+            if (channelOff.isOff()) return;
             const isPointAutoOn = (await browser.storage.local.get('pointBoxAuto')).pointBoxAuto;
             if (isPointAutoOn === 'off') return;
             (elem as HTMLButtonElement).click();

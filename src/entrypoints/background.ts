@@ -3,6 +3,7 @@ import defaultFilter from "@/defaultFilters";
 import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
 import { installChzzkApiOriginRule } from "@/api/chzzk-channel";
+import { CHANNEL_OFF_BADGE_MESSAGE } from "@/utils/channel-off";
 
 export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id });
@@ -223,6 +224,11 @@ export default defineBackground(() => {
       handleDownload(msg.dataUrl, msg.filename).then(sendResponse);
       return true;
     }
+    if (msg?.type === CHANNEL_OFF_BADGE_MESSAGE && _sender.tab?.id != null) {
+      // 이 채널에서 끈 탭은 확장 아이콘에 OFF — 끈 걸 잊고 "고장 났나?" 하지 않게.
+      setChannelOffBadge(_sender.tab.id, !!msg.off);
+      return false;
+    }
     if (msg?.type === 'tbc-force-ota-fetch') {
       // content script가 selector 매칭 실패 감지 시 즉시 OTA fetch 요청.
       // chzzk가 selector 깨뜨린 직후 자동 복구 경로.
@@ -251,3 +257,13 @@ export default defineBackground(() => {
     }
   );
 });
+
+function setChannelOffBadge(tabId: number, off: boolean) {
+  // MV3 action / MV2(Firefox) browserAction
+  const action = browser.action ?? (browser as unknown as { browserAction: typeof browser.action }).browserAction;
+  if (!action) return;
+  action.setBadgeText({ tabId, text: off ? 'OFF' : '' }).catch(() => {});
+  if (!off) return;
+  action.setBadgeBackgroundColor({ tabId, color: '#FFD60A' }).catch(() => {});
+  (action as { setBadgeTextColor?: (d: { tabId: number; color: string }) => Promise<void> }).setBadgeTextColor?.({ tabId, color: '#111111' })?.catch(() => {});
+}

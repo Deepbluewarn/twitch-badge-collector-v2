@@ -187,5 +187,8 @@
   },
   "back": {
     "message": "Voltar"
+  },
+  "channelEnabled": {
+    "message": "Usar neste canal"
   }
 }

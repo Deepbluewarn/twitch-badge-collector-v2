@@ -13,6 +13,9 @@ import { getPlatformConfig, manifestReady } from "@/platform/host-selectors";
 import { ensureRolloutBucket, isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
 import { Button, Dialog, IconButton, Segmented, Stack, Switch, Tag, TextInput } from "@/ui";
+import { CHANNEL_INFO_MESSAGE, setChannelOff, type ChannelInfo } from "@/utils/channel-off";
+import { fetchChzzkChannel } from "@/api/chzzk-channel";
+import { ChannelAvatar } from "@/components/filter/ChannelSearch";
 import "./popup.css";
 
 /** 진단 줄의 작은 글자 버튼 — 좁은 팝업 하단 한 줄에 들어가게. */
@@ -452,7 +455,7 @@ function PopupSetting() {
 }
 
 /** 좌측 라벨(+선택 hint) + 우측 컨트롤 한 줄 레이아웃. 컴팩트한 설정 행 패턴. */
-function SettingRow({ label, hint, children }: { label: string; hint?: React.ReactNode; children: React.ReactNode }) {
+function SettingRow({ label, hint, children }: { label: React.ReactNode; hint?: React.ReactNode; children: React.ReactNode }) {
   return (
     <Stack dir='row' align='center' justify='space-between' gap={8}>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -467,6 +470,46 @@ function SettingRow({ label, hint, children }: { label: string; hint?: React.Rea
     </Stack>
   );
 }
+/**
+ * 방송 페이지에서 팝업을 열면 맨 위에: 지금 채널 + "이 채널에서 사용" 스위치 (src/utils/channel-off.ts).
+ * 끄면 그 탭에서 새로고침 없이 모아보기 창·수집 표시가 사라지고, 확장 아이콘에 OFF가 붙는다.
+ * 방송 페이지가 아니면(채널 ID가 없으면) 그리지 않는다.
+ */
+function ChannelPower() {
+  const t = (k: string) => browser.i18n.getMessage(k as any);
+  const [info, setInfo] = React.useState<(ChannelInfo & { channelId: string; name?: string; image?: string }) | null>(null);
+  useEffect(() => {
+    (async () => {
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id == null) return;
+      const r = await browser.tabs.sendMessage(tab.id, { type: CHANNEL_INFO_MESSAGE }, { frameId: 0 }).catch(() => null) as ChannelInfo | null;
+      if (!r?.channelId) return;
+      setInfo({ ...r, channelId: r.channelId, name: r.platform === 'twitch' ? r.channelId : undefined });
+      // 치지직은 이름·사진을 채널 정보로 (지금 탭이 치지직이라 권한 없이 그 탭을 거친다)
+      if (r.platform === 'chzzk') {
+        fetchChzzkChannel(r.channelId).then(c => setInfo(i => i && { ...i, name: c.name, image: c.imageUrl })).catch(() => {});
+      }
+    })();
+  }, []);
+  if (!info) return null;
+  const toggle = (on: boolean) => {
+    setInfo({ ...info, off: !on });
+    setChannelOff(info.platform, info.channelId, !on, info.name);
+  };
+  return (
+    <div style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--ui-tint)' }}>
+      <SettingRow
+        label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <ChannelAvatar src={info.image} size={20} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{info.name ?? ''}</span>
+        </span>}
+        hint={t('channelEnabled')}>
+        <Switch checked={!info.off} onChange={toggle} />
+      </SettingRow>
+    </div>
+  );
+}
+
 function Popup() {
   const onPageButtonClicked = (path: string) => {
     browser.tabs.create({
@@ -522,6 +565,8 @@ function Popup() {
         </a>
         <Tag>{`v${browser.runtime.getManifest().version}`}</Tag>
       </Stack>
+
+      <ChannelPower />
 
       <TranslationNotice
         language={browser.i18n.getUILanguage()}

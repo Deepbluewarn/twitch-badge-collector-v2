@@ -9,6 +9,7 @@ import {
     SELECTORS_MESSAGE_TYPE, SELECTORS_REQUEST_TYPE,
 } from "@/platform/host-selectors";
 import { registerDiagnoseListener } from "@/platform/diagnose";
+import { setupChannelOff } from "../base/channel-off";
 
 async function bootstrap() {
     // Manifest(OTA 또는 bundled) 적용 완료까지 대기 후 observer 부착.
@@ -49,7 +50,11 @@ async function bootstrap() {
         '#tbc-clone__twitchui',
     );
 
-    function init() {
+    // 이 채널에서 끄기 — 다시 켜면 창을 만든다(이미 있으면 숨김만 풀린다).
+    const channelOff = setupChannelOff(adapter, off => { if (!off) init(); });
+
+    async function init() {
+        if (await channelOff.evaluate()) return;
         if (adapter.getPageMode() === 'video') {
             vodContainer.create();
         } else {
@@ -71,6 +76,7 @@ async function bootstrap() {
             const boxBtn = elem.querySelector<HTMLButtonElement>(SEL.pointButton!);
             if (!boxBtn) return;
 
+            if (channelOff.isOff()) return;
             const isPointAutoOn = (await browser.storage.local.get('pointBoxAuto')).pointBoxAuto;
             if (isPointAutoOn === 'off') return;
 

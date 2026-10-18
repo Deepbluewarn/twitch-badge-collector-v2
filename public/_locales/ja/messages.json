@@ -187,5 +187,8 @@
   },
   "back": {
     "message": "戻る"
+  },
+  "channelEnabled": {
+    "message": "このチャンネルで使用"
   }
 }
