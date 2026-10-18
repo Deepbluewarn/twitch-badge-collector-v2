@@ -207,8 +207,8 @@
         "custom_color": "自定义颜色",
         "prev_page": "上一页",
         "next_page": "下一页",
-        "channel_all": "所有频道",
-        "channel_none": "未指定频道",
+        "channel_all": "所有过滤器",
+        "channel_none": "未指定频道（通用）",
         "open_channel": "打开频道"
     },
     "filter_test": {

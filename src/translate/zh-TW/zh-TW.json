@@ -207,8 +207,8 @@
         "custom_color": "自訂顏色",
         "prev_page": "上一頁",
         "next_page": "下一頁",
-        "channel_all": "所有頻道",
-        "channel_none": "未指定頻道",
+        "channel_all": "所有篩選器",
+        "channel_none": "未指定頻道（通用）",
         "open_channel": "開啟頻道"
     },
     "filter_test": {

@@ -207,8 +207,8 @@
         "custom_color": "Свой цвет",
         "prev_page": "Предыдущая страница",
         "next_page": "Следующая страница",
-        "channel_all": "Все каналы",
-        "channel_none": "Без канала",
+        "channel_all": "Все фильтры",
+        "channel_none": "Без канала (общие)",
         "open_channel": "Открыть канал"
     },
     "filter_test": {

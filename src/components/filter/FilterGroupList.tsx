@@ -8,7 +8,8 @@ import { rotateFilterType } from "../chip/FilterTypeChip";
 import { FilterList, FilterListActions } from "./FilterList";
 import { EMPTY_TEST, FilterTesterPanel, TestInput, useFilterTest } from "./FilterTester";
 import s from "./FilterGroupList.module.css";
-import { Button, Select } from "@/ui";
+import { Button } from "@/ui";
+import { ChannelRail, filterByView, useRailChannels, VIEW_ALL, VIEW_COMMON } from "./ChannelRail";
 import { canReachChzzkApi, fetchChzzkChannel } from "@/api/chzzk-channel";
 import { useTranslation } from "react-i18next";
 
@@ -19,18 +20,15 @@ export function FilterGroupList() {
     const { filterGroup, setFilterGroup, upsertCompositeFilter, removeSubFilter, removeFilterField } = useFilterGroupContext();
     const platformFilters = useMemo(() => filterGroup.filter(f => f.platform === globalSetting.platform), [filterGroup, globalSetting.platform]);
 
-    // 채널별 보기 — 목록만 거른다(필터 시험은 늘 전체 필터로).
+    // 채널별 보기 — 왼쪽 채널 목록에서 고른 채널의 필터만 보인다(필터 시험은 늘 전체 필터로).
+    const { channels, common } = useRailChannels(platformFilters);
     const [channelView, setChannelView] = useState<string>(VIEW_ALL);
-    const channels = useMemo(() => {
-        const m = new Map<string, string>();
-        platformFilters.forEach(f => { if (f.filterChannelId) m.set(f.filterChannelId, f.filterChannelName || f.filterChannelId); });
-        return [...m].map(([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label));
-    }, [platformFilters]);
     useEffect(() => {
-        if (channelView !== VIEW_ALL && channelView !== VIEW_NONE && !channels.some(c => c.value === channelView)) setChannelView(VIEW_ALL);
+        if (channelView !== VIEW_ALL && channelView !== VIEW_COMMON && !channels.some(c => c.id === channelView)) setChannelView(VIEW_ALL);
     }, [channels, channelView]);
-    const visibleFilters = useMemo(() => channelView === VIEW_ALL ? platformFilters
-        : platformFilters.filter(f => (f.filterChannelId || VIEW_NONE) === channelView), [platformFilters, channelView]);
+    const visibleFilters = useMemo(() => filterByView(platformFilters, channelView), [platformFilters, channelView]);
+    // 채널을 지정한 필터가 없으면 채널 목록 없이 지금 모양 그대로
+    const rail = channels.length > 0;
 
     useChannelImages(globalSetting.platform, platformFilters, setFilterGroup);
 
@@ -72,18 +70,19 @@ export function FilterGroupList() {
 
     return (
         <>
-            <div className={`${s.layout} ${testerOpen ? s.testing : ''}`}>
+            <div className={`${s.layout} ${rail ? s.withRail : ''} ${testerOpen ? s.testing : ''}`}>
+                {rail && <ChannelRail total={platformFilters.length} common={common} channels={channels} view={channelView} onView={v => {
+                    setChannelView(v);
+                    // 고른 채널로 필터 시험도 맞춘다 — 안 그러면 그 채널 필터가 '다른 채널'로 흐려진다
+                    if (v !== VIEW_ALL && v !== VIEW_COMMON) setTestInput(i => ({ ...i, channelId: v }));
+                }} />}
                 <FilterList rows={visibleFilters} adapter={adapter} actions={actions}
                     test={testerOpen ? testResult.rows : undefined}
-                    toolbarExtra={<>
-                        {channels.length > 0 && (
-                            <Select size="sm" value={channelView} onChange={setChannelView} aria-label={t('common.channel')}
-                                options={[{ value: VIEW_ALL, label: t('filter_list.channel_all') }, { value: VIEW_NONE, label: t('filter_list.channel_none') }, ...channels]} />
-                        )}
-                        {!testerOpen && <Button size="sm" icon="science" onClick={() => setTesterOpen(true)}>{t('filter_test.button')}</Button>}
-                    </>} />
+                    toolbarExtra={!testerOpen && <Button size="sm" icon="science" onClick={() => setTesterOpen(true)}>{t('filter_test.button')}</Button>} />
                 {testerOpen && (
-                    <FilterTesterPanel input={testInput} onInput={setTestInput} result={testResult} rules={platformFilters} adapter={adapter} onClose={() => setTesterOpen(false)} />
+                    <div className={s.tester}>
+                        <FilterTesterPanel input={testInput} onInput={setTestInput} result={testResult} rules={platformFilters} adapter={adapter} onClose={() => setTesterOpen(false)} />
+                    </div>
                 )}
             </div>
             <FilterDialog
@@ -102,8 +101,6 @@ export function FilterGroupList() {
     );
 }
 
-const VIEW_ALL = '__all__';
-const VIEW_NONE = '__none__';
 
 /**
  * 채널 사진이 없는 치지직 필터(검색 전에 만든 것)에 사진을 채운다. 치지직 탭이 열려 있거나 권한을 받았을 때만.

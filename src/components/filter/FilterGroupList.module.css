@@ -1,15 +1,26 @@
-/* 필터 목록 + (열려 있으면) 필터 시험 칸. 넓으면 옆, 좁으면 목록 아래. */
+/*
+ * [채널 목록(채널을 쓸 때만)] 필터 목록 [필터 시험(열려 있을 때)].
+ * 설정 페이지 폭(~1050px)에 세 칸은 목록이 너무 좁아, 채널 목록이 있으면 시험 칸은 아래 전체 폭으로.
+ * 창이 좁으면 모두 한 줄씩.
+ */
 .layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
     align-items: start;
 }
-.layout.testing {
+.layout.withRail {
+    grid-template-columns: 220px minmax(0, 1fr);
+}
+.layout.withRail .tester {
+    grid-column: 1 / -1;
+}
+.layout.testing:not(.withRail) {
     grid-template-columns: minmax(0, 1fr) 360px;
 }
 @media (max-width: 900px) {
-    .layout.testing {
+    .layout.withRail,
+    .layout.testing:not(.withRail) {
         grid-template-columns: minmax(0, 1fr);
     }
 }

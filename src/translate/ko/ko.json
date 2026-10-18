@@ -206,8 +206,8 @@
         "custom_color": "직접 고르기",
         "prev_page": "이전 페이지",
         "next_page": "다음 페이지",
-        "channel_all": "모든 채널",
-        "channel_none": "채널 지정 안 함",
+        "channel_all": "모든 필터",
+        "channel_none": "채널 지정 안 함 (공통)",
         "open_channel": "채널 열기"
     },
     "filter_test": {

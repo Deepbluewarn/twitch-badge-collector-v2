@@ -207,8 +207,8 @@
         "custom_color": "Color personalizado",
         "prev_page": "Página anterior",
         "next_page": "Página siguiente",
-        "channel_all": "Todos los canales",
-        "channel_none": "Sin canal",
+        "channel_all": "Todos los filtros",
+        "channel_none": "Sin canal (común)",
         "open_channel": "Abrir canal"
     },
     "filter_test": {

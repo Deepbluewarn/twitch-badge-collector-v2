@@ -207,8 +207,8 @@
         "custom_color": "色を選ぶ",
         "prev_page": "前のページ",
         "next_page": "次のページ",
-        "channel_all": "すべてのチャンネル",
-        "channel_none": "チャンネル指定なし",
+        "channel_all": "すべてのフィルター",
+        "channel_none": "チャンネル指定なし（共通）",
         "open_channel": "チャンネルを開く"
     },
     "filter_test": {
