@@ -88,7 +88,7 @@ export function FilterGroupList() {
                     test={testerOpen ? testResult.rows : undefined}
                     toolbarExtra={<>
                         {broadCount > 0 && (
-                            <Button size="sm" icon="warning" variant={broadOnly ? 'primary' : 'danger'} aria-pressed={broadOnly}
+                            <Button size="sm" icon={broadOnly ? 'close' : 'warning'} variant="primary" aria-pressed={broadOnly}
                                 onClick={() => { setBroadOnly(b => !b); setChannelView(VIEW_ALL); }}>
                                 {t('filter_list.broad_count', { count: broadCount })}
                             </Button>

@@ -170,7 +170,7 @@ function FilterRow({ row, adapter, actions, selected, onToggle, test }: { row: R
                     <Meta label={t('common.note')} value={row.filterNote} onEdit={() => actions.editNote(row)} onRemove={() => actions.removeNote(row)} />
                 </div>
             </div>
-            {isBroadFilter(row) && <span className={`${s.broad} ${s.bad}`}><Icon name="warning" />{t('filter_list.broad')}</span>}
+            {isBroadFilter(row) && <span className={s.broad}><Icon name="warning" />{t('filter_list.broad')}</span>}
             <button type="button" className={`${s.tag} ${TONE[row.filterType] ?? s.ok}`} onClick={() => actions.rotateType(row)}>
                 {t(`filter.category.${row.filterType}`)}
             </button>

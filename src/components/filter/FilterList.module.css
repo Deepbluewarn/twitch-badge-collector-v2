@@ -323,6 +323,8 @@
     font-size: 12px;
     font-weight: 800;
     white-space: nowrap;
+    background: var(--ui-yellow);
+    color: var(--ui-on-yellow);
 }
 .broad :global(.material-icons-round) {
     font-size: 14px;
