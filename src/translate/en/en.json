@@ -212,7 +212,9 @@
         "open_channel": "Open channel",
         "broad": "Too broad",
         "broad_count": "{{count}} broad filter(s)",
-        "broad_explain": "This filter collects almost every chat."
+        "broad_explain": "This filter collects almost every chat.",
+        "search": "Find filters",
+        "search_clear": "Clear"
     },
     "filter_test": {
         "button": "Test filters",

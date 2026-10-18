@@ -1,0 +1,63 @@
+/* 필터 목록 머리 줄 검색. 색은 src/ui/tokens.css 토큰. 높이는 머리 줄 작은 버튼(36px)과 같게. */
+
+.toggle {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 2px solid var(--ui-line);
+    border-radius: 8px;
+    background: var(--ui-paper);
+    color: var(--ui-ink);
+    font-size: 20px;
+    cursor: pointer;
+}
+.toggle:hover {
+    background: var(--ui-soft);
+}
+.bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 240px;
+    height: 36px;
+    padding: 0 8px 0 10px;
+    border: 2px solid var(--ui-ink);
+    border-radius: 8px;
+    background: var(--ui-paper);
+    color: var(--ui-muted);
+    font-size: 18px;
+}
+.input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ui-ink);
+    font-family: var(--ui-font);
+    font-size: 13px;
+    font-weight: 700;
+    outline: none;
+}
+.input::placeholder {
+    color: var(--ui-muted);
+}
+.clear {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ui-muted);
+    font-size: 18px;
+    cursor: pointer;
+}
+.clear:hover {
+    color: var(--ui-ink);
+}
+@media (max-width: 600px) {
+    .bar {
+        width: 160px;
+    }
+}

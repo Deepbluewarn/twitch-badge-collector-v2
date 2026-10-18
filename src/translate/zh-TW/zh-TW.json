@@ -212,7 +212,9 @@
         "open_channel": "開啟頻道",
         "broad": "範圍過寬",
         "broad_count": "範圍過寬的篩選器 {{count}} 個",
-        "broad_explain": "幾乎所有聊天都會被收集。"
+        "broad_explain": "幾乎所有聊天都會被收集。",
+        "search": "尋找篩選器",
+        "search_clear": "清除"
     },
     "filter_test": {
         "button": "測試篩選器",

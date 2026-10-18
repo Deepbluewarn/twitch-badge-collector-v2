@@ -212,7 +212,9 @@
         "open_channel": "チャンネルを開く",
         "broad": "範囲が広い",
         "broad_count": "範囲が広いフィルター {{count}}件",
-        "broad_explain": "ほとんどのチャットが収集されます。"
+        "broad_explain": "ほとんどのチャットが収集されます。",
+        "search": "フィルターを検索",
+        "search_clear": "クリア"
     },
     "filter_test": {
         "button": "フィルターを試す",

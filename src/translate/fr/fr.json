@@ -212,7 +212,9 @@
         "open_channel": "Ouvrir la chaîne",
         "broad": "Trop large",
         "broad_count": "{{count}} filtre(s) trop large(s)",
-        "broad_explain": "Presque tous les messages seront collectés."
+        "broad_explain": "Presque tous les messages seront collectés.",
+        "search": "Rechercher des filtres",
+        "search_clear": "Effacer"
     },
     "filter_test": {
         "button": "Tester les filtres",

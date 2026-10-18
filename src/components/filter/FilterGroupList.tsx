@@ -10,6 +10,8 @@ import { EMPTY_TEST, FilterTesterPanel, TestInput, useFilterTest } from "./Filte
 import s from "./FilterGroupList.module.css";
 import { Button } from "@/ui";
 import { isBroadFilter } from "@/filter/broad";
+import { matchesFilterSearch } from "@/filter/search";
+import { FilterSearch } from "./FilterSearch";
 import { ChannelRail, filterByView, useRailChannels, VIEW_ALL, VIEW_COMMON } from "./ChannelRail";
 import { canReachChzzkApi, fetchChzzkChannel } from "@/api/chzzk-channel";
 import { useTranslation } from "react-i18next";
@@ -32,10 +34,13 @@ export function FilterGroupList() {
     const broadCount = useMemo(() => platformFilters.filter(isBroadFilter).length, [platformFilters]);
     const [broadOnly, setBroadOnly] = useState(false);
     useEffect(() => { if (broadCount === 0) setBroadOnly(false); }, [broadCount]);
+    // 필터 찾기 — 채널 보기·범위 넓음 결과 안에서 한 번 더 거른다
+    const [search, setSearch] = useState('');
     const visibleFilters = useMemo(() => {
-        const rows = filterByView(platformFilters, channelView);
-        return broadOnly ? rows.filter(isBroadFilter) : rows;
-    }, [platformFilters, channelView, broadOnly]);
+        let rows = filterByView(platformFilters, channelView);
+        if (broadOnly) rows = rows.filter(isBroadFilter);
+        return search.trim() ? rows.filter(r => matchesFilterSearch(r, search)) : rows;
+    }, [platformFilters, channelView, broadOnly, search]);
     // 채널을 지정한 필터가 없으면 채널 목록 없이 지금 모양 그대로
     const rail = channels.length > 0;
 
@@ -90,6 +95,7 @@ export function FilterGroupList() {
                 <FilterList rows={visibleFilters} adapter={adapter} actions={actions}
                     test={testerOpen ? testResult.rows : undefined}
                     toolbarExtra={<>
+                        <FilterSearch value={search} onChange={setSearch} />
                         {broadCount > 0 && (
                             <Button size="sm" icon={broadOnly ? 'close' : 'warning'} variant="primary" aria-pressed={broadOnly}
                                 onClick={() => { setBroadOnly(b => !b); setChannelView(VIEW_ALL); }}>

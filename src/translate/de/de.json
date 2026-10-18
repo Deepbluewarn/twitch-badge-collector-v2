@@ -212,7 +212,9 @@
         "open_channel": "Kanal öffnen",
         "broad": "Zu breit",
         "broad_count": "{{count}} zu breite Filter",
-        "broad_explain": "Fast alle Chats werden gesammelt."
+        "broad_explain": "Fast alle Chats werden gesammelt.",
+        "search": "Filter suchen",
+        "search_clear": "Löschen"
     },
     "filter_test": {
         "button": "Filter testen",

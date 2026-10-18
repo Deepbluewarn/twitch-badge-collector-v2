@@ -212,7 +212,9 @@
         "open_channel": "Abrir canal",
         "broad": "Amplo demais",
         "broad_count": "{{count}} filtro(s) amplo(s) demais",
-        "broad_explain": "Quase todas as mensagens serão coletadas."
+        "broad_explain": "Quase todas as mensagens serão coletadas.",
+        "search": "Buscar filtros",
+        "search_clear": "Limpar"
     },
     "filter_test": {
         "button": "Testar filtros",
