@@ -1,5 +1,12 @@
 name: Publish Extension
 
+# 릴리스를 게시하면:
+#  - Chrome: 심사 제출만 한다(STAGED_PUBLISH). 승인되면 게시하지 않고 대기 → 새벽 예약 작업이 게시.
+#  - Firefox: 여기선 내지 않는다. 심사가 몇 분이면 끝나 바로 퍼지므로 새벽 예약 작업이 제출.
+#  - Edge: 바로 제출(심사가 며칠 걸려 시각을 맞출 수 없다).
+#  - zip을 릴리스에 첨부 — 새벽 예약 작업(scheduled-publish.yml)이 Firefox 제출에 쓴다.
+# 방송 탭을 연 채로 업데이트를 받으면 콘텐츠 스크립트가 끊기므로, 업데이트가 덜 보는 시간대에 퍼지게 한다.
+
 on:
   release:
     types: [published]
@@ -38,6 +45,8 @@ env:
 
 jobs:
   build:
+    permissions:
+      contents: write   # 릴리스에 zip 첨부
     name: Build & Verify
     runs-on: ubuntu-latest
     outputs:
@@ -89,6 +98,14 @@ jobs:
         # web-ext lint는 Firefox 전용 도구 — Chrome 빌드 검증 시 FF 요구사항 위반으로 무조건 fail.
         run: npx --yes web-ext lint --source-dir .output/firefox-mv2 --self-hosted
 
+      - name: Attach zips to release
+        # 새벽 예약 작업이 이 zip으로 Firefox를 제출한다.
+        if: github.event_name == 'release'
+        run: gh release upload "$TAG" .output/*.zip --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -103,32 +120,44 @@ jobs:
     name: Publish to Chrome Web Store
     needs: build
     runs-on: ubuntu-latest
-    # release 트리거는 항상 모두 배포. workflow_dispatch는 체크박스 따라.
+    # release 트리거는 항상 제출. workflow_dispatch는 체크박스 따라.
     if: github.event_name == 'release' || inputs.publish_chrome
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
       - uses: actions/download-artifact@v4
         with:
           name: extension-zips
           path: .output
-      - name: Submit
-        run: npx wxt submit ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '--dry-run' || '' }} --chrome-zip .output/*-chrome.zip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22   # publish-browser-extension 6.x
+      - name: Access token
+        id: token
+        run: |
+          TOKEN=$(node scripts/cws.mjs token)
+          echo "::add-mask::$TOKEN"
+          echo "value=$TOKEN" >> "$GITHUB_OUTPUT"
         env:
-          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
           CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
           CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+      - name: Submit for review (staged)
+        # API v2 + STAGED_PUBLISH: 승인돼도 게시하지 않고 대기. 게시는 scheduled-publish.yml이 새벽에.
+        # (v1.1은 2026-10-15 종료 예고 — wxt에 들어 있는 publish-browser-extension 3.x는 v1.1만 쓴다)
+        run: npx --yes publish-browser-extension@6.2.0 ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '--dry-run' || '' }} --chrome-zip .output/*-chrome.zip
+        env:
+          CHROME_API_VERSION: v2
+          CHROME_PUBLISH_TYPE: STAGED_PUBLISH
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CHROME_SERVICE_ACCOUNT_ACCESS_TOKEN: ${{ steps.token.outputs.value }}
 
   publish-firefox:
     name: Publish to Firefox AMO
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || inputs.publish_firefox
+    # 릴리스 때는 내지 않는다 — 새벽 예약 작업(scheduled-publish.yml)이 제출. 수동 실행 때만.
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_firefox
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -170,27 +199,3 @@ jobs:
           EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
           EDGE_CLIENT_SECRET: ${{ secrets.EDGE_CLIENT_SECRET }}
           EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
-
-  notify-discord:
-    name: Notify Discord
-    needs: [build, publish-chrome, publish-firefox, publish-edge]
-    runs-on: ubuntu-latest
-    # 실제 release일 때만 알림. publish 모두 성공해야 알림 — 일부 실패 시 수동 확인 후 재공지.
-    if: github.event_name == 'release'
-    steps:
-      - name: Post to Discord
-        env:
-          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          VERSION: ${{ needs.build.outputs.version }}
-          RELEASE_URL: ${{ github.event.release.html_url }}
-          RELEASE_NOTES: ${{ github.event.release.body }}
-        run: |
-          # 기존 공지 톤: 코드 블록 버전 + bullet list + GitHub URL (Discord 자동 embed)
-          CONTENT=$(jq -n \
-            --arg ver "$VERSION" \
-            --arg url "$RELEASE_URL" \
-            --arg notes "$RELEASE_NOTES" \
-            '{
-              content: "`\($ver)` 버전 업데이트\n\n\($notes)\n\n\($url)"
-            }')
-          curl -sS -H "Content-Type: application/json" -X POST -d "$CONTENT" "$WEBHOOK"

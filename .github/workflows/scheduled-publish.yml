@@ -1,0 +1,109 @@
+name: Scheduled Publish
+
+# 매일 새벽 4시(한국 시간)에 업데이트를 내보낸다 — 방송을 많이 보는 저녁·밤에 업데이트가 퍼지지 않게.
+# 아침에 브라우저를 켜면 방송 탭을 열기 전에 새 버전이 들어간다.
+#  - Chrome: 릴리스 때 STAGED_PUBLISH로 제출해 둔 것이 승인돼 대기 중이면 게시(scripts/cws.mjs).
+#  - Firefox: 최신 릴리스를 아직 안 냈으면 릴리스에 첨부된 zip으로 제출(심사가 몇 분이라 곧 게시된다).
+#  - 디스코드 공지: Chrome이 실제로 게시됐을 때.
+# 제출·공지 여부는 릴리스에 붙이는 작은 표시 파일로 기억한다(같은 버전을 매일 다시 내지 않게).
+
+on:
+  schedule:
+    - cron: '0 19 * * *'   # 19:00 UTC = 04:00 KST (GitHub 사정으로 늦어질 수 있다)
+  workflow_dispatch:
+
+permissions:
+  contents: write   # 릴리스 표시 파일
+
+jobs:
+  release:
+    name: Latest release
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.r.outputs.tag }}
+      firefox_done: ${{ steps.r.outputs.firefox_done }}
+      notified: ${{ steps.r.outputs.notified }}
+    steps:
+      - id: r
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          TAG=$(gh release view --repo "$REPO" --json tagName -q .tagName)
+          ASSETS=$(gh release view "$TAG" --repo "$REPO" --json assets -q '.assets[].name')
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "firefox_done=$(grep -qx 'firefox-submitted.txt' <<< "$ASSETS" && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "notified=$(grep -qx 'notified.txt' <<< "$ASSETS" && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "latest: $TAG"; echo "$ASSETS"
+
+  chrome:
+    name: Chrome — publish staged
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.p.outputs.published }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: p
+        run: node scripts/cws.mjs publish-staged
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+
+  firefox:
+    name: Firefox — submit latest release
+    needs: release
+    if: needs.release.outputs.firefox_done != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Download zips from release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+        run: gh release download "$TAG" -p '*-firefox.zip' -p '*-sources.zip' -D .output
+      - name: Submit
+        run: npx wxt submit --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
+        env:
+          FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+      - name: Mark submitted
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          date -u +%FT%TZ > firefox-submitted.txt
+          gh release upload "$TAG" firefox-submitted.txt --clobber
+
+  notify-discord:
+    name: Notify Discord
+    needs: [release, chrome]
+    if: needs.chrome.outputs.published == 'true' && needs.release.outputs.notified != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Post to Discord
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          # 기존 공지 톤: 코드 블록 버전 + bullet list + GitHub URL (Discord 자동 embed)
+          NOTES=$(gh release view "$TAG" --json body -q .body)
+          URL=$(gh release view "$TAG" --json url -q .url)
+          CONTENT=$(jq -n --arg ver "${TAG#v}" --arg url "$URL" --arg notes "$NOTES" \
+            '{ content: "`\($ver)` 버전 업데이트\n\n\($notes)\n\n\($url)" }')
+          curl -sS -H "Content-Type: application/json" -X POST -d "$CONTENT" "$WEBHOOK"
+          date -u +%FT%TZ > notified.txt
+          gh release upload "$TAG" notified.txt --clobber
