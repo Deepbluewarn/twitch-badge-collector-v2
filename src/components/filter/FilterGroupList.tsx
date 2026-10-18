@@ -12,8 +12,6 @@ import { Button } from "@/ui";
 import { isBroadFilter } from "@/filter/broad";
 import { matchesFilterSearch } from "@/filter/search";
 import { FilterSearch } from "./FilterSearch";
-import { CHAT_PICK_PENDING_KEY, type ChatPick } from "@/interfaces/chat-pick";
-import type { BadgeInterface } from "@/interfaces/chat";
 import { ChannelRail, filterByView, useRailChannels, VIEW_ALL, VIEW_COMMON } from "./ChannelRail";
 import { canReachChzzkApi, fetchChzzkChannel } from "@/api/chzzk-channel";
 import { useTranslation } from "react-i18next";
@@ -21,7 +19,7 @@ import { useAlertContext } from "@/context/Alert";
 
 /** 지금 플랫폼의 필터 목록 + 필터 편집 대화상자. 목록 모양은 FilterList, 저장은 필터 그룹 context. */
 export function FilterGroupList() {
-    const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
+    const { globalSetting } = useGlobalSettingContext();
     const adapter = getAdapter(globalSetting.platform);
     const { filterGroup, setFilterGroup, upsertCompositeFilter, removeSubFilter, removeFilterField } = useFilterGroupContext();
     const platformFilters = useMemo(() => filterGroup.filter(f => f.platform === globalSetting.platform), [filterGroup, globalSetting.platform]);
@@ -54,37 +52,6 @@ export function FilterGroupList() {
     // 시험 입력은 닫아도 남겨 둔다 — 필터를 고치고 다시 열어 같은 채팅으로 확인하게.
     const [testInput, setTestInput] = useState<TestInput>(EMPTY_TEST);
     const testResult = useFilterTest(testInput, platformFilters, adapter);
-
-    // 원본 채팅창 우클릭 '필터 시험에 넣기'로 넘어온 채팅 → 그 플랫폼으로 바꾸고 필터 시험을 연다.
-    useEffect(() => {
-        const take = async () => {
-            const { [CHAT_PICK_PENDING_KEY]: pick } = await browser.storage.local.get(CHAT_PICK_PENDING_KEY) as { [k: string]: (ChatPick & { at: number }) | undefined };
-            if (!pick || Date.now() - pick.at > 60_000) return;
-            // 플랫폼이 다르면 먼저 바꾼다 — 바뀐 뒤 이 effect가 다시 돌아 꺼내 간다.
-            // 설정은 저장소에서 늦게 읽혀 처음엔 기본값이라, 저장된 값도 같이 맞춘다.
-            const { platform: stored } = await browser.storage.local.get('platform');
-            if (pick.platform !== globalSetting.platform || stored !== pick.platform) {
-                if (stored !== pick.platform) await browser.storage.local.set({ platform: pick.platform });
-                dispatchGlobalSetting({ type: 'SET_PLATFORM', payload: pick.platform });
-                return;
-            }
-            await browser.storage.local.remove(CHAT_PICK_PENDING_KEY);
-            setTestInput({
-                nickname: pick.nickname,
-                message: pick.message,
-                badges: pick.badges.map(pickBadge),
-                channelId: platformFilters.some(f => f.filterChannelId === pick.channelId) ? pick.channelId : undefined,
-            });
-            setChannelView(VIEW_ALL);
-            setSearch('');
-            setBroadOnly(false);
-            setTesterOpen(true);
-        };
-        take();
-        const onChange = (changes: Record<string, unknown>, area: string) => { if (area === 'local' && CHAT_PICK_PENDING_KEY in changes) take(); };
-        browser.storage.onChanged.addListener(onChange);
-        return () => browser.storage.onChanged.removeListener(onChange);
-    }, [globalSetting.platform, platformFilters, dispatchGlobalSetting]);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogType, setDialogType] = useState<DialogType>(null);
     const [dialogMode, setDialogMode] = useState<DialogMode>(null);
@@ -159,12 +126,6 @@ export function FilterGroupList() {
     );
 }
 
-
-/** 넘어온 채팅의 배지(그림 주소 + 이름) → 필터 시험 배지. 정체는 시험이 주소에서 다시 뽑는다. */
-const pickBadge = (b: ChatPick['badges'][number]): BadgeInterface => ({
-    id: b.url, badgeImage: { badge_img_url_1x: b.url, badge_img_url_2x: b.url, badge_img_url_4x: b.url },
-    channel: '', note: '', badgeName: b.name, filterType: 'include', badgeSetId: '',
-});
 
 /**
  * 채널 사진이 없는 치지직 필터(검색 전에 만든 것)에 사진을 채운다. 치지직 탭이 열려 있거나 권한을 받았을 때만.

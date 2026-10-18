@@ -187,8 +187,5 @@
   },
   "back": {
     "message": "Voltar"
-  },
-  "filterTestMenu": {
-    "message": "Enviar para \"Testar filtros\""
   }
 }

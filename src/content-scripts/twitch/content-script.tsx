@@ -9,7 +9,6 @@ import {
     SELECTORS_MESSAGE_TYPE, SELECTORS_REQUEST_TYPE,
 } from "@/platform/host-selectors";
 import { registerDiagnoseListener } from "@/platform/diagnose";
-import { listenChatPick } from "../base/chat-pick";
 
 async function bootstrap() {
     // Manifest(OTA 또는 bundled) 적용 완료까지 대기 후 observer 부착.
@@ -33,8 +32,6 @@ async function bootstrap() {
 
     const adapter = new TwitchAdapter();
     registerDiagnoseListener(adapter, 'twitch');
-    // 우클릭 메뉴 '필터 시험에 넣기' — 맨 위 창의 원본 채팅만
-    if (window === window.top) listenChatPick(adapter);
 
     const SEL = getPlatformConfig('twitch').selectors;
 

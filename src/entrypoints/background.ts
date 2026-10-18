@@ -3,7 +3,6 @@ import defaultFilter from "@/defaultFilters";
 import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
 import { installChzzkApiOriginRule } from "@/api/chzzk-channel";
-import { CHAT_PICK_HAS, CHAT_PICK_MENU_ID, CHAT_PICK_PENDING_KEY, CHAT_PICK_TAKE, type ChatPick } from "@/interfaces/chat-pick";
 
 export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id });
@@ -29,8 +28,6 @@ export default defineBackground(() => {
   fetchIfStale();
 
   installChzzkApiOriginRule().catch(e => console.warn('[tbcv2 bg] chzzk api rule failed', e));
-
-  setupChatPickMenu();
 
 
   // 설정 기본값 채우기 — 없는 key만 write. 몇 번 호출해도 안전(idempotent).
@@ -254,46 +251,3 @@ export default defineBackground(() => {
     }
   );
 });
-
-/**
- * 원본 채팅창 우클릭 메뉴 '필터 시험에 넣기'. 채팅창 조작(클릭·드래그·닉네임)을 건드리지 않으려고 메뉴로 한다.
- * 누르면 그 탭이 읽어 둔 채팅을 받아 storage에 넣고 설정 페이지를 연다 — 설정 페이지가 꺼내 필터 시험을 연다.
- * Firefox는 메뉴가 열릴 때 채팅 위가 아니면 항목을 숨긴다(menus.onShown). Chrome엔 그런 이벤트가 없어
- * 치지직·트위치 페이지에선 늘 보이고, 채팅이 아닌 곳에서 누르면 아무 일도 하지 않는다.
- */
-function setupChatPickMenu() {
-  const menus = browser.contextMenus;
-  if (!menus) return;
-  const pages = ['*://chzzk.naver.com/*', '*://*.twitch.tv/*'];
-  menus.removeAll().then(() => menus.create({
-    id: CHAT_PICK_MENU_ID,
-    title: browser.i18n.getMessage('filterTestMenu'),
-    contexts: ['page', 'selection', 'link', 'image'],
-    documentUrlPatterns: pages,
-  })).catch(e => console.warn('[tbcv2 bg] chat pick menu failed', e));
-
-  menus.onClicked.addListener(async (info, tab) => {
-    if (info.menuItemId !== CHAT_PICK_MENU_ID || tab?.id == null) return;
-    const pick = await browser.tabs.sendMessage(tab.id, { type: CHAT_PICK_TAKE }, { frameId: info.frameId ?? 0 })
-      .catch(() => null) as ChatPick | null;
-    if (!pick) return;
-    await browser.storage.local.set({ [CHAT_PICK_PENDING_KEY]: { ...pick, at: Date.now() } });
-    await browser.tabs.create({ url: browser.runtime.getURL('/setting.html?initialPath=filter'), index: tab.index + 1 });
-  });
-
-  type FxMenus = {
-    onShown?: { addListener(cb: (info: { menuIds: (string | number)[]; frameId?: number }, tab?: { id?: number }) => void): void };
-    onHidden?: { addListener(cb: () => void): void };
-    update(id: string, props: { visible: boolean }): Promise<void>;
-    refresh(): void;
-  };
-  const fx = (browser as unknown as { menus?: FxMenus }).menus;
-  if (!fx?.onShown) return;
-  fx.onShown.addListener(async (info, tab) => {
-    if (!info.menuIds.includes(CHAT_PICK_MENU_ID) || tab?.id == null) return;
-    const has = await browser.tabs.sendMessage(tab.id, { type: CHAT_PICK_HAS }, { frameId: info.frameId ?? 0 }).catch(() => false);
-    await fx.update(CHAT_PICK_MENU_ID, { visible: !!has });
-    fx.refresh();
-  });
-  fx.onHidden?.addListener(() => { fx.update(CHAT_PICK_MENU_ID, { visible: true }).catch(() => {}); });
-}
