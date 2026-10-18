@@ -1,0 +1,58 @@
+/* PROTOTYPE — 버릴 코드. ChannelViewPrototype.tsx */
+
+.ellipsis { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.count { margin-left: auto; padding-left: 8px; font-size: 12px; font-weight: 700; color: var(--ui-muted); }
+.sep { height: 2px; margin: 4px 6px; background: var(--ui-hair); }
+.search {
+    width: 100%; height: 36px; padding: 0 10px; border: 2px solid var(--ui-line); border-radius: 8px;
+    background: var(--ui-paper); color: var(--ui-ink); font: inherit; font-size: 13px; font-weight: 700; outline: none;
+}
+.search:focus { border-color: var(--ui-ink); }
+.opt {
+    display: flex; align-items: center; gap: 8px; width: 100%; min-height: 34px; padding: 4px 8px; border: 0; border-radius: 8px;
+    background: transparent; color: var(--ui-ink); font: inherit; font-size: 13px; font-weight: 700; text-align: left; cursor: pointer;
+}
+.opt:hover { background: var(--ui-soft); }
+.optOn, .optOn:hover { background: var(--ui-yellow); color: var(--ui-on-yellow); }
+.optOn .count { color: inherit; }
+
+/* A */
+.combo { position: relative; }
+.comboBtn {
+    display: inline-flex; align-items: center; gap: 6px; width: 220px; height: 36px; padding: 0 8px 0 12px;
+    border: 2px solid var(--ui-line); border-radius: 8px; background: var(--ui-paper); color: var(--ui-ink);
+    font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.comboBtn > :last-child { margin-left: auto; }
+.pop {
+    position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; width: 280px; padding: 8px;
+    border: 2px solid var(--ui-line); border-radius: 12px; background: var(--ui-paper);
+}
+.popList { display: flex; flex-direction: column; max-height: 320px; margin-top: 8px; overflow-y: auto; }
+.emptyPop { padding: 10px; color: var(--ui-muted); font-size: 13px; font-weight: 700; }
+
+/* B */
+.split { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 20px; }
+.rail { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.railList { display: flex; flex-direction: column; height: calc(45px * 10 + 60px); overflow-y: auto; }
+.splitMain { min-width: 0; }
+@media (max-width: 900px) { .split { grid-template-columns: 1fr; } .railList { height: 200px; } }
+
+/* C */
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.searchBar {
+    position: relative; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px;
+    border: 2px solid var(--ui-line); border-radius: 10px; background: var(--ui-paper); color: var(--ui-muted); font-size: 20px;
+}
+.searchBar:focus-within { border-color: var(--ui-ink); }
+.barInput { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ui-ink); font: inherit; font-size: 14px; font-weight: 700; outline: none; }
+.token {
+    display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 6px 0 4px; border-radius: 999px;
+    background: var(--ui-yellow); color: var(--ui-on-yellow); font-size: 13px; font-weight: 800; white-space: nowrap;
+}
+.token button { border: 0; background: none; color: inherit; font: inherit; font-size: 15px; cursor: pointer; }
+.suggest {
+    position: absolute; z-index: 20; top: calc(100% + 6px); left: 0; right: 0; padding: 6px;
+    border: 2px solid var(--ui-line); border-radius: 12px; background: var(--ui-paper);
+}
+.kind { padding: 1px 6px; border-radius: 6px; background: var(--ui-tint); color: var(--ui-muted); font-size: 11px; font-weight: 800; }

@@ -11,6 +11,9 @@ import s from "./FilterGroupList.module.css";
 import { Button, Select } from "@/ui";
 import { canReachChzzkApi, fetchChzzkChannel } from "@/api/chzzk-channel";
 import { useTranslation } from "react-i18next";
+// PROTOTYPE — 채널별 보기 시안 (?variant=A|B|C, dev만). 결정 후 지운다.
+import { IS_PROTO, PrototypeSwitcher, useVariant } from "../PrototypeSwitcher";
+import { makeFakeRows, protoSafeActions, VARIANTS, VariantA, VariantB, VariantC } from "./prototype/ChannelViewPrototype";
 
 /** 지금 플랫폼의 필터 목록 + 필터 편집 대화상자. 목록 모양은 FilterList, 저장은 필터 그룹 context. */
 export function FilterGroupList() {
@@ -69,6 +72,27 @@ export function FilterGroupList() {
         setColor: (row, color) => upsertCompositeFilter({ ...row, markerColor: color }),
         deleteMany: (ids) => setFilterGroup(rows => rows.filter(r => !ids.has(r.id))),
     };
+
+    // PROTOTYPE
+    const [variant, setVariant] = useVariant(Object.keys(VARIANTS));
+    const protoRows = useMemo(() => !IS_PROTO || new URLSearchParams(location.search).get('fake') === '0' ? platformFilters
+        : [...platformFilters, ...makeFakeRows(globalSetting.platform)], [platformFilters, globalSetting.platform]);
+    if (variant) {
+        const V = { A: VariantA, B: VariantB, C: VariantC }[variant as keyof typeof VARIANTS];
+        return (
+            <>
+                <div className={`${s.layout} ${testerOpen ? s.testing : ''}`}>
+                    <V rows={protoRows} adapter={adapter} actions={protoSafeActions(actions)} test={testerOpen ? testResult.rows : undefined}
+                        extra={!testerOpen && <Button size="sm" icon="science" onClick={() => setTesterOpen(true)}>{t('filter_test.button')}</Button>} />
+                    {testerOpen && <FilterTesterPanel input={testInput} onInput={setTestInput} result={testResult} rules={platformFilters} adapter={adapter} onClose={() => setTesterOpen(false)} />}
+                </div>
+                <FilterDialog open={dialogOpen} onClose={() => setDialogOpen(false)} type={dialogType} mode={dialogMode}
+                    selectedFilterList={selectedFilterList} filterId={selectedFilterId}
+                    onSave={(_type, updatedData) => { if (updatedData) upsertCompositeFilter(updatedData); }} />
+                <PrototypeSwitcher variants={VARIANTS} current={variant} onChange={setVariant} />
+            </>
+        );
+    }
 
     return (
         <>
