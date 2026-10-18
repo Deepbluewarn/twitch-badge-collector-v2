@@ -3,23 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { FilterCategory, AtomicFilterElement, CompositeFilterElement, FilterType } from '@/interfaces/filter';
 import { Button, Card, Dialog, Field, Select, Stack, TextArea, TextInput } from '@/ui';
 import BadgeList from './BadgeList';
-import { ChannelSearch } from './ChannelSearch';
+import { ChannelInput } from './ChannelInput';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
-
-/** 채널 주소를 붙여 넣으면 채널 ID만 뽑는다. 주소가 아니면 그대로. */
-export function extractChannelId(input: string, platform: string): string {
-    const v = input.trim();
-    if (platform === 'chzzk') {
-        const m = v.match(/chzzk\.naver\.com\/(?:live\/)?([0-9a-f]{32})/i);
-        if (m) return m[1];
-    } else if (platform === 'twitch') {
-        const m = v.match(/twitch\.tv\/(?:popout\/)?([A-Za-z0-9_]+)/i);
-        if (m) return m[1].toLowerCase();
-    }
-    return input;
-}
 
 // 모달 타입 정의
 export type DialogType = 'filter' | 'channel' | 'note' | null;
@@ -248,28 +235,9 @@ export default function FilterDialog(props: FilterDialogProps) {
         if (!filterGroupList) return;
 
         return (
-            <Stack gap={16}>
-                <ChannelSearch platform={globalSetting.platform} onPick={c => handleListObjectChange({
-                    filterChannelId: c.id, filterChannelName: c.name, filterChannelImage: c.imageUrl,
-                })} />
-                <Field label={t('common.channel_id')}>
-                    <TextInput
-                        value={filterGroupList.filterChannelId || ''}
-                        onChange={e => {
-                            // ID를 직접 바꾸면 사진은 다른 채널 것이 되므로 뺀다.
-                            handleListObjectChange({ filterChannelId: extractChannelId(e.target.value, globalSetting.platform), filterChannelImage: undefined });
-                        }}
-                    />
-                </Field>
-                <Field label={t('common.channel_name')}>
-                    <TextInput
-                        value={filterGroupList.filterChannelName || ''}
-                        onChange={e => {
-                            handleListObjectChange({ filterChannelName: e.target.value });
-                        }}
-                    />
-                </Field>
-            </Stack>
+            <ChannelInput platform={globalSetting.platform}
+                value={{ id: filterGroupList.filterChannelId || '', name: filterGroupList.filterChannelName || '', image: filterGroupList.filterChannelImage }}
+                onChange={c => handleListObjectChange({ filterChannelId: c.id, filterChannelName: c.name, filterChannelImage: c.image })} />
         );
     };
 

@@ -105,19 +105,6 @@
     font-weight: 800;
     margin-bottom: 4px;
 }
-.channelInputs {
-    display: flex;
-    gap: 8px;
-}
-.channelInputs > * {
-    flex: 1;
-}
-@media (max-width: 599px) {
-    .channelInputs {
-        flex-direction: column;
-    }
-}
-
 .badgeBox {
     display: flex;
     align-items: center;
@@ -237,7 +224,4 @@
     text-decoration-color: var(--ui-yellow);
     text-decoration-thickness: 3px;
     text-underline-offset: 3px;
-}
-.channelSearch:not(:empty) {
-    margin-bottom: 12px;
 }

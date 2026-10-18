@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Button, Card, Divider, Field, Icon, IconButton, TextInput } from '@/ui';
 import ChannelIdGuideDialog from './dialog/ChannelIdGuideDialog';
-import { ChannelSearch } from './ChannelSearch';
+import { ChannelInput, EMPTY_CHANNEL, type ChannelValue } from './ChannelInput';
 import {
     AtomicFilterElement,
     FilterCategory,
@@ -33,10 +33,7 @@ export default function FilterInputFormList(
     const [filterGroupType, setFilterGroupType] = React.useState<FilterType>('include');
     const [filterGroupNote, setFilterGroupNote] = useState('');
     const [nameFilterAvail, setNameFilterAvail] = React.useState(false);
-    const [channelId, setChannelId] = useState('');
-    const [channelName, setChannelName] = useState('');
-    // 채널 검색으로 고른 채널의 사진. ID 칸이 그 채널 그대로일 때만 저장한다.
-    const [picked, setPicked] = useState<{ id: string; image?: string }>();
+    const [channel, setChannel] = useState<ChannelValue>(EMPTY_CHANNEL);
     const [guideOpen, setGuideOpen] = useState(false);
 
     const { t } = useTranslation();
@@ -64,20 +61,18 @@ export default function FilterInputFormList(
             filterNote: filterGroupNote,
             filters: [...props.filterInputListRef.current],
             platform: globalSetting.platform,
-            filterChannelId: channelId,
-            filterChannelName: channelName,
-            filterChannelImage: picked?.id === channelId ? picked.image : undefined,
+            filterChannelId: channel.id,
+            filterChannelName: channel.name,
+            filterChannelImage: channel.image,
         }]);
         if (added) {
             resetFilterGroupInputList();
             setFilterGroupNote('');
-            setChannelId('');
-            setChannelName('');
-            setPicked(undefined);
+            setChannel(EMPTY_CHANNEL);
             addAlert({ serverity: 'success', message: t('alert.filter_added') });
             props.onAddSuccess?.();
         }
-    }, [filterGroupType, filterGroupNote, globalSetting.platform, channelId, channelName, picked, props.onAddSuccess]);
+    }, [filterGroupType, filterGroupNote, globalSetting.platform, channel, props.onAddSuccess]);
 
     const resetFilterGroupInputList = () => {
         props.setAfInputRow([]);
@@ -169,23 +164,7 @@ export default function FilterInputFormList(
                             label={t('channel_guide.title')}
                         />
                     </div>
-                    <div className={s.channelSearch}>
-                        <ChannelSearch platform={globalSetting.platform} onPick={c => { setChannelId(c.id); setChannelName(c.name); setPicked({ id: c.id, image: c.imageUrl }); }} />
-                    </div>
-                    <div className={s.channelInputs}>
-                        <Field label={t('common.channel_id')}>
-                            <TextInput
-                                value={channelId}
-                                onChange={(e) => setChannelId(e.target.value)}
-                            />
-                        </Field>
-                        <Field label={t('common.channel_name')}>
-                            <TextInput
-                                value={channelName}
-                                onChange={(e) => setChannelName(e.target.value)}
-                            />
-                        </Field>
-                    </div>
+                    <ChannelInput platform={globalSetting.platform} value={channel} onChange={setChannel} row />
                 </div>
 
                 {/* primary CTA: 우측 하단에 명확하게 */}

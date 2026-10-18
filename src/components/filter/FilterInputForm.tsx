@@ -19,7 +19,7 @@ import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
 import ChannelIdGuideDialog from './dialog/ChannelIdGuideDialog';
-import { ChannelSearch } from './ChannelSearch';
+import { ChannelInput, EMPTY_CHANNEL, type ChannelValue } from './ChannelInput';
 import { useAlertContext } from '@/context/Alert';
 import s from './FilterAddDialog.module.css';
 
@@ -37,10 +37,7 @@ export default function FilterInputForm(
     const [filterGroupNote, setFilterGroupNote] = useState('');
     const [guideOpen, setGuideOpen] = useState(false);
     const filterContentValue = useRef<HTMLInputElement>(null);
-    const channelValue = useRef<HTMLInputElement>(null);
-    const channelName = useRef<HTMLInputElement>(null);
-    // 채널 검색으로 고른 채널의 사진. ID 칸이 그 채널 그대로일 때만 저장한다.
-    const [picked, setPicked] = useState<{ id: string; image?: string }>();
+    const [channel, setChannel] = useState<ChannelValue>(EMPTY_CHANNEL);
 
     const onFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFilterGroupNote(event.target.value);
@@ -53,16 +50,9 @@ export default function FilterInputForm(
     const addFilter = useCallback(() => {
         if (typeof props.filterInput === 'undefined') return;
         if (filterContentValue.current === null) return;
-        if (channelValue.current === null || channelName.current === null) return;
 
         const contentValueRef = filterContentValue.current;
         const _contentValue = contentValueRef.value;
-
-        const channelValueRef = channelValue.current;
-        const _channelValue = channelValueRef.value;
-
-        const channelNameRef = channelName.current;
-        const _channelName = channelNameRef.value;
 
         if (props.filterInput.category === 'badge') {
             props.filterInput.badgeName = _contentValue;
@@ -80,21 +70,19 @@ export default function FilterInputForm(
             filterNote: filterGroupNote,
             filters: [props.filterInput],
             platform: globalSetting.platform,
-            filterChannelId: _channelValue,
-            filterChannelName: _channelName,
-            filterChannelImage: picked?.id === _channelValue ? picked.image : undefined,
+            filterChannelId: channel.id,
+            filterChannelName: channel.name,
+            filterChannelImage: channel.image,
         }]);
         if (added) {
             setFilterGroupNote('');
             props.setFilterInput(defaultAtomicFilter());
             contentValueRef.value = '';
-            channelValue.current.value = '';
-            channelName.current.value = '';
-            setPicked(undefined);
+            setChannel(EMPTY_CHANNEL);
             addAlert({ serverity: 'success', message: t('alert.filter_added') });
             props.onAddSuccess?.();
         }
-    }, [props.filterInput, filterGroupNote, props.onAddSuccess, picked])
+    }, [props.filterInput, filterGroupNote, props.onAddSuccess, channel])
 
     return (
         <Card className={s.simpleCard}>
@@ -103,8 +91,7 @@ export default function FilterInputForm(
                     filterInput={props.filterInput}
                     setFilterInput={props.setFilterInput}
                     filterContentValue={filterContentValue}
-                    channelValue={channelValue}
-                    channelName={channelName}
+                    resetChannel={() => setChannel(EMPTY_CHANNEL)}
                 />
             </div>
 
@@ -136,27 +123,7 @@ export default function FilterInputForm(
                             label={t('channel_guide.title')}
                         />
                     </div>
-                    <div className={s.channelSearch}>
-                        <ChannelSearch platform={globalSetting.platform} onPick={c => {
-                            if (channelValue.current) channelValue.current.value = c.id;
-                            if (channelName.current) channelName.current.value = c.name;
-                            setPicked({ id: c.id, image: c.imageUrl });
-                        }} />
-                    </div>
-                    <div className={s.channelInputs}>
-                        <Field label={t('common.channel_id')}>
-                            <TextInput
-                                defaultValue={props.filterInput?.filterChannelId}
-                                ref={channelValue}
-                            />
-                        </Field>
-                        <Field label={t('common.channel_name')}>
-                            <TextInput
-                                defaultValue={props.filterInput?.filterChannelName}
-                                ref={channelName}
-                            />
-                        </Field>
-                    </div>
+                    <ChannelInput platform={globalSetting.platform} value={channel} onChange={setChannel} row />
                 </div>
 
                 {/* primary CTA */}
@@ -177,8 +144,7 @@ function BasicFilterInputForm(
         filterInput: AtomicFilterElement | undefined,
         setFilterInput: React.Dispatch<React.SetStateAction<AtomicFilterElement | undefined>>,
         filterContentValue: React.RefObject<HTMLInputElement | null>,
-        channelValue: React.RefObject<HTMLInputElement | null>,
-        channelName: React.RefObject<HTMLInputElement | null>,
+        resetChannel: () => void,
     }
 ) {
     const { globalSetting } = useGlobalSettingContext();
@@ -203,12 +169,9 @@ function BasicFilterInputForm(
         props.setFilterInput(defaultAtomicFilter());
 
         const filterContentRef = props.filterContentValue.current;
-        const channelValueRef = props.channelValue.current;
-        const channelNameRef = props.channelName.current;
 
         if (filterContentRef !== null) filterContentRef.value = '';
-        if (channelValueRef !== null) channelValueRef.value = '';
-        if (channelNameRef !== null) channelNameRef.value = '';
+        props.resetChannel();
     }, []);
 
     useEffect(() => {
