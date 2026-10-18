@@ -30,26 +30,36 @@
     flex-direction: column;
     gap: 8px;
 }
-.badges {
+/* 채팅 한 줄: 배지 · 닉네임: · 채팅이 실제 채팅처럼 이어지고, 넘치면 채팅이 다음 줄로 */
+.line {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    align-items: flex-start;
     flex-wrap: wrap;
+    gap: 6px 4px;
+    padding: 10px 12px;
+    border: 2px solid var(--ui-line);
+    border-radius: 10px;
+    background: var(--ui-paper);
+    font-size: 14px;
+    cursor: text;
+}
+.line:focus-within {
+    border-color: var(--ui-ink);
 }
 .badge {
     display: grid;
     place-items: center;
-    width: 36px;
-    height: 36px;
+    width: 24px;
+    height: 24px;
     padding: 0;
     border: 0;
-    border-radius: 8px;
-    background: var(--ui-paper);
+    border-radius: 6px;
+    background: transparent;
     cursor: pointer;
 }
 .badge img {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 }
 .badge:hover {
     box-shadow: 0 0 0 2px var(--ui-bad-fg);
@@ -58,21 +68,67 @@
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    height: 36px;
-    padding: 0 10px 0 6px;
+    height: 24px;
+    min-width: 24px;
+    padding: 0 6px 0 4px;
+    margin-right: 4px;
     border: 2px dashed var(--ui-line);
-    border-radius: 8px;
+    border-radius: 6px;
     background: transparent;
-    color: var(--ui-ink);
+    color: var(--ui-muted);
     font: inherit;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
     cursor: pointer;
 }
 .addBadge:hover,
 .addBadge.on {
     border-style: solid;
+    color: var(--ui-ink);
     background: var(--ui-soft);
+}
+.nickWrap {
+    display: inline-flex;
+    align-items: baseline;
+}
+.colon {
+    margin: 0 4px 0 2px;
+    font-weight: 800;
+}
+/* 빈칸: 테두리 없이 글자만. 비어 있을 땐 점선 밑줄로 채울 자리를 보인다 */
+.blank {
+    min-width: 0;
+    padding: 2px 0;
+    border: 0;
+    border-bottom: 2px dashed transparent;
+    background: transparent;
+    color: var(--ui-ink);
+    font: inherit;
+    outline: none;
+}
+.blank::placeholder {
+    color: var(--ui-muted);
+    font-weight: 700;
+}
+.blank:placeholder-shown {
+    border-bottom-color: var(--ui-hair);
+}
+.blank:focus {
+    border-bottom-color: var(--ui-yellow);
+    border-bottom-style: solid;
+}
+.nick {
+    min-width: 3em;
+    max-width: 12em;
+    font-weight: 800;
+    field-sizing: content;
+}
+.message {
+    flex: 1 0 7em;
+    font-weight: 500;
+    line-height: 1.5;
+    resize: none;
+    overflow: hidden;
 }
 .picker {
     display: flex;

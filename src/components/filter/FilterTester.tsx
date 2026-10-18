@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PlatformAdapter } from '@/platform';
 import { evaluateFilterGroup } from '@/filter/evaluate';
 import type { BadgeInterface, ChatInfo } from '@/interfaces/chat';
 import type { CompositeFilterElement } from '@/interfaces/filter';
-import { Icon, IconButton, Select, TextInput } from '@/ui';
+import { Icon, IconButton, Select } from '@/ui';
 import BadgeList from './BadgeList';
 import { DEFAULT_MARKER_COLOR, FilterChips } from './FilterList';
 import s from './FilterTester.module.css';
@@ -83,6 +83,13 @@ export function FilterTesterPanel({ input, onInput, result, rules, adapter, onCl
 }) {
     const { t } = useTranslation();
     const [picking, setPicking] = useState(false);
+    const messageRef = useRef<HTMLTextAreaElement>(null);
+    useLayoutEffect(() => {
+        const el = messageRef.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight}px`;
+    }, [input.message]);
     const set = (patch: Partial<TestInput>) => onInput({ ...input, ...patch });
     const toggleBadge = (b: BadgeInterface) => set({ badges: input.badges.some(x => x.id === b.id) ? input.badges.filter(x => x.id !== b.id) : [...input.badges, b] });
 
@@ -100,24 +107,36 @@ export function FilterTesterPanel({ input, onInput, result, rules, adapter, onCl
                 <IconButton icon="close" size="sm" label={t('common.close')} onClick={onClose} />
             </div>
 
+            {/* 입력 칸도 채팅 한 줄 모양: [배지] 닉네임: 채팅 — 빈칸을 채우듯 */}
             <div className={s.chat}>
-                <div className={s.badges}>
+                <div className={s.line} onClick={e => { if (e.target === e.currentTarget) messageRef.current?.focus(); }}>
                     {input.badges.map(b => (
                         <button key={b.id} type="button" className={s.badge} onClick={() => toggleBadge(b)} aria-label={`${b.badgeName} ${t('filter_test.remove_badge')}`}>
                             <img src={b.badgeImage.badge_img_url_2x || b.badgeImage.badge_img_url_1x} alt="" />
                         </button>
                     ))}
-                    <button type="button" className={`${s.addBadge} ${picking ? s.on : ''}`} onClick={() => setPicking(p => !p)} aria-expanded={picking}>
-                        <Icon name={picking ? 'expand_less' : 'add'} />{t('filter_test.badge')}
+                    <button type="button" className={`${s.addBadge} ${picking ? s.on : ''}`} onClick={() => setPicking(p => !p)}
+                        aria-expanded={picking} aria-label={t('filter_test.badge')}>
+                        <Icon name={picking ? 'expand_less' : 'add'} />
+                        {input.badges.length === 0 && <span>{t('filter_test.badge')}</span>}
                     </button>
+                    <span className={s.nickWrap}>
+                        <input className={`${s.blank} ${s.nick}`} value={input.nickname} onChange={e => set({ nickname: e.target.value })}
+                            placeholder={t('filter_test.nickname')} aria-label={t('filter_test.nickname')}
+                            size={Math.max(input.nickname.length, t('filter_test.nickname').length) + 1} />
+                        <span className={s.colon} aria-hidden="true">:</span>
+                    </span>
+                    {/* 긴 채팅은 실제 채팅처럼 줄이 바뀌게 — 한 줄 입력 대신 높이가 늘어나는 textarea. 줄바꿈은 막는다 */}
+                    <textarea ref={messageRef} className={`${s.blank} ${s.message}`} rows={1} value={input.message}
+                        onChange={e => set({ message: e.target.value.replace(/\n/g, ' ') })}
+                        onKeyDown={e => { if (e.key === 'Enter') e.preventDefault(); }}
+                        placeholder={t('filter_test.message')} aria-label={t('filter_test.message')} />
                 </div>
                 {picking && (
                     <div className={s.picker}>
                         <BadgeList onBadgeSelect={toggleBadge} />
                     </div>
                 )}
-                <TextInput value={input.nickname} onChange={e => set({ nickname: e.target.value })} placeholder={t('filter_test.nickname')} aria-label={t('filter_test.nickname')} />
-                <TextInput value={input.message} onChange={e => set({ message: e.target.value })} placeholder={t('filter_test.message')} aria-label={t('filter_test.message')} />
                 {channels.length > 0 && (
                     <Select value={input.channelId ?? ALL} onChange={v => set({ channelId: v === ALL ? undefined : v })} aria-label={t('filter_test.channel')}
                         options={[{ value: ALL, label: t('filter_test.other_channel') }, ...channels]} />
