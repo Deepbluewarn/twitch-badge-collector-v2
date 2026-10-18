@@ -56,7 +56,9 @@ function emitPreviewCleared() {
     window.dispatchEvent(new CustomEvent('tbc-chats-cleared'));
 }
 
-const PERSIST_DEBOUNCE_MS = 500;
+// 저장 간격. storage.local은 디스크라, 채팅이 많은 방송에서 자주 쓰면(최대 채널당 1MB) 부담이 크다.
+// 새로고침·업데이트 때 잃는 건 이 간격 안의 최근 채팅뿐.
+const PERSIST_INTERVAL_MS = 2000;
 const EVICTION_DROP_RATIO = 0.1;
 
 /**
@@ -212,7 +214,7 @@ export default function useFilteredChatBuffer(
         emitPreview({ nickname: latest.nickname, text: latest.text, time: latest.time });
     }, [savedChats, adapter.chatOrder]);
 
-    // savedChats 변경 시: persistenceKey 있으면 저장 — 많아야 PERSIST_DEBOUNCE_MS마다 한 번.
+    // savedChats 변경 시: persistenceKey 있으면 저장 — 많아야 PERSIST_INTERVAL_MS마다 한 번.
     // 예전엔 바뀔 때마다 타이머를 다시 걸어(debounce), 채팅이 쉬지 않고 들어오는 방송에선 저장이 계속 밀려
     // 새로고침·업데이트 때 최근 채팅이 빠졌다. 이미 예약돼 있으면 두고, 터질 때 최신 상태를 저장한다.
     const latestChatsRef = useRef(savedChats);
@@ -230,7 +232,7 @@ export default function useFilteredChatBuffer(
                 chats: latestChatsRef.current.map(({ key, time, html, nickname, text, channel }) => ({ key, time, html, nickname, text, channel })),
             };
             void saveWithEviction(persistenceKey, payload);
-        }, PERSIST_DEBOUNCE_MS);
+        }, PERSIST_INTERVAL_MS);
     }, [savedChats, persistenceKey]);
     // key가 바뀌거나(채널 이동) 언마운트되면 예약된 저장을 취소.
     useEffect(() => () => {
