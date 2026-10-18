@@ -9,7 +9,7 @@ import { FilterList, FilterListActions } from "./FilterList";
 import { EMPTY_TEST, FilterTesterPanel, TestInput, useFilterTest } from "./FilterTester";
 import s from "./FilterGroupList.module.css";
 import { Button, Select } from "@/ui";
-import { fetchChzzkChannel, hasChzzkApiAccess } from "@/api/chzzk-channel";
+import { canReachChzzkApi, fetchChzzkChannel } from "@/api/chzzk-channel";
 import { useTranslation } from "react-i18next";
 
 /** 지금 플랫폼의 필터 목록 + 필터 편집 대화상자. 목록 모양은 FilterList, 저장은 필터 그룹 context. */
@@ -106,7 +106,7 @@ const VIEW_ALL = '__all__';
 const VIEW_NONE = '__none__';
 
 /**
- * 채널 사진이 없는 치지직 필터(검색 전에 만든 것)에 사진을 채운다. 채널 검색 권한을 받은 뒤에만.
+ * 채널 사진이 없는 치지직 필터(검색 전에 만든 것)에 사진을 채운다. 치지직 탭이 열려 있거나 권한을 받았을 때만.
  * 한 번 물어본 채널은 이 페이지에서 다시 묻지 않는다(사진이 없는 채널도 있다).
  */
 function useChannelImages(platform: string, filters: CompositeFilterElement[], setFilterGroup: ReturnType<typeof useFilterGroupContext>['setFilterGroup']) {
@@ -119,7 +119,7 @@ function useChannelImages(platform: string, filters: CompositeFilterElement[], s
         if (!missing.length) return;
         let cancelled = false;
         (async () => {
-            if (!(await hasChzzkApiAccess())) return;
+            if (!(await canReachChzzkApi())) return;
             const images = new Map<string, string>();
             for (const id of missing) {
                 tried.current.add(id);

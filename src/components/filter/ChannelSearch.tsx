@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChzzkChannel, hasChzzkApiAccess, requestChzzkApiAccess, searchChzzkChannels } from '@/api/chzzk-channel';
+import { ChzzkChannel, canReachChzzkApi, requestChzzkApiAccess, searchChzzkChannels } from '@/api/chzzk-channel';
 import { Button, Icon, Spinner, TextInput } from '@/ui';
 import s from './ChannelSearch.module.css';
 
 /**
  * 채널 이름으로 찾아 고르기 (치지직만). 고르면 ID·이름·프로필 사진을 onPick으로 넘긴다.
- * 호스트 권한이 없으면 버튼 하나만 — 누르면 브라우저가 권한을 묻고, 허용하면 검색 칸이 열린다.
+ * 치지직 탭도 없고 호스트 권한도 없으면 버튼 하나만 — 누르면 브라우저가 권한을 묻고, 허용하면 검색 칸이 열린다.
  */
 export function ChannelSearch({ platform, onPick }: { platform: string; onPick: (c: ChzzkChannel) => void }) {
     const { t } = useTranslation();
@@ -16,7 +16,7 @@ export function ChannelSearch({ platform, onPick }: { platform: string; onPick: 
     const [state, setState] = useState<'idle' | 'loading' | 'error'>('idle');
     const inputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => { if (platform === 'chzzk') hasChzzkApiAccess().then(setAccess); }, [platform]);
+    useEffect(() => { if (platform === 'chzzk') canReachChzzkApi().then(setAccess); }, [platform]);
 
     // 입력이 멈추면 검색. 앞선 요청은 취소한다.
     useEffect(() => {
@@ -26,7 +26,7 @@ export function ChannelSearch({ platform, onPick }: { platform: string; onPick: 
         const timer = setTimeout(() => {
             setState('loading');
             searchChzzkChannels(q, ctrl.signal)
-                .then(r => { setResults(r); setState('idle'); })
+                .then(r => { if (!ctrl.signal.aborted) { setResults(r); setState('idle'); } })
                 .catch(e => { if (!ctrl.signal.aborted) { console.warn('[tbcv2] channel search failed', e); setState('error'); } });
         }, 300);
         return () => { clearTimeout(timer); ctrl.abort(); };
