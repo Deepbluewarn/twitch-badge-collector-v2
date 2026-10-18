@@ -63,7 +63,7 @@ const EVICTION_DROP_RATIO = 0.1;
  * 채팅 유지는 *세션* 단위 — 새로고침/탭 이동/확장 업데이트엔 살아남되 브라우저 재시작엔 깨끗이 비움.
  * 저장소와 수명 관리는 src/utils/chat-history-store.ts (storage.local + 브라우저 시작 시 삭제).
  *
- * 저장. quota 초과 시 오래된 쪽부터 10%씩 drop하고 재시도.
+ * 저장. 채널 한도(CHANNEL_MAX_BYTES)나 quota를 넘으면 오래된 쪽부터 10%씩 drop하고 재시도.
  */
 async function saveWithEviction(key: string, payload: PersistedPayload): Promise<void> {
     if (!hasChatHistoryStore()) return;
