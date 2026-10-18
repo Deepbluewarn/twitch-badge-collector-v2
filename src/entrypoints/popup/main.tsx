@@ -524,12 +524,19 @@ function OffChannelList() {
     browser.storage.onChanged.addListener(onChange);
     return () => browser.storage.onChanged.removeListener(onChange);
   }, []);
-  const entries = Object.entries(map).sort((a, b) => b[1].at - a[1].at);
-  if (!entries.length) return null;
+  const [q, setQ] = React.useState('');
+  const all = Object.entries(map).sort((a, b) => b[1].at - a[1].at);
+  if (!all.length) return null;
+  // 많아지면(필터 목록의 채널 목록과 같은 기준) 이름·ID로 찾는다
+  const query = q.trim().toLowerCase();
+  const entries = query ? all.filter(([key, v]) => (v.name ?? '').toLowerCase().includes(query) || parseChannelKey(key).id.toLowerCase().includes(query)) : all;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ fontSize: 13, fontWeight: 800 }}>{t('offChannels')}</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 180, overflowY: 'auto', padding: 4, borderRadius: 10, background: 'var(--ui-tint)' }}>
+      {all.length > 8 && (
+        <TextInput size='sm' lead='search' value={q} onChange={e => setQ(e.target.value)} aria-label={t('offChannels')} />
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 220, overflowY: 'auto', padding: 4, borderRadius: 10, background: 'var(--ui-tint)' }}>
         {entries.map(([key, v]) => {
           const { platform, id } = parseChannelKey(key);
           return (
