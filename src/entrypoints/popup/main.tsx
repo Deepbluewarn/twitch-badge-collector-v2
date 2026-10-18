@@ -13,7 +13,7 @@ import { getPlatformConfig, manifestReady } from "@/platform/host-selectors";
 import { ensureRolloutBucket, isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
 import { Button, Dialog, IconButton, Segmented, Stack, Switch, Tag, TextInput } from "@/ui";
-import { CHANNEL_INFO_MESSAGE, setChannelOff, type ChannelInfo } from "@/utils/channel-off";
+import { CHANNEL_INFO_MESSAGE, CHANNEL_OFF_KEY, getOffChannels, parseChannelKey, setChannelOff, type ChannelInfo, type OffChannels } from "@/utils/channel-off";
 import { fetchChzzkChannel } from "@/api/chzzk-channel";
 import { ChannelAvatar } from "@/components/filter/ChannelSearch";
 import "./popup.css";
@@ -352,6 +352,8 @@ function PopupSetting() {
         </SettingRow>
       )}
 
+      <OffChannelList />
+
       {/* OTA selector 버전 + 진단 — 하단 caption row. 문제 보고 시 참고용. */}
       <Stack dir='row' align='center' justify='space-between' gap={8} style={{ marginTop: 4 }}>
         <span
@@ -494,7 +496,7 @@ function ChannelPower() {
   if (!info) return null;
   const toggle = (on: boolean) => {
     setInfo({ ...info, off: !on });
-    setChannelOff(info.platform, info.channelId, !on, info.name);
+    setChannelOff(info.platform, info.channelId, !on, info.name, info.image);
   };
   return (
     <div style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--ui-tint)' }}>
@@ -506,6 +508,44 @@ function ChannelPower() {
         hint={t('channelEnabled')}>
         <Switch checked={!info.off} onChange={toggle} />
       </SettingRow>
+    </div>
+  );
+}
+
+/** 일반 설정의 꺼진 채널 목록 — 그 방송에 다시 들어가지 않고도 켤 수 있게. 꺼진 채널이 없으면 그리지 않는다. */
+function OffChannelList() {
+  const t = (k: string) => browser.i18n.getMessage(k as any);
+  const [map, setMap] = React.useState<OffChannels>({});
+  useEffect(() => {
+    getOffChannels().then(setMap);
+    const onChange = (changes: Record<string, unknown>, area: string) => {
+      if (area === 'local' && CHANNEL_OFF_KEY in changes) getOffChannels().then(setMap);
+    };
+    browser.storage.onChanged.addListener(onChange);
+    return () => browser.storage.onChanged.removeListener(onChange);
+  }, []);
+  const entries = Object.entries(map).sort((a, b) => b[1].at - a[1].at);
+  if (!entries.length) return null;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ fontSize: 13, fontWeight: 800 }}>{t('offChannels')}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 180, overflowY: 'auto', padding: 4, borderRadius: 10, background: 'var(--ui-tint)' }}>
+        {entries.map(([key, v]) => {
+          const { platform, id } = parseChannelKey(key);
+          return (
+            <Stack key={key} dir='row' align='center' gap={8} style={{ padding: '4px 6px' }}>
+              <ChannelAvatar src={v.image} size={20} />
+              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 700 }}>
+                {v.name || id}
+              </span>
+              <Tag>{platform === 'chzzk' ? 'CHZZK' : 'Twitch'}</Tag>
+              <Button size='sm' variant='text' style={metaButtonStyle} onClick={() => setChannelOff(platform, id, false)}>
+                {t('turnOn')}
+              </Button>
+            </Stack>
+          );
+        })}
+      </div>
     </div>
   );
 }

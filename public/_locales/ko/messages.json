@@ -187,5 +187,11 @@
   },
   "channelEnabled": {
     "message": "이 채널에서 사용"
+  },
+  "offChannels": {
+    "message": "꺼진 채널"
+  },
+  "turnOn": {
+    "message": "켜기"
   }
 }

@@ -190,5 +190,11 @@
   },
   "channelEnabled": {
     "message": "在此频道启用"
+  },
+  "offChannels": {
+    "message": "已关闭的频道"
+  },
+  "turnOn": {
+    "message": "开启"
   }
 }

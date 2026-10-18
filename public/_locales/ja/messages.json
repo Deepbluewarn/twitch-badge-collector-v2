@@ -190,5 +190,11 @@
   },
   "channelEnabled": {
     "message": "このチャンネルで使用"
+  },
+  "offChannels": {
+    "message": "オフのチャンネル"
+  },
+  "turnOn": {
+    "message": "オンにする"
   }
 }

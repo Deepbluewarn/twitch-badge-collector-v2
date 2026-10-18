@@ -190,5 +190,11 @@
   },
   "channelEnabled": {
     "message": "Utiliser sur cette chaîne"
+  },
+  "offChannels": {
+    "message": "Chaînes désactivées"
+  },
+  "turnOn": {
+    "message": "Activer"
   }
 }

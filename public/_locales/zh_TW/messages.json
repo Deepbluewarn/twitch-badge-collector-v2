@@ -190,5 +190,11 @@
   },
   "channelEnabled": {
     "message": "在此頻道啟用"
+  },
+  "offChannels": {
+    "message": "已關閉的頻道"
+  },
+  "turnOn": {
+    "message": "開啟"
   }
 }

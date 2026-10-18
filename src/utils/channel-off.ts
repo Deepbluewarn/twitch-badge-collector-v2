@@ -10,11 +10,15 @@ export const CHANNEL_INFO_MESSAGE = 'tbc-channel-info';
 export const CHANNEL_OFF_BADGE_MESSAGE = 'tbc-channel-off-badge';
 
 export type Platform = 'twitch' | 'chzzk';
-/** key: `${platform}:${channelId}`. name은 나중에 꺼진 채널 목록을 보여 줄 때 쓴다. */
-export type OffChannels = Record<string, { name?: string; at: number }>;
+/** key: `${platform}:${channelId}`. name·image는 꺼진 채널 목록(팝업 일반 설정)에 쓴다. */
+export type OffChannels = Record<string, { name?: string; image?: string; at: number }>;
 export interface ChannelInfo { platform: Platform; channelId: string | null; off: boolean }
 
 export const channelKey = (platform: Platform, id: string) => `${platform}:${id}`;
+export function parseChannelKey(key: string): { platform: Platform; id: string } {
+    const i = key.indexOf(':');
+    return { platform: key.slice(0, i) as Platform, id: key.slice(i + 1) };
+}
 
 export async function getOffChannels(): Promise<OffChannels> {
     const r = await browser.storage.local.get(CHANNEL_OFF_KEY);
@@ -22,10 +26,10 @@ export async function getOffChannels(): Promise<OffChannels> {
     return v && typeof v === 'object' ? v as OffChannels : {};
 }
 
-export async function setChannelOff(platform: Platform, id: string, off: boolean, name?: string) {
+export async function setChannelOff(platform: Platform, id: string, off: boolean, name?: string, image?: string) {
     const map = { ...await getOffChannels() };
     const key = channelKey(platform, id);
-    if (off) map[key] = { name, at: Date.now() };
+    if (off) map[key] = { name, image, at: Date.now() };
     else delete map[key];
     await browser.storage.local.set({ [CHANNEL_OFF_KEY]: map });
 }

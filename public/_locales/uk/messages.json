@@ -190,5 +190,11 @@
   },
   "channelEnabled": {
     "message": "Використовувати на цьому каналі"
+  },
+  "offChannels": {
+    "message": "Вимкнені канали"
+  },
+  "turnOn": {
+    "message": "Увімкнути"
   }
 }

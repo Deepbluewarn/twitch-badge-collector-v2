@@ -190,5 +190,11 @@
   },
   "channelEnabled": {
     "message": "Use on this channel"
+  },
+  "offChannels": {
+    "message": "Turned-off channels"
+  },
+  "turnOn": {
+    "message": "Turn on"
   }
 }
