@@ -71,7 +71,8 @@
             "filter_list": "フィルター一覧",
             "filter_add": "新しいフィルターを追加",
             "select_badges": "バッジを選択",
-            "empty_hint": "下の <b>+ フィルター要素を追加</b> またはバッジをクリックして始めましょう。"
+            "empty_hint": "下の <b>+ フィルター要素を追加</b> またはバッジをクリックして始めましょう。",
+            "badge_catalog": "バッジ一覧"
         },
         "filter_mode": {
             "advanced": "詳細設定"

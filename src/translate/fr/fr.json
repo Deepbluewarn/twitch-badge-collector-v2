@@ -71,7 +71,8 @@
             "filter_list": "Liste des filtres",
             "filter_add": "Nouveau filtre",
             "select_badges": "Choisir des badges",
-            "empty_hint": "Cliquez sur <b>+ Ajouter un élément</b> ci-dessous ou sur un badge pour commencer."
+            "empty_hint": "Cliquez sur <b>+ Ajouter un élément</b> ci-dessous ou sur un badge pour commencer.",
+            "badge_catalog": "Catalogue des badges"
         },
         "filter_mode": {
             "advanced": "Réglages avancés"

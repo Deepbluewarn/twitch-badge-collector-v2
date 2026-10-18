@@ -71,7 +71,8 @@
             "filter_list": "필터 목록",
             "filter_add": "새 필터 추가",
             "select_badges": "배지 선택",
-            "empty_hint": "아래 <b>+ 필터 요소 추가</b> 또는 배지를 클릭해서 시작하세요."
+            "empty_hint": "아래 <b>+ 필터 요소 추가</b> 또는 배지를 클릭해서 시작하세요.",
+            "badge_catalog": "배지 일람"
         },
         "filter_mode": {
             "advanced": "고급 설정"

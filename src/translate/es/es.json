@@ -71,7 +71,8 @@
             "filter_list": "Lista de filtros",
             "filter_add": "Añadir nuevo filtro",
             "select_badges": "Seleccionar insignias",
-            "empty_hint": "Haz clic en <b>+ Añadir elemento</b> abajo o en una insignia para empezar."
+            "empty_hint": "Haz clic en <b>+ Añadir elemento</b> abajo o en una insignia para empezar.",
+            "badge_catalog": "Catálogo de insignias"
         },
         "filter_mode": {
             "advanced": "Ajustes avanzados"

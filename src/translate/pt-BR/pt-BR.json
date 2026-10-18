@@ -71,7 +71,8 @@
             "filter_list": "Lista de filtros",
             "filter_add": "Adicionar novo filtro",
             "select_badges": "Selecionar emblemas",
-            "empty_hint": "Clique em <b>+ Adicionar elemento</b> abaixo ou em um emblema para começar."
+            "empty_hint": "Clique em <b>+ Adicionar elemento</b> abaixo ou em um emblema para começar.",
+            "badge_catalog": "Catálogo de emblemas"
         },
         "filter_mode": {
             "advanced": "Configurações avançadas"

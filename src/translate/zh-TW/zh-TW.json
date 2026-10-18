@@ -71,7 +71,8 @@
             "filter_list": "篩選器清單",
             "filter_add": "新增篩選器",
             "select_badges": "選擇徽章",
-            "empty_hint": "點選下方的 <b>+ 新增篩選元素</b> 或徽章即可開始。"
+            "empty_hint": "點選下方的 <b>+ 新增篩選元素</b> 或徽章即可開始。",
+            "badge_catalog": "徽章一覽"
         },
         "filter_mode": {
             "advanced": "進階設定"

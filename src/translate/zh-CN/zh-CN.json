@@ -71,7 +71,8 @@
             "filter_list": "过滤器列表",
             "filter_add": "添加新过滤器",
             "select_badges": "选择徽章",
-            "empty_hint": "点击下方的 <b>+ 添加过滤元素</b> 或某个徽章即可开始。"
+            "empty_hint": "点击下方的 <b>+ 添加过滤元素</b> 或某个徽章即可开始。",
+            "badge_catalog": "徽章一览"
         },
         "filter_mode": {
             "advanced": "高级设置"

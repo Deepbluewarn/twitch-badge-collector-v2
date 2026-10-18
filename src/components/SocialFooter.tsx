@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faGlobe } from "@fortawesome/free-solid-svg-icons";
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { LinkButton, Stack } from '@/ui';
 
@@ -16,6 +16,7 @@ export default function SocialFooter({ showExtensionInfo = true }: { showExtensi
 
             {/* 중앙: social links */}
             <Stack dir="row" gap={4}>
+                <LinkButton variant="text" href='https://badgecollector.dev' target='_blank' aria-label="badgecollector.dev" title="badgecollector.dev"><FontAwesomeIcon icon={faGlobe} size='xl' /></LinkButton>
                 <LinkButton variant="text" href='https://discord.gg/ZM6Eazpz5V' target='_blank' aria-label="Discord"><FontAwesomeIcon icon={faDiscord} size='xl' /></LinkButton>
                 <LinkButton variant="text" href='https://github.com/Deepbluewarn/twitch-badge-collector-v2' target='_blank' aria-label="GitHub"><FontAwesomeIcon icon={faGithub} size='xl' /></LinkButton>
                 <LinkButton variant="text" href='mailto:tbcextension@gmail.com' target='_blank' aria-label="Email"><FontAwesomeIcon icon={faEnvelope} size='xl' /></LinkButton>
