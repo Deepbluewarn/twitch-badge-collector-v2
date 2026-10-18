@@ -1,13 +1,39 @@
-/* 필터 시험 대화상자. 색은 src/ui/tokens.css 토큰. */
+/* 필터 시험 칸 (필터 목록 옆). 바깥 카드 안이라 테두리 없이 옅은 면. 색은 src/ui/tokens.css 토큰. */
 
-/* 채팅 한 줄 */
-.chat {
+.panel {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
     border-radius: 12px;
     background: var(--ui-tint);
+    font-family: var(--ui-font);
+    color: var(--ui-ink);
+}
+.head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+/* 채팅 한 줄 입력 */
+.chat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     flex-wrap: wrap;
 }
 .badge {
@@ -48,56 +74,45 @@
     border-style: solid;
     background: var(--ui-soft);
 }
-.nick.nick {
-    width: 160px;
-    flex: none;
-}
-.message.message {
-    flex: 1;
-    min-width: 160px;
-}
-
-.channelRow {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 12px;
-}
-.label {
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--ui-muted);
-    white-space: nowrap;
-}
-
 .picker {
     display: flex;
     flex-direction: column;
-    height: 340px;
-    margin-top: 12px;
+    height: 300px;
+    padding: 8px;
+    border-radius: 10px;
+    background: var(--ui-paper);
+}
+
+.label {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--ui-muted);
 }
 
 /* 결과 */
 .result {
-    margin-top: 16px;
-    padding: 20px;
-    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 10px;
     transition: background-color 0.15s;
 }
-.collected { background: var(--ui-ok-bg); color: var(--ui-ok-fg); }
-.excluded { background: var(--ui-bad-bg); color: var(--ui-bad-fg); }
-.not_collected { background: var(--ui-off-bg); color: var(--ui-muted); }
+/* 상태 색은 반투명이라 칸의 옅은 면 위에선 탁해진다 — 종이색 위에 깐다 */
+.collected { background: linear-gradient(var(--ui-ok-bg), var(--ui-ok-bg)), var(--ui-paper); color: var(--ui-ok-fg); }
+.excluded { background: linear-gradient(var(--ui-bad-bg), var(--ui-bad-bg)), var(--ui-paper); color: var(--ui-bad-fg); }
+.not_collected { background: linear-gradient(var(--ui-off-bg), var(--ui-off-bg)), var(--ui-paper); color: var(--ui-muted); }
 
 .verdict {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 26px;
+    gap: 8px;
+    font-size: 22px;
     font-weight: 900;
     letter-spacing: -0.03em;
 }
 .verdictIcon.verdictIcon {
-    font-size: 32px;
+    font-size: 28px;
 }
 .marker {
     width: 18px;
@@ -106,21 +121,9 @@
     border-radius: 5px;
     box-shadow: 0 0 0 1px var(--ui-hair);
 }
-
 .hits {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-top: 14px;
-    color: var(--ui-ink);
-}
-.hits .label {
-    min-width: 72px;
-    padding-top: 4px;
-}
-.hitList {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    min-width: 0;
+    color: var(--ui-ink);
 }

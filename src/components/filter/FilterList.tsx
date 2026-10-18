@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import type { PlatformAdapter } from '@/platform';
 import type { AtomicFilterElement, CompositeFilterElement, FilterType } from '@/interfaces/filter';
+import type { RowTest } from './FilterTester';
 import s from './FilterList.module.css';
 
 /**
@@ -49,7 +50,15 @@ function usePageSize(): [number, (n: number) => void] {
     return [size, set];
 }
 
-export function FilterList({ rows, adapter, actions, toolbarExtra }: { rows: Row[]; adapter: PlatformAdapter; actions: FilterListActions; /** 선택이 없을 때 머리 줄 오른쪽 */ toolbarExtra?: React.ReactNode }) {
+export function FilterList({ rows, adapter, actions, toolbarExtra, test }: {
+    rows: Row[];
+    adapter: PlatformAdapter;
+    actions: FilterListActions;
+    /** 선택이 없을 때 머리 줄 오른쪽 */
+    toolbarExtra?: React.ReactNode;
+    /** 필터 시험이 열려 있으면 줄마다 결과 — 걸린 줄을 칠하고 조건마다 맞음/안 맞음을 붙인다 */
+    test?: Map<string, RowTest>;
+}) {
     const { t } = useTranslation();
     const [size, setSize] = usePageSize();
     const [page, setPage] = useState(0);
@@ -108,7 +117,7 @@ export function FilterList({ rows, adapter, actions, toolbarExtra }: { rows: Row
             <div className={s.table}>
                 {pageRows.length === 0 && <div className={s.empty}>{t('filter_list.empty')}</div>}
                 {pageRows.map(r => (
-                    <FilterRow key={r.id} row={r} adapter={adapter} actions={actions} selected={selected.has(r.id)} onToggle={() => toggle(r.id)} />
+                    <FilterRow key={r.id} row={r} adapter={adapter} actions={actions} selected={selected.has(r.id)} onToggle={() => toggle(r.id)} test={test?.get(r.id)} />
                 ))}
             </div>
 
@@ -134,10 +143,12 @@ function MasterCheck({ checked, indeterminate, disabled, onChange, label }: { ch
     return <input ref={ref} type="checkbox" className={s.check} checked={checked} disabled={disabled} onChange={onChange} aria-label={label} />;
 }
 
-function FilterRow({ row, adapter, actions, selected, onToggle }: { row: Row; adapter: PlatformAdapter; actions: FilterListActions; selected: boolean; onToggle: () => void }) {
+const TEST_ROW: Record<RowTest['state'], string> = { include: s.testInclude, exclude: s.testExclude, partial: '', miss: s.testDim, inactive: s.testDim };
+
+function FilterRow({ row, adapter, actions, selected, onToggle, test }: { row: Row; adapter: PlatformAdapter; actions: FilterListActions; selected: boolean; onToggle: () => void; test?: RowTest }) {
     const { t } = useTranslation();
     return (
-        <div className={`${s.row} ${selected ? s.selected : ''}`}>
+        <div className={`${s.row} ${selected ? s.selected : ''} ${test ? TEST_ROW[test.state] : ''}`}>
             <input type="checkbox" className={s.check} checked={selected} onChange={onToggle} aria-label={t('filter_list.select')} />
             <MarkerColor row={row} onChange={c => actions.setColor(row, c)} />
             <div className={s.main}>
@@ -145,7 +156,8 @@ function FilterRow({ row, adapter, actions, selected, onToggle }: { row: Row; ad
                     {row.filters.map((a, i) => (
                         <React.Fragment key={a.id}>
                             {i > 0 && <span className={s.plus}>+</span>}
-                            <AtomChip atom={a} adapter={adapter} onEdit={() => actions.editAtom(row, a.id)} onRemove={() => actions.removeAtom(row, a.id)} />
+                            <AtomChip atom={a} adapter={adapter} onEdit={() => actions.editAtom(row, a.id)} onRemove={() => actions.removeAtom(row, a.id)}
+                                mark={test && test.state !== 'miss' && test.state !== 'inactive' ? test.atoms.get(a.id) : undefined} />
                         </React.Fragment>
                     ))}
                     <button type="button" className={`${s.link} ${s.reveal}`} onClick={() => actions.addAtom(row)}>+ {t('filter_list.condition')}</button>
@@ -163,11 +175,16 @@ function FilterRow({ row, adapter, actions, selected, onToggle }: { row: Row; ad
 }
 
 /** 조건 하나. 배지는 그림 + 이름, 이름은 @, 키워드는 따옴표. 면 색이 맞음/아님/꺼짐. 핸들러가 없으면 보기 전용. */
-function AtomChip({ atom, adapter, onEdit, onRemove }: { atom: AtomicFilterElement; adapter: PlatformAdapter; onEdit?: () => void; onRemove?: () => void }) {
+function AtomChip({ atom, adapter, onEdit, onRemove, mark }: {
+    atom: AtomicFilterElement; adapter: PlatformAdapter; onEdit?: () => void; onRemove?: () => void;
+    /** 필터 시험: 이 조건이 맞았는지 (true ✓ / false ✕ / undefined 표시 안 함) */
+    mark?: boolean;
+}) {
     const { t } = useTranslation();
     const label = atom.category === 'badge' ? (atom.badgeName || atom.value) : atom.category === 'name' ? `@${atom.value}` : `“${atom.value}”`;
     const body = (
         <>
+            {mark !== undefined && <span className={`${s.mark} ${mark ? s.markOk : s.markBad}`} aria-label={mark ? '✓' : '✕'}>{mark ? '✓' : '✕'}</span>}
             {atom.category === 'badge' && <img src={adapter.getBadgeImageUrl(atom.value, '2x')} alt="" />}
             <span className={s.chipLabel}>{label}</span>
         </>

@@ -6,7 +6,8 @@ import FilterDialog, { DialogMode, DialogType } from "./FilterDialog";
 import { getAdapter } from '@/platform';
 import { rotateFilterType } from "../chip/FilterTypeChip";
 import { FilterList, FilterListActions } from "./FilterList";
-import FilterTester from "./FilterTester";
+import { EMPTY_TEST, FilterTesterPanel, TestInput, useFilterTest } from "./FilterTester";
+import s from "./FilterGroupList.module.css";
 import { Button } from "@/ui";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +20,9 @@ export function FilterGroupList() {
 
     const { t } = useTranslation();
     const [testerOpen, setTesterOpen] = useState(false);
+    // 시험 입력은 닫아도 남겨 둔다 — 필터를 고치고 다시 열어 같은 채팅으로 확인하게.
+    const [testInput, setTestInput] = useState<TestInput>(EMPTY_TEST);
+    const testResult = useFilterTest(testInput, platformFilters, adapter);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogType, setDialogType] = useState<DialogType>(null);
     const [dialogMode, setDialogMode] = useState<DialogMode>(null);
@@ -51,9 +55,14 @@ export function FilterGroupList() {
 
     return (
         <>
-            <FilterList rows={platformFilters} adapter={adapter} actions={actions}
-                toolbarExtra={<Button size="sm" icon="science" onClick={() => setTesterOpen(true)}>{t('filter_test.button')}</Button>} />
-            <FilterTester open={testerOpen} onClose={() => setTesterOpen(false)} />
+            <div className={`${s.layout} ${testerOpen ? s.testing : ''}`}>
+                <FilterList rows={platformFilters} adapter={adapter} actions={actions}
+                    test={testerOpen ? testResult.rows : undefined}
+                    toolbarExtra={!testerOpen && <Button size="sm" icon="science" onClick={() => setTesterOpen(true)}>{t('filter_test.button')}</Button>} />
+                {testerOpen && (
+                    <FilterTesterPanel input={testInput} onInput={setTestInput} result={testResult} rules={platformFilters} adapter={adapter} onClose={() => setTesterOpen(false)} />
+                )}
+            </div>
             <FilterDialog
                 open={dialogOpen}
                 onClose={() => setDialogOpen(false)}

@@ -1,0 +1,15 @@
+/* 필터 목록 + (열려 있으면) 필터 시험 칸. 넓으면 옆, 좁으면 목록 아래. */
+.layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+.layout.testing {
+    grid-template-columns: minmax(0, 1fr) 300px;
+}
+@media (max-width: 900px) {
+    .layout.testing {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
