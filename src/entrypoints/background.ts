@@ -125,8 +125,13 @@ export default defineBackground(() => {
   ensureDefaultSettings().catch(e => console.warn('[tbcv2 bg] ensureDefaultSettings failed', e));
 
   browser.runtime.onInstalled.addListener(async function (details) {
+    // 기존 필터가 있으면 두지 않는다. Firefox는 같은 ID의 확장을 about:debugging으로 임시 로드해도
+    // reason이 install이고 storage를 같이 쓴다 — 무조건 덮어쓰면 쓰던 필터가 기본 필터로 바뀐다.
     if (details.reason === "install") {
-      await browser.storage.local.set({ filter: defaultFilter });
+      const { filter } = await browser.storage.local.get('filter');
+      if (!Array.isArray(filter) || filter.length === 0) {
+        await browser.storage.local.set({ filter: defaultFilter });
+      }
     }
 
     // 네트워크 없이 되는 것부터 — 아래 fetch가 죽어도 설정/필터는 유효한 상태로 남는다.
