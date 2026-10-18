@@ -197,7 +197,7 @@
   "turnOn": {
     "message": "Aktivieren"
   },
-  "extensionUpdated": {
-    "message": "Erweiterung aktualisiert. Zum Neuladen klicken"
+  "extensionDisconnected": {
+    "message": "Verbindung zur Erweiterung getrennt. Zum Neuladen klicken"
   }
 }

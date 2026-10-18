@@ -194,7 +194,7 @@
   "turnOn": {
     "message": "켜기"
   },
-  "extensionUpdated": {
-    "message": "확장 프로그램이 업데이트되었습니다. 눌러서 새로고침"
+  "extensionDisconnected": {
+    "message": "확장 프로그램 연결이 끊겼습니다. 눌러서 새로고침"
   }
 }

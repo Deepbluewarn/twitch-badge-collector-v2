@@ -197,7 +197,7 @@
   "turnOn": {
     "message": "Activer"
   },
-  "extensionUpdated": {
-    "message": "Extension mise à jour. Cliquez pour recharger"
+  "extensionDisconnected": {
+    "message": "Connexion à l'extension perdue. Cliquez pour recharger"
   }
 }

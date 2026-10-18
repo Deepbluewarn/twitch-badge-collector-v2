@@ -197,7 +197,7 @@
   "turnOn": {
     "message": "開啟"
   },
-  "extensionUpdated": {
-    "message": "擴充功能已更新。點擊重新整理"
+  "extensionDisconnected": {
+    "message": "擴充功能連線已中斷。點擊重新整理"
   }
 }

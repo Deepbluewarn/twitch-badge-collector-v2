@@ -197,7 +197,7 @@
   "turnOn": {
     "message": "Turn on"
   },
-  "extensionUpdated": {
-    "message": "Extension updated. Click to reload"
+  "extensionDisconnected": {
+    "message": "Extension disconnected. Click to reload"
   }
 }

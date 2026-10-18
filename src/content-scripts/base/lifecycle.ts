@@ -4,7 +4,8 @@
  *
  * - 끊김 감지: runtime.id를 주기적으로 본다(끊기면 undefined). 포트는 MV3에서 백그라운드가 쉴 때마다
  *   끊겨, 그걸로 감지하면 백그라운드를 계속 깨워야 해서 쓰지 않는다.
- * - 끊기면: 등록된 정리(감시 끊기, 모아보기 창 걷기)를 돌리고 "새로고침" 안내를 띄운다.
+ * - 끊기면: 등록된 정리(감시 끊기, 모아보기 창 걷기)를 돌리고 "연결이 끊겼습니다, 눌러서 새로고침" 안내를 띄운다.
+ *   (업데이트만이 아니라 확장을 끄거나 지워도 끊기므로 '업데이트'라고 하지 않는다)
  *   Chrome은 background가 업데이트 직후 새 콘텐츠 스크립트를 다시 넣어 준다(entrypoints/background.ts).
  * - 새 스크립트는 시작하면서 신호(INSTANCE_EVENT)를 보낸다. 같은 탭의 옛 스크립트는 그걸 받으면 끊김 감지를
  *   기다리지 않고 바로 조용히 물러난다(안내 없이) — 늦게 감지한 옛 스크립트가 새 창을 건드리거나 안내를 띄우지 않게.
@@ -51,7 +52,7 @@ export function removeLeftovers(type: Platform) {
 export function startInstance(type: Platform) {
     // 끊긴 뒤엔 i18n도 못 부르니 문구는 미리 받아 둔다.
     let message = '';
-    try { message = browser.i18n.getMessage('extensionUpdated'); } catch { /* 이미 끊김 */ }
+    try { message = browser.i18n.getMessage('extensionDisconnected'); } catch { /* 이미 끊김 */ }
 
     window.dispatchEvent(new CustomEvent(INSTANCE_EVENT, { detail: INSTANCE }));
     removeLeftovers(type);

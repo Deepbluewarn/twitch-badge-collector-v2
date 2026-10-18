@@ -197,7 +197,7 @@
   "turnOn": {
     "message": "オンにする"
   },
-  "extensionUpdated": {
-    "message": "拡張機能が更新されました。クリックして再読み込み"
+  "extensionDisconnected": {
+    "message": "拡張機能との接続が切れました。クリックして再読み込み"
   }
 }
