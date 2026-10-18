@@ -209,7 +209,9 @@
         "next_page": "下一页",
         "channel_all": "所有过滤器",
         "channel_none": "未指定频道（通用）",
-        "open_channel": "打开频道"
+        "open_channel": "打开频道",
+        "broad": "范围过宽",
+        "broad_count": "范围过宽的过滤器 {{count}} 个"
     },
     "filter_test": {
         "button": "测试筛选器",

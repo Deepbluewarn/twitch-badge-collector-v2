@@ -209,7 +209,9 @@
         "next_page": "Page suivante",
         "channel_all": "Tous les filtres",
         "channel_none": "Aucune chaîne (commun)",
-        "open_channel": "Ouvrir la chaîne"
+        "open_channel": "Ouvrir la chaîne",
+        "broad": "Trop large",
+        "broad_count": "{{count}} filtre(s) trop large(s)"
     },
     "filter_test": {
         "button": "Tester les filtres",

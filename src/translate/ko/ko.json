@@ -208,7 +208,9 @@
         "next_page": "다음 페이지",
         "channel_all": "모든 필터",
         "channel_none": "채널 지정 안 함 (공통)",
-        "open_channel": "채널 열기"
+        "open_channel": "채널 열기",
+        "broad": "범위 넓음",
+        "broad_count": "범위가 넓은 필터 {{count}}개"
     },
     "filter_test": {
         "button": "필터 시험",

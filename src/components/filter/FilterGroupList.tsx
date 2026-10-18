@@ -9,6 +9,7 @@ import { FilterList, FilterListActions } from "./FilterList";
 import { EMPTY_TEST, FilterTesterPanel, TestInput, useFilterTest } from "./FilterTester";
 import s from "./FilterGroupList.module.css";
 import { Button } from "@/ui";
+import { isBroadFilter } from "@/filter/broad";
 import { ChannelRail, filterByView, useRailChannels, VIEW_ALL, VIEW_COMMON } from "./ChannelRail";
 import { canReachChzzkApi, fetchChzzkChannel } from "@/api/chzzk-channel";
 import { useTranslation } from "react-i18next";
@@ -26,7 +27,14 @@ export function FilterGroupList() {
     useEffect(() => {
         if (channelView !== VIEW_ALL && channelView !== VIEW_COMMON && !channels.some(c => c.id === channelView)) setChannelView(VIEW_ALL);
     }, [channels, channelView]);
-    const visibleFilters = useMemo(() => filterByView(platformFilters, channelView), [platformFilters, channelView]);
+    // 범위가 넓은 필터만 보기 — 머리 줄의 경고 버튼으로 켜고 끈다
+    const broadCount = useMemo(() => platformFilters.filter(isBroadFilter).length, [platformFilters]);
+    const [broadOnly, setBroadOnly] = useState(false);
+    useEffect(() => { if (broadCount === 0) setBroadOnly(false); }, [broadCount]);
+    const visibleFilters = useMemo(() => {
+        const rows = filterByView(platformFilters, channelView);
+        return broadOnly ? rows.filter(isBroadFilter) : rows;
+    }, [platformFilters, channelView, broadOnly]);
     // 채널을 지정한 필터가 없으면 채널 목록 없이 지금 모양 그대로
     const rail = channels.length > 0;
 
@@ -78,7 +86,15 @@ export function FilterGroupList() {
                 }} />}
                 <FilterList rows={visibleFilters} adapter={adapter} actions={actions}
                     test={testerOpen ? testResult.rows : undefined}
-                    toolbarExtra={!testerOpen && <Button size="sm" icon="science" onClick={() => setTesterOpen(true)}>{t('filter_test.button')}</Button>} />
+                    toolbarExtra={<>
+                        {broadCount > 0 && (
+                            <Button size="sm" icon="warning" variant={broadOnly ? 'primary' : 'danger'} aria-pressed={broadOnly}
+                                onClick={() => { setBroadOnly(b => !b); setChannelView(VIEW_ALL); }}>
+                                {t('filter_list.broad_count', { count: broadCount })}
+                            </Button>
+                        )}
+                        {!testerOpen && <Button size="sm" icon="science" onClick={() => setTesterOpen(true)}>{t('filter_test.button')}</Button>}
+                    </>} />
                 {testerOpen && (
                     <div className={s.tester}>
                         <FilterTesterPanel input={testInput} onInput={setTestInput} result={testResult} rules={platformFilters} adapter={adapter} onClose={() => setTesterOpen(false)} />

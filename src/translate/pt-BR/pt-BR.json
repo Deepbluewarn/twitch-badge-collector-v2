@@ -209,7 +209,9 @@
         "next_page": "Próxima página",
         "channel_all": "Todos os filtros",
         "channel_none": "Sem canal (comum)",
-        "open_channel": "Abrir canal"
+        "open_channel": "Abrir canal",
+        "broad": "Amplo demais",
+        "broad_count": "{{count}} filtro(s) amplo(s) demais"
     },
     "filter_test": {
         "button": "Testar filtros",

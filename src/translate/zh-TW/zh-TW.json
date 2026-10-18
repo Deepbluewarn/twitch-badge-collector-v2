@@ -209,7 +209,9 @@
         "next_page": "下一頁",
         "channel_all": "所有篩選器",
         "channel_none": "未指定頻道（通用）",
-        "open_channel": "開啟頻道"
+        "open_channel": "開啟頻道",
+        "broad": "範圍過寬",
+        "broad_count": "範圍過寬的篩選器 {{count}} 個"
     },
     "filter_test": {
         "button": "測試篩選器",

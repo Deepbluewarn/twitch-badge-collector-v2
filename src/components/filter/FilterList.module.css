@@ -312,6 +312,21 @@
     font-weight: 800;
     cursor: pointer;
 }
+/* 사실상 모든 채팅을 모으는 필터 표시 (src/filter/broad.ts) */
+.broad {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.broad :global(.material-icons-round) {
+    font-size: 14px;
+}
 
 /* ── 수집 표시 색 ─────────────────────────────── */
 .swatchSlot {

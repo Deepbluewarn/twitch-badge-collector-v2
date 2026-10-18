@@ -209,7 +209,9 @@
         "next_page": "次のページ",
         "channel_all": "すべてのフィルター",
         "channel_none": "チャンネル指定なし（共通）",
-        "open_channel": "チャンネルを開く"
+        "open_channel": "チャンネルを開く",
+        "broad": "範囲が広い",
+        "broad_count": "範囲が広いフィルター {{count}}件"
     },
     "filter_test": {
         "button": "フィルターを試す",

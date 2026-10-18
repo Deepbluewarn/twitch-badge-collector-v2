@@ -209,7 +209,9 @@
         "next_page": "Next page",
         "channel_all": "All filters",
         "channel_none": "No channel (common)",
-        "open_channel": "Open channel"
+        "open_channel": "Open channel",
+        "broad": "Too broad",
+        "broad_count": "{{count}} broad filter(s)"
     },
     "filter_test": {
         "button": "Test filters",

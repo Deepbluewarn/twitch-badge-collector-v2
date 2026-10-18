@@ -6,6 +6,7 @@ import type { AtomicFilterElement, CompositeFilterElement, FilterType } from '@/
 import type { RowTest } from './FilterTester';
 import { ChannelAvatar } from './ChannelSearch';
 import { Icon } from '@/ui';
+import { isBroadFilter } from '@/filter/broad';
 import s from './FilterList.module.css';
 
 /**
@@ -169,6 +170,7 @@ function FilterRow({ row, adapter, actions, selected, onToggle, test }: { row: R
                     <Meta label={t('common.note')} value={row.filterNote} onEdit={() => actions.editNote(row)} onRemove={() => actions.removeNote(row)} />
                 </div>
             </div>
+            {isBroadFilter(row) && <span className={`${s.broad} ${s.bad}`}><Icon name="warning" />{t('filter_list.broad')}</span>}
             <button type="button" className={`${s.tag} ${TONE[row.filterType] ?? s.ok}`} onClick={() => actions.rotateType(row)}>
                 {t(`filter.category.${row.filterType}`)}
             </button>
