@@ -181,5 +181,11 @@
   },
   "dismiss": {
     "message": "J'ai compris"
+  },
+  "close": {
+    "message": "Fermer"
+  },
+  "back": {
+    "message": "Retour"
   }
 }

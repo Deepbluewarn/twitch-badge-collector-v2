@@ -71,7 +71,8 @@
             "filter_list": "フィルター一覧",
             "filter_add": "新しいフィルターを追加",
             "select_badges": "バッジを選択",
-            "empty_hint": "下の <b>+ フィルター要素を追加</b> またはバッジをクリックして始めましょう。"
+            "empty_hint": "下の <b>+ フィルター要素を追加</b> またはバッジをクリックして始めましょう。",
+            "badge_catalog": "バッジ一覧"
         },
         "filter_mode": {
             "advanced": "詳細設定"
@@ -80,8 +81,8 @@
     "template": {
         "title": "チャットテンプレート（CHZZK）",
         "use_custom": "テンプレートで表示",
-        "use_custom_hint_on": "収集したチャットを下のテンプレートですぐに描画します。CHZZK のチャット欄より先に表示され、ちらつきもありません。（一般設定の「収集チャットの見た目」で「カスタム」を選ぶのと同じです）",
-        "use_custom_hint_off": "CHZZK のチャットをそのままコピーします。CHZZK が描画した後に表示され、CHZZK が遅いときは一瞬違う見た目になってから元の表示に切り替わることがあります。（一般設定の「収集チャットの見た目」が「デフォルト」の状態です）",
+        "use_custom_hint_on": "収集チャットを下のテンプレートで生成します。",
+        "use_custom_hint_off": "CHZZK のチャット欄の元のチャットをそのままコピーします。",
         "kinds": {
             "chat": "チャット",
             "donation": "投げ銭",
@@ -191,5 +192,35 @@
         "chzzk": "CHZZK のチャンネル ID は、ライブ配信 URL の <b>/live/</b> の後に続く英数字の ID です。",
         "example": "例:"
     },
-    "translation_notice": "Badge Collector は韓国語で作られているため、一部の翻訳が不自然な場合があります。"
+    "translation_notice": "Badge Collector は韓国語で作られているため、一部の翻訳が不自然な場合があります。",
+    "filter_list": {
+        "select_all": "すべて選択",
+        "select": "選択",
+        "selected": "{{count}}件選択",
+        "select_every": "フィルター{{count}}件をすべて選択",
+        "clear_selection": "選択解除",
+        "total": "フィルター{{count}}件",
+        "empty": "フィルターなし",
+        "per_page": "1ページあたり",
+        "condition": "条件",
+        "marker_color": "マーカーの色",
+        "custom_color": "色を選ぶ",
+        "prev_page": "前のページ",
+        "next_page": "次のページ"
+    },
+    "filter_test": {
+        "button": "フィルターを試す",
+        "title": "フィルターを試す",
+        "nickname": "ニックネーム",
+        "message": "チャット",
+        "badge": "バッジ",
+        "remove_badge": "外す",
+        "channel": "チャンネル",
+        "other_channel": "その他のチャンネル",
+        "collected": "収集される",
+        "not_collected": "収集されない",
+        "excluded": "除外",
+        "matched": "一致したフィルター",
+        "excluded_by": "除外したフィルター"
+    }
 }

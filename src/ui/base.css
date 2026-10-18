@@ -1,0 +1,64 @@
+/* 팝업·설정 페이지 공통 바탕 — docs/design-system.md. 토큰은 tokens.css. */
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--ui-font);
+    line-height: 1.5;
+    background: var(--ui-paper);
+    color: var(--ui-ink);
+    -webkit-font-smoothing: antialiased;
+    word-break: keep-all;
+}
+::selection {
+    background: var(--ui-yellow);
+    color: var(--ui-on-yellow);
+}
+:focus-visible {
+    outline: 3px solid var(--ui-ink);
+    outline-offset: 2px;
+}
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+    background: var(--ui-hair);
+    border-radius: 4px;
+}
+a {
+    color: inherit;
+}
+/* 브랜드(로고 + 이름) = badgecollector.dev 링크. 링크로 보이게 늘 옅은 밑줄 + ↗, 올리면 노란 밑줄 */
+.tbc-brand-link span {
+    text-decoration: underline;
+    text-decoration-color: var(--ui-hair);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+}
+.tbc-brand-link span::after {
+    content: ' ↗';
+}
+.tbc-brand-link:hover span {
+    color: var(--ui-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--ui-yellow);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 3px;
+}
+.hidden {
+    display: none !important;
+}
+/* Material Icons Round 글꼴(각 페이지 html에서 불러온다) — 아이콘 이름을 글자로 쓴다. */
+.material-icons-round {
+    font-size: inherit;
+    line-height: 1;
+    vertical-align: middle;
+}

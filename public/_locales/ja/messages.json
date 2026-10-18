@@ -181,5 +181,11 @@
   },
   "dismiss": {
     "message": "OK"
+  },
+  "close": {
+    "message": "閉じる"
+  },
+  "back": {
+    "message": "戻る"
   }
 }

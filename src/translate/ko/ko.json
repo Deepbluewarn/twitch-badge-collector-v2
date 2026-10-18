@@ -71,7 +71,8 @@
             "filter_list": "필터 목록",
             "filter_add": "새 필터 추가",
             "select_badges": "배지 선택",
-            "empty_hint": "아래 <b>+ 필터 요소 추가</b> 또는 배지를 클릭해서 시작하세요."
+            "empty_hint": "아래 <b>+ 필터 요소 추가</b> 또는 배지를 클릭해서 시작하세요.",
+            "badge_catalog": "배지 모음"
         },
         "filter_mode": {
             "advanced": "고급 설정"
@@ -80,8 +81,8 @@
     "template": {
         "title": "채팅 템플릿 (치지직)",
         "use_custom": "템플릿으로 표시",
-        "use_custom_hint_on": "모아보기 채팅을 아래 템플릿으로 바로 그립니다. 치지직 채팅창보다 먼저 뜨고, 모양이 바뀌는 깜빡임이 없습니다. (일반 설정의 '모아보기 채팅 모양'에서 '커스텀'을 고른 것과 같습니다)",
-        "use_custom_hint_off": "치지직 채팅창의 원본을 그대로 복사합니다. 치지직이 그린 뒤에 뜨며, 치지직이 늦을 때는 잠깐 다른 모양으로 보였다가 원본으로 바뀔 수 있습니다. (일반 설정의 '모아보기 채팅 모양'이 '기본'인 상태입니다)",
+        "use_custom_hint_on": "모아보기 채팅을 아래 템플릿으로 생성합니다.",
+        "use_custom_hint_off": "치지직 채팅창의 원본을 그대로 복사합니다.",
         "kinds": {
             "chat": "일반 채팅",
             "donation": "후원",
@@ -190,5 +191,35 @@
         "twitch": "트위치 채널 ID는 채널 주소의 마지막 부분입니다.",
         "chzzk": "치지직 채널 ID는 라이브 방송 주소에서 <b>/live/</b> 다음에 나오는 영문/숫자 ID입니다.",
         "example": "예시:"
+    },
+    "filter_list": {
+        "select_all": "전체 선택",
+        "select": "선택",
+        "selected": "{{count}}개 선택",
+        "select_every": "필터 {{count}}개 모두 선택",
+        "clear_selection": "선택 해제",
+        "total": "필터 {{count}}개",
+        "empty": "필터 없음",
+        "per_page": "페이지당",
+        "condition": "조건",
+        "marker_color": "수집 표시 색",
+        "custom_color": "직접 고르기",
+        "prev_page": "이전 페이지",
+        "next_page": "다음 페이지"
+    },
+    "filter_test": {
+        "button": "필터 시험",
+        "title": "필터 시험",
+        "nickname": "닉네임",
+        "message": "채팅",
+        "badge": "배지",
+        "remove_badge": "빼기",
+        "channel": "채널",
+        "other_channel": "그 밖의 채널",
+        "collected": "수집됨",
+        "not_collected": "수집 안 됨",
+        "excluded": "제외됨",
+        "matched": "걸린 필터",
+        "excluded_by": "제외한 필터"
     }
 }

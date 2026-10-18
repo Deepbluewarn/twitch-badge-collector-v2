@@ -71,7 +71,8 @@
             "filter_list": "篩選器清單",
             "filter_add": "新增篩選器",
             "select_badges": "選擇徽章",
-            "empty_hint": "點選下方的 <b>+ 新增篩選元素</b> 或徽章即可開始。"
+            "empty_hint": "點選下方的 <b>+ 新增篩選元素</b> 或徽章即可開始。",
+            "badge_catalog": "徽章一覽"
         },
         "filter_mode": {
             "advanced": "進階設定"
@@ -80,8 +81,8 @@
     "template": {
         "title": "聊天範本（CHZZK）",
         "use_custom": "使用範本顯示",
-        "use_custom_hint_on": "收集的聊天訊息會立即依下方範本繪製，比 CHZZK 聊天室更早顯示，也不會閃爍。（等同於在一般設定的「收集訊息外觀」中選擇「自訂」）",
-        "use_custom_hint_off": "直接複製 CHZZK 聊天室的原始內容。訊息會在 CHZZK 繪製後出現；CHZZK 較慢時，可能會短暫顯示為其他樣式，再恢復為原樣。（一般設定中的「收集訊息外觀」為「預設」）",
+        "use_custom_hint_on": "依下方範本產生收集的聊天訊息。",
+        "use_custom_hint_off": "原樣複製 CHZZK 聊天室中的原始訊息。",
         "kinds": {
             "chat": "聊天",
             "donation": "斗內",
@@ -191,5 +192,35 @@
         "chzzk": "CHZZK 頻道 ID 是直播網址中 <b>/live/</b> 後面由英文字母和數字組成的 ID。",
         "example": "範例："
     },
-    "translation_notice": "Badge Collector 以韓文開發，部分翻譯可能不太自然。"
+    "translation_notice": "Badge Collector 以韓文開發，部分翻譯可能不太自然。",
+    "filter_list": {
+        "select_all": "全選",
+        "select": "選擇",
+        "selected": "已選 {{count}} 個",
+        "select_every": "選擇全部 {{count}} 個篩選器",
+        "clear_selection": "取消選擇",
+        "total": "{{count}} 個篩選器",
+        "empty": "沒有篩選器",
+        "per_page": "每頁",
+        "condition": "條件",
+        "marker_color": "標記顏色",
+        "custom_color": "自訂顏色",
+        "prev_page": "上一頁",
+        "next_page": "下一頁"
+    },
+    "filter_test": {
+        "button": "測試篩選器",
+        "title": "測試篩選器",
+        "nickname": "暱稱",
+        "message": "聊天",
+        "badge": "徽章",
+        "remove_badge": "移除",
+        "channel": "頻道",
+        "other_channel": "其他頻道",
+        "collected": "會收集",
+        "not_collected": "不收集",
+        "excluded": "已排除",
+        "matched": "符合的篩選器",
+        "excluded_by": "排除的篩選器"
+    }
 }

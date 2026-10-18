@@ -71,7 +71,8 @@
             "filter_list": "Filter List",
             "filter_add": "Add New Filter",
             "select_badges": "Select Badges",
-            "empty_hint": "Click <b>+ Add Filter Element</b> below or a badge to get started."
+            "empty_hint": "Click <b>+ Add Filter Element</b> below or a badge to get started.",
+            "badge_catalog": "Badge catalog"
         },
         "filter_mode": {
             "advanced": "Advenced Settings"
@@ -80,8 +81,8 @@
     "template": {
         "title": "Chat template (Chzzk)",
         "use_custom": "Render with template",
-        "use_custom_hint_on": "Collected chats are drawn right away with the templates below — before Chzzk's chat shows them, with no flicker. (Same as choosing 'Custom' for 'Collected chat look' in general settings)",
-        "use_custom_hint_off": "Chzzk's own chat is copied as is. Chats appear after Chzzk draws them, and may briefly show a different look before switching to the original when Chzzk is slow. ('Collected chat look' is set to 'Default' in general settings)",
+        "use_custom_hint_on": "Collected chats are generated from the templates below.",
+        "use_custom_hint_off": "Copies the original chat from CHZZK's chat window as is.",
         "kinds": {
             "chat": "Chat",
             "donation": "Donation",
@@ -191,5 +192,35 @@
         "chzzk": "A Chzzk channel ID is the letters-and-numbers ID after <b>/live/</b> in the live stream URL.",
         "example": "Example:"
     },
-    "translation_notice": "Badge Collector is made in Korean, so some translations may be awkward."
+    "translation_notice": "Badge Collector is made in Korean, so some translations may be awkward.",
+    "filter_list": {
+        "select_all": "Select all",
+        "select": "Select",
+        "selected": "{{count}} selected",
+        "select_every": "Select all {{count}} filters",
+        "clear_selection": "Clear selection",
+        "total": "{{count}} filters",
+        "empty": "No filters",
+        "per_page": "Per page",
+        "condition": "Condition",
+        "marker_color": "Marker color",
+        "custom_color": "Custom color",
+        "prev_page": "Previous page",
+        "next_page": "Next page"
+    },
+    "filter_test": {
+        "button": "Test filters",
+        "title": "Test filters",
+        "nickname": "Nickname",
+        "message": "Chat",
+        "badge": "Badge",
+        "remove_badge": "remove",
+        "channel": "Channel",
+        "other_channel": "Other channels",
+        "collected": "Collected",
+        "not_collected": "Not collected",
+        "excluded": "Excluded",
+        "matched": "Matched",
+        "excluded_by": "Excluded by"
+    }
 }

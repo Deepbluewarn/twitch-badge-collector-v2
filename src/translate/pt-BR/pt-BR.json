@@ -71,7 +71,8 @@
             "filter_list": "Lista de filtros",
             "filter_add": "Adicionar novo filtro",
             "select_badges": "Selecionar emblemas",
-            "empty_hint": "Clique em <b>+ Adicionar elemento</b> abaixo ou em um emblema para começar."
+            "empty_hint": "Clique em <b>+ Adicionar elemento</b> abaixo ou em um emblema para começar.",
+            "badge_catalog": "Catálogo de emblemas"
         },
         "filter_mode": {
             "advanced": "Configurações avançadas"
@@ -80,8 +81,8 @@
     "template": {
         "title": "Template de chat (CHZZK)",
         "use_custom": "Exibir com template",
-        "use_custom_hint_on": "Os chats coletados são desenhados na hora com os templates abaixo, antes de aparecerem no chat do CHZZK e sem piscar. (Equivale a escolher \"Personalizado\" em \"Aparência dos chats coletados\" nas configurações gerais)",
-        "use_custom_hint_off": "O chat do próprio CHZZK é copiado como está. Os chats aparecem depois que o CHZZK os desenha e, quando o CHZZK está lento, podem aparecer rapidamente com outra aparência antes de mudar para a original. (\"Aparência dos chats coletados\" está em \"Padrão\" nas configurações gerais)",
+        "use_custom_hint_on": "Os chats coletados são gerados com os templates abaixo.",
+        "use_custom_hint_off": "Copia o chat original da janela de chat do CHZZK como está.",
         "kinds": {
             "chat": "Chat",
             "donation": "Doação",
@@ -191,5 +192,35 @@
         "chzzk": "O ID de um canal do CHZZK é o código de letras e números depois de <b>/live/</b> na URL da live.",
         "example": "Exemplo:"
     },
-    "translation_notice": "O Badge Collector é feito em coreano, então algumas traduções podem soar estranhas."
+    "translation_notice": "O Badge Collector é feito em coreano, então algumas traduções podem soar estranhas.",
+    "filter_list": {
+        "select_all": "Selecionar tudo",
+        "select": "Selecionar",
+        "selected": "{{count}} selecionados",
+        "select_every": "Selecionar todos os {{count}} filtros",
+        "clear_selection": "Limpar seleção",
+        "total": "{{count}} filtros",
+        "empty": "Nenhum filtro",
+        "per_page": "Por página",
+        "condition": "Condição",
+        "marker_color": "Cor do marcador",
+        "custom_color": "Cor personalizada",
+        "prev_page": "Página anterior",
+        "next_page": "Próxima página"
+    },
+    "filter_test": {
+        "button": "Testar filtros",
+        "title": "Testar filtros",
+        "nickname": "Apelido",
+        "message": "Chat",
+        "badge": "Emblema",
+        "remove_badge": "remover",
+        "channel": "Canal",
+        "other_channel": "Outros canais",
+        "collected": "Coletado",
+        "not_collected": "Não coletado",
+        "excluded": "Excluído",
+        "matched": "Corresponderam",
+        "excluded_by": "Excluído por"
+    }
 }

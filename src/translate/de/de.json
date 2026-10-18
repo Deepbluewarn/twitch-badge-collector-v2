@@ -71,7 +71,8 @@
             "filter_list": "Filterliste",
             "filter_add": "Neuen Filter hinzufügen",
             "select_badges": "Badges auswählen",
-            "empty_hint": "Klicke unten auf <b>+ Element hinzufügen</b> oder auf ein Badge, um loszulegen."
+            "empty_hint": "Klicke unten auf <b>+ Element hinzufügen</b> oder auf ein Badge, um loszulegen.",
+            "badge_catalog": "Abzeichen-Katalog"
         },
         "filter_mode": {
             "advanced": "Erweiterte Einstellungen"
@@ -80,8 +81,8 @@
     "template": {
         "title": "Chat-Vorlage (CHZZK)",
         "use_custom": "Mit Vorlage anzeigen",
-        "use_custom_hint_on": "Gesammelte Chats werden sofort mit den Vorlagen unten gezeichnet – noch bevor der CHZZK-Chat sie zeigt, ohne Flackern. (Entspricht „Eigene“ bei „Aussehen gesammelter Chats“ in den allgemeinen Einstellungen)",
-        "use_custom_hint_off": "Der CHZZK-Chat wird unverändert kopiert. Chats erscheinen erst, nachdem CHZZK sie gezeichnet hat, und können bei langsamem CHZZK kurz anders aussehen, bevor sie zum Original wechseln. („Aussehen gesammelter Chats“ steht in den allgemeinen Einstellungen auf „Standard“)",
+        "use_custom_hint_on": "Gesammelte Chats werden aus den Vorlagen unten erzeugt.",
+        "use_custom_hint_off": "Kopiert den Originalchat aus dem CHZZK-Chatfenster unverändert.",
         "kinds": {
             "chat": "Chat",
             "donation": "Spende",
@@ -191,5 +192,35 @@
         "chzzk": "Die Kanal-ID bei CHZZK ist die Kombination aus Buchstaben und Zahlen nach <b>/live/</b> in der URL des Livestreams.",
         "example": "Beispiel:"
     },
-    "translation_notice": "Badge Collector wurde auf Koreanisch entwickelt, daher klingen manche Übersetzungen vielleicht holprig."
+    "translation_notice": "Badge Collector wurde auf Koreanisch entwickelt, daher klingen manche Übersetzungen vielleicht holprig.",
+    "filter_list": {
+        "select_all": "Alle auswählen",
+        "select": "Auswählen",
+        "selected": "{{count}} ausgewählt",
+        "select_every": "Alle {{count}} Filter auswählen",
+        "clear_selection": "Auswahl aufheben",
+        "total": "{{count}} Filter",
+        "empty": "Keine Filter",
+        "per_page": "Pro Seite",
+        "condition": "Bedingung",
+        "marker_color": "Markierungsfarbe",
+        "custom_color": "Eigene Farbe",
+        "prev_page": "Vorherige Seite",
+        "next_page": "Nächste Seite"
+    },
+    "filter_test": {
+        "button": "Filter testen",
+        "title": "Filter testen",
+        "nickname": "Spitzname",
+        "message": "Chat",
+        "badge": "Abzeichen",
+        "remove_badge": "entfernen",
+        "channel": "Kanal",
+        "other_channel": "Andere Kanäle",
+        "collected": "Wird gesammelt",
+        "not_collected": "Wird nicht gesammelt",
+        "excluded": "Ausgeschlossen",
+        "matched": "Treffer",
+        "excluded_by": "Ausgeschlossen durch"
+    }
 }

@@ -3,25 +3,8 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import FilterListIcon from '@mui/icons-material/FilterList';
-import AddIcon from '@mui/icons-material/Add';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import CheckIcon from '@mui/icons-material/Check';
-import BlockIcon from '@mui/icons-material/Block';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { Button, Card, Divider, Field, Icon, IconButton, TextInput } from '@/ui';
 import ChannelIdGuideDialog from './dialog/ChannelIdGuideDialog';
-import { SelectChangeEvent } from '@mui/material/Select';
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Paper from '@mui/material/Paper';
 import {
     AtomicFilterElement,
     FilterCategory,
@@ -29,12 +12,11 @@ import {
 } from "../../interfaces/filter";
 import { useFilterGroupContext } from '../../context/FilterGroup';
 import { nanoid } from 'nanoid';
-import { AdvancedFilterCategorySelector, FilterSelectorType, FilterTypeSelector } from './FilterComponents';
-import Divider from '@mui/material/Divider';
-import CustomTextField from '../TextField/CustomTextField';
+import { AdvancedFilterCategorySelector, FilterSelectorType, FilterTypeSegmented, FilterTypeSelector } from './FilterComponents';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
 import { useAlertContext } from '@/context/Alert';
+import s from './FilterAddDialog.module.css';
 
 export default function FilterInputFormList(
     props: {
@@ -66,8 +48,8 @@ export default function FilterInputFormList(
             }]
         });
     }
-    const onFilterTypeChanged = (event: SelectChangeEvent<FilterType>) => {
-        setFilterGroupType(event.target.value as FilterType);
+    const onFilterTypeChanged = (value: FilterType) => {
+        setFilterGroupType(value);
     }
     const onFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFilterGroupNote(event.target.value);
@@ -109,22 +91,11 @@ export default function FilterInputFormList(
     }, [globalSetting.platform]);
 
     return (
-        <Card
-            variant="outlined"
-            sx={{
-                bgcolor: 'background.default',
-                // column 전체 차지 + 내부에서 CardContent만 scroll. CardActions(메모/채널/
-                // 필터추가)는 column 하단 고정으로 항상 보임.
-                flex: 1,
-                minHeight: 0,
-                display: 'flex',
-                flexDirection: 'column',
-            }}
-        >
-            <CardContent sx={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <Card className={s.advancedCard}>
+            <div className={s.cardContent}>
                 {
                     props.afInputRow.length > 0 ? (
-                        <Stack spacing={2} sx={{ width: '100%' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
                             {
                                 props.afInputRow.map(input => {
                                     return (
@@ -138,149 +109,88 @@ export default function FilterInputFormList(
                                     )
                                 })
                             }
-                        </Stack>
+                        </div>
 
                     ) : (
-                        <Stack
-                            justifyContent='center'
-                            alignItems='center'
-                            spacing={1.5}
-                            sx={{ width: '100%', minHeight: '18rem' }}
-                        >
-                            <Box
-                                sx={{
-                                    width: 56,
-                                    height: 56,
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    bgcolor: 'action.hover',
-                                    color: 'text.secondary',
-                                }}
-                            >
-                                <FilterListIcon fontSize="medium" />
-                            </Box>
-                            <Typography color='textSecondary' variant="subtitle1">
+                        <div className={s.empty}>
+                            <div className={s.emptyIcon}>
+                                <Icon name="filter_list" />
+                            </div>
+                            <p className={s.emptyTitle}>
                                 {t('common.add_filter_elements')}
-                            </Typography>
-                            <Typography color='text.disabled' variant="caption" sx={{ textAlign: 'center', maxWidth: 280 }}>
+                            </p>
+                            <p className={s.emptyHint}>
                                 <Trans i18nKey='setting.filter.empty_hint' components={{ b: <b /> }} />
-                            </Typography>
-                        </Stack>
+                            </p>
+                        </div>
                     )
                 }
-            </CardContent>
+            </div>
 
             <Divider />
-            <CardActions sx={{ p: 2, display: 'block' }}>
-                <Stack spacing={1.75}>
-                    {/* 조건(filterType) toggle + "필터 요소 추가" 버튼을 같은 행에 — 같이 폼 영역
-                        편집 액션이라 시각적으로 가까이. 조건 색상은 chipColor와 동일 의미. */}
-                    <Stack direction="row" alignItems="flex-end" spacing={1.5} flexWrap="wrap" useFlexGap>
-                        <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
-                                {t('common.condition')}
-                            </Typography>
-                            <ToggleButtonGroup
-                                value={filterGroupType}
-                                exclusive
-                                size="small"
-                                onChange={(_e, v) => {
-                                    if (v) onFilterTypeChanged({ target: { value: v } } as any);
-                                }}
-                                sx={{
-                                    '& .MuiToggleButton-root': {
-                                        px: 2,
-                                        textTransform: 'none',
-                                        gap: 0.5,
-                                    },
-                                    '& .MuiToggleButton-root.Mui-selected[value="include"]': {
-                                        color: 'success.main',
-                                        bgcolor: (theme) => theme.palette.success.main + '20',
-                                    },
-                                    '& .MuiToggleButton-root.Mui-selected[value="exclude"]': {
-                                        color: 'error.main',
-                                        bgcolor: (theme) => theme.palette.error.main + '20',
-                                    },
-                                }}
-                            >
-                                <ToggleButton value="include">
-                                    <CheckIcon sx={{ fontSize: 18 }} />
-                                    {t('filter.category.include')}
-                                </ToggleButton>
-                                <ToggleButton value="exclude">
-                                    <BlockIcon sx={{ fontSize: 18 }} />
-                                    {t('filter.category.exclude')}
-                                </ToggleButton>
-                                <ToggleButton value="sleep">
-                                    <VisibilityOffIcon sx={{ fontSize: 18 }} />
-                                    {t('filter.category.sleep')}
-                                </ToggleButton>
-                            </ToggleButtonGroup>
-                        </Box>
-                        <Button
-                            onClick={addFilterInputForm}
-                            variant="outlined"
-                            size="small"
-                            startIcon={<AddIcon />}
-                            sx={{ height: 38, ml: 'auto' }}
-                        >
-                            {t('common.add_filter_element')}
-                        </Button>
-                    </Stack>
-
-                    <CustomTextField
-                        value={filterGroupNote}
-                        label={t('common.note_optional')}
-                        onChange={onFilterNoteChanged}
-                        fullWidth
+            <div className={s.cardActions}>
+                {/* 조건(filterType) toggle + "필터 요소 추가" 버튼을 같은 행에 — 같이 폼 영역
+                    편집 액션이라 시각적으로 가까이. */}
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
+                    <FilterTypeSegmented
+                        value={filterGroupType}
+                        onChange={onFilterTypeChanged}
                     />
+                    <Button
+                        onClick={addFilterInputForm}
+                        size="sm"
+                        icon="add"
+                        style={{ marginLeft: 'auto' }}
+                    >
+                        {t('common.add_filter_element')}
+                    </Button>
+                </div>
 
-                    {/* 채널 섹션: optional + 모르는 사람 위해 inline help icon */}
-                    <Box>
-                        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.75 }}>
-                            <Typography variant="caption" color="text.secondary">
-                                {t('common.channel_only')}
-                            </Typography>
-                            <IconButton
-                                size="small"
-                                onClick={() => setGuideOpen(true)}
-                                aria-label={t('channel_guide.title')}
-                                sx={{ p: 0.25 }}
-                            >
-                                <HelpOutlineIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
-                        </Stack>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
-                            <CustomTextField
+                <Field label={t('common.note_optional')}>
+                    <TextInput
+                        value={filterGroupNote}
+                        onChange={onFilterNoteChanged}
+                    />
+                </Field>
+
+                {/* 채널 섹션: optional + 모르는 사람 위해 inline help icon */}
+                <div>
+                    <div className={s.channelLabel}>
+                        <span>{t('common.channel_only')}</span>
+                        <IconButton
+                            icon="help_outline"
+                            size="sm"
+                            onClick={() => setGuideOpen(true)}
+                            label={t('channel_guide.title')}
+                        />
+                    </div>
+                    <div className={s.channelInputs}>
+                        <Field label={t('common.channel_id')}>
+                            <TextInput
                                 value={channelId}
-                                label={t('common.channel_id')}
                                 onChange={(e) => setChannelId(e.target.value)}
-                                sx={{ flex: 1 }}
                             />
-                            <CustomTextField
+                        </Field>
+                        <Field label={t('common.channel_name')}>
+                            <TextInput
                                 value={channelName}
-                                label={t('common.channel_name')}
                                 onChange={(e) => setChannelName(e.target.value)}
-                                sx={{ flex: 1 }}
                             />
-                        </Stack>
-                    </Box>
+                        </Field>
+                    </div>
+                </div>
 
-                    {/* primary CTA: 우측 하단에 명확하게 */}
-                    <Stack direction="row" justifyContent="flex-end">
-                        <Button
-                            disabled={props.afInputRow.length === 0}
-                            onClick={addFilter}
-                            variant='contained'
-                            size="medium"
-                        >
-                            {t('common.add_filter')}
-                        </Button>
-                    </Stack>
-                </Stack>
-            </CardActions>
+                {/* primary CTA: 우측 하단에 명확하게 */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button
+                        disabled={props.afInputRow.length === 0}
+                        onClick={addFilter}
+                        variant="primary"
+                    >
+                        {t('common.add_filter')}
+                    </Button>
+                </div>
+            </div>
             <ChannelIdGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
         </Card>
     )
@@ -312,8 +222,7 @@ function AdvancedFilterInputForm(props: {
         props.afInputListRef.current = newInputRef;
     }
 
-    const selectorChanged = (event: SelectChangeEvent<FilterCategory | FilterType>, selectorType: FilterSelectorType) => {
-        const newValue = event.target.value;
+    const selectorChanged = (newValue: FilterCategory | FilterType, selectorType: FilterSelectorType) => {
 
         props.setInputList(list => {
             return list.map(l => {
@@ -329,62 +238,54 @@ function AdvancedFilterInputForm(props: {
         });
     }
 
-    const removeList = (event: React.MouseEvent<HTMLElement>, id: string) => {
+    const removeList = (id: string) => {
         props.setInputList(list => list.filter(l => l.id !== id));
     }
 
     return (
-        <Stack direction='row' spacing={1}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
             {
                 props.value.category === 'badge' ? (
                     <>
-                        <Paper
-                            variant="outlined"
-                            sx={{
-                                minWidth: 120,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center'
-                            }}
-                        >
+                        <div className={s.badgeBox} style={{ minWidth: 120 }}>
                             <img
                                 style={{ width: '18px', height: '18px' }}
                                 src={adapter.getBadgeImageUrl(props.value.value, '1x')}
                                 srcSet={getBadgeSrcSet(adapter, props.value.value)}
                             />
+                        </div>
 
-                        </Paper>
-
-                        <CustomTextField
-                            label={t('common.badge_name')}
-                            defaultValue={props.value.badgeName}
-                            onChange={inputChanged}
-                        />
+                        <Field label={t('common.badge_name')} className={s.grow}>
+                            <TextInput
+                                defaultValue={props.value.badgeName}
+                                onChange={inputChanged}
+                            />
+                        </Field>
                     </>
                 ) : (
                     <>
                         <AdvancedFilterCategorySelector
                             value={props.value.category}
-                            onChange={(e) => selectorChanged(e, 'category')}
+                            onChange={(v) => selectorChanged(v, 'category')}
                             nameFilterAvail={props.nameFilterAvail}
                         />
 
-                        <CustomTextField
-                            label={t('common.value')}
-                            defaultValue={props.value.value}
-                            onChange={inputChanged}
-                        />
+                        <Field label={t('common.value')} className={s.grow}>
+                            <TextInput
+                                defaultValue={props.value.value}
+                                onChange={inputChanged}
+                            />
+                        </Field>
                     </>
                 )
             }
 
             <FilterTypeSelector
-                labelId="filter-type-label"
                 value={props.value.type}
-                onChange={(e) => selectorChanged(e, 'type')}
+                onChange={(v) => selectorChanged(v, 'type')}
             />
 
-            <Button onClick={(e) => removeList(e, props.value.id)}>{t('common.remove')}</Button>
-        </Stack>
+            <Button variant="text" onClick={() => removeList(props.value.id)}>{t('common.remove')}</Button>
+        </div>
     )
 }

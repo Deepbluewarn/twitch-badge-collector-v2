@@ -1,35 +1,14 @@
-import styled from "@emotion/styled";
-import Alert from "@mui/material/Alert";
-import Stack from "@mui/material/Stack";
 import { useAlertContext } from "../context/Alert";
+import { Notice } from "@/ui";
 
-const AlertContainerStyle = styled(Stack)({
-    position: 'fixed',
-    right: '0',
-    gap: '8px',
-    flexDirection: 'column',
-    justifyContent: 'flex-end',
-    padding: '8px',
-    zIndex: '1444',
-});
-
+/** 화면 오른쪽 위에 쌓이는 알림. */
 export default function AlertContainer() {
     const { alerts } = useAlertContext();
-
-    const alert = alerts.map(a => {
-        return (
-            <Alert
-                key={`${a.serverity}-${a.message}`}
-                variant="filled"
-                severity={a.serverity}
-            >
-                {a.message}
-            </Alert>
-        )
-    });
     return (
-        <AlertContainerStyle direction='row'>
-            {alert}
-        </AlertContainerStyle>
-    )
+        <div style={{ position: 'fixed', right: 0, top: 0, zIndex: 1444, display: 'flex', flexDirection: 'column', gap: 8, padding: 8 }}>
+            {alerts.map(a => (
+                <Notice key={`${a.serverity}-${a.message}`} tone={a.serverity}>{a.message}</Notice>
+            ))}
+        </div>
+    );
 }

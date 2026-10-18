@@ -1,17 +1,24 @@
 import React from 'react';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import Button from '@mui/material/Button';
-import CustomTextField from '@/components/TextField/CustomTextField';
 import { useTranslation } from 'react-i18next';
 import { FilterCategory, AtomicFilterElement, CompositeFilterElement, FilterType } from '@/interfaces/filter';
-import { Box, FormControl, InputLabel, MenuItem, Paper, Select, Stack, Typography } from '@mui/material';
+import { Button, Card, Dialog, Field, Select, Stack, TextArea, TextInput } from '@/ui';
 import BadgeList from './BadgeList';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
+
+/** 채널 주소를 붙여 넣으면 채널 ID만 뽑는다. 주소가 아니면 그대로. */
+export function extractChannelId(input: string, platform: string): string {
+    const v = input.trim();
+    if (platform === 'chzzk') {
+        const m = v.match(/chzzk\.naver\.com\/(?:live\/)?([0-9a-f]{32})/i);
+        if (m) return m[1];
+    } else if (platform === 'twitch') {
+        const m = v.match(/twitch\.tv\/(?:popout\/)?([A-Za-z0-9_]+)/i);
+        if (m) return m[1].toLowerCase();
+    }
+    return input;
+}
 
 // 모달 타입 정의
 export type DialogType = 'filter' | 'channel' | 'note' | null;
@@ -134,112 +141,87 @@ export default function FilterDialog(props: FilterDialogProps) {
         if (!filterGroup) return null;
 
         const BadgeImage = () => {
-            if (!filterGroup.value && filterGroup.category === 'badge') {
-                return (
-                    <Paper
-                        variant="outlined"
-                        sx={{
-                            minWidth: 120,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-
-                    </Paper>
-                );
-            }
-
-            return filterGroup.category === 'badge' ? (
-                <Paper
-                    variant="outlined"
-                    sx={{
-                        minWidth: 120,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                    }}
-                >
-
-                    <img
-                        style={{ width: '18px', height: '18px' }}
-                        src={adapter.getBadgeImageUrl(filterGroup.value, '1x')}
-                        srcSet={getBadgeSrcSet(adapter, filterGroup.value)}
-                    />
-
-                </Paper>
-            ) : null
-        }
+            if (filterGroup.category !== 'badge') return null;
+            return (
+                <Card style={{ minWidth: 120, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {filterGroup.value && (
+                        <img
+                            style={{ width: '18px', height: '18px' }}
+                            src={adapter.getBadgeImageUrl(filterGroup.value, '1x')}
+                            srcSet={getBadgeSrcSet(adapter, filterGroup.value)}
+                        />
+                    )}
+                </Card>
+            );
+        };
 
         return (
-            <Stack spacing={2}>
-                <FormControl>
-                    <InputLabel id="filter-category-label">{t('common.category')}</InputLabel>
-                    <Select
-                        labelId="filter-category-label"
-                        value={filterGroup.category || ''}
-                        label={t('common.category')}
-                        size='small'
-                        onChange={(e) => {
+            <Stack gap={16}>
+                <Field label={t('common.category')}>
+                    <Select<FilterCategory>
+                        value={filterGroup.category}
+                        onChange={(category) => {
                             setFilterGroup(filter => {
                                 if (!filter) return filter;
                                 return {
                                     ...defaultAtomicFilter(filter.id, filter.category, filter.type),
                                 }
                             });
-                            handleFilterObjectChange({ category: e.target.value as FilterCategory }, filterId!);
+                            handleFilterObjectChange({ category }, filterId!);
                         }}
-                    >
-                        <MenuItem value="name">{t('common.nickname')}</MenuItem>
-                        <MenuItem value="keyword">{t('common.keyword')}</MenuItem>
-                        <MenuItem value="badge">{t('common.badge')}</MenuItem>
-                    </Select>
-                </FormControl>
-                <Stack spacing={2} direction={'row'}>
+                        options={[
+                            { value: 'name', label: t('common.nickname') },
+                            { value: 'keyword', label: t('common.keyword') },
+                            { value: 'badge', label: t('common.badge') },
+                        ]}
+                    />
+                </Field>
+                <Stack dir="row" gap={16} align="flex-end">
                     <BadgeImage />
                     {
                         filterGroup.category === 'badge' ? (
-                            <CustomTextField
-                                label={t('common.badge_name')}
-                                value={filterGroup.badgeName || ''}
-                                onChange={e => {
-                                    handleFilterObjectChange({ badgeName: e.target.value }, filterId!);
-                                }}
-                                fullWidth
-                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <Field label={t('common.badge_name')}>
+                                    <TextInput
+                                        value={filterGroup.badgeName || ''}
+                                        onChange={e => {
+                                            handleFilterObjectChange({ badgeName: e.target.value }, filterId!);
+                                        }}
+                                    />
+                                </Field>
+                            </div>
                         ) : (
-                            <CustomTextField
-                                label={t('common.content')}
-                                value={filterGroup.value || ''}
-                                onChange={e => {
-                                    handleFilterObjectChange({ value: e.target.value }, filterId!);
-                                }}
-                                fullWidth
-                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <Field label={t('common.content')}>
+                                    <TextInput
+                                        value={filterGroup.value || ''}
+                                        onChange={e => {
+                                            handleFilterObjectChange({ value: e.target.value }, filterId!);
+                                        }}
+                                    />
+                                </Field>
+                            </div>
                         )
                     }
 
                     {/* 필터 조건 선택 추가 */}
-                    <FormControl>
-                        <InputLabel id="filter-type-label">{t('common.condition')}</InputLabel>
-                        <Select
-                            labelId="filter-type-label"
+                    <Field label={t('common.condition')}>
+                        <Select<FilterType>
                             value={filterGroup.type || 'include'}
-                            label={t('common.condition')}
-                            size="small"
-                            onChange={(e) => {
-                                handleFilterObjectChange({ type: e.target.value as FilterType }, filterId!);
+                            onChange={(type) => {
+                                handleFilterObjectChange({ type }, filterId!);
                             }}
-                        >
-                            <MenuItem value="include">{t('filter.category.include')}</MenuItem>
-                            <MenuItem value="exclude">{t('filter.category.exclude')}</MenuItem>
-                            <MenuItem value="sleep">{t('filter.category.sleep')}</MenuItem>
-                        </Select>
-                    </FormControl>
+                            options={[
+                                { value: 'include', label: t('filter.category.include') },
+                                { value: 'exclude', label: t('filter.category.exclude') },
+                                { value: 'sleep', label: t('filter.category.sleep') },
+                            ]}
+                        />
+                    </Field>
                 </Stack>
 
                 {filterGroup.category === 'badge' && (
-                    <Box sx={{ height: 420, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ height: 420, display: 'flex', flexDirection: 'column' }}>
                         <BadgeList
                             onBadgeSelect={(selectedBadge) => {
                                 const badgeUUID = adapter.getBadgeIdentity(selectedBadge.badgeImage.badge_img_url_1x);
@@ -254,7 +236,7 @@ export default function FilterDialog(props: FilterDialogProps) {
                                 handleFilterObjectChange(_badgeFilter, filterId!);
                             }}
                         />
-                    </Box>
+                    </div>
                 )}
             </Stack>
         );
@@ -265,23 +247,23 @@ export default function FilterDialog(props: FilterDialogProps) {
         if (!filterGroupList) return;
 
         return (
-            <Stack spacing={2}>
-                <CustomTextField
-                    label={t('common.channel_name')}
-                    value={filterGroupList.filterChannelName || ''}
-                    onChange={e => {
-                        handleListObjectChange({ filterChannelName: e.target.value });
-                    }}
-                    fullWidth
-                />
-                <CustomTextField
-                    label={t('common.channel_id')}
-                    value={filterGroupList.filterChannelId || ''}
-                    onChange={e => {
-                        handleListObjectChange({ filterChannelId: e.target.value });
-                    }}
-                    fullWidth
-                />
+            <Stack gap={16}>
+                <Field label={t('common.channel_id')}>
+                    <TextInput
+                        value={filterGroupList.filterChannelId || ''}
+                        onChange={e => {
+                            handleListObjectChange({ filterChannelId: extractChannelId(e.target.value, globalSetting.platform) });
+                        }}
+                    />
+                </Field>
+                <Field label={t('common.channel_name')}>
+                    <TextInput
+                        value={filterGroupList.filterChannelName || ''}
+                        onChange={e => {
+                            handleListObjectChange({ filterChannelName: e.target.value });
+                        }}
+                    />
+                </Field>
             </Stack>
         );
     };
@@ -291,42 +273,37 @@ export default function FilterDialog(props: FilterDialogProps) {
         if (!filterGroupList) return;
 
         return (
-            <CustomTextField
-                label={t('common.note')}
-                value={filterGroupList.filterNote || ''}
-                onChange={e => {
-                    handleListObjectChange({ filterNote: e.target.value });
-                }}
-                fullWidth
-                multiline
-                rows={4}
-            />
+            <Field label={t('common.note')}>
+                <TextArea
+                    value={filterGroupList.filterNote || ''}
+                    onChange={e => {
+                        handleListObjectChange({ filterNote: e.target.value });
+                    }}
+                    rows={4}
+                />
+            </Field>
         );
     };
 
+    const saveDisabled = type === 'channel' && !filterGroupList?.filterChannelId?.trim();
+
     return (
-        <>
-            <Dialog
-                open={open}
-                onClose={onClose}
-                fullWidth={false}
-                maxWidth="lg"
-            >
-                <DialogTitle>{getDialogTitle()}</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ p: 1 }}>
-                        {renderContent()}
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={onClose}>{t('common.cancel')}</Button>
-                    <Button onClick={() => handleSave()} color="primary">
-                        {
-                            mode === 'edit' ? t('common.save') : t('common.add')
-                        }
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            title={getDialogTitle()}
+            // 배지 조건만 배지 목록 때문에 넓게. 이름·키워드 조건은 좁게, 채널·메모는 더 좁게.
+            width={type === 'filter' ? (filterGroup?.category === 'badge' ? 'lg' : 'sm') : 'xs'}
+            actions={<>
+                <Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
+                <Button variant="primary" disabled={saveDisabled} onClick={() => handleSave()}>
+                    {
+                        mode === 'edit' ? t('common.save') : t('common.add')
+                    }
+                </Button>
+            </>}
+        >
+            {renderContent()}
+        </Dialog>
     );
 }

@@ -181,5 +181,11 @@
   },
   "dismiss": {
     "message": "知道了"
+  },
+  "close": {
+    "message": "關閉"
+  },
+  "back": {
+    "message": "返回"
   }
 }

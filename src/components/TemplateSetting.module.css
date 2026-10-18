@@ -1,0 +1,167 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 1080px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 16px;
+    box-sizing: border-box;
+    color: var(--ui-ink);
+}
+
+.card {
+    padding: 20px;
+}
+
+.title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.subtitle {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.meta {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ui-muted);
+}
+
+.lookGrid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 8px;
+}
+
+.lookGrid > div {
+    justify-self: start;
+}
+
+.label {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--ui-muted);
+}
+
+.kindBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 16px 0 12px;
+}
+
+.kindBar > :first-child {
+    flex: 1;
+    min-width: 0;
+}
+
+.panes {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+@media (min-width: 900px) {
+    .panes {
+        flex-direction: row;
+    }
+}
+
+.pane {
+    flex: 1;
+    min-width: 0;
+}
+
+.editor {
+    border: 2px solid var(--ui-line);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 13px;
+}
+
+.editorError {
+    border-color: var(--ui-danger);
+}
+
+.preview {
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid var(--ui-hair);
+    min-height: 160px;
+    box-sizing: border-box;
+}
+
+.preview :global(.tbc-template-preview-caption) {
+    font-size: 11px;
+    opacity: 0.5;
+    margin: 8px 0 2px;
+    padding: 0 6px;
+}
+
+.previewDark {
+    background: #141517;
+    color: #e6e6e6;
+}
+
+.previewLight {
+    background: #ffffff;
+    color: #141517;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.status {
+    flex: 1;
+}
+
+.fields {
+    margin-top: 8px;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+}
+
+.fields td {
+    padding: 2px 16px 2px 0;
+    vertical-align: middle;
+}
+
+.fields tr + tr td {
+    border-top: 1px solid var(--ui-hair);
+}
+
+.code {
+    display: inline-block;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--ui-ink);
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    font-weight: 400;
+    text-align: left;
+    cursor: pointer;
+}
+
+.code:hover {
+    background: var(--ui-soft);
+}
+
+.code:focus-visible {
+    outline: 2px solid var(--ui-yellow);
+}

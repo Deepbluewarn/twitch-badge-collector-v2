@@ -71,7 +71,8 @@
             "filter_list": "Liste des filtres",
             "filter_add": "Nouveau filtre",
             "select_badges": "Choisir des badges",
-            "empty_hint": "Cliquez sur <b>+ Ajouter un élément</b> ci-dessous ou sur un badge pour commencer."
+            "empty_hint": "Cliquez sur <b>+ Ajouter un élément</b> ci-dessous ou sur un badge pour commencer.",
+            "badge_catalog": "Catalogue des badges"
         },
         "filter_mode": {
             "advanced": "Réglages avancés"
@@ -80,8 +81,8 @@
     "template": {
         "title": "Modèle de chat (CHZZK)",
         "use_custom": "Afficher avec le modèle",
-        "use_custom_hint_on": "Les messages collectés sont dessinés immédiatement avec les modèles ci-dessous, avant même que le chat de CHZZK ne les affiche, sans scintillement. (Équivaut à choisir « Personnalisé » pour « Apparence des messages collectés » dans les réglages généraux.)",
-        "use_custom_hint_off": "Le chat de CHZZK est copié tel quel. Les messages apparaissent après leur affichage par CHZZK et, si CHZZK est lent, peuvent brièvement avoir un autre aspect avant de reprendre l'original. (« Apparence des messages collectés » est réglé sur « Par défaut » dans les réglages généraux.)",
+        "use_custom_hint_on": "Les messages collectés sont générés à partir des modèles ci-dessous.",
+        "use_custom_hint_off": "Copie tel quel le chat d'origine de la fenêtre de chat CHZZK.",
         "kinds": {
             "chat": "Chat",
             "donation": "Don",
@@ -191,5 +192,35 @@
         "chzzk": "L'ID d'une chaîne CHZZK est la suite de lettres et de chiffres qui suit <b>/live/</b> dans l'URL du direct.",
         "example": "Exemple :"
     },
-    "translation_notice": "Badge Collector est conçu en coréen ; certaines traductions peuvent donc sembler maladroites."
+    "translation_notice": "Badge Collector est conçu en coréen ; certaines traductions peuvent donc sembler maladroites.",
+    "filter_list": {
+        "select_all": "Tout sélectionner",
+        "select": "Sélectionner",
+        "selected": "{{count}} sélectionné(s)",
+        "select_every": "Sélectionner les {{count}} filtres",
+        "clear_selection": "Effacer la sélection",
+        "total": "{{count}} filtres",
+        "empty": "Aucun filtre",
+        "per_page": "Par page",
+        "condition": "Condition",
+        "marker_color": "Couleur du marqueur",
+        "custom_color": "Couleur personnalisée",
+        "prev_page": "Page précédente",
+        "next_page": "Page suivante"
+    },
+    "filter_test": {
+        "button": "Tester les filtres",
+        "title": "Tester les filtres",
+        "nickname": "Pseudo",
+        "message": "Message",
+        "badge": "Badge",
+        "remove_badge": "retirer",
+        "channel": "Chaîne",
+        "other_channel": "Autres chaînes",
+        "collected": "Collecté",
+        "not_collected": "Non collecté",
+        "excluded": "Exclu",
+        "matched": "Filtres correspondants",
+        "excluded_by": "Exclu par"
+    }
 }

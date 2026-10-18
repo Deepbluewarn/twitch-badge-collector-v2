@@ -6,15 +6,13 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { ThemeProvider } from "@mui/material/styles";
 import { getQueryParams } from "@/utils/utils-common";
-import globalStyles from "@/style/global";
+import "./setting.css";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
 import useFilterGroup from "@/hooks/useFilterGroup";
 import useAlert from "@/hooks/useAlert";
 import { GlobalSettingContext, useGlobalSettingContext } from "@/context/GlobalSetting";
 import { AlertContext } from "@/context/Alert";
-import { useCustomTheme } from "@/hooks/useCustomTheme";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import AlertContainer from "@/components/AlertContainer";
 import { FilterGroupContext } from "@/context/FilterGroup";
@@ -24,12 +22,14 @@ import "@/render/chzzk-chat.css";
 import i18n from '@/translate/i18n';
 import { useTranslation } from 'react-i18next';
 import TranslationNotice from '@/components/TranslationNotice';
+import { useDocumentTheme } from "@/ui/useDocumentTheme";
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
   const { alerts, setAlerts, addAlert } = useAlert();
   // 사용자 설정(system/light/dark)을 boolean으로 해석. 'system'이면 prefers-color-scheme 따라감.
   const isDark = useResolvedDarkMode(globalSetting.darkTheme);
+  useDocumentTheme(isDark);
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -44,20 +44,17 @@ function App() {
   });
 
   return (
-    <ThemeProvider theme={useCustomTheme(isDark)}>
       <GlobalSettingContext.Provider
         value={{ globalSetting, dispatchGlobalSetting }}
       >
         <AlertContext.Provider value={{ alerts, setAlerts, addAlert }}>
           <QueryClientProvider client={queryClient}>
-            {globalStyles}
             <AlertContainer />
             <SettingTranslationNotice />
             <Router />
           </QueryClientProvider>
         </AlertContext.Provider>
       </GlobalSettingContext.Provider>
-    </ThemeProvider>
   );
 }
 
@@ -68,7 +65,7 @@ function SettingTranslationNotice() {
       language={i18n.resolvedLanguage ?? i18n.language}
       message={t('translation_notice')}
       dismissLabel={t('common.dismiss')}
-      sx={{ borderRadius: 0 }}
+      flat
     />
   );
 }

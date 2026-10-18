@@ -1,0 +1,413 @@
+/* 필터 목록 (표 F) — docs/design-system.md "필터 목록". 색은 src/ui/tokens.css 토큰. */
+
+.root {
+    font-family: var(--ui-font);
+    color: var(--ui-ink);
+}
+
+/* ── 체크박스 ─────────────────────────────── */
+.check {
+    appearance: none;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 2px solid var(--ui-line);
+    border-radius: 4px;
+    background: var(--ui-paper) no-repeat center / 12px;
+    cursor: pointer;
+}
+.check:checked,
+.check:indeterminate {
+    border-color: var(--ui-ink);
+    background-color: var(--ui-ink);
+}
+.check:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.5 4.8 9 10 3' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E");
+}
+:global([data-theme='dark']) .check:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.5 4.8 9 10 3' fill='none' stroke='%23161512' stroke-width='2'/%3E%3C/svg%3E");
+}
+.check:indeterminate {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6h7' stroke='white' stroke-width='2'/%3E%3C/svg%3E");
+}
+:global([data-theme='dark']) .check:indeterminate {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6h7' stroke='%23161512' stroke-width='2'/%3E%3C/svg%3E");
+}
+.check:focus-visible {
+    outline: 3px solid var(--ui-ink);
+    outline-offset: 2px;
+}
+.check:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* ── 글자 버튼 ─────────────────────────────── */
+.link {
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ui-muted);
+    cursor: pointer;
+    white-space: nowrap;
+}
+.link:hover {
+    color: var(--ui-ink);
+}
+.link.underline {
+    text-decoration: underline;
+    text-decoration-color: var(--ui-yellow);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 3px;
+}
+.link:focus-visible {
+    outline: 3px solid var(--ui-ink);
+    outline-offset: 2px;
+}
+
+/* ── 머리 줄 (전체 선택 · 선택 동작) ─────────────────────────────── */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 40px;
+    /* 위(머리 줄과의 간격 16 = 바깥 Stack gap)와 아래(표 선까지)를 같게 */
+    margin-bottom: 16px;
+    padding: 0 4px;
+    flex-wrap: wrap;
+}
+.muted {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ui-muted);
+}
+.strong {
+    font-size: 13px;
+    font-weight: 800;
+}
+.danger {
+    height: 30px;
+    padding: 0 12px;
+    border: 2px solid var(--ui-danger);
+    border-radius: 8px;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ui-danger);
+    cursor: pointer;
+}
+.danger:hover {
+    background: var(--ui-danger);
+    color: #fff;
+}
+.spacer {
+    margin-left: auto;
+}
+
+/* ── 표 ─────────────────────────────── */
+.table {
+    border-top: 2px solid var(--ui-rule);
+    border-bottom: 1px solid var(--ui-hair);
+    /* 높이 고정 — 10줄(줄 44 + 선 1). 페이지·필터 수가 바뀌어도 페이지가 덜컹거리지 않고,
+       페이지당 20개 이상이면 안에서 스크롤한다. */
+    height: calc(45px * 10);
+    overflow-y: auto;
+}
+/* 마지막 줄의 아래 선은 표 아래 선과 겹치지 않게 */
+.table > .row:last-child {
+    border-bottom-color: transparent;
+}
+.row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 4px;
+    border-bottom: 1px solid var(--ui-hair);
+}
+.row:hover {
+    background: var(--ui-soft);
+}
+.row.selected {
+    background: color-mix(in srgb, var(--ui-yellow) 28%, transparent);
+}
+/* 줄을 볼 때만 보이는 것: 추가 링크 */
+.reveal {
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+.row:hover .reveal,
+.row:focus-within .reveal {
+    opacity: 1;
+}
+.empty {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    padding: 32px 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--ui-muted);
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.atoms {
+    min-width: 0;
+    flex: 0 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+}
+.plus {
+    flex: none;
+    font-size: 12px;
+    color: var(--ui-muted);
+}
+.meta {
+    flex: none;
+    display: flex;
+    gap: 12px;
+    margin-left: auto;
+}
+.metaItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 200px;
+    min-width: 0;
+}
+.metaItem .link {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.metaValue {
+    color: var(--ui-ink);
+}
+
+/* ── 조건 칩 · 상태 태그 (상태 색: ok 맞음/포함, bad 아님/제외, off 꺼짐) ─────────────────────────────── */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+}
+/* ✕가 나오는 동안만 오른쪽 여백을 줄여 칩이 덜 늘어나게 */
+.chip:hover,
+.chip:focus-within {
+    padding-right: 8px;
+}
+.chip.badge {
+    /* 그림 쪽(왼쪽)은 그림이 둥근 여백 역할을 해서 좁게, 글자 쪽(오른쪽)도 같은 눈대중으로 */
+    padding: 0 7px 0 5px;
+}
+.chip.badge:hover,
+.chip.badge:focus-within {
+    padding-right: 6px;
+}
+.chipBody {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: inherit;
+    cursor: pointer;
+}
+.chipBody img {
+    flex: none;
+    width: 18px;
+    height: 18px;
+}
+.chipLabel {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.x {
+    /* 평소엔 자리도 차지하지 않는다 (투명하게만 두면 칩 오른쪽에 빈 공간이 남는다) */
+    display: none;
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-size: 15px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+}
+.chip:hover .x,
+.chip:focus-within .x,
+.metaItem:hover .x,
+.metaItem:focus-within .x {
+    display: inline-block;
+}
+.metaItem .x {
+    color: var(--ui-muted);
+}
+
+.ok { background: var(--ui-ok-bg); color: var(--ui-ok-fg); }
+.bad { background: var(--ui-bad-bg); color: var(--ui-bad-fg); }
+.off { background: var(--ui-off-bg); color: var(--ui-off-fg); }
+.off .chipBody img { opacity: 0.5; }
+
+.tag {
+    flex: none;
+    min-width: 44px;
+    padding: 2px 8px;
+    border: 0;
+    border-radius: 4px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* ── 수집 표시 색 ─────────────────────────────── */
+.swatchSlot {
+    position: relative;
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+.swatch {
+    display: block;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 2px solid var(--ui-paper);
+    border-radius: 5px;
+    box-shadow: 0 0 0 1px var(--ui-hair);
+    cursor: pointer;
+    transition: box-shadow 0.12s;
+}
+.swatch:hover,
+.swatch:focus-visible {
+    box-shadow: 0 0 0 2px var(--ui-ink);
+    outline: none;
+}
+.palette {
+    position: fixed;
+    z-index: 1200;
+    padding: 12px;
+    border: 2px solid var(--ui-line);
+    border-radius: 10px;
+    background: var(--ui-paper);
+}
+.paletteTitle {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.paletteGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 28px);
+    gap: 8px;
+}
+.paletteGrid .swatch {
+    width: 28px;
+    height: 28px;
+}
+.paletteGrid .current {
+    box-shadow: 0 0 0 2px var(--ui-ink);
+}
+.custom {
+    background: conic-gradient(#f44, #fd0, #4d4, #4cf, #a4f, #f44);
+}
+
+/* ── 아래 줄 (페이지당 · 페이지) ─────────────────────────────── */
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 12px;
+}
+.sizes,
+.pager {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.pager {
+    margin-left: auto;
+}
+.num {
+    min-width: 34px;
+    height: 28px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ui-muted);
+    cursor: pointer;
+}
+.num:hover:not(:disabled) {
+    background: var(--ui-soft);
+    color: var(--ui-ink);
+}
+.num.current {
+    background: var(--ui-yellow);
+    color: var(--ui-on-yellow);
+}
+.num:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+.range {
+    margin-right: 8px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── 필터 시험이 열려 있을 때 ─────────────────────────────── */
+.row.testInclude { background: var(--ui-ok-bg); }
+.row.testExclude { background: var(--ui-bad-bg); }
+.row.testDim { opacity: 0.45; }
+/* 조건 일부만 맞은 줄 — 걸린 줄로 보이지 않게 태그·색 칸·채널/메모는 흐리게, ✓/✕ 칩만 선명하게 */
+.row.testPartial .tag,
+.row.testPartial .swatchSlot,
+.row.testPartial .meta {
+    opacity: 0.45;
+}
+.row.testDim:hover { opacity: 1; }
+.mark {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1;
+    color: #fff;
+}
+.markOk { background: var(--ui-ok-fg); }
+.markBad { background: var(--ui-bad-fg); }
+:global([data-theme='dark']) .mark { color: var(--ui-paper); }

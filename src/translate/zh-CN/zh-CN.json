@@ -71,7 +71,8 @@
             "filter_list": "过滤器列表",
             "filter_add": "添加新过滤器",
             "select_badges": "选择徽章",
-            "empty_hint": "点击下方的 <b>+ 添加过滤元素</b> 或某个徽章即可开始。"
+            "empty_hint": "点击下方的 <b>+ 添加过滤元素</b> 或某个徽章即可开始。",
+            "badge_catalog": "徽章一览"
         },
         "filter_mode": {
             "advanced": "高级设置"
@@ -80,8 +81,8 @@
     "template": {
         "title": "聊天模板（CHZZK）",
         "use_custom": "使用模板显示",
-        "use_custom_hint_on": "收集的聊天消息会立即按下方模板绘制，比 CHZZK 聊天框更早显示，且不会闪烁。（等同于在常规设置的“收集消息外观”中选择“自定义”）",
-        "use_custom_hint_off": "直接复制 CHZZK 聊天框的原始内容。消息会在 CHZZK 绘制后出现；CHZZK 较慢时，可能会短暂显示为其他样式，然后恢复为原样。（常规设置中的“收集消息外观”为“默认”）",
+        "use_custom_hint_on": "按下方模板生成收集的聊天消息。",
+        "use_custom_hint_off": "原样复制 CHZZK 聊天框中的原始消息。",
         "kinds": {
             "chat": "聊天",
             "donation": "打赏",
@@ -191,5 +192,35 @@
         "chzzk": "CHZZK 频道 ID 是直播网址中 <b>/live/</b> 后面由字母和数字组成的 ID。",
         "example": "示例："
     },
-    "translation_notice": "Badge Collector 以韩语开发，部分翻译可能不够自然。"
+    "translation_notice": "Badge Collector 以韩语开发，部分翻译可能不够自然。",
+    "filter_list": {
+        "select_all": "全选",
+        "select": "选择",
+        "selected": "已选 {{count}} 个",
+        "select_every": "选择全部 {{count}} 个筛选器",
+        "clear_selection": "取消选择",
+        "total": "{{count}} 个筛选器",
+        "empty": "没有筛选器",
+        "per_page": "每页",
+        "condition": "条件",
+        "marker_color": "标记颜色",
+        "custom_color": "自定义颜色",
+        "prev_page": "上一页",
+        "next_page": "下一页"
+    },
+    "filter_test": {
+        "button": "测试筛选器",
+        "title": "测试筛选器",
+        "nickname": "昵称",
+        "message": "聊天",
+        "badge": "徽章",
+        "remove_badge": "移除",
+        "channel": "频道",
+        "other_channel": "其他频道",
+        "collected": "会收集",
+        "not_collected": "不收集",
+        "excluded": "已排除",
+        "matched": "匹配的筛选器",
+        "excluded_by": "排除的筛选器"
+    }
 }

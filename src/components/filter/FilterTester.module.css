@@ -1,0 +1,129 @@
+/* 필터 시험 칸 (필터 목록 옆). 바깥 카드 안이라 테두리 없이 옅은 면. 색은 src/ui/tokens.css 토큰. */
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--ui-tint);
+    font-family: var(--ui-font);
+    color: var(--ui-ink);
+}
+.head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+/* 채팅 한 줄 입력 */
+.chat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.badge {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: var(--ui-paper);
+    cursor: pointer;
+}
+.badge img {
+    width: 24px;
+    height: 24px;
+}
+.badge:hover {
+    box-shadow: 0 0 0 2px var(--ui-bad-fg);
+}
+.addBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 36px;
+    padding: 0 10px 0 6px;
+    border: 2px dashed var(--ui-line);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ui-ink);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+.addBadge:hover,
+.addBadge.on {
+    border-style: solid;
+    background: var(--ui-soft);
+}
+.picker {
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+    padding: 8px;
+    border-radius: 10px;
+    background: var(--ui-paper);
+}
+
+.label {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--ui-muted);
+}
+
+/* 결과 */
+.result {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 10px;
+    transition: background-color 0.15s;
+}
+/* 상태 색은 반투명이라 칸의 옅은 면 위에선 탁해진다 — 종이색 위에 깐다 */
+.collected { background: linear-gradient(var(--ui-ok-bg), var(--ui-ok-bg)), var(--ui-paper); color: var(--ui-ok-fg); }
+.excluded { background: linear-gradient(var(--ui-bad-bg), var(--ui-bad-bg)), var(--ui-paper); color: var(--ui-bad-fg); }
+.not_collected { background: linear-gradient(var(--ui-off-bg), var(--ui-off-bg)), var(--ui-paper); color: var(--ui-muted); }
+
+.verdict {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+.verdictIcon.verdictIcon {
+    font-size: 28px;
+}
+.marker {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--ui-paper);
+    border-radius: 5px;
+    box-shadow: 0 0 0 1px var(--ui-hair);
+}
+.hits {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--ui-ink);
+}

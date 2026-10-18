@@ -110,6 +110,12 @@
 .tbc-chat-cleanbot > i {
     font-style: italic;
 }
+/* 펼친 원문을 같은 줄에. 크롬은 details 안의 내용을 별도 블록 상자(::details-content)에 담아서
+   details를 inline으로 둬도 줄이 바뀐다. 닫힌 상태에선 이 상자가 내용을 숨기는 역할도 하므로
+   펼쳤을 때만 상자를 없앤다 (닫힌 상태에 걸면 원문이 그대로 보인다). */
+.tbc-chat-cleanbot[open]::details-content {
+    display: contents;
+}
 .tbc-chat-blinded {
     opacity: 0.6;
 }

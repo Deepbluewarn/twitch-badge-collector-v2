@@ -181,5 +181,11 @@
   },
   "dismiss": {
     "message": "Зрозуміло"
+  },
+  "close": {
+    "message": "Закрити"
+  },
+  "back": {
+    "message": "Назад"
   }
 }

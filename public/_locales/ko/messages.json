@@ -178,5 +178,11 @@
   },
   "dismiss": {
     "message": "확인"
+  },
+  "close": {
+    "message": "닫기"
+  },
+  "back": {
+    "message": "뒤로"
   }
 }

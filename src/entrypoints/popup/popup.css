@@ -1,0 +1,18 @@
+/* 팝업 전용 바탕 — 공통 바탕·토큰은 src/ui/base.css (useDocumentTheme이 싣는다). */
+body {
+    width: 22rem;
+}
+a,
+a:link,
+a:visited,
+a:hover,
+a:active {
+    color: inherit;
+    text-decoration: inherit;
+    font-weight: inherit;
+}
+#root {
+    max-height: 24rem;
+    overflow: auto;
+    user-select: none;
+}
