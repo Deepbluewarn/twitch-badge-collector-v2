@@ -1,49 +1,80 @@
-# Badge Collector V2
+<div align="center">
 
-Twitch와 치지직(Chzzk) 스트리밍 플랫폼의 채팅을 필터 그룹별로 분류해서 별도 컨테이너에 모아 보여주는 브라우저 확장입니다.
+<img src="public/icon/icon.png" width="96" alt="Badge Collector" />
 
-특정 사용자의 채팅이나 배지(구독자/모더레이터 등), 키워드 단위로 필터를 만들면 매칭된 채팅이 별도 영역에 누적됩니다. 라이브 시청 중 놓치기 쉬운 발언을 추적하거나, 다시보기에서 특정 시점의 발언을 모아 볼 때 사용합니다.
+# Badge Collector
 
-## 다운로드
+**치지직 · 트위치 채팅에서 원하는 채팅만 따로 모아 보는 브라우저 확장 프로그램**
 
-- [Chrome 웹 스토어](https://chromewebstore.google.com/detail/badge-collector/gbcdobpipglclbhabpkacoecddmopojp)
-- [Firefox 부가 기능](https://addons.mozilla.org/ko/firefox/addon/twitch-badge-collector-v2/)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/gbcdobpipglclbhabpkacoecddmopojp?label=Chrome&logo=googlechrome&logoColor=white&color=FFD60A&labelColor=111111)](https://chromewebstore.google.com/detail/badge-collector/gbcdobpipglclbhabpkacoecddmopojp)
+[![Chrome users](https://img.shields.io/chrome-web-store/users/gbcdobpipglclbhabpkacoecddmopojp?label=users&color=FFD60A&labelColor=111111)](https://chromewebstore.google.com/detail/badge-collector/gbcdobpipglclbhabpkacoecddmopojp)
+[![Firefox Add-ons](https://img.shields.io/amo/v/twitch-badge-collector-v2?label=Firefox&logo=firefoxbrowser&logoColor=white&color=FFD60A&labelColor=111111)](https://addons.mozilla.org/ko/firefox/addon/twitch-badge-collector-v2/)
+[![Release](https://img.shields.io/github/v/release/Deepbluewarn/twitch-badge-collector-v2?label=release&color=FFD60A&labelColor=111111)](https://github.com/Deepbluewarn/twitch-badge-collector-v2/releases)
+
+![React](https://img.shields.io/badge/React_19-20232A?logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![WXT](https://img.shields.io/badge/WXT-67D55E?logo=wxt&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white)
+![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?logo=reactquery&logoColor=white)
+![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
+
+[Chrome 웹 스토어](https://chromewebstore.google.com/detail/badge-collector/gbcdobpipglclbhabpkacoecddmopojp) · [Firefox 부가 기능](https://addons.mozilla.org/ko/firefox/addon/twitch-badge-collector-v2/) · [badgecollector.dev](https://badgecollector.dev)
+
+</div>
+
+---
+
+배지(구독·매니저·후원 등), 닉네임, 키워드로 필터를 만들면 걸린 채팅이 채팅창 위 모아보기 영역에 따로 쌓입니다. 라이브에서 놓치기 쉬운 채팅을 따라가거나, 다시보기에서 특정 사람의 채팅만 모아 볼 때 씁니다.
 
 ## 주요 기능
 
-- **필터 그룹** — 배지 / 사용자명 / 키워드 조합으로 필터를 정의. 채널별 필터 적용 가능.
-- **표시 방식** — 원본 채팅창과 합쳐 표시(기본) 또는 별도 팝오버.
-- **수집 마커** — 매칭된 채팅을 원본 채팅창에서 좌측 색상 띠로 표시. 필터 그룹별 색상 지정.
-- **채팅 캡쳐** — 수집된 채팅을 PNG로 저장. Shift+클릭으로 범위 선택.
-- **채팅 유지** — 새로고침/탭 이동에도 수집된 채팅 보존 (브라우저 종료 시 자동 정리).
+| | 기능 | 설명 |
+|:-:|---|---|
+| 🏷️ | **배지 · 닉네임 · 키워드 필터** | 조건을 묶어 필터 하나로. 포함 / 제외 / 꺼짐, 필터마다 표시 색 |
+| 📺 | **채널별 필터** | 채널마다 다른 필터. 치지직은 채널 이름으로 검색해 지정 |
+| 🧪 | **필터 시험** | 배지·닉네임·채팅을 넣으면 수집되는지, 어느 필터에 걸렸는지 바로 확인 |
+| 🔎 | **필터 관리** | 필터 찾기, 채널별 보기, 범위가 넓은 필터·중복 필터 표시, 삭제 되돌리기 |
+| 🔕 | **채널별로 끄기** | 원하지 않는 방송에서는 확장을 끄고 원래 채팅창 그대로 |
+| 🎨 | **원본 채팅 표시** | 수집된 채팅을 원본 채팅창에 색 띠로 표시 |
+| 📸 | **채팅 캡처** | 수집된 채팅을 PNG로 저장 (Shift+클릭으로 범위 선택) |
+| 💾 | **채팅 유지** | 새로고침·탭 이동 후에도 수집 내용 유지 |
 
 ## 호스트 selector 자동 갱신 (OTA)
 
-호스트 플랫폼이 DOM 구조를 변경하면 확장이 깨질 수 있습니다. 이 확장은 selector 정의를 외부 JSON 파일로 분리하고 jsDelivr CDN을 통해 hotfix를 배포합니다. 사용자 측은 백그라운드에서 주기적으로 갱신하며, selector 매칭이 실패한 경우 즉시 강제 갱신합니다.
+치지직·트위치가 화면 구조를 바꾸면 확장이 깨질 수 있습니다. 그래서 selector 정의를 외부 JSON으로 분리해 두고, jsDelivr CDN으로 코드 재배포 없이 hotfix를 내보냅니다. 확장은 백그라운드에서 주기적으로 새 정의를 받아 오고, selector 매칭이 실패하면 즉시 다시 받습니다.
 
-세부 운영 절차는 [docs/ota-selectors.md](docs/ota-selectors.md) 참고.
+운영 절차는 [docs/ota-selectors.md](docs/ota-selectors.md)를 참고하세요.
 
 ## 개발
 
-요구사항: Node.js 20+, npm.
+요구사항: Node.js 20+, npm
 
 ```sh
 npm install
-npm run dev          # Chrome용 dev 빌드 (HMR)
-npm run dev:firefox  # Firefox용 dev 빌드
+npm run dev          # Chrome dev 빌드 (HMR)
+npm run dev:firefox  # Firefox dev 빌드
 npm run build        # 프로덕션 빌드
 npm run zip          # 스토어 업로드용 패키지
 npm run test         # 단위 테스트 (vitest)
 ```
 
-빌드 결과물은 `.output/` 에 생성됩니다. `chrome://extensions/` 에서 "압축해제된 확장 프로그램 로드"로 dev 빌드 로드.
+빌드 결과물은 `.output/`에 생깁니다. `chrome://extensions/`에서 **압축해제된 확장 프로그램 로드**로 dev 빌드를 불러옵니다.
 
-### 도메인 문서
+> [!TIP]
+> 쓰던 브라우저 프로필에 개발 빌드를 올리지 마세요. 스토어판과 확장 ID가 같아 저장 공간을 같이 씁니다. 새 프로필이나 `web-ext run`을 쓰세요.
 
-- [CONTEXT.md](CONTEXT.md) — 도메인 용어집
-- [docs/adr/](docs/adr/) — 아키텍처 결정 기록
-- [docs/agents/](docs/agents/) — agent skill 안내 (issue tracker, triage label, 도메인 문서 규칙)
+### 문서
 
-### 기여 / 이슈
+| 문서 | 내용 |
+|---|---|
+| [CONTEXT.md](CONTEXT.md) | 도메인 용어집 |
+| [docs/adr/](docs/adr/) | 아키텍처 결정 기록 |
+| [docs/design-system.md](docs/design-system.md) | 팝업·설정 페이지 디자인 규칙 |
+| [docs/releases/](docs/releases/) | 버전별 변경 사항 |
+| [docs/ota-selectors.md](docs/ota-selectors.md) | OTA selector hotfix 절차 |
+| [docs/chzzk-badges.md](docs/chzzk-badges.md) | 치지직 배지 목록 갱신 절차 |
 
-이슈는 GitHub Issues로 보고해 주세요. 채팅이 수집되지 않거나 마커가 표시되지 않는 경우, 확장 팝업의 일반 설정 하단 "OTA selectors rev" 값을 함께 알려 주시면 진단에 도움이 됩니다.
+## 이슈 · 문의
+
+[GitHub Issues](https://github.com/Deepbluewarn/twitch-badge-collector-v2/issues)로 알려 주세요. 채팅이 수집되지 않거나 색 띠가 안 보이면, 확장 팝업 → 일반 설정 맨 아래의 **OTA selectors rev** 값을 같이 적어 주시면 원인을 찾는 데 도움이 됩니다.
