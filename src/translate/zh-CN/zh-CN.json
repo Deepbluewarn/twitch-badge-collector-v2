@@ -206,5 +206,20 @@
         "custom_color": "自定义颜色",
         "prev_page": "上一页",
         "next_page": "下一页"
+    },
+    "filter_test": {
+        "button": "测试筛选器",
+        "title": "测试筛选器",
+        "nickname": "昵称",
+        "message": "聊天",
+        "badge": "徽章",
+        "remove_badge": "移除",
+        "channel": "频道",
+        "other_channel": "其他频道",
+        "collected": "会收集",
+        "not_collected": "不收集",
+        "excluded": "已排除",
+        "matched": "匹配的筛选器",
+        "excluded_by": "排除的筛选器"
     }
 }

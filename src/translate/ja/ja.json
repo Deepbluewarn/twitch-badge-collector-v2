@@ -206,5 +206,20 @@
         "custom_color": "色を選ぶ",
         "prev_page": "前のページ",
         "next_page": "次のページ"
+    },
+    "filter_test": {
+        "button": "フィルターを試す",
+        "title": "フィルターを試す",
+        "nickname": "ニックネーム",
+        "message": "チャット",
+        "badge": "バッジ",
+        "remove_badge": "外す",
+        "channel": "チャンネル",
+        "other_channel": "その他のチャンネル",
+        "collected": "収集される",
+        "not_collected": "収集されない",
+        "excluded": "除外",
+        "matched": "一致したフィルター",
+        "excluded_by": "除外したフィルター"
     }
 }

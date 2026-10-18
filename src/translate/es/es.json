@@ -206,5 +206,20 @@
         "custom_color": "Color personalizado",
         "prev_page": "Página anterior",
         "next_page": "Página siguiente"
+    },
+    "filter_test": {
+        "button": "Probar filtros",
+        "title": "Probar filtros",
+        "nickname": "Apodo",
+        "message": "Chat",
+        "badge": "Insignia",
+        "remove_badge": "quitar",
+        "channel": "Canal",
+        "other_channel": "Otros canales",
+        "collected": "Se recopila",
+        "not_collected": "No se recopila",
+        "excluded": "Excluido",
+        "matched": "Coinciden",
+        "excluded_by": "Excluido por"
     }
 }

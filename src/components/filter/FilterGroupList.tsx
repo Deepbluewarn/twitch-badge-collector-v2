@@ -6,6 +6,9 @@ import FilterDialog, { DialogMode, DialogType } from "./FilterDialog";
 import { getAdapter } from '@/platform';
 import { rotateFilterType } from "../chip/FilterTypeChip";
 import { FilterList, FilterListActions } from "./FilterList";
+import FilterTester from "./FilterTester";
+import { Button } from "@/ui";
+import { useTranslation } from "react-i18next";
 
 /** 지금 플랫폼의 필터 목록 + 필터 편집 대화상자. 목록 모양은 FilterList, 저장은 필터 그룹 context. */
 export function FilterGroupList() {
@@ -14,6 +17,8 @@ export function FilterGroupList() {
     const { filterGroup, setFilterGroup, upsertCompositeFilter, removeSubFilter, removeFilterField } = useFilterGroupContext();
     const platformFilters = useMemo(() => filterGroup.filter(f => f.platform === globalSetting.platform), [filterGroup, globalSetting.platform]);
 
+    const { t } = useTranslation();
+    const [testerOpen, setTesterOpen] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogType, setDialogType] = useState<DialogType>(null);
     const [dialogMode, setDialogMode] = useState<DialogMode>(null);
@@ -46,7 +51,9 @@ export function FilterGroupList() {
 
     return (
         <>
-            <FilterList rows={platformFilters} adapter={adapter} actions={actions} />
+            <FilterList rows={platformFilters} adapter={adapter} actions={actions}
+                toolbarExtra={<Button size="sm" icon="science" onClick={() => setTesterOpen(true)}>{t('filter_test.button')}</Button>} />
+            <FilterTester open={testerOpen} onClose={() => setTesterOpen(false)} />
             <FilterDialog
                 open={dialogOpen}
                 onClose={() => setDialogOpen(false)}

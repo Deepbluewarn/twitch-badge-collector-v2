@@ -49,7 +49,7 @@ function usePageSize(): [number, (n: number) => void] {
     return [size, set];
 }
 
-export function FilterList({ rows, adapter, actions }: { rows: Row[]; adapter: PlatformAdapter; actions: FilterListActions }) {
+export function FilterList({ rows, adapter, actions, toolbarExtra }: { rows: Row[]; adapter: PlatformAdapter; actions: FilterListActions; /** 선택이 없을 때 머리 줄 오른쪽 */ toolbarExtra?: React.ReactNode }) {
     const { t } = useTranslation();
     const [size, setSize] = usePageSize();
     const [page, setPage] = useState(0);
@@ -98,7 +98,10 @@ export function FilterList({ rows, adapter, actions }: { rows: Row[]; adapter: P
                         <button type="button" className={`${s.link} ${s.spacer}`} onClick={() => setSelected(new Set())}>{t('filter_list.clear_selection')}</button>
                     </>
                 ) : (
-                    <span className={s.muted}>{t('filter_list.total', { count: rows.length })}</span>
+                    <>
+                        <span className={s.muted}>{t('filter_list.total', { count: rows.length })}</span>
+                        {toolbarExtra && <span className={s.spacer}>{toolbarExtra}</span>}
+                    </>
                 )}
             </div>
 
@@ -159,17 +162,36 @@ function FilterRow({ row, adapter, actions, selected, onToggle }: { row: Row; ad
     );
 }
 
-/** 조건 하나. 배지는 그림 + 이름, 이름은 @, 키워드는 따옴표. 면 색이 맞음/아님/꺼짐. */
-function AtomChip({ atom, adapter, onEdit, onRemove }: { atom: AtomicFilterElement; adapter: PlatformAdapter; onEdit: () => void; onRemove: () => void }) {
+/** 조건 하나. 배지는 그림 + 이름, 이름은 @, 키워드는 따옴표. 면 색이 맞음/아님/꺼짐. 핸들러가 없으면 보기 전용. */
+function AtomChip({ atom, adapter, onEdit, onRemove }: { atom: AtomicFilterElement; adapter: PlatformAdapter; onEdit?: () => void; onRemove?: () => void }) {
     const { t } = useTranslation();
     const label = atom.category === 'badge' ? (atom.badgeName || atom.value) : atom.category === 'name' ? `@${atom.value}` : `“${atom.value}”`;
+    const body = (
+        <>
+            {atom.category === 'badge' && <img src={adapter.getBadgeImageUrl(atom.value, '2x')} alt="" />}
+            <span className={s.chipLabel}>{label}</span>
+        </>
+    );
     return (
         <span className={`${s.chip} ${atom.category === 'badge' ? s.badge : ''} ${TONE[atom.type] ?? s.ok}`}>
-            <button type="button" className={s.chipBody} onClick={onEdit}>
-                {atom.category === 'badge' && <img src={adapter.getBadgeImageUrl(atom.value, '2x')} alt="" />}
-                <span className={s.chipLabel}>{label}</span>
-            </button>
-            <button type="button" className={s.x} onClick={onRemove} aria-label={t('common.remove')}>×</button>
+            {onEdit
+                ? <button type="button" className={s.chipBody} onClick={onEdit}>{body}</button>
+                : <span className={s.chipBody} style={{ cursor: 'default' }}>{body}</span>}
+            {onRemove && <button type="button" className={s.x} onClick={onRemove} aria-label={t('common.remove')}>×</button>}
+        </span>
+    );
+}
+
+/** 필터의 조건들을 보기 전용 칩으로 (필터 시험 결과 등). */
+export function FilterChips({ row, adapter }: { row: Row; adapter: PlatformAdapter }) {
+    return (
+        <span className={s.root} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', minWidth: 0 }}>
+            {row.filters.map((a, i) => (
+                <React.Fragment key={a.id}>
+                    {i > 0 && <span className={s.plus}>+</span>}
+                    <AtomChip atom={a} adapter={adapter} />
+                </React.Fragment>
+            ))}
         </span>
     );
 }

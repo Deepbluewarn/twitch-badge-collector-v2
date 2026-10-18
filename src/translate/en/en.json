@@ -206,5 +206,20 @@
         "custom_color": "Custom color",
         "prev_page": "Previous page",
         "next_page": "Next page"
+    },
+    "filter_test": {
+        "button": "Test filters",
+        "title": "Test filters",
+        "nickname": "Nickname",
+        "message": "Chat",
+        "badge": "Badge",
+        "remove_badge": "remove",
+        "channel": "Channel",
+        "other_channel": "Other channels",
+        "collected": "Collected",
+        "not_collected": "Not collected",
+        "excluded": "Excluded",
+        "matched": "Matched",
+        "excluded_by": "Excluded by"
     }
 }

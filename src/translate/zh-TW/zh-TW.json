@@ -206,5 +206,20 @@
         "custom_color": "自訂顏色",
         "prev_page": "上一頁",
         "next_page": "下一頁"
+    },
+    "filter_test": {
+        "button": "測試篩選器",
+        "title": "測試篩選器",
+        "nickname": "暱稱",
+        "message": "聊天",
+        "badge": "徽章",
+        "remove_badge": "移除",
+        "channel": "頻道",
+        "other_channel": "其他頻道",
+        "collected": "會收集",
+        "not_collected": "不收集",
+        "excluded": "已排除",
+        "matched": "符合的篩選器",
+        "excluded_by": "排除的篩選器"
     }
 }

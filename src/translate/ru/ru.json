@@ -206,5 +206,20 @@
         "custom_color": "Свой цвет",
         "prev_page": "Предыдущая страница",
         "next_page": "Следующая страница"
+    },
+    "filter_test": {
+        "button": "Проверить фильтры",
+        "title": "Проверка фильтров",
+        "nickname": "Ник",
+        "message": "Сообщение",
+        "badge": "Значок",
+        "remove_badge": "убрать",
+        "channel": "Канал",
+        "other_channel": "Другие каналы",
+        "collected": "Собирается",
+        "not_collected": "Не собирается",
+        "excluded": "Исключено",
+        "matched": "Совпали",
+        "excluded_by": "Исключили"
     }
 }

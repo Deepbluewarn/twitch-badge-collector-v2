@@ -206,5 +206,20 @@
         "custom_color": "Couleur personnalisée",
         "prev_page": "Page précédente",
         "next_page": "Page suivante"
+    },
+    "filter_test": {
+        "button": "Tester les filtres",
+        "title": "Tester les filtres",
+        "nickname": "Pseudo",
+        "message": "Message",
+        "badge": "Badge",
+        "remove_badge": "retirer",
+        "channel": "Chaîne",
+        "other_channel": "Autres chaînes",
+        "collected": "Collecté",
+        "not_collected": "Non collecté",
+        "excluded": "Exclu",
+        "matched": "Filtres correspondants",
+        "excluded_by": "Exclu par"
     }
 }

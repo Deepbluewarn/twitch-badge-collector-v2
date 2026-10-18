@@ -206,5 +206,20 @@
         "custom_color": "Eigene Farbe",
         "prev_page": "Vorherige Seite",
         "next_page": "Nächste Seite"
+    },
+    "filter_test": {
+        "button": "Filter testen",
+        "title": "Filter testen",
+        "nickname": "Spitzname",
+        "message": "Chat",
+        "badge": "Abzeichen",
+        "remove_badge": "entfernen",
+        "channel": "Kanal",
+        "other_channel": "Andere Kanäle",
+        "collected": "Wird gesammelt",
+        "not_collected": "Wird nicht gesammelt",
+        "excluded": "Ausgeschlossen",
+        "matched": "Treffer",
+        "excluded_by": "Ausgeschlossen durch"
     }
 }

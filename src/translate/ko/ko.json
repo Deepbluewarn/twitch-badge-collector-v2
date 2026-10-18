@@ -205,5 +205,20 @@
         "custom_color": "직접 고르기",
         "prev_page": "이전 페이지",
         "next_page": "다음 페이지"
+    },
+    "filter_test": {
+        "button": "필터 시험",
+        "title": "필터 시험",
+        "nickname": "닉네임",
+        "message": "채팅",
+        "badge": "배지",
+        "remove_badge": "빼기",
+        "channel": "채널",
+        "other_channel": "그 밖의 채널",
+        "collected": "수집됨",
+        "not_collected": "수집 안 됨",
+        "excluded": "제외됨",
+        "matched": "걸린 필터",
+        "excluded_by": "제외한 필터"
     }
 }
