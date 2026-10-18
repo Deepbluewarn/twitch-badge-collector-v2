@@ -54,7 +54,9 @@ export function useFilterTest(input: TestInput, rules: CompositeFilterElement[],
             }
             const active = r.filterType !== 'sleep' && (!r.filterChannelId || r.filterChannelId === channelId);
             const hit = active && evaluateFilterGroup(chat, [{ ...r, filterType: 'include' }], channelId).pass;
-            const some = [...atoms.values()].some(Boolean);
+            // '아님' 조건은 그 값이 없는 거의 모든 채팅에서 참이라, 그것만 맞은 걸 "일부 맞음"으로 띄우면
+            // 빈 채팅에서도 강조된다. '맞음' 조건이 하나라도 맞았을 때만 일부 맞음으로 본다.
+            const some = r.filters.some(a => a.type === 'include' && atoms.get(a.id));
             const state: RowTest['state'] = !active ? 'inactive' : hit ? (r.filterType === 'exclude' ? 'exclude' : 'include') : some ? 'partial' : 'miss';
             rows.set(r.id, { state, atoms });
             if (state === 'include') included.push(r);

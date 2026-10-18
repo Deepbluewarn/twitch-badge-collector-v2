@@ -40,6 +40,17 @@ const verdict = () => screen.getByRole('status').textContent ?? '';
 const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(i18n.t(label)), { target: { value } });
 
 describe('필터 시험', () => {
+    it("'아님' 조건만 맞은 필터는 일부 맞음으로 띄우지 않는다", () => {
+        const notRules: CompositeFilterElement[] = [{ id: 'n', platform: 'chzzk', filterType: 'include', filterNote: '', filters: [
+            { id: 'n1', category: 'name', type: 'include', value: 'zzz' },
+            { id: 'n2', category: 'keyword', type: 'exclude', value: '광고' },
+        ] }];
+        let rows: Map<string, { state: string }> | undefined;
+        function Probe() { rows = useFilterTest(EMPTY_TEST, notRules, adapter).rows; return null; }
+        render(<Probe />);
+        expect(rows!.get('n')!.state).toBe('miss');
+    });
+
     afterEach(cleanup);
 
     it('아무것도 안 넣으면 수집 안 됨', () => {
