@@ -80,8 +80,8 @@
     "template": {
         "title": "聊天範本（CHZZK）",
         "use_custom": "使用範本顯示",
-        "use_custom_hint_on": "收集的聊天訊息會立即依下方範本繪製，比 CHZZK 聊天室更早顯示，也不會閃爍。（等同於在一般設定的「收集訊息外觀」中選擇「自訂」）",
-        "use_custom_hint_off": "直接複製 CHZZK 聊天室的原始內容。訊息會在 CHZZK 繪製後出現；CHZZK 較慢時，可能會短暫顯示為其他樣式，再恢復為原樣。（一般設定中的「收集訊息外觀」為「預設」）",
+        "use_custom_hint_on": "依下方範本產生收集的聊天訊息。",
+        "use_custom_hint_off": "原樣複製 CHZZK 聊天室中的原始訊息。",
         "kinds": {
             "chat": "聊天",
             "donation": "斗內",

@@ -80,8 +80,8 @@
     "template": {
         "title": "Chat-Vorlage (CHZZK)",
         "use_custom": "Mit Vorlage anzeigen",
-        "use_custom_hint_on": "Gesammelte Chats werden sofort mit den Vorlagen unten gezeichnet – noch bevor der CHZZK-Chat sie zeigt, ohne Flackern. (Entspricht „Eigene“ bei „Aussehen gesammelter Chats“ in den allgemeinen Einstellungen)",
-        "use_custom_hint_off": "Der CHZZK-Chat wird unverändert kopiert. Chats erscheinen erst, nachdem CHZZK sie gezeichnet hat, und können bei langsamem CHZZK kurz anders aussehen, bevor sie zum Original wechseln. („Aussehen gesammelter Chats“ steht in den allgemeinen Einstellungen auf „Standard“)",
+        "use_custom_hint_on": "Gesammelte Chats werden aus den Vorlagen unten erzeugt.",
+        "use_custom_hint_off": "Kopiert den Originalchat aus dem CHZZK-Chatfenster unverändert.",
         "kinds": {
             "chat": "Chat",
             "donation": "Spende",

@@ -80,8 +80,8 @@
     "template": {
         "title": "Plantilla de chat (CHZZK)",
         "use_custom": "Mostrar con plantilla",
-        "use_custom_hint_on": "Los chats recopilados se dibujan al instante con las plantillas de abajo, antes de que aparezcan en el chat de CHZZK y sin parpadeos. (Equivale a elegir «Personalizado» en «Aspecto de chats recopilados» en los ajustes generales)",
-        "use_custom_hint_off": "Se copia tal cual el chat de CHZZK. Los chats aparecen después de que CHZZK los dibuje y, si CHZZK va lento, pueden verse brevemente con otro aspecto antes de pasar al original. («Aspecto de chats recopilados» está en «Predeterminado» en los ajustes generales)",
+        "use_custom_hint_on": "Los chats recopilados se generan con las plantillas de abajo.",
+        "use_custom_hint_off": "Copia el chat original de la ventana de chat de CHZZK tal cual.",
         "kinds": {
             "chat": "Chat",
             "donation": "Donación",

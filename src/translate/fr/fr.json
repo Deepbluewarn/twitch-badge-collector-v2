@@ -80,8 +80,8 @@
     "template": {
         "title": "Modèle de chat (CHZZK)",
         "use_custom": "Afficher avec le modèle",
-        "use_custom_hint_on": "Les messages collectés sont dessinés immédiatement avec les modèles ci-dessous, avant même que le chat de CHZZK ne les affiche, sans scintillement. (Équivaut à choisir « Personnalisé » pour « Apparence des messages collectés » dans les réglages généraux.)",
-        "use_custom_hint_off": "Le chat de CHZZK est copié tel quel. Les messages apparaissent après leur affichage par CHZZK et, si CHZZK est lent, peuvent brièvement avoir un autre aspect avant de reprendre l'original. (« Apparence des messages collectés » est réglé sur « Par défaut » dans les réglages généraux.)",
+        "use_custom_hint_on": "Les messages collectés sont générés à partir des modèles ci-dessous.",
+        "use_custom_hint_off": "Copie tel quel le chat d'origine de la fenêtre de chat CHZZK.",
         "kinds": {
             "chat": "Chat",
             "donation": "Don",

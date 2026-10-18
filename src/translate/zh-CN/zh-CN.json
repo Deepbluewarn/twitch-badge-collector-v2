@@ -80,8 +80,8 @@
     "template": {
         "title": "聊天模板（CHZZK）",
         "use_custom": "使用模板显示",
-        "use_custom_hint_on": "收集的聊天消息会立即按下方模板绘制，比 CHZZK 聊天框更早显示，且不会闪烁。（等同于在常规设置的“收集消息外观”中选择“自定义”）",
-        "use_custom_hint_off": "直接复制 CHZZK 聊天框的原始内容。消息会在 CHZZK 绘制后出现；CHZZK 较慢时，可能会短暂显示为其他样式，然后恢复为原样。（常规设置中的“收集消息外观”为“默认”）",
+        "use_custom_hint_on": "按下方模板生成收集的聊天消息。",
+        "use_custom_hint_off": "原样复制 CHZZK 聊天框中的原始消息。",
         "kinds": {
             "chat": "聊天",
             "donation": "打赏",
