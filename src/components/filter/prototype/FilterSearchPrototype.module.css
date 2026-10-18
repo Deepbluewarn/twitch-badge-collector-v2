@@ -1,0 +1,36 @@
+/* PROTOTYPE — 버릴 코드. FilterSearchPrototype.tsx */
+
+.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.clear { display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--ui-muted); font-size: 18px; cursor: pointer; }
+.clear:hover { color: var(--ui-ink); }
+
+/* A */
+.bigBar {
+    display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px;
+    border: 2px solid var(--ui-line); border-radius: 10px; background: var(--ui-paper); color: var(--ui-muted); font-size: 20px;
+}
+.bigBar:focus-within { border-color: var(--ui-ink); }
+.bigInput { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ui-ink); font: inherit; font-family: var(--ui-font); font-size: 14px; font-weight: 700; outline: none; }
+
+/* B */
+.iconBtn {
+    display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 2px solid var(--ui-line); border-radius: 8px;
+    background: var(--ui-paper); color: var(--ui-ink); font-size: 20px; cursor: pointer;
+}
+.iconBtn:hover { background: var(--ui-soft); }
+.inlineBar {
+    display: inline-flex; align-items: center; gap: 6px; width: 260px; height: 36px; padding: 0 10px;
+    border: 2px solid var(--ui-ink); border-radius: 8px; background: var(--ui-paper); color: var(--ui-muted); font-size: 18px;
+}
+.inlineInput { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ui-ink); font-family: var(--ui-font); font-size: 13px; font-weight: 700; outline: none; }
+
+/* C */
+.facetRow { display: flex; flex-direction: column; gap: 10px; }
+.midBar { composes: bigBar; height: 40px; }
+.facets { display: flex; flex-wrap: wrap; gap: 6px; }
+.facet {
+    height: 28px; padding: 0 12px; border: 2px solid var(--ui-line); border-radius: 999px; background: var(--ui-paper);
+    color: var(--ui-ink); font-family: var(--ui-font); font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.facet:hover { background: var(--ui-soft); }
+.facetOn, .facetOn:hover { border-color: var(--ui-yellow); background: var(--ui-yellow); color: var(--ui-on-yellow); }

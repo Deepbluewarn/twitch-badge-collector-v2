@@ -14,13 +14,20 @@ import { ChannelRail, filterByView, useRailChannels, VIEW_ALL, VIEW_COMMON } fro
 import { canReachChzzkApi, fetchChzzkChannel } from "@/api/chzzk-channel";
 import { useTranslation } from "react-i18next";
 import { useAlertContext } from "@/context/Alert";
+// PROTOTYPE — 필터 검색 시안 (&variant=A|B|C, dev만). 결정 후 지운다.
+import { PrototypeSwitcher, useVariant } from "../PrototypeSwitcher";
+import { makeFakeRows, protoSafeActions, VARIANTS, VariantA, VariantB, VariantC } from "./prototype/FilterSearchPrototype";
 
 /** 지금 플랫폼의 필터 목록 + 필터 편집 대화상자. 목록 모양은 FilterList, 저장은 필터 그룹 context. */
 export function FilterGroupList() {
     const { globalSetting } = useGlobalSettingContext();
     const adapter = getAdapter(globalSetting.platform);
     const { filterGroup, setFilterGroup, upsertCompositeFilter, removeSubFilter, removeFilterField } = useFilterGroupContext();
-    const platformFilters = useMemo(() => filterGroup.filter(f => f.platform === globalSetting.platform), [filterGroup, globalSetting.platform]);
+    const realFilters = useMemo(() => filterGroup.filter(f => f.platform === globalSetting.platform), [filterGroup, globalSetting.platform]);
+    // PROTOTYPE
+    const [variant, setVariant] = useVariant(Object.keys(VARIANTS));
+    const platformFilters = useMemo(() => !variant || new URLSearchParams(location.search).get('fake') === '0' ? realFilters
+        : [...realFilters, ...makeFakeRows(globalSetting.platform)], [realFilters, variant, globalSetting.platform]);
 
     // 채널별 보기 — 왼쪽 채널 목록에서 고른 채널의 필터만 보인다(필터 시험은 늘 전체 필터로).
     const { channels, common } = useRailChannels(platformFilters);
@@ -39,7 +46,7 @@ export function FilterGroupList() {
     // 채널을 지정한 필터가 없으면 채널 목록 없이 지금 모양 그대로
     const rail = channels.length > 0;
 
-    useChannelImages(globalSetting.platform, platformFilters, setFilterGroup);
+    useChannelImages(globalSetting.platform, realFilters, setFilterGroup);
 
     const { t } = useTranslation();
     const { addAlert } = useAlertContext();
@@ -87,9 +94,8 @@ export function FilterGroupList() {
                     // 고른 채널로 필터 시험도 맞춘다 — 안 그러면 그 채널 필터가 '다른 채널'로 흐려진다
                     if (v !== VIEW_ALL && v !== VIEW_COMMON) setTestInput(i => ({ ...i, channelId: v }));
                 }} />}
-                <FilterList rows={visibleFilters} adapter={adapter} actions={actions}
-                    test={testerOpen ? testResult.rows : undefined}
-                    toolbarExtra={<>
+                {(() => {
+                    const extra = <>
                         {broadCount > 0 && (
                             <Button size="sm" icon={broadOnly ? 'close' : 'warning'} variant="primary" aria-pressed={broadOnly}
                                 onClick={() => { setBroadOnly(b => !b); setChannelView(VIEW_ALL); }}>
@@ -97,7 +103,11 @@ export function FilterGroupList() {
                             </Button>
                         )}
                         {!testerOpen && <Button size="sm" icon="science" onClick={() => setTesterOpen(true)}>{t('filter_test.button')}</Button>}
-                    </>} />
+                    </>;
+                    if (!variant) return <FilterList rows={visibleFilters} adapter={adapter} actions={actions} test={testerOpen ? testResult.rows : undefined} toolbarExtra={extra} />;
+                    const V = { A: VariantA, B: VariantB, C: VariantC }[variant as keyof typeof VARIANTS];
+                    return <V rows={visibleFilters} adapter={adapter} actions={protoSafeActions(actions)} test={testerOpen ? testResult.rows : undefined} extra={extra} />;
+                })()}
                 {testerOpen && (
                     <div className={s.tester}>
                         <FilterTesterPanel input={testInput} onInput={setTestInput} result={testResult} rules={platformFilters} adapter={adapter} onClose={() => setTesterOpen(false)} />
@@ -116,6 +126,7 @@ export function FilterGroupList() {
                     upsertCompositeFilter(updatedData);
                 }}
             />
+            {variant && <PrototypeSwitcher variants={VARIANTS} current={variant} onChange={setVariant} />}
         </>
     );
 }
