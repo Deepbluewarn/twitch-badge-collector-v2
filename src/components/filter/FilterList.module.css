@@ -203,8 +203,13 @@
     gap: 4px;
     min-width: 0;
     height: 26px;
-    padding: 0 6px 0 8px;
+    padding: 0 8px;
     border-radius: 999px;
+}
+/* ✕가 나오는 동안만 오른쪽 여백을 줄여 칩이 덜 늘어나게 */
+.chip:hover,
+.chip:focus-within {
+    padding-right: 6px;
 }
 .chip.badge {
     padding-left: 4px;
@@ -234,7 +239,8 @@
     text-overflow: ellipsis;
 }
 .x {
-    opacity: 0;
+    /* 평소엔 자리도 차지하지 않는다 (투명하게만 두면 칩 오른쪽에 빈 공간이 남는다) */
+    display: none;
     border: 0;
     background: none;
     padding: 0;
@@ -245,9 +251,10 @@
     cursor: pointer;
 }
 .chip:hover .x,
+.chip:focus-within .x,
 .metaItem:hover .x,
-.x:focus-visible {
-    opacity: 1;
+.metaItem:focus-within .x {
+    display: inline-block;
 }
 .metaItem .x {
     color: var(--ui-muted);
