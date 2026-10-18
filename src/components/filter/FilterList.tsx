@@ -29,6 +29,8 @@ export interface FilterListActions {
     rotateType: (row: Row) => void;
     setColor: (row: Row, color: string) => void;
     deleteMany: (ids: Set<string>) => void;
+    /** '범위 넓음' 표시를 눌렀을 때 */
+    explainBroad?: (row: Row) => void;
 }
 
 const PAGE_SIZES = [10, 20, 50, 100] as const;
@@ -170,7 +172,7 @@ function FilterRow({ row, adapter, actions, selected, onToggle, test }: { row: R
                     <Meta label={t('common.note')} value={row.filterNote} onEdit={() => actions.editNote(row)} onRemove={() => actions.removeNote(row)} />
                 </div>
             </div>
-            {isBroadFilter(row) && <span className={s.broad}><Icon name="warning" />{t('filter_list.broad')}</span>}
+            {isBroadFilter(row) && <button type="button" className={s.broad} onClick={() => actions.explainBroad?.(row)}><Icon name="warning" />{t('filter_list.broad')}</button>}
             <button type="button" className={`${s.tag} ${TONE[row.filterType] ?? s.ok}`} onClick={() => actions.rotateType(row)}>
                 {t(`filter.category.${row.filterType}`)}
             </button>

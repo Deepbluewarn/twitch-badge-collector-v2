@@ -211,7 +211,8 @@
         "channel_none": "チャンネル指定なし（共通）",
         "open_channel": "チャンネルを開く",
         "broad": "範囲が広い",
-        "broad_count": "範囲が広いフィルター {{count}}件"
+        "broad_count": "範囲が広いフィルター {{count}}件",
+        "broad_explain": "ほとんどのチャットが収集されます。"
     },
     "filter_test": {
         "button": "フィルターを試す",

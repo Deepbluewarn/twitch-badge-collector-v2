@@ -211,7 +211,8 @@
         "channel_none": "Aucune chaîne (commun)",
         "open_channel": "Ouvrir la chaîne",
         "broad": "Trop large",
-        "broad_count": "{{count}} filtre(s) trop large(s)"
+        "broad_count": "{{count}} filtre(s) trop large(s)",
+        "broad_explain": "Presque tous les messages seront collectés."
     },
     "filter_test": {
         "button": "Tester les filtres",

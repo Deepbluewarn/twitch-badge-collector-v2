@@ -13,6 +13,7 @@ import { isBroadFilter } from "@/filter/broad";
 import { ChannelRail, filterByView, useRailChannels, VIEW_ALL, VIEW_COMMON } from "./ChannelRail";
 import { canReachChzzkApi, fetchChzzkChannel } from "@/api/chzzk-channel";
 import { useTranslation } from "react-i18next";
+import { useAlertContext } from "@/context/Alert";
 
 /** 지금 플랫폼의 필터 목록 + 필터 편집 대화상자. 목록 모양은 FilterList, 저장은 필터 그룹 context. */
 export function FilterGroupList() {
@@ -41,6 +42,7 @@ export function FilterGroupList() {
     useChannelImages(globalSetting.platform, platformFilters, setFilterGroup);
 
     const { t } = useTranslation();
+    const { addAlert } = useAlertContext();
     const [testerOpen, setTesterOpen] = useState(false);
     // 시험 입력은 닫아도 남겨 둔다 — 필터를 고치고 다시 열어 같은 채팅으로 확인하게.
     const [testInput, setTestInput] = useState<TestInput>(EMPTY_TEST);
@@ -74,6 +76,7 @@ export function FilterGroupList() {
         rotateType: (row) => setFilterGroup(rows => rows.map(r => (r.id === row.id ? { ...r, filterType: rotateFilterType(r.filterType) } : r))),
         setColor: (row, color) => upsertCompositeFilter({ ...row, markerColor: color }),
         deleteMany: (ids) => setFilterGroup(rows => rows.filter(r => !ids.has(r.id))),
+        explainBroad: () => addAlert({ serverity: 'warning', message: t('filter_list.broad_explain') }),
     };
 
     return (

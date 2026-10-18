@@ -210,7 +210,8 @@
         "channel_none": "채널 지정 안 함 (공통)",
         "open_channel": "채널 열기",
         "broad": "범위 넓음",
-        "broad_count": "범위가 넓은 필터 {{count}}개"
+        "broad_count": "범위가 넓은 필터 {{count}}개",
+        "broad_explain": "대부분의 채팅이 수집됩니다."
     },
     "filter_test": {
         "button": "필터 시험",

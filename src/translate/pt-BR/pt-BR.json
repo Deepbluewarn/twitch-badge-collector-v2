@@ -211,7 +211,8 @@
         "channel_none": "Sem canal (comum)",
         "open_channel": "Abrir canal",
         "broad": "Amplo demais",
-        "broad_count": "{{count}} filtro(s) amplo(s) demais"
+        "broad_count": "{{count}} filtro(s) amplo(s) demais",
+        "broad_explain": "Quase todas as mensagens serão coletadas."
     },
     "filter_test": {
         "button": "Testar filtros",

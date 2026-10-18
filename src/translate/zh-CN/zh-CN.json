@@ -211,7 +211,8 @@
         "channel_none": "未指定频道（通用）",
         "open_channel": "打开频道",
         "broad": "范围过宽",
-        "broad_count": "范围过宽的过滤器 {{count}} 个"
+        "broad_count": "范围过宽的过滤器 {{count}} 个",
+        "broad_explain": "几乎所有聊天都会被收集。"
     },
     "filter_test": {
         "button": "测试筛选器",

@@ -211,7 +211,8 @@
         "channel_none": "No channel (common)",
         "open_channel": "Open channel",
         "broad": "Too broad",
-        "broad_count": "{{count}} broad filter(s)"
+        "broad_count": "{{count}} broad filter(s)",
+        "broad_explain": "This filter collects almost every chat."
     },
     "filter_test": {
         "button": "Test filters",
