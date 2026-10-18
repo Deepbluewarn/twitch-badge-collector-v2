@@ -472,7 +472,7 @@ function SettingRow({ label, hint, children }: { label: React.ReactNode; hint?: 
 }
 /**
  * 방송 페이지에서 팝업을 열면 맨 위에: 지금 채널 + "이 채널에서 사용" 스위치 (src/utils/channel-off.ts).
- * 끄면 그 탭에서 새로고침 없이 모아보기 창·수집 표시가 사라지고, 확장 아이콘에 OFF가 붙는다.
+ * 끄면 그 탭에서 새로고침 없이 모아보기 창·수집 표시가 사라지고, 확장 아이콘이 흑백이 된다.
  * 방송 페이지가 아니면(채널 ID가 없으면) 그리지 않는다.
  */
 function ChannelPower() {

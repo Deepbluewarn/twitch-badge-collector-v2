@@ -225,7 +225,7 @@ export default defineBackground(() => {
       return true;
     }
     if (msg?.type === CHANNEL_OFF_BADGE_MESSAGE && _sender.tab?.id != null) {
-      // 이 채널에서 끈 탭은 확장 아이콘에 OFF — 끈 걸 잊고 "고장 났나?" 하지 않게.
+      // 이 채널에서 끈 탭은 확장 아이콘을 흑백으로 — 끈 걸 잊고 "고장 났나?" 하지 않게.
       setChannelOffBadge(_sender.tab.id, !!msg.off);
       return false;
     }
@@ -258,12 +258,42 @@ export default defineBackground(() => {
   );
 });
 
-function setChannelOffBadge(tabId: number, off: boolean) {
+/**
+ * 이 채널에서 끈 탭은 확장 아이콘을 흑백으로 — 배지 글자는 크기를 못 바꿔 아이콘을 너무 가린다.
+ * 흑백 그림은 원래 아이콘에서 한 번 만들어 둔다(OffscreenCanvas). 켜면 그 탭만 원래 아이콘으로.
+ */
+const ICON_PATH = '/icon/icon.png';
+let grayIcons: Promise<Record<number, ImageData>> | null = null;
+function getGrayIcons() {
+  grayIcons ??= (async () => {
+    const bmp = await createImageBitmap(await (await fetch(browser.runtime.getURL(ICON_PATH))).blob());
+    const out: Record<number, ImageData> = {};
+    for (const size of [16, 32]) {
+      const ctx = new OffscreenCanvas(size, size).getContext('2d')!;
+      ctx.drawImage(bmp, 0, 0, size, size);
+      const img = ctx.getImageData(0, 0, size, size);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const g = Math.round(d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11);
+        d[i] = d[i + 1] = d[i + 2] = g;
+        d[i + 3] = Math.round(d[i + 3] * 0.7);
+      }
+      out[size] = img;
+    }
+    return out;
+  })();
+  grayIcons.catch(() => { grayIcons = null; });
+  return grayIcons;
+}
+
+async function setChannelOffBadge(tabId: number, off: boolean) {
   // MV3 action / MV2(Firefox) browserAction
   const action = browser.action ?? (browser as unknown as { browserAction: typeof browser.action }).browserAction;
   if (!action) return;
-  action.setBadgeText({ tabId, text: off ? 'OFF' : '' }).catch(() => {});
-  if (!off) return;
-  action.setBadgeBackgroundColor({ tabId, color: '#FFD60A' }).catch(() => {});
-  (action as { setBadgeTextColor?: (d: { tabId: number; color: string }) => Promise<void> }).setBadgeTextColor?.({ tabId, color: '#111111' })?.catch(() => {});
+  try {
+    if (off) await action.setIcon({ tabId, imageData: await getGrayIcons() as Record<string, ImageData> });
+    else await action.setIcon({ tabId, path: ICON_PATH });
+  } catch (e) {
+    console.warn('[tbcv2 bg] channel off icon failed', e);
+  }
 }
