@@ -216,7 +216,10 @@
         "search": "Buscar filtros",
         "search_clear": "Borrar",
         "deleted": "Se eliminaron {{count}} filtro(s).",
-        "undo": "Deshacer"
+        "undo": "Deshacer",
+        "duplicate": "Duplicado",
+        "duplicate_count": "{{count}} filtro(s) duplicado(s)",
+        "duplicate_explain": "Hay otro filtro con las mismas condiciones."
     },
     "filter_test": {
         "button": "Probar filtros",

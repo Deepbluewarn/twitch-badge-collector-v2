@@ -215,7 +215,10 @@
         "search": "필터 찾기",
         "search_clear": "지우기",
         "deleted": "필터 {{count}}개를 삭제했습니다.",
-        "undo": "되돌리기"
+        "undo": "되돌리기",
+        "duplicate": "중복",
+        "duplicate_count": "중복 필터 {{count}}개",
+        "duplicate_explain": "같은 조건의 필터가 또 있습니다."
     },
     "filter_test": {
         "button": "필터 시험",

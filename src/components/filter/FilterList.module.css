@@ -329,6 +329,10 @@
     font-family: inherit;
     cursor: pointer;
 }
+.broad.dup {
+    background: var(--ui-off-bg);
+    color: var(--ui-ink);
+}
 .broad :global(.material-icons-round) {
     font-size: 14px;
 }

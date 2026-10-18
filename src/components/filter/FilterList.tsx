@@ -31,6 +31,8 @@ export interface FilterListActions {
     deleteMany: (ids: Set<string>) => void;
     /** '범위 넓음' 표시를 눌렀을 때 */
     explainBroad?: (row: Row) => void;
+    /** '중복' 표시를 눌렀을 때 */
+    explainDuplicate?: (row: Row) => void;
 }
 
 const PAGE_SIZES = [10, 20, 50, 100] as const;
@@ -55,7 +57,7 @@ function usePageSize(): [number, (n: number) => void] {
     return [size, set];
 }
 
-export function FilterList({ rows, adapter, actions, toolbarExtra, test }: {
+export function FilterList({ rows, adapter, actions, toolbarExtra, test, duplicates }: {
     rows: Row[];
     adapter: PlatformAdapter;
     actions: FilterListActions;
@@ -63,6 +65,8 @@ export function FilterList({ rows, adapter, actions, toolbarExtra, test }: {
     toolbarExtra?: React.ReactNode;
     /** 필터 시험이 열려 있으면 줄마다 결과 — 걸린 줄을 칠하고 조건마다 맞음/안 맞음을 붙인다 */
     test?: Map<string, RowTest>;
+    /** 다른 필터와 조건이 같은 필터 id (src/filter/duplicate.ts) — 줄에 '중복' 표시 */
+    duplicates?: Set<string>;
 }) {
     const { t } = useTranslation();
     const [size, setSize] = usePageSize();
@@ -122,7 +126,7 @@ export function FilterList({ rows, adapter, actions, toolbarExtra, test }: {
             <div className={s.table}>
                 {pageRows.length === 0 && <div className={s.empty}>{t('filter_list.empty')}</div>}
                 {pageRows.map(r => (
-                    <FilterRow key={r.id} row={r} adapter={adapter} actions={actions} selected={selected.has(r.id)} onToggle={() => toggle(r.id)} test={test?.get(r.id)} />
+                    <FilterRow key={r.id} row={r} adapter={adapter} actions={actions} selected={selected.has(r.id)} onToggle={() => toggle(r.id)} test={test?.get(r.id)} duplicate={duplicates?.has(r.id)} />
                 ))}
             </div>
 
@@ -150,7 +154,7 @@ function MasterCheck({ checked, indeterminate, disabled, onChange, label }: { ch
 
 const TEST_ROW: Record<RowTest['state'], string> = { include: s.testInclude, exclude: s.testExclude, partial: s.testPartial, miss: s.testDim, inactive: s.testDim };
 
-function FilterRow({ row, adapter, actions, selected, onToggle, test }: { row: Row; adapter: PlatformAdapter; actions: FilterListActions; selected: boolean; onToggle: () => void; test?: RowTest }) {
+function FilterRow({ row, adapter, actions, selected, onToggle, test, duplicate }: { row: Row; adapter: PlatformAdapter; actions: FilterListActions; selected: boolean; onToggle: () => void; test?: RowTest; duplicate?: boolean }) {
     const { t } = useTranslation();
     return (
         <div className={`${s.row} ${selected ? s.selected : ''} ${test ? TEST_ROW[test.state] : ''}`}>
@@ -172,6 +176,7 @@ function FilterRow({ row, adapter, actions, selected, onToggle, test }: { row: R
                     <Meta label={t('common.note')} value={row.filterNote} onEdit={() => actions.editNote(row)} onRemove={() => actions.removeNote(row)} />
                 </div>
             </div>
+            {duplicate && <button type="button" className={`${s.broad} ${s.dup}`} onClick={() => actions.explainDuplicate?.(row)}><Icon name="content_copy" />{t('filter_list.duplicate')}</button>}
             {isBroadFilter(row) && <button type="button" className={s.broad} onClick={() => actions.explainBroad?.(row)}><Icon name="warning" />{t('filter_list.broad')}</button>}
             <button type="button" className={`${s.tag} ${TONE[row.filterType] ?? s.ok}`} onClick={() => actions.rotateType(row)}>
                 {t(`filter.category.${row.filterType}`)}

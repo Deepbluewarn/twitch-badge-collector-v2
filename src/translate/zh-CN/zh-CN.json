@@ -216,7 +216,10 @@
         "search": "查找过滤器",
         "search_clear": "清除",
         "deleted": "已删除 {{count}} 个过滤器。",
-        "undo": "撤销"
+        "undo": "撤销",
+        "duplicate": "重复",
+        "duplicate_count": "重复的过滤器 {{count}} 个",
+        "duplicate_explain": "还有条件相同的过滤器。"
     },
     "filter_test": {
         "button": "测试筛选器",

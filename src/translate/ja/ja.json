@@ -216,7 +216,10 @@
         "search": "フィルターを検索",
         "search_clear": "クリア",
         "deleted": "フィルターを{{count}}件削除しました。",
-        "undo": "元に戻す"
+        "undo": "元に戻す",
+        "duplicate": "重複",
+        "duplicate_count": "重複フィルター {{count}}件",
+        "duplicate_explain": "同じ条件のフィルターが他にもあります。"
     },
     "filter_test": {
         "button": "フィルターを試す",

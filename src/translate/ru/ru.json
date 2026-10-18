@@ -216,7 +216,10 @@
         "search": "Найти фильтры",
         "search_clear": "Очистить",
         "deleted": "Удалено фильтров: {{count}}.",
-        "undo": "Отменить"
+        "undo": "Отменить",
+        "duplicate": "Дубликат",
+        "duplicate_count": "Дубликатов фильтров: {{count}}",
+        "duplicate_explain": "Есть другой фильтр с такими же условиями."
     },
     "filter_test": {
         "button": "Проверить фильтры",

@@ -11,6 +11,7 @@ import s from "./FilterGroupList.module.css";
 import { Button } from "@/ui";
 import { isBroadFilter } from "@/filter/broad";
 import { matchesFilterSearch } from "@/filter/search";
+import { filterSignature, findDuplicateFilterIds } from "@/filter/duplicate";
 import { FilterSearch } from "./FilterSearch";
 import { ChannelRail, filterByView, useRailChannels, VIEW_ALL, VIEW_COMMON } from "./ChannelRail";
 import { canReachChzzkApi, fetchChzzkChannel } from "@/api/chzzk-channel";
@@ -34,13 +35,18 @@ export function FilterGroupList() {
     const broadCount = useMemo(() => platformFilters.filter(isBroadFilter).length, [platformFilters]);
     const [broadOnly, setBroadOnly] = useState(false);
     useEffect(() => { if (broadCount === 0) setBroadOnly(false); }, [broadCount]);
-    // 필터 찾기 — 채널 보기·범위 넓음 결과 안에서 한 번 더 거른다
+    // 조건이 같은 필터 — 줄에 '중복', 머리 줄 버튼으로 그것만 보기(같은 것끼리 붙여서)
+    const duplicates = useMemo(() => findDuplicateFilterIds(platformFilters), [platformFilters]);
+    const [dupOnly, setDupOnly] = useState(false);
+    useEffect(() => { if (duplicates.size === 0) setDupOnly(false); }, [duplicates]);
+    // 필터 찾기 — 채널 보기·범위 넓음·중복 결과 안에서 한 번 더 거른다
     const [search, setSearch] = useState('');
     const visibleFilters = useMemo(() => {
         let rows = filterByView(platformFilters, channelView);
         if (broadOnly) rows = rows.filter(isBroadFilter);
+        if (dupOnly) rows = rows.filter(r => duplicates.has(r.id)).sort((a, b) => filterSignature(a).localeCompare(filterSignature(b)));
         return search.trim() ? rows.filter(r => matchesFilterSearch(r, search)) : rows;
-    }, [platformFilters, channelView, broadOnly, search]);
+    }, [platformFilters, channelView, broadOnly, dupOnly, duplicates, search]);
     // 채널을 지정한 필터가 없으면 채널 목록 없이 지금 모양 그대로
     const rail = channels.length > 0;
 
@@ -101,6 +107,7 @@ export function FilterGroupList() {
             });
         },
         explainBroad: () => addAlert({ serverity: 'warning', message: t('filter_list.broad_explain') }),
+        explainDuplicate: () => addAlert({ serverity: 'info', message: t('filter_list.duplicate_explain') }),
     };
 
     return (
@@ -111,13 +118,19 @@ export function FilterGroupList() {
                     // 고른 채널로 필터 시험도 맞춘다 — 안 그러면 그 채널 필터가 '다른 채널'로 흐려진다
                     if (v !== VIEW_ALL && v !== VIEW_COMMON) setTestInput(i => ({ ...i, channelId: v }));
                 }} />}
-                <FilterList rows={visibleFilters} adapter={adapter} actions={actions}
+                <FilterList rows={visibleFilters} adapter={adapter} actions={actions} duplicates={duplicates}
                     test={testerOpen ? testResult.rows : undefined}
                     toolbarExtra={<>
                         <FilterSearch value={search} onChange={setSearch} />
+                        {duplicates.size > 0 && (
+                            <Button size="sm" icon={dupOnly ? 'close' : 'content_copy'} variant={dupOnly ? 'primary' : 'secondary'} aria-pressed={dupOnly}
+                                onClick={() => { setDupOnly(d => !d); setBroadOnly(false); setChannelView(VIEW_ALL); }}>
+                                {t('filter_list.duplicate_count', { count: duplicates.size })}
+                            </Button>
+                        )}
                         {broadCount > 0 && (
                             <Button size="sm" icon={broadOnly ? 'close' : 'warning'} variant="primary" aria-pressed={broadOnly}
-                                onClick={() => { setBroadOnly(b => !b); setChannelView(VIEW_ALL); }}>
+                                onClick={() => { setBroadOnly(b => !b); setDupOnly(false); setChannelView(VIEW_ALL); }}>
                                 {t('filter_list.broad_count', { count: broadCount })}
                             </Button>
                         )}
