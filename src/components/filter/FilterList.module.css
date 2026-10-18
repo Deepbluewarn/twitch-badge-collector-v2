@@ -389,6 +389,12 @@
 .row.testInclude { background: var(--ui-ok-bg); }
 .row.testExclude { background: var(--ui-bad-bg); }
 .row.testDim { opacity: 0.45; }
+/* 조건 일부만 맞은 줄 — 걸린 줄로 보이지 않게 태그·색 칸·채널/메모는 흐리게, ✓/✕ 칩만 선명하게 */
+.row.testPartial .tag,
+.row.testPartial .swatchSlot,
+.row.testPartial .meta {
+    opacity: 0.45;
+}
 .row.testDim:hover { opacity: 1; }
 .mark {
     display: inline-grid;

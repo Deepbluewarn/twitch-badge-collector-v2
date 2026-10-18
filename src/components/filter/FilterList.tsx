@@ -143,7 +143,7 @@ function MasterCheck({ checked, indeterminate, disabled, onChange, label }: { ch
     return <input ref={ref} type="checkbox" className={s.check} checked={checked} disabled={disabled} onChange={onChange} aria-label={label} />;
 }
 
-const TEST_ROW: Record<RowTest['state'], string> = { include: s.testInclude, exclude: s.testExclude, partial: '', miss: s.testDim, inactive: s.testDim };
+const TEST_ROW: Record<RowTest['state'], string> = { include: s.testInclude, exclude: s.testExclude, partial: s.testPartial, miss: s.testDim, inactive: s.testDim };
 
 function FilterRow({ row, adapter, actions, selected, onToggle, test }: { row: Row; adapter: PlatformAdapter; actions: FilterListActions; selected: boolean; onToggle: () => void; test?: RowTest }) {
     const { t } = useTranslation();
