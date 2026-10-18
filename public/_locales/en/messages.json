@@ -187,5 +187,8 @@
   },
   "back": {
     "message": "Back"
+  },
+  "filterTestMenu": {
+    "message": "Send to Test filters"
   }
 }

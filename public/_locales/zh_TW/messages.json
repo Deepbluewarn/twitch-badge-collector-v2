@@ -187,5 +187,8 @@
   },
   "back": {
     "message": "返回"
+  },
+  "filterTestMenu": {
+    "message": "傳送到「測試篩選器」"
   }
 }
