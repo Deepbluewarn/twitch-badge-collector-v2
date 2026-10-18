@@ -38,11 +38,21 @@ function contextAlive(): boolean {
     }
 }
 
-/** 이전 실행(옛 버전)이 남긴 모아보기 창·손잡이·안내를 치운다. 새 스크립트가 맨 먼저 부른다. */
+/**
+ * 이전 실행(옛 버전)이 남긴 모아보기 창·손잡이·안내를 치운다. 새 스크립트가 맨 먼저 부른다.
+ *
+ * 창·손잡이는 지우지 않고 **붙여 둔 채 숨기고 id를 바꾼다.** 옛 버전(이 파일이 없던 2.23.0 이하 포함)의
+ * 팝오버 창에는 "떼어지면 다시 붙이는" 순수 DOM 감시가 있어, 지우면 곧바로 다시 붙어 창이 둘이 된다.
+ * 붙어 있으면 그 감시는 아무것도 안 하고, id가 달라 새 창과도 겹치지 않는다. 새로고침하면 사라진다.
+ */
 export function removeLeftovers(type: Platform) {
-    for (const sel of [`#${type}-container`, '#handle-container', `#tbc-floating-${type}`, `#${NOTICE_ID}`]) {
-        document.querySelectorAll(sel).forEach(el => el.remove());
+    for (const sel of [`#${type}-container`, '#handle-container', `#tbc-floating-${type}`]) {
+        document.querySelectorAll<HTMLElement>(sel).forEach(el => {
+            el.id = `${el.id}-stale`;
+            el.style.setProperty('display', 'none', 'important');
+        });
     }
+    document.getElementById(NOTICE_ID)?.remove();
 }
 
 /**
