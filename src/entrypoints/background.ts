@@ -1,3 +1,4 @@
+import { MatchPattern } from 'wxt/utils/match-patterns';
 import { CompositeFilterElement } from "@/interfaces/filter";
 import defaultFilter from "@/defaultFilters";
 import { fetchChzzkBadgeGroups } from "@/api/chzzk";
@@ -296,19 +297,27 @@ async function setChannelOffBadge(tabId: number, off: boolean) {
   }
 }
 
-const REINJECT_TARGETS: { patterns: string[]; js: string; css: string }[] = [
-  { patterns: ['*://chzzk.naver.com/*'], js: 'content-scripts/chzzk.js', css: 'content-scripts/chzzk.css' },
-  { patterns: ['*://*.twitch.tv/*'], js: 'content-scripts/twitch.js', css: 'content-scripts/twitch.css' },
+const REINJECT_TARGETS: { matches: string[]; excludes: string[]; js: string; css: string }[] = [
+  // entrypoints/*.content의 matches·excludeMatches와 같게 — 평소에 안 들어가는 프레임에 넣지 않으려고.
+  { matches: ['*://chzzk.naver.com/*'], excludes: [], js: 'content-scripts/chzzk.js', css: 'content-scripts/chzzk.css' },
+  { matches: ['*://*.twitch.tv/*'], excludes: ['*://passport.twitch.tv/*', '*://gql.twitch.tv/*'], js: 'content-scripts/twitch.js', css: 'content-scripts/twitch.css' },
 ];
 
 async function reinjectContentScripts() {
   if (!browser.scripting?.executeScript) return;
   for (const t of REINJECT_TARGETS) {
-    const tabs = await browser.tabs.query({ url: t.patterns }).catch(() => []);
+    const matches = t.matches.map(p => new MatchPattern(p));
+    const excludes = t.excludes.map(p => new MatchPattern(p));
+    const wanted = (url: string) => matches.some(m => m.includes(url)) && !excludes.some(m => m.includes(url));
+    const tabs = await browser.tabs.query({ url: t.matches }).catch(() => []);
     for (const tab of tabs) {
       if (tab.id == null || tab.discarded) continue;
-      const target = { tabId: tab.id, allFrames: true };
       try {
+        // allFrames는 excludeMatches를 모르고, 호스트 권한이 있는 다른 출처 iframe(pstatic 등)에도 들어간다.
+        const frames = await browser.webNavigation.getAllFrames({ tabId: tab.id }) ?? [];
+        const frameIds = frames.filter(f => wanted(f.url)).map(f => f.frameId);
+        if (frameIds.length === 0) continue;
+        const target = { tabId: tab.id, frameIds };
         await browser.scripting.insertCSS({ target, files: [t.css] });
         await browser.scripting.executeScript({ target, files: [t.js] });
       } catch (e) {
