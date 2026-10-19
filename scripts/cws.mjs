@@ -6,6 +6,7 @@
  *   node scripts/cws.mjs status           게시본·제출본 상태 (JSON)
  *   node scripts/cws.mjs publish-staged   승인돼 대기(STAGED) 중이면 첫 단계 비율로 게시. 아니면 아무것도 안 함.
  *   node scripts/cws.mjs ramp             게시본이 단계적 배포 중이면 다음 단계로 올린다.
+ *   node scripts/cws.mjs published        게시본 버전·비율 (GITHUB_OUTPUT에 version, percent)
  *
  * 릴리스 때는 심사 제출만 STAGED_PUBLISH로 하고(publish.yml, publish-browser-extension),
  * 새벽 예약 작업(scheduled-publish.yml)이 publish-staged로 게시한다 — 방송을 많이 보는 시간대에 업데이트가
@@ -16,7 +17,7 @@
  * 문제가 보이면 Scheduled Publish 워크플로를 꺼서 더 올라가지 않게 하고, 고친 버전을 내면 이전 배포는 멈춘다.
  *
  * env: CHROME_CLIENT_ID, CHROME_CLIENT_SECRET, CHROME_REFRESH_TOKEN, CHROME_PUBLISHER_ID, CHROME_EXTENSION_ID
- *      GITHUB_OUTPUT(있으면 published=true|false를 적는다)
+ *      GITHUB_OUTPUT(있으면 결과를 적는다)
  */
 import { appendFileSync } from 'node:fs';
 
@@ -100,7 +101,16 @@ if (cmd === 'token') {
         await call(token, 'POST', ':setPublishedDeployPercentage', { deployPercentage: next });
         console.log(`raised to ${next}%`);
     }
+} else if (cmd === 'published') {
+    // 디스코드 공지는 모두가 받은 뒤(100%)에 — 10% 날 공지하면 대부분은 아직 업데이트가 없다.
+    const status = await call(await accessToken(), 'GET', ':fetchStatus');
+    const channel = status.publishedItemRevisionStatus?.distributionChannels?.[0];
+    const version = channel?.crxVersion ?? '';
+    const percent = channel?.deployPercentage ?? 100;
+    console.log(`published ${version || '-'} at ${percent}%`);
+    output('version', version);
+    output('percent', percent);
 } else {
-    console.error('usage: node scripts/cws.mjs token|status|publish-staged|ramp');
+    console.error('usage: node scripts/cws.mjs token|status|publish-staged|ramp|published');
     process.exit(2);
 }
