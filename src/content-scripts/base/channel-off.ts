@@ -5,6 +5,7 @@
  */
 import type { PlatformAdapter } from '@/platform';
 import { addStorageUpdateListener } from '@/utils/utils-browser';
+import { onTeardown } from './lifecycle';
 import { CHANNEL_INFO_MESSAGE, CHANNEL_OFF_BADGE_MESSAGE, CHANNEL_OFF_KEY, channelKey, getOffChannels, type ChannelInfo } from '@/utils/channel-off';
 
 export const CHANNEL_OFF_CLASS = 'tbcv2-channel-off';
@@ -27,6 +28,7 @@ export function setupChannelOff(adapter: PlatformAdapter, onChange: (off: boolea
         return off;
     }
 
+    onTeardown(disconnected => { if (disconnected) document.documentElement.classList.remove(CHANNEL_OFF_CLASS); });
     addStorageUpdateListener(key => { if (key === CHANNEL_OFF_KEY) evaluate(); });
     browser.runtime.onMessage.addListener((msg: { type?: string }, _sender, sendResponse) => {
         if (!isTop || msg?.type !== CHANNEL_INFO_MESSAGE) return;

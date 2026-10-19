@@ -8,6 +8,7 @@ import { Logger } from "@/utils/logger";
 import { Observer } from "./observer";
 import { applyPosition, applyRatio } from "./layout";
 import { onTeardown } from "./lifecycle";
+import { PROCESSED_CHAT_CLASS } from "@/interfaces/chat-attributes";
 
 export class BaseContainer {
   theme: 'dark' | 'light';
@@ -50,7 +51,14 @@ export class BaseContainer {
     this.container = document.createElement('div');
     this.container.id = `${this.type}-container`;
     // 확장 연결이 끊기면(업데이트) 감시를 끊고 창을 걷는다 — 새 스크립트와 겹치지 않게.
-    onTeardown(() => this.destroy());
+    onTeardown(disconnected => {
+      this.destroy();
+      this.restoreHost();
+      // 수집 표시(색 띠)는 확장 CSS가 남아 있어 계속 보인다. 넘겨줄 때는 새 스크립트가 그대로 쓴다.
+      if (disconnected) {
+        document.querySelectorAll(`.${PROCESSED_CHAT_CLASS}`).forEach(el => el.classList.remove(PROCESSED_CHAT_CLASS));
+      }
+    });
   }
 
   destroy() {
@@ -60,6 +68,21 @@ export class BaseContainer {
     // 자기 요소만 — 같은 id를 쓰는 새 스크립트의 창·손잡이를 건드리지 않게.
     this.container.remove();
     this.handle.getHandle().remove();
+  }
+
+  /**
+   * 원본 채팅창을 처음 모습으로 — 붙인 id, 나눠 준 높이·순서를 걷는다.
+   * 원래 id를 기억해 두지 않고 우리 id로 찾는다: 옛 버전이 이미 이름을 바꿔 둔 채로 넘겨받을 수 있다.
+   * 호스트(치지직·트위치)의 이 두 요소는 원래 id가 없다.
+   */
+  restoreHost() {
+    for (const id of [`tbc-${this.type}-chat-list-wrapper`, `tbc-${this.type}-chat-list-container`]) {
+      document.querySelectorAll<HTMLElement>(`#${id}`).forEach(el => {
+        el.removeAttribute('id');
+        el.style.removeProperty('height');
+        el.style.removeProperty('order');
+      });
+    }
   }
 
   // DOM API로 "#tbc_container" 요소를 생성하고 반환하는 메소드

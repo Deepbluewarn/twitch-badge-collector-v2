@@ -41,6 +41,8 @@ async function bootstrap() {
     // 전역 내비 쪽은 폭 측정이 필요해 trackSidebarSwap이 따로 맡는다.
     applyChatSide((await browser.storage.local.get('chzzkChatSide')).chzzkChatSide);
     trackSidebarSwap();
+    // 확장 CSS는 끊긴 뒤에도 남는다 — 스위치를 내려 치지직 기본 배치로.
+    onTeardown(disconnected => { if (disconnected) applyChatSide(undefined); });
     // 설정 변경 즉시 반영 — CSS 스위치라 reload가 필요 없다 (displayMode와 다른 점).
     addStorageUpdateListener((key, newValue) => {
         if (key !== 'chzzkChatSide') return;

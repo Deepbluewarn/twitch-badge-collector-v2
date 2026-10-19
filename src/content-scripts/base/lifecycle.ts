@@ -20,13 +20,20 @@ const NOTICE_ID = 'tbcv2-updated-notice';
 const INSTANCE_EVENT = 'tbcv2-instance';
 const INSTANCE = Math.random().toString(36).slice(2);
 const CHECK_MS = 2000;
-const teardowns: (() => void)[] = [];
+/** disconnected: 새 스크립트 없이 끊겼다(확장 끔·제거 등). false면 새 스크립트에 넘겨주는 중이다. */
+type Teardown = (disconnected: boolean) => void;
+const teardowns: Teardown[] = [];
 let orphaned = false;
 
 export const isOrphaned = () => orphaned;
 
-/** 연결이 끊겼을 때 돌릴 정리. 나중에 등록한 것부터 돈다. */
-export function onTeardown(fn: () => void) {
+/**
+ * 연결이 끊겼을 때 돌릴 정리. 나중에 등록한 것부터 돈다.
+ * 확장 CSS는 끊긴 뒤에도 페이지에 남는다(Chrome). 그래서 호스트에 붙인 id·속성·inline 스타일도 되돌려야
+ * 원래 채팅창으로 돌아간다. 새 스크립트가 바로 다시 거는 것(채팅 좌우 배치 등)은 disconnected일 때만 되돌린다
+ * — 넘겨주는 중에 되돌리면 화면이 한 번 뒤집혔다 돌아온다.
+ */
+export function onTeardown(fn: Teardown) {
     teardowns.push(fn);
 }
 
@@ -73,10 +80,12 @@ export function startInstance(type: Platform) {
         orphaned = true;
         window.clearInterval(timer);
         window.removeEventListener(INSTANCE_EVENT, onNewInstance);
+        // 정리하면서 채팅 목록의 id를 원래대로 돌려놓으니, 안내를 붙일 자리는 먼저 잡아 둔다.
+        const host = document.getElementById(`tbc-${type}-chat-list-container`);
         for (const fn of [...teardowns].reverse()) {
-            try { fn(); } catch { /* 정리 중 실패는 무시 — 끊긴 상태라 흔하다 */ }
+            try { fn(notice); } catch { /* 정리 중 실패는 무시 — 끊긴 상태라 흔하다 */ }
         }
-        if (notice) showNotice(type, message);
+        if (notice && host) showNotice(host, message);
     };
     // 새 스크립트가 들어왔다 → 안내 없이 물러난다.
     const onNewInstance = (e: Event) => { if ((e as CustomEvent).detail !== INSTANCE) retire(false); };
@@ -85,17 +94,19 @@ export function startInstance(type: Platform) {
     timer = window.setInterval(() => { if (!contextAlive()) retire(true); }, CHECK_MS);
 }
 
-/** 원본 채팅창 위에 한 줄 — 누르면 새로고침. 새 스크립트가 들어오면 removeLeftovers가 치운다. */
-function showNotice(type: Platform, message: string) {
+/**
+ * 원본 채팅창 위에 한 줄 — 누르면 새로고침. 새 스크립트가 들어오면 removeLeftovers가 치운다.
+ * 채팅 목록 안이 아니라 바로 위(형제)에 붙인다 — 치지직은 목록 맨 위를 고정 메시지·미션 상자가 덮고 있다.
+ */
+function showNotice(host: HTMLElement, message: string) {
     if (!message || document.getElementById(NOTICE_ID)) return;
-    const host = document.getElementById(`tbc-${type}-chat-list-container`);
-    if (!host) return;
     const el = document.createElement('button');
     el.id = NOTICE_ID;
     el.type = 'button';
     el.textContent = message;
     el.style.cssText = 'all:unset;box-sizing:border-box;display:block;width:100%;padding:8px 12px;'
-        + 'background:#FFD60A;color:#111;font:700 13px/1.4 system-ui,sans-serif;text-align:center;cursor:pointer;';
+        + 'background:#FFD60A;color:#111;font-family:inherit;font-size:13px;font-weight:700;line-height:1.4;letter-spacing:normal;word-break:keep-all;'
+        + 'text-align:center;cursor:pointer;';
     el.addEventListener('click', () => location.reload());
-    host.prepend(el);
+    host.before(el);
 }
