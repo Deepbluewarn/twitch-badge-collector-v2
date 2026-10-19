@@ -2,7 +2,9 @@ name: Scheduled Publish
 
 # 매일 새벽 4시(한국 시간)에 업데이트를 내보낸다 — 방송을 많이 보는 저녁·밤에 업데이트가 퍼지지 않게.
 # 아침에 브라우저를 켜면 방송 탭을 열기 전에 새 버전이 들어간다.
-#  - Chrome: 릴리스 때 STAGED_PUBLISH로 제출해 둔 것이 승인돼 대기 중이면 게시(scripts/cws.mjs).
+#  - Chrome: 릴리스 때 STAGED_PUBLISH로 제출해 둔 것이 승인돼 대기 중이면 10%에 게시하고,
+#            단계적 배포 중인 게시본은 하루에 한 단계씩 올린다(10 → 50 → 100%, scripts/cws.mjs).
+#            문제가 보이면 이 워크플로를 꺼서 더 올라가지 않게 한다.
 #  - Firefox: 최신 릴리스를 아직 안 냈으면 릴리스에 첨부된 zip으로 제출(심사가 몇 분이라 곧 게시된다).
 #  - 디스코드 공지: Chrome이 실제로 게시됐을 때.
 # 제출·공지 여부는 릴리스에 붙이는 작은 표시 파일로 기억한다(같은 버전을 매일 다시 내지 않게).
@@ -37,23 +39,26 @@ jobs:
           echo "latest: $TAG"; echo "$ASSETS"
 
   chrome:
-    name: Chrome — publish staged
+    name: Chrome — rollout, publish staged
     runs-on: ubuntu-latest
     outputs:
       published: ${{ steps.p.outputs.published }}
+    env:
+      CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+      CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+      CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+      CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+      CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # 올리기 먼저 — 오늘 막 게시한 버전을 같은 밤에 바로 올리지 않게.
+      - name: Raise rollout
+        run: node scripts/cws.mjs ramp
       - id: p
         run: node scripts/cws.mjs publish-staged
-        env:
-          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          CHROME_PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
-          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
 
   firefox:
     name: Firefox — submit latest release

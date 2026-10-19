@@ -4,11 +4,16 @@
  *
  *   node scripts/cws.mjs token            OAuth refresh token → access token (stdout)
  *   node scripts/cws.mjs status           게시본·제출본 상태 (JSON)
- *   node scripts/cws.mjs publish-staged   승인돼 대기(STAGED) 중이면 게시. 아니면 아무것도 안 함.
+ *   node scripts/cws.mjs publish-staged   승인돼 대기(STAGED) 중이면 첫 단계 비율로 게시. 아니면 아무것도 안 함.
+ *   node scripts/cws.mjs ramp             게시본이 단계적 배포 중이면 다음 단계로 올린다.
  *
  * 릴리스 때는 심사 제출만 STAGED_PUBLISH로 하고(publish.yml, publish-browser-extension),
  * 새벽 예약 작업(scheduled-publish.yml)이 publish-staged로 게시한다 — 방송을 많이 보는 시간대에 업데이트가
  * 퍼지지 않게. 대기 중인 항목을 다시 publish하면 심사 없이 바로 게시된다(API 문서).
+ *
+ * 단계적 배포: CHROME_ROLLOUT(기본 10,50,100)의 첫 비율로 게시하고, 새벽 작업이 하루에 한 단계씩 올린다.
+ * 7일 활성 사용자 1만 명이 넘어야 쓸 수 있다 — 안 되면 100%로 게시한다. 비율은 올리기만 된다(API).
+ * 문제가 보이면 Scheduled Publish 워크플로를 꺼서 더 올라가지 않게 하고, 고친 버전을 내면 이전 배포는 멈춘다.
  *
  * env: CHROME_CLIENT_ID, CHROME_CLIENT_SECRET, CHROME_REFRESH_TOKEN, CHROME_PUBLISHER_ID, CHROME_EXTENSION_ID
  *      GITHUB_OUTPUT(있으면 published=true|false를 적는다)
@@ -48,6 +53,8 @@ async function call(token, method, path, body) {
     return text ? JSON.parse(text) : {};
 }
 
+const ROLLOUT = (process.env.CHROME_ROLLOUT || '10,50,100').split(',').map(Number);
+
 const output = (key, value) => {
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
 };
@@ -65,14 +72,34 @@ if (cmd === 'token') {
     console.log(`published: ${status.publishedItemRevisionStatus?.state ?? '-'} ${status.publishedItemRevisionStatus?.distributionChannels?.[0]?.crxVersion ?? ''}`);
     console.log(`submitted: ${submitted?.state ?? '-'} ${version}`);
     if (submitted?.state === 'STAGED') {
-        await call(token, 'POST', ':publish', {});
-        console.log(`published staged ${version}`);
+        const first = ROLLOUT[0];
+        try {
+            await call(token, 'POST', ':publish', first < 100 ? { deployInfos: [{ deployPercentage: first }] } : {});
+            console.log(`published staged ${version} to ${first}%`);
+        } catch (e) {
+            if (first >= 100) throw e;
+            // 단계적 배포 자격이 없으면(사용자 1만 명 이하 등) 전체로.
+            console.log(`rollout ${first}% rejected, publishing to 100%: ${e.message}`);
+            await call(token, 'POST', ':publish', {});
+            console.log(`published staged ${version} to 100%`);
+        }
         output('published', 'true');
         output('version', version);
     } else {
         output('published', 'false');
     }
+} else if (cmd === 'ramp') {
+    const token = await accessToken();
+    const status = await call(token, 'GET', ':fetchStatus');
+    const channel = status.publishedItemRevisionStatus?.distributionChannels?.[0];
+    const current = channel?.deployPercentage ?? 100;
+    const next = ROLLOUT.find(p => p > current);
+    console.log(`published ${channel?.crxVersion ?? '-'} at ${current}%`);
+    if (next !== undefined) {
+        await call(token, 'POST', ':setPublishedDeployPercentage', { deployPercentage: next });
+        console.log(`raised to ${next}%`);
+    }
 } else {
-    console.error('usage: node scripts/cws.mjs token|status|publish-staged');
+    console.error('usage: node scripts/cws.mjs token|status|publish-staged|ramp');
     process.exit(2);
 }
