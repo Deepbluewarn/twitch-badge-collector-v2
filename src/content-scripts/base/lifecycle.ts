@@ -97,6 +97,7 @@ export function startInstance(type: Platform) {
 /**
  * 원본 채팅창 위에 한 줄 — 누르면 새로고침. 새 스크립트가 들어오면 removeLeftovers가 치운다.
  * 채팅 목록 안이 아니라 바로 위(형제)에 붙인다 — 치지직은 목록 맨 위를 고정 메시지·미션 상자가 덮고 있다.
+ * 트위치는 드롭스 안내 카드 등이 목록 위쪽에 떠 있어 z-index로 그 위에 올린다.
  */
 function showNotice(host: HTMLElement, message: string) {
     if (!message || document.getElementById(NOTICE_ID)) return;
@@ -104,7 +105,7 @@ function showNotice(host: HTMLElement, message: string) {
     el.id = NOTICE_ID;
     el.type = 'button';
     el.textContent = message;
-    el.style.cssText = 'all:unset;box-sizing:border-box;display:block;width:100%;padding:8px 12px;'
+    el.style.cssText = 'all:unset;box-sizing:border-box;display:block;position:relative;z-index:1000;width:100%;padding:8px 12px;'
         + 'background:#FFD60A;color:#111;font-family:inherit;font-size:13px;font-weight:700;line-height:1.4;letter-spacing:normal;word-break:keep-all;'
         + 'text-align:center;cursor:pointer;';
     el.addEventListener('click', () => location.reload());
