@@ -24,6 +24,7 @@ jobs:
     outputs:
       tag: ${{ steps.r.outputs.tag }}
       firefox_done: ${{ steps.r.outputs.firefox_done }}
+      firefox_zip: ${{ steps.r.outputs.firefox_zip }}
       notified: ${{ steps.r.outputs.notified }}
     steps:
       - id: r
@@ -35,6 +36,8 @@ jobs:
           ASSETS=$(gh release view "$TAG" --repo "$REPO" --json assets -q '.assets[].name')
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "firefox_done=$(grep -qx 'firefox-submitted.txt' <<< "$ASSETS" && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          # zip이 첨부되지 않은 릴리스(이 예약 작업 이전에 낸 것)는 Firefox에 이미 냈다 — 건너뛴다.
+          echo "firefox_zip=$(grep -q -- '-firefox\.zip$' <<< "$ASSETS" && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "notified=$(grep -qx 'notified.txt' <<< "$ASSETS" && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "latest: $TAG"; echo "$ASSETS"
 
@@ -63,7 +66,7 @@ jobs:
   firefox:
     name: Firefox — submit latest release
     needs: release
-    if: needs.release.outputs.firefox_done != 'true'
+    if: needs.release.outputs.firefox_done != 'true' && needs.release.outputs.firefox_zip == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,8 +80,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.release.outputs.tag }}
         run: gh release download "$TAG" -p '*-firefox.zip' -p '*-sources.zip' -D .output
+      # 전에 제출은 됐는데 표시 파일을 못 남긴 경우, AMO가 같은 버전을 거절한다 — 그건 이미 낸 것으로 친다.
+      # 안 그러면 매일 다시 내고 매일 실패한다.
       - name: Submit
-        run: npx wxt submit --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
+        run: |
+          set -o pipefail
+          if ! npx wxt submit --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip 2>&1 | tee submit.log; then
+            grep -qi 'already exists' submit.log || exit 1
+            echo "already submitted"
+          fi
         env:
           FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
           FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}

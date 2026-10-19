@@ -49,7 +49,7 @@ async function call(token, method, path, body) {
         body: body === undefined ? undefined : JSON.stringify(body),
     });
     const text = await res.text();
-    if (!res.ok) throw new Error(`${method} ${path}: HTTP ${res.status} ${text}`);
+    if (!res.ok) throw Object.assign(new Error(`${method} ${path}: HTTP ${res.status} ${text}`), { status: res.status });
     return text ? JSON.parse(text) : {};
 }
 
@@ -77,8 +77,9 @@ if (cmd === 'token') {
             await call(token, 'POST', ':publish', first < 100 ? { deployInfos: [{ deployPercentage: first }] } : {});
             console.log(`published staged ${version} to ${first}%`);
         } catch (e) {
-            if (first >= 100) throw e;
-            // 단계적 배포 자격이 없으면(사용자 1만 명 이하 등) 전체로.
+            // 단계적 배포 자격이 없으면(사용자 1만 명 이하 등 — 요청 거절, 4xx) 전체로.
+            // 서버 오류·네트워크 오류는 실패로 둔다 — 대기 상태가 유지돼 다음 새벽에 다시 10%로 시도한다.
+            if (first >= 100 || !(e.status >= 400 && e.status < 500)) throw e;
             console.log(`rollout ${first}% rejected, publishing to 100%: ${e.message}`);
             await call(token, 'POST', ':publish', {});
             console.log(`published staged ${version} to 100%`);
