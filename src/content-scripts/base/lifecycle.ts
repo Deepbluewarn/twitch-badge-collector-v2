@@ -21,6 +21,12 @@ const NOTICE_ID = 'tbcv2-updated-notice';
 const INSTANCE_EVENT = 'tbcv2-instance';
 const INSTANCE = Math.random().toString(36).slice(2);
 const CHECK_MS = 2000;
+/**
+ * 끊긴 걸 보고도 이만큼은 새 스크립트를 기다린다. Chrome은 업데이트 직후 탭을 하나씩 돌며 새 스크립트를 넣어
+ * 뒤쪽 탭은 늦게 받는다. 그 전에 물러나 창을 걷으면 새 스크립트가 넘겨받을 채팅(salvage.ts)이 없어지고,
+ * 안내 띠가 잠깐 떴다 사라진다. 새 스크립트가 오면 신호(INSTANCE_EVENT)로 바로 물러난다.
+ */
+const GRACE_MS = 6000;
 /** disconnected: 새 스크립트 없이 끊겼다(확장 끔·제거 등). false면 새 스크립트에 넘겨주는 중이다. */
 type Teardown = (disconnected: boolean) => void;
 const teardowns: Teardown[] = [];
@@ -93,8 +99,13 @@ export function startInstance(type: Platform) {
     // 새 스크립트가 들어왔다 → 안내 없이 물러난다.
     const onNewInstance = (e: Event) => { if ((e as CustomEvent).detail !== INSTANCE) retire(false); };
     window.addEventListener(INSTANCE_EVENT, onNewInstance);
-    // 새 스크립트 없이 끊겼다(다시 넣기 실패 등) → 물러나고 새로고침 안내.
-    timer = window.setInterval(() => { if (!contextAlive()) retire(true); }, CHECK_MS);
+    // 새 스크립트 없이 끊겼다(확장 끔·제거, 다시 넣기 실패 등) → 기다려 본 뒤 물러나고 새로고침 안내.
+    let lostAt = 0;
+    timer = window.setInterval(() => {
+        if (contextAlive()) return;
+        lostAt ||= Date.now();
+        if (Date.now() - lostAt >= GRACE_MS) retire(true);
+    }, CHECK_MS);
 }
 
 /**
