@@ -1,9 +1,12 @@
 // @vitest-environment happy-dom
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import useFilteredChatBuffer from './useFilteredChatBuffer';
 import { PlatformAdapter } from '@/platform';
 import { PassedChat } from './useChatStream';
+
+// 확장과 연결된 상태로 본다(lifecycle.contextAlive가 runtime.id를 본다). 끊긴 경우는 아래 테스트에서 따로.
+vi.stubGlobal('browser', { runtime: { id: 'test' } });
 
 // addChat이 받는 PassedChat 빌더. 실제 DOM clone은 빈 div로 충분 — buffer는
 // 정렬/dedupe/트림 로직만 다루고 JSX 내용은 들여다보지 않음.
@@ -186,6 +189,18 @@ describe('useFilteredChatBuffer', () => {
             rerender({ ch: 'aaa' });
 
             expect(result.current.chats).toHaveLength(1);
+        });
+    });
+
+    describe('확장과 끊긴 뒤', () => {
+        afterEach(() => vi.stubGlobal('browser', { runtime: { id: 'test' } }));
+
+        it('새 채팅을 받지 않는다 — 다시 그리다 창이 내려가지 않게, 새 스크립트가 그대로 넘겨받게', () => {
+            const { result } = renderHook(() => useFilteredChatBuffer(makeAdapter('newest-bottom'), 100));
+            act(() => result.current.addChat(passed({ key: 'a' })));
+            vi.stubGlobal('browser', { runtime: {} });
+            act(() => result.current.addChat(passed({ key: 'b' })));
+            expect(result.current.savedChats.map(c => c.key)).toEqual(['a']);
         });
     });
 });

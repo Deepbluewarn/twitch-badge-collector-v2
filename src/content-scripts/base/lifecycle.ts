@@ -44,7 +44,8 @@ export function onTeardown(fn: Teardown) {
     teardowns.push(fn);
 }
 
-function contextAlive(): boolean {
+/** 확장과 아직 연결돼 있나. 끊긴 뒤 확장 API를 부르면 "Extension context invalidated"가 던져진다. */
+export function contextAlive(): boolean {
     try {
         return !!browser.runtime?.id;
     } catch {

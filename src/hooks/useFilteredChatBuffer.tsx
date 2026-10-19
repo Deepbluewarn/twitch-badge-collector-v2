@@ -5,6 +5,7 @@ import { convertToJSX } from "@/utils/converter";
 import { PassedChat } from "./useChatStream";
 import { hasChatHistoryStore, loadChatHistory, removeChatHistory, saveChatHistory } from "@/utils/chat-history-store";
 import { takeLeftoverChats } from "@/content-scripts/base/salvage";
+import { contextAlive } from "@/content-scripts/base/lifecycle";
 
 interface ChatWrapperProps {
     time: number;
@@ -256,6 +257,9 @@ export default function useFilteredChatBuffer(
     }, [persistenceKey]);
 
     const addChat = useCallback(({ clone, key, time, prevKey, nickname, text }: PassedChat) => {
+        // 확장과 끊긴 뒤(업데이트로 새 스크립트가 오는 중)엔 창을 건드리지 않는다. 다시 그리다 확장 API가
+        // 던지면 React가 창을 통째로 내리고, 새 스크립트가 넘겨받을 채팅(salvage.ts)이 사라진다.
+        if (!contextAlive()) return;
         setSavedChats(prev => {
             // dedupe: 같은 세션은 key로(안정적인 React key 또는 동일 채팅 재발화 방지).
             // cross-session backfill은 time으로(서버 timestamp — 같은 채팅엔 같은 값).
@@ -321,6 +325,7 @@ export default function useFilteredChatBuffer(
      * 빠졌거나 필터를 통과하지 않은 채팅이다. 저장(persistence)은 savedChats 변경으로 따라간다.
      */
     const updateChat = useCallback(({ key, clone, text }: { key: string; clone: HTMLElement; text: string }) => {
+        if (!contextAlive()) return;
         setSavedChats(prev => {
             const idx = prev.findIndex(c => c.key === key);
             if (idx === -1) return prev;
@@ -356,7 +361,10 @@ export default function useFilteredChatBuffer(
                 if (c.channel) {
                     const parts = c.channel.split(':');
                     const channelId = parts[2] ?? c.channel;
-                    node.setAttribute('title', browser.i18n.getMessage((c.restored ? 'chatSourceRestored' : 'chatSource') as any, [channelId]));
+                    // 렌더 중이라 던지면 창이 통째로 내려간다 — 끊긴 뒤엔 표시만 건너뛴다.
+                    try {
+                        node.setAttribute('title', browser.i18n.getMessage((c.restored ? 'chatSourceRestored' : 'chatSource') as any, [channelId]));
+                    } catch { /* 확장과 끊김 */ }
                 }
             }
             const content = node ? convertToJSX(node) : null;
