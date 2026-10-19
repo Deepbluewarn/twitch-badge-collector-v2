@@ -4,6 +4,7 @@ import { PlatformAdapter } from "@/platform";
 import { convertToJSX } from "@/utils/converter";
 import { PassedChat } from "./useChatStream";
 import { hasChatHistoryStore, loadChatHistory, removeChatHistory, saveChatHistory } from "@/utils/chat-history-store";
+import { takeLeftoverChats } from "@/content-scripts/base/salvage";
 
 interface ChatWrapperProps {
     time: number;
@@ -154,6 +155,8 @@ export default function useFilteredChatBuffer(
     //    undefined로 떨어져 "직전 채널" 기억이 날아가고, B에서도 A의 chat이 잔류
     // 그래서 채널 미확정(falsy) 구간에선 직전 channelId 기억을 유지하고, 실제로 다른
     // 채널로 확정 이동한 순간에만 비운다. persistence 지원 안 하는 어댑터(Twitch)도 동일.
+    const channelIdRef = useRef(channelId);
+    channelIdRef.current = channelId;
     const prevChannelIdRef = useRef<string | null | undefined>(undefined);
     useEffect(() => {
         if (!channelId) return;
@@ -169,7 +172,17 @@ export default function useFilteredChatBuffer(
     // 마운트 시 + persistenceKey 변경 시 storage에서 load.
     // 채널 이동으로 인한 clear는 위 effect가 (선언 순서상) 먼저 처리 → 여기서 보는 prev는
     // 초기 mount의 [] 또는 로드 중 들어온 신규 live chat뿐이라 병합 대상.
+    //
+    // 확장 업데이트 직후라면 옛 창에 보이던 채팅(salvage.ts)부터 채운다 — 채팅 유지 설정과 상관없이,
+    // 저장소보다 최신이다(저장은 2초 간격). 저장소에 그보다 오래된 채팅이 있으면 아래 병합이 붙인다.
     useEffect(() => {
+        const leftover = takeLeftoverChats(channelIdRef.current).map(c => ({
+            ...c, restored: true, nickname: '', text: '', channel: persistenceKey,
+        }));
+        if (leftover.length > 0) {
+            const kept = adapter.chatOrder === 'newest-top' ? leftover.slice(0, maxChats) : leftover.slice(-maxChats);
+            setSavedChats(prev => prev.length === 0 ? kept : prev);
+        }
         if (!persistenceKey) {
             isHydratedRef.current = true;
             return;

@@ -1,61 +1,49 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { fakeBrowser } from '@webext-core/fake-browser';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { snapshotLeftoverChats, takeLeftoverChats } from './salvage';
 
-vi.stubGlobal('browser', fakeBrowser);
-const { salvageLeftoverChats } = await import('./salvage');
-const { loadChatHistory, saveChatHistory } = await import('@/utils/chat-history-store');
-
-const KEY = 'chatHistory:chzzk:ch1:live';
 const chat = (key: string, time: number, channel = 'ch1') =>
     `<div class="_item" data-tbc-chat-key="${key}" data-tbc-chat-time="${time}" title="채널: ${channel}"><span data-tbc-chat-key="inner">${key}</span></div>`;
-/** 2.23.0이 남긴 창 — 새 스크립트의 removeLeftovers가 id에 -stale을 붙여 숨긴 상태 */
-const leftover = (id: string, ...chats: string[]) => {
-    document.body.innerHTML = `<div id="${id}" style="display:none"><div id="tbc-clone__chzzkui">${chats.join('')}</div></div>`;
-};
-type Payload = { version: number; chats: { key: string; time: number; html: string }[] };
+const pane = (id: string, ...chats: string[]) =>
+    `<div id="${id}"><div id="tbc-clone__chzzkui">${chats.join('')}</div></div>`;
 
-describe('salvageLeftoverChats', () => {
+describe('salvage — 업데이트 때 옛 창의 채팅 넘기기', () => {
     beforeEach(() => {
-        fakeBrowser.reset();
         document.body.innerHTML = '';
+        snapshotLeftoverChats('chzzk');
+        takeLeftoverChats('reset');
     });
 
-    it('옛 창의 채팅을 순서 그대로 저장소로 옮긴다 (title은 뺀다)', async () => {
-        leftover('chzzk-container-stale', chat('b', 2), chat('a', 1));
-        expect(await salvageLeftoverChats('chzzk', 'ch1', 'newest-top')).toBe(2);
-        const saved = await loadChatHistory<Payload>(KEY);
-        expect(saved?.chats.map(c => [c.key, c.time])).toEqual([['b', 2], ['a', 1]]);
-        expect(saved?.chats[0].html).not.toContain('title=');
+    it('옛 창의 채팅을 화면 순서대로 떠 두고, title은 빼서 내준다', () => {
+        document.body.innerHTML = pane('chzzk-container', chat('b', 2), chat('a', 1));
+        snapshotLeftoverChats('chzzk');
+        const taken = takeLeftoverChats('ch1');
+        expect(taken.map(c => [c.key, c.time])).toEqual([['b', 2], ['a', 1]]);
+        expect(taken[0].html).not.toContain('title=');
     });
 
-    it('팝오버 창에서도 옮긴다', async () => {
-        leftover('tbc-floating-chzzk-stale', chat('a', 1));
-        expect(await salvageLeftoverChats('chzzk', 'ch1', 'newest-top')).toBe(1);
+    it('팝오버 창, 이미 숨긴(-stale) 2.23.0 창에서도 뜬다', () => {
+        document.body.innerHTML = pane('tbc-floating-chzzk', chat('a', 1)) + pane('chzzk-container-stale', chat('b', 2));
+        snapshotLeftoverChats('chzzk');
+        expect(takeLeftoverChats('ch1').map(c => c.key)).toEqual(['a', 'b']);
     });
 
-    it('이미 저장된 채팅이 있으면 손대지 않는다 (새 버전끼리 업데이트)', async () => {
-        await saveChatHistory(KEY, { version: 1, chats: [{ key: 'x', time: 9, html: '' }] });
-        leftover('chzzk-container-stale', chat('a', 1));
-        expect(await salvageLeftoverChats('chzzk', 'ch1', 'newest-top')).toBe(0);
-        expect((await loadChatHistory<Payload>(KEY))?.chats.map(c => c.key)).toEqual(['x']);
+    it('한 번만 내준다', () => {
+        document.body.innerHTML = pane('chzzk-container', chat('a', 1));
+        snapshotLeftoverChats('chzzk');
+        expect(takeLeftoverChats('ch1')).toHaveLength(1);
+        expect(takeLeftoverChats('ch1')).toHaveLength(0);
     });
 
-    it('채팅 유지를 꺼 두었으면 옮기지 않는다', async () => {
-        await fakeBrowser.storage.local.set({ chatPersistence: 'off' });
-        leftover('chzzk-container-stale', chat('a', 1));
-        expect(await salvageLeftoverChats('chzzk', 'ch1', 'newest-top')).toBe(0);
-        expect(await loadChatHistory(KEY)).toBeUndefined();
+    it('채널이 정해지기 전에는 남겨 두고, 다른 채널 채팅은 버린다', () => {
+        document.body.innerHTML = pane('chzzk-container', chat('a', 1, 'other'), chat('b', 2));
+        snapshotLeftoverChats('chzzk');
+        expect(takeLeftoverChats(null)).toEqual([]);
+        expect(takeLeftoverChats('ch1').map(c => c.key)).toEqual(['b']);
     });
 
-    it('다른 채널 채팅은 버린다', async () => {
-        leftover('chzzk-container-stale', chat('a', 1, 'other'), chat('b', 2));
-        expect(await salvageLeftoverChats('chzzk', 'ch1', 'newest-top')).toBe(1);
-    });
-
-    it('옛 창이 없거나 라이브가 아니면 아무것도 안 한다', async () => {
-        expect(await salvageLeftoverChats('chzzk', 'ch1', 'newest-top')).toBe(0);
-        leftover('chzzk-container-stale', chat('a', 1));
-        expect(await salvageLeftoverChats('chzzk', null, 'newest-top')).toBe(0);
+    it('옛 창이 없으면 아무것도 없다', () => {
+        snapshotLeftoverChats('chzzk');
+        expect(takeLeftoverChats('ch1')).toEqual([]);
     });
 });

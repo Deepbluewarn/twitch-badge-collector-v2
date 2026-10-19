@@ -15,7 +15,6 @@ import { ensureRolloutBucket } from "./socket-mode";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { setupChannelOff } from "../base/channel-off";
 import { onTeardown, startInstance } from "../base/lifecycle";
-import { salvageLeftoverChats } from "../base/salvage";
 
 async function bootstrap() {
     // 업데이트 전 버전의 스크립트를 물러나게 하고 남은 창을 치운 뒤, 연결이 끊기는지 지켜본다.
@@ -104,8 +103,6 @@ async function bootstrap() {
         }
     }
 
-    // 2.23.0 이하에서 업데이트된 탭이면 옛 창에 모여 있던 채팅을 저장소로 옮긴다 — 창을 만들기 전에.
-    await salvageLeftoverChats('chzzk', adapter.getPageMode() === 'live' ? adapter.getCurrentChannelId() : null, adapter.chatOrder);
     init();
     // SPA 채널 이동 시 init 재호출. floatingLive.create()는 readinessSelector
     // (chatRoomLive) 매칭까지 자체 대기 — 별도 timing 로직 불필요.

@@ -13,6 +13,7 @@
  *   사라지는 경우에도 겹치지 않게.
  */
 import type { SettingInterface } from '@/interfaces/setting';
+import { snapshotLeftoverChats } from './salvage';
 
 type Platform = SettingInterface['platform'];
 
@@ -71,6 +72,8 @@ export function startInstance(type: Platform) {
     let message = '';
     try { message = browser.i18n.getMessage('extensionDisconnected'); } catch { /* 이미 끊김 */ }
 
+    // 옛 창에 보이던 채팅을 떠 둔다 — 옛 스크립트가 신호를 받고 창을 걷기 전에(salvage.ts).
+    snapshotLeftoverChats(type);
     window.dispatchEvent(new CustomEvent(INSTANCE_EVENT, { detail: INSTANCE }));
     removeLeftovers(type);
 
