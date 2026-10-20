@@ -15,7 +15,7 @@
     {
       "name": "video",
       "required": false,
-      "present": false
+      "present": true
     },
     {
       "name": "displayName",
@@ -34,7 +34,7 @@
     {
       "name": "donationText",
       "required": false,
-      "present": true
+      "present": false
     },
     {
       "name": "badge",
