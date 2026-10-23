@@ -88,7 +88,7 @@ export default function FilterAddDialog({ open, onClose }: Props) {
                         <h3 className={s.sectionTitle}>{t('setting.filter.select_badges')}</h3>
                         {/* 배지 사이트의 배지 일람 — 치지직만 있다 */}
                         {globalSetting.platform === 'chzzk' && (
-                            <a className={s.siteLink} href="https://badgecollector.dev/badges" target="_blank" rel="noreferrer">
+                            <a className={s.siteLink} href="https://badgecollector.dev/badges/" target="_blank" rel="noreferrer">
                                 {t('setting.filter.badge_catalog')} ↗
                             </a>
                         )}
