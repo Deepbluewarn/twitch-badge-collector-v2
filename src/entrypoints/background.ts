@@ -6,6 +6,7 @@ import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
 import { installChzzkApiOriginRule } from "@/api/chzzk-channel";
 import { CHANNEL_OFF_BADGE_MESSAGE } from "@/utils/channel-off";
 import { clearAllChatHistory } from "@/utils/chat-history-store";
+import { migrateLargeLook } from "@/render/chzzk-style";
 
 export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id });
@@ -140,6 +141,8 @@ export default defineBackground(() => {
     // 네트워크 없이 되는 것부터 — 아래 fetch가 죽어도 설정/필터는 유효한 상태로 남는다.
     await ensureDefaultSettings();
     await normalizeFilterPlatform();
+    // 템플릿 "글자 크기: 크게"는 스타일의 글자 크기로 옮겼다
+    if (details.reason === 'update') await migrateLargeLook().catch(e => console.warn('[tbcv2 bg] migrateLargeLook failed', e));
 
     try {
       await syncChzzkBadgeImages();

@@ -568,6 +568,19 @@ function Popup() {
     browser.storage.local.set({containerRatio: 30});
   }
 
+  // 채팅 모양(템플릿)은 치지직 소켓 렌더 모드에서만 동작한다. 꺼진 사용자와 트위치 탭에서는 버튼을 숨긴다.
+  const [showChatLook, setShowChatLook] = React.useState(false);
+  useEffect(() => {
+    Promise.all([
+      manifestReady,
+      ensureRolloutBucket(),
+      browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => tab?.url ?? '').catch(() => ''),
+    ]).then(([, bucket, url]) => {
+      const onTwitch = /^https?:\/\/([^/]+\.)?twitch\.tv\//.test(url);
+      setShowChatLook(!onTwitch && isSocketRenderEnabled(getPlatformConfig('chzzk').constants, null, bucket));
+    });
+  }, []);
+
   // 활성 탭의 content script로 메시지 전송. content는 chzzk/twitch 페이지에서만 mount
   // 되므로 다른 탭에선 sendMessage가 reject 됨 — 그땐 alert로 안내만 하고 silent.
   const sendToActiveContent = async (type: 'tbc-start-capture' | 'tbc-clear-chats') => {
@@ -640,6 +653,17 @@ function Popup() {
       >
         {browser.i18n.getMessage("generalSetting")}
       </Button>
+
+      {/* 채팅 모양 — 치지직 템플릿 설정 페이지 */}
+      {showChatLook && (
+        <Button
+          icon='palette'
+          block
+          onClick={() => onPageButtonClicked("template")}
+        >
+          {browser.i18n.getMessage('chatLookButton' as any)}
+        </Button>
+      )}
 
       {/* 채팅 캡쳐 시작 — 활성 탭의 content script로 메시지 */}
       <Button

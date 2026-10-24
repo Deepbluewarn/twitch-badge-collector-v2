@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    max-width: 1080px;
+    max-width: 900px;
     width: 100%;
     margin: 0 auto;
     padding: 16px;
@@ -14,14 +14,22 @@
     padding: 20px;
 }
 
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+}
+
 .title {
-    margin: 0;
-    font-size: 20px;
+    margin: 0 auto 0 0;
+    font-size: 18px;
     font-weight: 900;
 }
 
 .subtitle {
-    margin: 0 0 12px;
+    margin: 0;
     font-size: 15px;
     font-weight: 900;
 }
@@ -32,53 +40,240 @@
     color: var(--ui-muted);
 }
 
-.lookGrid {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    column-gap: 16px;
-    row-gap: 8px;
-}
-
-.lookGrid > div {
-    justify-self: start;
-}
-
 .label {
     font-size: 13px;
     font-weight: 800;
     color: var(--ui-muted);
 }
 
-.kindBar {
+.presetSelect {
+    width: auto;
+}
+
+/* ── 공유 ── */
+.shareAnchor {
+    position: relative;
+}
+
+.sharePop {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 60;
+    width: 360px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.share {
+    display: grid;
+    gap: 8px;
+}
+
+.shareRow {
     display: flex;
     align-items: center;
+    gap: 8px;
+}
+
+.shareInput {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+}
+
+/* ── 부분 목록 ── */
+.partBar {
+    display: flex;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
-    margin: 16px 0 12px;
 }
 
-.kindBar > :first-child {
-    flex: 1;
-    min-width: 0;
-}
-
-.panes {
+.parts {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
-@media (min-width: 900px) {
-    .panes {
-        flex-direction: row;
-    }
+.partChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border: 2px solid var(--ui-line);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
 }
 
-.pane {
+.partChip[aria-pressed='true'] {
+    border-color: var(--ui-yellow);
+    background: var(--ui-yellow);
+    color: var(--ui-on-yellow);
+}
+
+.partDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--ui-yellow);
+}
+
+.partChip[aria-pressed='true'] .partDot {
+    background: var(--ui-on-yellow);
+}
+
+/* ── 미리보기: 실제 모아보기 폭(340px)과 여백(#tbc-clone__chzzkui 좌우 12px) ── */
+.previewStage {
+    display: flex;
+    justify-content: center;
+    padding: 12px 0;
+    border-radius: 10px;
+    background: repeating-linear-gradient(45deg, transparent 0 8px, rgba(128, 128, 128, 0.08) 8px 16px);
+}
+
+.preview {
+    width: 340px;
+    min-height: 420px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 2px solid var(--ui-hair);
+    box-sizing: border-box;
+}
+
+.preview :global(.tbcv2-chat-time) {
+    padding-right: 8px;
+}
+
+.previewDark {
+    background: #141517;
+    color: #e6e6e6;
+}
+
+.previewLight {
+    background: #ffffff;
+    color: #141517;
+}
+
+/* 누를 수 있는 곳과 고른 부분 */
+.preview,
+.preview :global(.tbc-chat),
+.preview :global(.tbc-chat) * {
+    cursor: pointer;
+}
+
+.preview :global(:is(.tbc-chat-nick, .tbc-chat-badge, .tbc-chat-emoji, .tbc-chat-text, .tbc-chat-bubble, .tbcv2-chat-time)):hover {
+    outline: 2px dashed var(--ui-yellow);
+    outline-offset: 1px;
+}
+
+.preview[data-part='nick'] :global(.tbc-chat-nick),
+.preview[data-part='badge'] :global(.tbc-chat-badge),
+.preview[data-part='emoji'] :global(.tbc-chat-emoji),
+.preview[data-part='text'] :global(.tbc-chat-text),
+.preview[data-part='bubble'] :global(.tbc-chat-bubble),
+.preview[data-part='time'] :global(.tbcv2-chat-time),
+.preview[data-part='card'] :global(:is(.tbc-chat--donation, .tbc-chat--subscription, .tbc-chat--gift)) {
+    outline: 2px solid var(--ui-yellow);
+    outline-offset: 1px;
+}
+
+.preview[data-part='line'] :global(.tbc-chat) {
+    outline: 2px solid var(--ui-yellow);
+    outline-offset: -2px;
+}
+
+.preview[data-part='window'] {
+    outline: 3px solid var(--ui-yellow);
+    outline-offset: 2px;
+}
+
+.hoverLabel {
+    position: fixed;
+    z-index: 70;
+    pointer-events: none;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--ui-yellow);
+    color: var(--ui-on-yellow);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+/* ── 부분 상자 ── */
+.partBox {
+    position: fixed;
+    z-index: 50;
+    width: 380px;
+    padding: 16px;
+    box-sizing: border-box;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.partBoxHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.close {
+    border: 0;
+    padding: 0;
+    background: none;
+    color: inherit;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 8px;
+}
+
+.control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.range {
     flex: 1;
     min-width: 0;
+    accent-color: var(--ui-yellow);
+}
+
+.rangeValue {
+    min-width: 40px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.color {
+    width: 32px;
+    height: 26px;
+    padding: 0;
+    border: 2px solid var(--ui-line);
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+}
+
+/* ── HTML 편집기 ── */
+.kindBar {
+    margin-bottom: 12px;
 }
 
 .editor {
@@ -90,31 +285,6 @@
 
 .editorError {
     border-color: var(--ui-danger);
-}
-
-.preview {
-    padding: 12px;
-    border-radius: 8px;
-    border: 2px solid var(--ui-hair);
-    min-height: 160px;
-    box-sizing: border-box;
-}
-
-.preview :global(.tbc-template-preview-caption) {
-    font-size: 11px;
-    opacity: 0.5;
-    margin: 8px 0 2px;
-    padding: 0 6px;
-}
-
-.previewDark {
-    background: #141517;
-    color: #e6e6e6;
-}
-
-.previewLight {
-    background: #ffffff;
-    color: #141517;
 }
 
 .actions {

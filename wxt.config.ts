@@ -67,7 +67,9 @@ export default defineConfig({
       {
         resources: [
           "assets/icon.png",
-          "assets/bmc-button.svg"
+          "assets/bmc-button.svg",
+          // 모아보기 스타일의 Pretendard 글꼴 — 고른 사용자만 치지직 페이지에서 불러온다
+          "fonts/pretendard/PretendardVariable.woff2"
         ],
         matches: [
           "*://*.twitch.tv/*",

@@ -83,6 +83,9 @@
   "templateSettingButton": {
     "message": "模板设置"
   },
+  "chatLookButton": {
+    "message": "聊天样式"
+  },
   "auto": {
     "message": "自动"
   },

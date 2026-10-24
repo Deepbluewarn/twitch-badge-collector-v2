@@ -83,6 +83,9 @@
   "templateSettingButton": {
     "message": "Template settings"
   },
+  "chatLookButton": {
+    "message": "Chat look"
+  },
   "auto": {
     "message": "Auto"
   },

@@ -83,6 +83,9 @@
   "templateSettingButton": {
     "message": "テンプレート設定"
   },
+  "chatLookButton": {
+    "message": "チャットの見た目"
+  },
   "auto": {
     "message": "自動"
   },

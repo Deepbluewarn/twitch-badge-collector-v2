@@ -20,7 +20,7 @@ function sample(over: Partial<ChzzkSocketChat> & { uid: string }): ChzzkSocketCh
     };
 }
 
-/** label은 i18n 키 `template.samples.<label>`. */
+/** label은 샘플을 구별하는 이름. */
 export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: ChzzkSocketChat }[]> = {
     chat: [
         {

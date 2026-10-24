@@ -142,3 +142,100 @@
     width: 30px;
     height: 30px;
 }
+
+/* 스타일 설정 (src/render/chzzk-style.ts) — 사용자 템플릿이 켜져 있을 때 모아보기 채팅 목록에
+   `.tbc-styled`와 CSS 변수를 건다. tbc-chat-* 클래스만 보므로 직접 고친 템플릿에도 먹는다.
+   어두운 테마는 조상의 .theme_dark(치지직 html, 설정 페이지 미리보기)로 고른다. */
+.tbc-styled .tbc-chat {
+    padding-top: var(--tbc-s-gap);
+    padding-bottom: var(--tbc-s-gap);
+    border-radius: var(--tbc-s-radius);
+    font-family: var(--tbc-s-family);
+    font-size: var(--tbc-s-font);
+    line-height: var(--tbc-s-lh);
+}
+.tbc-styled .tbc-chat-bubble {
+    border-radius: var(--tbc-s-radius);
+    background: var(--tbc-s-bubble);
+}
+.tbc-styled .tbc-chat--donation,
+.tbc-styled .tbc-chat--subscription,
+.tbc-styled .tbc-chat--gift {
+    background: var(--tbc-s-card);
+}
+.tbc-styled--divider .tbc-chat ~ .tbc-chat {
+    border-top: 1px solid rgba(128, 128, 128, 0.22);
+}
+/* 번갈아 배경: 순번(nth-child)이 아니라 그릴 때 정한 표시 — 새 채팅이 앞에 들어와도 색이 뒤집히지 않게 */
+.tbc-styled--zebra .tbc-chat--alt {
+    background: rgba(128, 128, 128, 0.09);
+}
+.tbc-styled--marker-bar .tbc-chat--marked {
+    box-shadow: inset 4px 0 0 var(--tbc-marker-color, #FFC107);
+}
+.tbc-styled--marker-fill .tbc-chat--marked {
+    background: color-mix(in srgb, var(--tbc-marker-color, #FFC107) 20%, transparent);
+}
+
+.tbc-styled .tbc-chat .tbcv2-chat-time {
+    font-size: var(--tbc-s-time-size);
+    font-weight: var(--tbc-s-time-weight);
+}
+.tbc-styled--time-color .tbc-chat .tbcv2-chat-time {
+    color: var(--tbc-s-time-color);
+    opacity: 1;
+}
+.tbc-styled--time-mono .tbc-chat .tbcv2-chat-time {
+    font-family: Consolas, D2Coding, monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+.tbc-styled .tbc-chat .tbc-chat-badge,
+.tbc-styled .tbc-chat .tbc-chat-verified {
+    width: var(--tbc-s-badge);
+    height: var(--tbc-s-badge);
+    vertical-align: calc((var(--tbc-s-badge) - 10px) / -2);
+}
+.tbc-styled--first-badge .tbc-chat-badge ~ .tbc-chat-badge {
+    display: none;
+}
+
+.tbc-styled .tbc-chat-nick {
+    font-weight: var(--tbc-s-nick-weight);
+}
+.tbc-styled--nick-single .tbc-chat-nick {
+    color: var(--tbc-s-nick-color) !important;
+}
+.tbc-styled--nick-text .tbc-chat-nick {
+    color: inherit !important;
+}
+.tbc-styled--nick-single .tbc-chat-nick--gradient,
+.tbc-styled--nick-text .tbc-chat-nick--gradient,
+.tbc-styled--no-effects .tbc-chat-nick--gradient {
+    background-image: none !important;
+}
+.tbc-styled--nick-single .tbc-chat-nick--highlight,
+.tbc-styled--nick-text .tbc-chat-nick--highlight,
+.tbc-styled--no-effects .tbc-chat-nick--highlight {
+    background-color: transparent !important;
+}
+.tbc-styled--no-effects .tbc-chat-nick--gradient {
+    color: var(--tbc-nick-light) !important;
+}
+.theme_dark .tbc-styled--no-effects .tbc-chat-nick--gradient {
+    color: var(--tbc-nick-dark) !important;
+}
+
+.tbc-styled--text-color .tbc-chat-text,
+.tbc-styled--text-color .tbc-chat-bubble {
+    color: var(--tbc-s-text);
+}
+.tbc-styled .tbc-chat .tbc-chat-emoji {
+    width: var(--tbc-s-emoji);
+    height: var(--tbc-s-emoji);
+}
+
+/* 채팅 시간 표시를 끄면 숨긴다 — 설정 페이지 미리보기용 (콘텐츠 스크립트는 style.css에 같은 규칙) */
+.tbcv2_chatTime_off .tbc-chat .tbcv2-chat-time {
+    display: none;
+}

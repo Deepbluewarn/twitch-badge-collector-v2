@@ -12,7 +12,8 @@ a:active {
     font-weight: inherit;
 }
 #root {
-    max-height: 24rem;
+    /* 브라우저 팝업 최대 높이(600px)까지. 일반 설정처럼 그보다 긴 화면만 스크롤한다. */
+    max-height: 600px;
     overflow: auto;
     user-select: none;
 }

@@ -3,6 +3,7 @@ import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import useFilterGroup from "@/hooks/useFilterGroup";
 import useChatStream from "@/hooks/useChatStream";
 import { useStoredTemplates } from "@/render/template-store";
+import { ensureStyleFont, styleAttrs, useStoredStyleState } from "@/render/chzzk-style";
 import useFilteredChatBuffer from "@/hooks/useFilteredChatBuffer";
 import { findElement } from "@/utils/utils-common";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
@@ -109,6 +110,11 @@ export default function Local({
     useEffect(() => {
         templateModeRef.current = { custom: globalSetting.chzzkCustomTemplate === 'on', templates: storedTemplates };
     }, [globalSetting.chzzkCustomTemplate, storedTemplates]);
+    // 스타일 설정 — 사용자 템플릿일 때만 채팅 목록에 건다 (원본 복제엔 tbc-chat-*가 없다).
+    const { style: templateStyle } = useStoredStyleState();
+    const styled = type === 'chzzk' && globalSetting.chzzkCustomTemplate === 'on';
+    const styledAttrs = useMemo(() => styled ? styleAttrs(templateStyle) : null, [styled, templateStyle]);
+    useEffect(() => { if (styled) ensureStyleFont(templateStyle); }, [styled, templateStyle]);
     useChatStream(adapter, chat => {
         const r = checkFilter(chat, channelId);
         return {
@@ -411,8 +417,10 @@ export default function Local({
 
             <div
                 id={`tbc-clone__${type}ui`}
+                className={styledAttrs?.className}
                 onClick={onChatClick}
                 style={{
+                    ...styledAttrs?.style,
                     marginTop: 0,
                     paddingTop: 0,
                     // capture 모드의 하단 액션 바(약 52px)에 가려지지 않도록 채팅 영역 height 축소.

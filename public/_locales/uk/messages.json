@@ -83,6 +83,9 @@
   "templateSettingButton": {
     "message": "Налаштування шаблону"
   },
+  "chatLookButton": {
+    "message": "Вигляд чату"
+  },
   "auto": {
     "message": "Авто"
   },

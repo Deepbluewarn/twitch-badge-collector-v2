@@ -215,10 +215,35 @@ export default function useChatStream(
             };
         }
 
-        /** 직접 그리기 — 사용자 템플릿이 켜져 있으면 그 템플릿, 아니면 기본 템플릿. */
+        // 번갈아 배경의 짝 — 그릴 때 정해 둔다. 새 채팅이 앞에 들어오는 목록이라 순번(nth-child)으로
+        // 칠하면 채팅마다 전체 색이 뒤집힌다. 블라인드로 다시 그려도 같은 짝이 되게 id로 기억한다.
+        const altById = new Map<string, boolean>();
+        let nextAlt = false;
+        function altOf(id: string): boolean {
+            let alt = altById.get(id);
+            if (alt === undefined) {
+                alt = nextAlt;
+                nextAlt = !nextAlt;
+                altById.set(id, alt);
+                if (altById.size > PASSED_SOCKET_CHAT_LIMIT) altById.delete(altById.keys().next().value!);
+            }
+            return alt;
+        }
+
+        /**
+         * 직접 그리기 — 사용자 템플릿이 켜져 있으면 그 템플릿, 아니면 기본 템플릿.
+         * 스타일 설정(chzzk-style)이 쓰는 표시를 붙인다: 수집 표시 색, 번갈아 배경의 짝.
+         */
         function renderBuilt(chat: ChzzkSocketChat): HTMLElement {
             const mode = getTemplateMode();
-            return renderChzzkChat(chat, { verifiedIconUrl, ...(mode.custom ? { templates: mode.templates } : {}) });
+            const el = renderChzzkChat(chat, { verifiedIconUrl, ...(mode.custom ? { templates: mode.templates } : {}) });
+            const color = processedColors.get(chat.id);
+            if (color) {
+                el.classList.add('tbc-chat--marked');
+                el.style.setProperty('--tbc-marker-color', color);
+            }
+            if (altOf(chat.id)) el.classList.add('tbc-chat--alt');
+            return el;
         }
 
         function emitBuilt(chat: ChzzkSocketChat) {
