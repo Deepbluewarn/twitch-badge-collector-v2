@@ -15,10 +15,13 @@ import { normalizeChzzkMessage, parseChzzkBlindEvent } from '../../src/platform/
 export const KNOWN_CMDS = new Set([0, 10000, 10100, 15101, 93006, 93101, 93102, 94002, 94005, 94006, 94008, 94009, 94010, 94011, 94015]);
 /** 번들 enum Bg 중 서버가 보내는 값. */
 export const KNOWN_MSG_TYPES = new Set([1, 10, 11, 12, 13, 15, 30]);
-/** 번들 enum Oy. */
-export const KNOWN_STATUSES = new Set(['NORMAL', 'BLIND', 'CBOTBLIND']);
 /** 번들 enum ky (94008 blindType). */
 export const KNOWN_BLIND_TYPES = new Set(['CANCEL', 'BLIND', 'HIDDEN', 'RECLAIM', 'FILTERED', 'CBOTBLIND']);
+/**
+ * 번들 enum Oy(NORMAL/BLIND/CBOTBLIND) + 94008로 가려진 채팅이 상태에 그 blindType을 달고 오는 값.
+ * 2026-10-21 canary에서 HIDDEN 확인. CANCEL은 NORMAL로 돌아가므로 상태로 남지 않는다.
+ */
+export const KNOWN_STATUSES = new Set(['NORMAL', ...[...KNOWN_BLIND_TYPES].filter(t => t !== 'CANCEL')]);
 
 /** 이 비율을 넘게 깨져야 error. */
 export const BROKEN_RATIO = 0.05;

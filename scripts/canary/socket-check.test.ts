@@ -111,6 +111,11 @@ describe('checkSocketCapture', () => {
         expect(w).toMatch(/blindType: AI_BLIND/);
     });
 
+    it('94008로 가려진 뒤의 상태(HIDDEN 등)는 경고하지 않는다', () => {
+        const r = checkSocketCapture([channel([chatPacket(item({ msgStatusType: 'HIDDEN' }), item({ msgStatusType: 'RECLAIM' }), item())])]);
+        expect(r.warnings.join('\n')).not.toMatch(/msgStatusType/);
+    });
+
     it('일부 채널만 접속되면 경고', () => {
         const r = checkSocketCapture([healthy(), { channel: 'x', raws: [] }, { channel: 'y', raws: [] }]);
         expect(r.warnings.join()).toMatch(/절반 미만 — 1\/3/);

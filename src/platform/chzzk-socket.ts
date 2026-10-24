@@ -46,7 +46,7 @@ export interface ChzzkSocketChat {
     playerTime?: number;
     /** msgTypeCode 원본. CHZZK_MSG_TYPE 참고. */
     type: number;
-    /** NORMAL / BLIND / CBOTBLIND (번들 enum `Oy`). 원본 문자열 그대로. */
+    /** NORMAL / BLIND / CBOTBLIND (번들 enum `Oy`), 94008로 가려진 채팅은 그 blindType(HIDDEN 등). 원본 문자열 그대로. */
     status: string;
     nickname: string;
     /** 익명 후원 등 프로필이 없는 채팅. */

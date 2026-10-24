@@ -72,6 +72,8 @@ VOD REST: `GET api.chzzk.naver.com/service/v1/videos/{videoNo}/chats?playerMessa
 
 실측 결과 `NORMAL` 31,457건, `CBOTBLIND` 252건(전부 type 1). 클린봇이 숨긴 채팅은 **처음부터 이 상태로 도착**한다. `msg`에는 원문이 그대로 들어 있다.
 
+94008로 가려진 채팅은 그 blindType이 상태에 담겨 오기도 한다. 2026-10-21 canary에서 `HIDDEN` 확인.
+
 ## profile (type 1 기준 등장 비율)
 
 | 필드 | 비율 | 값 |
