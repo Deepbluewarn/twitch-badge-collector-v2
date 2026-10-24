@@ -191,7 +191,7 @@ fetch(browser.runtime.getURL('platform/bundled-selectors.json')).then(r => r.jso
 
 절차: 값을 바꾸고 `rev` +1 → 푸시 → (급하면) jsDelivr purge. 문제가 생기면 `socketRenderPercent: 0` 또는 `socketRender: 0`.
 
-**현재 상태 (2026-10-17, rev 19): `socketRenderPercent: 30`** — v2.20.0은 꺼진 채(rev 16, 0%) 배포했고 rev 17에서 10%, rev 19에서 30%로 올렸다.
+**현재 상태 (2026-10-24, rev 21): `socketRenderPercent: 100`** — v2.20.0은 꺼진 채(rev 16, 0%) 배포했고 rev 17에서 10%, rev 19에서 30%, rev 20에서 50%, rev 21에서 100%로 올렸다. 문제가 생기면 다시 낮출 수 있게 값은 남겨 둔다.
 
 MAIN world의 소켓 탭 자체는 이 값과 관계없이 설치된다(listener만 붙는 수동 탭). 개별 디버그는 치지직 페이지 콘솔에서 `localStorage.setItem('tbc:socket-render', '0' | '1')` — OTA보다 우선한다(팝업 항목은 OTA·비율만 본다).
 

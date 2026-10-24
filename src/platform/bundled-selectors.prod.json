@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "rev": 20,
+  "rev": 21,
   "platforms": {
     "twitch": {
       "livePathRegex": "^/(?!videos/)",
@@ -66,7 +66,7 @@
         "verifiedBadgeImageUrl": "https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png",
         "dragHeaderOffset": 0,
         "dragFooterOffset": 0,
-        "socketRenderPercent": 50
+        "socketRenderPercent": 100
       }
     }
   }
