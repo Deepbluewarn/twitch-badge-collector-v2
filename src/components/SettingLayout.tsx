@@ -68,6 +68,11 @@ export default function SettingLayout() {
                             {'platform' in i && <PlatformChip platform={i.platform} />}
                         </NavLink>
                     ))}
+                    <a className={s.item} href="https://badgecollector.dev" target="_blank" rel="noreferrer">
+                        <Icon name="public" />
+                        <span>badgecollector.dev</span>
+                        <Icon name="open_in_new" />
+                    </a>
                 </nav>
                 <main className={s.main}>
                     {query ? (
