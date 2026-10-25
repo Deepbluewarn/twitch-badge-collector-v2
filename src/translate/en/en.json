@@ -381,7 +381,12 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Less",
         "badges_more": "More",
-        "scope": "Only chats caught by your filters are archived. Not every chat in the channel is saved.",
+        "cond_title": "What gets archived",
+        "cond_filter": "Only chats caught by filters",
+        "cond_page": "While the stream page is open",
+        "cond_off": "Except channels turned off",
+        "cond_local": "Saved in this browser only",
+        "responsibility": "You are responsible for any issues arising from archived chats.",
         "section_setting": "Archive settings",
         "section_chats": "Archived chats"
     },

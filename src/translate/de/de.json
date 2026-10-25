@@ -381,7 +381,12 @@
         "badge_tooltip": "{{name}}\n{{count}} Chats",
         "badges_less": "Weniger",
         "badges_more": "Mehr",
-        "scope": "Archiviert werden nur Chats, die deine Filter erfassen. Nicht alle Chats des Kanals werden gespeichert.",
+        "cond_title": "Was gespeichert wird",
+        "cond_filter": "Nur von Filtern erfasste Chats",
+        "cond_page": "Solange die Streamseite offen ist",
+        "cond_off": "Außer ausgeschaltete Kanäle",
+        "cond_local": "Nur in diesem Browser gespeichert",
+        "responsibility": "Für Probleme durch gespeicherte Chats bist du selbst verantwortlich.",
         "section_setting": "Archiv-Einstellungen",
         "section_chats": "Archivierte Chats"
     },

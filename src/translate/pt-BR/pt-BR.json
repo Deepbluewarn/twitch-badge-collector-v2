@@ -381,7 +381,12 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Menos",
         "badges_more": "Mais",
-        "scope": "Só os chats que passam pelos seus filtros são arquivados. Nem todos os chats do canal são salvos.",
+        "cond_title": "O que é arquivado",
+        "cond_filter": "Só chats pegos pelos filtros",
+        "cond_page": "Enquanto a página da live estiver aberta",
+        "cond_off": "Exceto canais desativados",
+        "cond_local": "Salvo só neste navegador",
+        "responsibility": "Você é responsável por qualquer problema causado pelos chats arquivados.",
         "section_setting": "Configurações do arquivo",
         "section_chats": "Chats arquivados"
     },

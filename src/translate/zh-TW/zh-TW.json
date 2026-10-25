@@ -381,7 +381,12 @@
         "badge_tooltip": "{{name}}\n{{count}} 則聊天",
         "badges_less": "收合",
         "badges_more": "更多",
-        "scope": "只存檔被篩選器命中的聊天，不會儲存頻道的所有聊天。",
+        "cond_title": "保存條件",
+        "cond_filter": "僅保存被過濾器選中的聊天",
+        "cond_page": "直播頁面開啟期間",
+        "cond_off": "已關閉的頻道除外",
+        "cond_local": "僅保存在此瀏覽器",
+        "responsibility": "因保存的聊天產生的問題由使用者自行負責。",
         "section_setting": "保存設定",
         "section_chats": "已保存的聊天"
     },

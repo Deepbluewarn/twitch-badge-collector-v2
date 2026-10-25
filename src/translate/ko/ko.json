@@ -380,7 +380,12 @@
         "badge_tooltip": "{{name}}\n채팅 {{count}}개",
         "badges_less": "접기",
         "badges_more": "더보기",
-        "scope": "필터에 걸린 채팅만 보관합니다. 채널의 모든 채팅이 저장되지는 않습니다.",
+        "cond_title": "보관 조건",
+        "cond_filter": "필터에 걸린 채팅만",
+        "cond_page": "방송 페이지를 열어 둔 동안",
+        "cond_off": "끈 채널은 제외",
+        "cond_local": "이 브라우저에만 저장",
+        "responsibility": "보관된 채팅으로 생기는 문제는 사용자 책임입니다.",
         "section_setting": "보관 설정",
         "section_chats": "보관된 채팅"
     },

@@ -381,7 +381,12 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Menos",
         "badges_more": "Más",
-        "scope": "Solo se archivan los chats que coinciden con tus filtros. No se guardan todos los chats del canal.",
+        "cond_title": "Qué se archiva",
+        "cond_filter": "Solo chats atrapados por filtros",
+        "cond_page": "Mientras la página del directo esté abierta",
+        "cond_off": "Excepto canales desactivados",
+        "cond_local": "Solo en este navegador",
+        "responsibility": "Eres responsable de cualquier problema causado por los chats archivados.",
         "section_setting": "Ajustes del archivo",
         "section_chats": "Chats archivados"
     },

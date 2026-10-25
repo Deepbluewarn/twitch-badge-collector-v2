@@ -219,3 +219,38 @@
     text-align: center;
     pointer-events: none;
 }
+
+/* 보관 조건 — 두 칸씩, 좁으면 한 칸 */
+.conds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
+    margin: 0;
+    padding: 16px 20px;
+    list-style: none;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.conds li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.conds li > :first-child {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--ui-soft);
+    font-size: 18px;
+}
+
+@media (max-width: 760px) {
+    .conds {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

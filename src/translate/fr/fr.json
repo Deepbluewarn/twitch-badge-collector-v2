@@ -381,7 +381,12 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Moins",
         "badges_more": "Plus",
-        "scope": "Seuls les chats retenus par vos filtres sont archivés. Tous les chats de la chaîne ne sont pas enregistrés.",
+        "cond_title": "Ce qui est archivé",
+        "cond_filter": "Seulement les chats captés par les filtres",
+        "cond_page": "Tant que la page du live est ouverte",
+        "cond_off": "Sauf les chaînes désactivées",
+        "cond_local": "Uniquement dans ce navigateur",
+        "responsibility": "Vous êtes responsable de tout problème lié aux chats archivés.",
         "section_setting": "Paramètres d'archive",
         "section_chats": "Chats archivés"
     },
