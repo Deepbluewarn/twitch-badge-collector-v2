@@ -5,6 +5,9 @@
   "ExtensionDesc": {
     "message": "見たいチャットだけを集めて表示！"
   },
+  "settings": {
+    "message": "設定"
+  },
   "generalSetting": {
     "message": "一般設定"
   },

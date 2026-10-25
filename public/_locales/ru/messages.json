@@ -5,6 +5,9 @@
   "ExtensionDesc": {
     "message": "Собирайте только нужные сообщения чата!"
   },
+  "settings": {
+    "message": "Настройки"
+  },
   "generalSetting": {
     "message": "Общие настройки"
   },

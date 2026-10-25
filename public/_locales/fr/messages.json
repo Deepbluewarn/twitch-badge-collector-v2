@@ -5,6 +5,9 @@
   "ExtensionDesc": {
     "message": "Ne collectez que les messages qui vous intéressent !"
   },
+  "settings": {
+    "message": "Paramètres"
+  },
   "generalSetting": {
     "message": "Réglages généraux"
   },

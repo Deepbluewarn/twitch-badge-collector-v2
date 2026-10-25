@@ -5,6 +5,9 @@
   "ExtensionDesc": {
     "message": "Sammle nur die Chats, die du willst!"
   },
+  "settings": {
+    "message": "Einstellungen"
+  },
   "generalSetting": {
     "message": "Allgemein"
   },

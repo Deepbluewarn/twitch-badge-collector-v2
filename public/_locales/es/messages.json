@@ -5,6 +5,9 @@
   "ExtensionDesc": {
     "message": "¡Recopila solo los chats que quieras!"
   },
+  "settings": {
+    "message": "Ajustes"
+  },
   "generalSetting": {
     "message": "Ajustes generales"
   },

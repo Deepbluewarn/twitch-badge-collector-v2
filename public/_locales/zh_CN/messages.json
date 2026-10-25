@@ -5,6 +5,9 @@
   "ExtensionDesc": {
     "message": "只收集你想看的聊天消息！"
   },
+  "settings": {
+    "message": "设置"
+  },
   "generalSetting": {
     "message": "常规设置"
   },

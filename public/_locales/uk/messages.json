@@ -5,6 +5,9 @@
   "ExtensionDesc": {
     "message": "Збирайте лише потрібні повідомлення чату!"
   },
+  "settings": {
+    "message": "Налаштування"
+  },
   "generalSetting": {
     "message": "Загальні налаштування"
   },

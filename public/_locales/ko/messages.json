@@ -5,6 +5,9 @@
   "ExtensionDesc": {
     "message": "인터넷 방송에서 원하는 채팅만 모아 볼 수 있습니다."
   },
+  "settings": {
+    "message": "설정"
+  },
   "generalSetting": {
     "message": "일반 설정"
   },

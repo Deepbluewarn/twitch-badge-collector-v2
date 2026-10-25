@@ -366,13 +366,13 @@ function Popup() {
         {browser.i18n.getMessage("p_filter_btn")}
       </Button>
 
-      {/* secondary: 일반 설정 — 설정 페이지(일반 설정·채팅 모양·채팅 보관함, 사이드바로 이동)를 연다 */}
+      {/* secondary: 설정 페이지를 연다. 필터 말고도 일반 설정, 채팅 모양, 채팅 보관함이 있어 '일반 설정'이 아니라 '설정' */}
       <Button
         icon='settings'
         block
         onClick={() => onPageButtonClicked("general")}
       >
-        {browser.i18n.getMessage("generalSetting")}
+        {browser.i18n.getMessage("settings" as any)}
       </Button>
 
       {/* 채팅 캡쳐 시작 — 활성 탭의 content script로 메시지 */}

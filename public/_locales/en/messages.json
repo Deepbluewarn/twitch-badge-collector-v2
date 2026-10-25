@@ -5,6 +5,9 @@
   "ExtensionDesc": {
     "message": "Collect only the chats you want!"
   },
+  "settings": {
+    "message": "Settings"
+  },
   "generalSetting": {
     "message": "General Settings"
   },
