@@ -116,20 +116,21 @@ export default function Local({
     const styled = type === 'chzzk' && globalSetting.chzzkCustomTemplate === 'on';
     const styledAttrs = useMemo(() => styled ? styleAttrs(templateStyle) : null, [styled, templateStyle]);
     useEffect(() => { if (styled) ensureStyleFont(templateStyle); }, [styled, templateStyle]);
-    // 보관함 — 모아보기 버퍼(캡쳐 중 정지, 개수 제한, 초기화)와 따로 필터 통과 지점에서 바로 기록한다.
+    // 보관함 — 소켓이 없는 트위치와 치지직 다시보기만 여기서(필터 통과 지점) 기록한다. 모아보기 버퍼
+    // (캡쳐 중 정지, 개수 제한, 초기화)와는 따로 돈다. 치지직 라이브는 창과 무관하게 chzzk-archive-feed가 맡는다.
     const archiveRef = useRef<ArchiveRecorder | null>(null);
     useEffect(() => {
         const recorder = createArchiveRecorder(type, () => {
             const id = adapter.getCurrentChannelId();
             const mode = adapter.getPageMode();
-            if (!id || mode === 'unknown') return null;
+            if (!id || mode === 'unknown' || (type === 'chzzk' && mode === 'live')) return null;
             return { channelId: id, mode: mode === 'live' ? 'live' : 'vod' };
         });
         archiveRef.current = recorder;
         return () => { void recorder.flush(); recorder.stop(); archiveRef.current = null; };
     }, [adapter, type]);
     const onChatPassed = useCallback((chat: Parameters<typeof addChat>[0]) => {
-        archiveRef.current?.record(chat);
+        if (chat.archive) archiveRef.current?.record({ key: chat.key, time: chat.time, nickname: chat.nickname, text: chat.text, ...chat.archive });
         guardedAddChat(chat);
     }, [guardedAddChat]);
     const onChatUpdated = useCallback((update: Parameters<typeof updateChat>[0]) => {

@@ -62,6 +62,13 @@ export interface TbcChatPassedMessage {
  *  - `block-list`: 로그인 시청자의 차단 목록(userIdHash). host는 이 사용자들의 채팅을 그리지 않는다.
  */
 export const TBC_SOCKET_CHAT_ACTION = 'tbc-socket-chat';
+/**
+ * 보관함(chzzk-archive-feed)이 뜰 때 소켓 탭에 지난 메시지를 다시 달라고 한다. 콘텐츠 스크립트는 페이지보다
+ * 늦게 떠서 접속 직후 최근 채팅을 놓칠 수 있고, 확장 업데이트 때는 옛 스크립트가 받고 못 보낸 채팅이 있다.
+ * 다시 보낼 때는 action만 REPLAY로 바꿔, 모아보기(useChatStream)는 받지 않는다.
+ */
+export const TBC_SOCKET_REPLAY_REQUEST = 'tbc-socket-replay-request';
+export const TBC_SOCKET_REPLAY_ACTION = 'tbc-socket-replay';
 
 export type TbcSocketChatMessage =
     | { action: typeof TBC_SOCKET_CHAT_ACTION; kind: 'connected'; cid: string }

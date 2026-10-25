@@ -78,6 +78,13 @@ describe('sanitizeArchivedChat', () => {
             .toMatchObject({ kind: 'chat', badges: ['a'] });
         expect(sanitizeArchivedChat({ ...chat(1), marker: 'red;x' })).not.toHaveProperty('marker');
     });
+
+    it('끊김 구간은 끝 시각이 있어야 하고, 채팅에는 끝 시각을 붙이지 않는다', () => {
+        expect(sanitizeArchivedChat({ ...chat(1), kind: 'gap', until: 5 })).toMatchObject({ kind: 'gap', until: 5 });
+        expect(sanitizeArchivedChat({ ...chat(1), kind: 'gap' })).toBeNull();
+        expect(sanitizeArchivedChat({ ...chat(5), kind: 'gap', until: 1 })).toBeNull();
+        expect(sanitizeArchivedChat({ ...chat(1), until: 5 })).not.toHaveProperty('until');
+    });
 });
 
 describe('내보내기', () => {
@@ -91,8 +98,14 @@ describe('내보내기', () => {
     });
 
     it('TXT: 가려진 채팅은 이름표로', () => {
-        const txt = toText([chat(1, { hidden: true, text: '' })], 'vod', '안내', '가려진 채팅');
+        const txt = toText([chat(1, { hidden: true, text: '' })], 'vod', '안내', '가려진 채팅', '연결 끊김');
         expect(txt.split('\n')).toEqual(['# 안내', '', '[0:00] 닉1: 가려진 채팅']);
+    });
+
+    it('끊김 구간은 시작 ~ 끝으로', () => {
+        const gap = chat(0, { kind: 'gap', nickname: '', text: '', time: 65_000, until: 125_000 });
+        expect(toText([gap], 'vod', '안내', '가려진 채팅', '연결 끊김').split('\n')[2]).toBe('[1:05 ~ 2:05] 연결 끊김');
+        expect(toCsv([gap], 'vod', '안내').split('\r\n')[2]).toBe('1:05,gap,,~ 2:05,,');
     });
 
     it('다시보기 시각은 영상 안의 위치', () => {

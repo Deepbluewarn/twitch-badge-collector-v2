@@ -124,6 +124,14 @@ const BADGE_COLLAPSED = 10;
 function ChatRow({ chat, mode, hiddenLabel, selected, onClick }: {
     chat: ArchivedChat; mode: ArchiveChannel['mode']; hiddenLabel: string; selected?: boolean; onClick?: (e: React.MouseEvent) => void;
 }) {
+    const { t } = useTranslation();
+    // 끊김 구간 — 이 사이 채팅이 빠졌을 수 있다. 눌러 고르는 채팅이 아니다
+    if (chat.kind === 'gap') return (
+        <li {...{ [CAPTURE_KEY_ATTR]: chat.id }} className={s.chat}>
+            <span className={s.time}>{formatArchiveTime(chat, mode)} ~ {formatArchiveTime({ time: chat.until ?? chat.time }, mode)}</span>
+            <span className={s.hidden}>{t('archive.gap')}</span>
+        </li>
+    );
     return (
         <li
             {...{ [CAPTURE_KEY_ATTR]: chat.id }}
@@ -317,10 +325,11 @@ export default function Archive() {
         const base = `${nameOf(row)}-${new Date().toISOString().slice(0, 10)}`.replace(/[\\/:*?"<>|]/g, '_');
         const notice = t('archive.disclaimer');
         const hidden = t('archive.hidden');
+        const gap = t('archive.gap');
         const lines = kind === 'csv' ? csvHead(notice) : textHead(notice);
         setExporting(true);
         try {
-            await eachArchivedChat(row.channel, c => { lines.push(kind === 'csv' ? csvRow(c, row.mode) : textRow(c, row.mode, hidden)); });
+            await eachArchivedChat(row.channel, c => { lines.push(kind === 'csv' ? csvRow(c, row.mode) : textRow(c, row.mode, hidden, gap)); });
         } finally {
             setExporting(false);
         }

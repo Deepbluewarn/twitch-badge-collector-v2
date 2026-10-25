@@ -308,6 +308,7 @@
         "confirm_delete_channel": "Todos os chats salvos do canal \"{{name}}\" serão excluídos.",
         "confirm_delete_all": "Excluir todos os chats arquivados.",
         "hidden": "Chat oculto",
+        "gap": "Desconectado",
         "search_channel": "Buscar canais",
         "capture": "Capturar",
         "capture_save": "Salvar como imagem",

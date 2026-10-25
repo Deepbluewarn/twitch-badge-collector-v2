@@ -12,7 +12,8 @@
 
 export type ArchivePlatform = 'chzzk' | 'twitch';
 export type ArchiveMode = 'live' | 'vod';
-export type ArchiveKind = 'chat' | 'donation' | 'subscription' | 'gift';
+/** gap: 채팅 소켓이 끊겼다 다시 붙었는데 그사이 채팅을 다 메우지 못한 구간 — time부터 until까지 빠졌을 수 있다 */
+export type ArchiveKind = 'chat' | 'donation' | 'subscription' | 'gift' | 'gap';
 
 export interface ArchivedChat {
     /** `${channel}|${key}` — 같은 채팅이 다시 와도(원본 교체, 다시보기 재시청) 한 줄 */
@@ -34,6 +35,8 @@ export interface ArchivedChat {
     marker?: string;
     /** 운영자 블라인드·클린봇으로 가려진 채팅 */
     hidden?: boolean;
+    /** kind가 gap일 때 구간 끝 — 다시 붙은 뒤 처음 받은 채팅 시각 */
+    until?: number;
 }
 
 export interface ArchiveChannel {
@@ -325,23 +328,25 @@ const csvCell = (v: string | number | undefined) => {
 
 /** notice는 파일 첫 줄에 넣는 면책 문구. 줄 단위로 만들어 큰 채널도 나눠 쓸 수 있게 한다. */
 export const csvHead = (notice: string) => [csvCell(`# ${notice}`), 'time,kind,nickname,text,amount,status'];
-export const csvRow = (c: ArchivedChat, mode: ArchiveMode) =>
-    [formatArchiveTime(c, mode), c.kind, c.nickname, c.text, c.amount, c.hidden ? 'hidden' : ''].map(csvCell).join(',');
+export const csvRow = (c: ArchivedChat, mode: ArchiveMode) => c.kind === 'gap'
+    ? [formatArchiveTime(c, mode), c.kind, '', `~ ${formatArchiveTime({ time: c.until ?? c.time }, mode)}`, '', ''].map(csvCell).join(',')
+    : [formatArchiveTime(c, mode), c.kind, c.nickname, c.text, c.amount, c.hidden ? 'hidden' : ''].map(csvCell).join(',');
 export const textHead = (notice: string) => [`# ${notice}`, ''];
-export const textRow = (c: ArchivedChat, mode: ArchiveMode, hiddenLabel: string) =>
-    `[${formatArchiveTime(c, mode)}] ${c.nickname}${c.amount ? ` [${c.amount}]` : ''}: ${c.hidden ? hiddenLabel : c.text}`;
+export const textRow = (c: ArchivedChat, mode: ArchiveMode, hiddenLabel: string, gapLabel: string) => c.kind === 'gap'
+    ? `[${formatArchiveTime(c, mode)} ~ ${formatArchiveTime({ time: c.until ?? c.time }, mode)}] ${gapLabel}`
+    : `[${formatArchiveTime(c, mode)}] ${c.nickname}${c.amount ? ` [${c.amount}]` : ''}: ${c.hidden ? hiddenLabel : c.text}`;
 
 export function toCsv(chats: ArchivedChat[], mode: ArchiveMode, notice: string): string {
     return [...csvHead(notice), ...chats.map(c => csvRow(c, mode))].join('\r\n');
 }
 
-export function toText(chats: ArchivedChat[], mode: ArchiveMode, notice: string, hiddenLabel: string): string {
-    return [...textHead(notice), ...chats.map(c => textRow(c, mode, hiddenLabel))].join('\n');
+export function toText(chats: ArchivedChat[], mode: ArchiveMode, notice: string, hiddenLabel: string, gapLabel: string): string {
+    return [...textHead(notice), ...chats.map(c => textRow(c, mode, hiddenLabel, gapLabel))].join('\n');
 }
 
 // ── 받은 값 검사 (백그라운드) ─────────────────────────
 
-const KINDS: ArchiveKind[] = ['chat', 'donation', 'subscription', 'gift'];
+const KINDS: ArchiveKind[] = ['chat', 'donation', 'subscription', 'gift', 'gap'];
 const str = (v: unknown, max: number) => typeof v === 'string' ? v.slice(0, max) : '';
 
 /** 콘텐츠 스크립트가 보낸 값 — 모양이 틀리면 null. 길이는 잘라 둔다. */
@@ -352,14 +357,17 @@ export function sanitizeArchivedChat(v: unknown): ArchivedChat | null {
     if (!c.id.startsWith(`${c.channel}|`) || c.id.length > 512) return null;
     if (typeof c.time !== 'number' || !Number.isFinite(c.time) || typeof c.savedAt !== 'number' || !Number.isFinite(c.savedAt)) return null;
     const hidden = c.hidden === true;
+    const kind = KINDS.includes(c.kind as ArchiveKind) ? c.kind as ArchiveKind : 'chat';
+    if (kind === 'gap' && (typeof c.until !== 'number' || !Number.isFinite(c.until) || c.until < c.time)) return null;
     return {
         id: c.id, channel: c.channel, time: c.time, savedAt: c.savedAt,
         nickname: str(c.nickname, 100),
         text: hidden ? '' : str(c.text, 2000),
         badges: Array.isArray(c.badges) ? c.badges.filter((b): b is string => typeof b === 'string').slice(0, 20).map(b => b.slice(0, 500)) : [],
-        kind: KINDS.includes(c.kind as ArchiveKind) ? c.kind as ArchiveKind : 'chat',
+        kind,
         ...(typeof c.amount === 'number' && c.amount > 0 ? { amount: c.amount } : {}),
         ...(typeof c.marker === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.marker) ? { marker: c.marker } : {}),
         ...(hidden ? { hidden } : {}),
+        ...(kind === 'gap' ? { until: c.until as number } : {}),
     };
 }

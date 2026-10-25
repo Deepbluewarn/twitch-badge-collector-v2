@@ -308,6 +308,7 @@
         "confirm_delete_channel": "チャンネル「{{name}}」の保存したチャットをすべて削除します。",
         "confirm_delete_all": "保管したチャットをすべて削除します。",
         "hidden": "非表示のチャット",
+        "gap": "接続切れ",
         "search_channel": "チャンネルを検索",
         "capture": "キャプチャ",
         "capture_save": "画像で保存",

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { installChzzkSocketTap } from './ws-tap';
-import { TBC_SOCKET_CHAT_ACTION } from '@/interfaces/chat-attributes';
+import { createReplayLog, installChzzkSocketTap } from './ws-tap';
+import { TBC_SOCKET_CHAT_ACTION, type TbcSocketChatMessage } from '@/interfaces/chat-attributes';
 
 /** 최소한의 WebSocket 대역 — host 코드처럼 addEventListener로 듣는다. */
 class FakeWebSocket extends EventTarget {
@@ -101,5 +101,26 @@ describe('installChzzkSocketTap', () => {
         expect(installChzzkSocketTap(target, post)).toBe(false);
         (new target.WebSocket('wss://kr-ss1.chat.naver.com/chat') as unknown as FakeWebSocket).receive(chatPacket);
         expect(post).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('createReplayLog', () => {
+    const chats = (k: number) => ({ action: TBC_SOCKET_CHAT_ACTION, kind: 'chats', recent: false,
+        chats: Array.from({ length: k }, (_, i) => ({ id: `u_${i}` })) }) as unknown as TbcSocketChatMessage;
+    const connected = { action: TBC_SOCKET_CHAT_ACTION, kind: 'connected', cid: 'C' } as TbcSocketChatMessage;
+
+    it('넘긴 순서대로 돌려준다', () => {
+        const log = createReplayLog(10);
+        log.remember(connected);
+        log.remember(chats(2));
+        expect(log.messages().map(m => m.kind)).toEqual(['connected', 'chats']);
+    });
+
+    it('채팅이 한도를 넘으면 오래된 메시지부터 버린다', () => {
+        const log = createReplayLog(5);
+        log.remember(connected);
+        log.remember(chats(3));
+        log.remember(chats(3));
+        expect(log.messages().map(m => m.kind)).toEqual(['chats']);
     });
 });

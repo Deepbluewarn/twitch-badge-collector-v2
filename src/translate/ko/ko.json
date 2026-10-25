@@ -307,6 +307,7 @@
         "confirm_delete_channel": "채널 '{{name}}'의 보관된 채팅을 모두 지웁니다.",
         "confirm_delete_all": "보관된 채팅을 모두 지웁니다.",
         "hidden": "가려진 채팅",
+        "gap": "연결 끊김",
         "search_channel": "채널 검색",
         "capture": "캡쳐",
         "capture_save": "이미지로 저장",

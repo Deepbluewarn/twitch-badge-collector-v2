@@ -1,4 +1,4 @@
-import { installChzzkSocketTap } from '../../content-scripts/chzzk/ws-tap';
+import { installChzzkSocketReplay, installChzzkSocketTap } from '../../content-scripts/chzzk/ws-tap';
 import { installChzzkRestTap } from '../../content-scripts/chzzk/rest-tap';
 import { isChannelOffNow } from '../../content-scripts/base/channel-off-flag';
 
@@ -12,7 +12,8 @@ export default defineContentScript({
   runAt: 'document_start',
   main() {
     // 채팅 소켓 탭 — 치지직이 소켓을 열기 전이어야 하므로 맨 먼저, 동기로.
-    installChzzkSocketTap();
+    // 탭이 이번에 새로 걸렸을 때만 — 업데이트로 다시 들어온 경우 옛 탭이 기억과 응답을 계속 맡는다.
+    if (installChzzkSocketTap()) installChzzkSocketReplay();
     // REST 응답 탭(다시보기 채팅, 차단 목록) — 같은 이유로 host 스크립트보다 먼저.
     installChzzkRestTap();
 

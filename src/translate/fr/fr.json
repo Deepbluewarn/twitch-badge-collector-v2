@@ -308,6 +308,7 @@
         "confirm_delete_channel": "Tous les chats enregistrés de la chaîne « {{name}} » seront supprimés.",
         "confirm_delete_all": "Supprimer tous les chats archivés.",
         "hidden": "Chat masqué",
+        "gap": "Déconnecté",
         "search_channel": "Rechercher des chaînes",
         "capture": "Capturer",
         "capture_save": "Enregistrer en image",

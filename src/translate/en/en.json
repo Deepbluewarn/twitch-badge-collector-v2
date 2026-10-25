@@ -308,6 +308,7 @@
         "confirm_delete_channel": "Delete all archived chats from channel '{{name}}'.",
         "confirm_delete_all": "Delete all archived chats.",
         "hidden": "Hidden chat",
+        "gap": "Disconnected",
         "search_channel": "Search channels",
         "capture": "Capture",
         "capture_save": "Save as image",

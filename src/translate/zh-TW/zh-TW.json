@@ -308,6 +308,7 @@
         "confirm_delete_channel": "將刪除頻道「{{name}}」中儲存的所有聊天。",
         "confirm_delete_all": "刪除所有存檔聊天。",
         "hidden": "已隱藏的聊天",
+        "gap": "連線中斷",
         "search_channel": "搜尋頻道",
         "capture": "截圖",
         "capture_save": "儲存為圖片",

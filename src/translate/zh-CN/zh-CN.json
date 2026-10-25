@@ -308,6 +308,7 @@
         "confirm_delete_channel": "将删除频道「{{name}}」中保存的所有聊天。",
         "confirm_delete_all": "删除所有存档聊天。",
         "hidden": "已隐藏的聊天",
+        "gap": "连接中断",
         "search_channel": "搜索频道",
         "capture": "截图",
         "capture_save": "保存为图片",

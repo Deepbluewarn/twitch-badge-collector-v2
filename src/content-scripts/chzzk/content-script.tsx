@@ -16,6 +16,8 @@ import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { clearHostMarks, setupChannelOff } from "../base/channel-off";
 import { isChannelOffNow } from "../base/channel-off-flag";
 import { onTeardown, startInstance } from "../base/lifecycle";
+import { createArchiveRecorder } from "@/archive/archive-recorder";
+import { startChzzkArchiveFeed } from "@/archive/chzzk-archive-feed";
 
 async function bootstrap() {
     // 업데이트 전 버전의 스크립트를 물러나게 하고 남은 창을 치운 뒤, 연결이 끊기는지 지켜본다.
@@ -52,6 +54,16 @@ async function bootstrap() {
     });
 
     const adapter = new ChzzkAdapter();
+    // 보관함(라이브) — 모아보기 창과 따로, 소켓 채팅을 바로 받아 기록한다. 꺼진 채널은 소켓 탭이 넘기지 않는다.
+    // 채팅 소켓은 맨 위 창에만 있다.
+    if (window === window.top) onTeardown(startChzzkArchiveFeed(
+        createArchiveRecorder('chzzk', () => {
+            const id = adapter.getCurrentChannelId();
+            return id && adapter.getPageMode() === 'live' ? { channelId: id, mode: 'live' } : null;
+        }),
+        () => adapter.getCurrentChannelId(),
+        () => getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined,
+    ));
     // 이 채널에서 끄기 — 끄면 창을 걷어 수집·보관까지 멈추고 화면 조정도 원래대로, 다시 켜면 창을 새로 만든다
     // (채팅 유지가 켜져 있으면 끄기 전 채팅을 다시 불러온다).
     const channelOff = setupChannelOff(adapter, async off => {

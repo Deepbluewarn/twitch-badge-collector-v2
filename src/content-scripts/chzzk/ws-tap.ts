@@ -1,6 +1,6 @@
 import { CHZZK_CMD, parseChzzkBlindEvent, parseChzzkPacket } from "@/platform/chzzk-socket";
 import { isChannelOffNow } from '../base/channel-off-flag';
-import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
+import { TBC_SOCKET_CHAT_ACTION, TBC_SOCKET_REPLAY_ACTION, TBC_SOCKET_REPLAY_REQUEST, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
 
 /**
  * 치지직 채팅 소켓 수동 탭 (MAIN world).
@@ -19,8 +19,42 @@ const TAPPED = Symbol.for('tbc.chzzkSocketTap');
 
 type Post = (msg: TbcSocketChatMessage) => void;
 
+/** 다시 보내 줄 수 있게 기억해 두는 채팅 수 — 최근 채팅(50개)과 업데이트 빈틈을 넉넉히 덮는다 */
+const REPLAY_CHATS = 1000;
+
+/** 넘긴 메시지를 순서대로 기억한다. 채팅이 REPLAY_CHATS를 넘으면 오래된 메시지부터 버린다. */
+export function createReplayLog(limit = REPLAY_CHATS) {
+    const log: TbcSocketChatMessage[] = [];
+    let chats = 0;
+    return {
+        remember(msg: TbcSocketChatMessage) {
+            log.push(msg);
+            if (msg.kind === 'chats') chats += msg.chats.length;
+            while (chats > limit && log.length > 1) {
+                const old = log.shift()!;
+                if (old.kind === 'chats') chats -= old.chats.length;
+            }
+        },
+        messages: () => log.slice(),
+    };
+}
+
+const replayLog = createReplayLog();
+
 // 꺼진 채널에서는 아무것도 넘기지 않는다 (탭 자체는 페이지가 소켓을 열기 전에 걸어야 해서 그대로 둔다)
-const defaultPost: Post = (msg) => { if (!isChannelOffNow()) window.postMessage(msg, '*'); };
+const defaultPost: Post = (msg) => {
+    if (isChannelOffNow()) return;
+    window.postMessage(msg, '*');
+    replayLog.remember(msg);
+};
+
+/** 보관함이 다시 달라고 하면(TBC_SOCKET_REPLAY_REQUEST) 기억한 메시지를 REPLAY로 다시 보낸다. */
+export function installChzzkSocketReplay() {
+    window.addEventListener('message', e => {
+        if (e.source !== window || e.data?.action !== TBC_SOCKET_REPLAY_REQUEST || isChannelOffNow()) return;
+        for (const msg of replayLog.messages()) window.postMessage({ ...msg, action: TBC_SOCKET_REPLAY_ACTION }, '*');
+    });
+}
 
 function attach(ws: WebSocket, post: Post) {
     ws.addEventListener('message', (e: MessageEvent) => {

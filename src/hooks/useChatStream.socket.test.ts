@@ -76,19 +76,11 @@ describe('useChatStream — 소켓 렌더 모드 (원본이 안 와서 직접 �
         expect(p.clone.querySelector('.tbc-chat-text').textContent).toBe('원문');
     });
 
-    it('보관함 값도 함께 넘긴다 — 블라인드 채팅은 본문 없이 가려짐 표시만', () => {
+    it('라이브 채팅엔 보관함 값을 싣지 않는다 — 보관은 chzzk-archive-feed가 소켓에서 바로 한다', () => {
         const { passed } = setup();
-        sock({ kind: 'chats', recent: false, chats: [
-            chat(),
-            chat({ id: 'u3_1000', uid: 'u3', status: 'BLIND' }),
-            chat({ id: 'u4_1000', uid: 'u4', type: 10, extras: { payAmount: 1000 } }),
-        ] });
+        sock({ kind: 'chats', recent: false, chats: [chat()] });
         noOriginal();
-        const [a, b, c] = passed.mock.calls.map(x => x[0]);
-        expect(a.archive).toMatchObject({ badges: ['b1'], kind: 'chat' });
-        expect(a.archive.hidden).toBeUndefined();
-        expect(b).toMatchObject({ text: '', archive: { hidden: true } });
-        expect(c.archive).toMatchObject({ kind: 'donation', amount: 1000 });
+        expect(passed.mock.calls[0][0].archive).toBeUndefined();
     });
 
     it('같은 채팅은 한 번만 (recent와 live 중복)', () => {

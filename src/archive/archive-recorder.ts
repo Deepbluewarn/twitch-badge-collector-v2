@@ -1,4 +1,3 @@
-import type { PassedChat } from '@/hooks/useChatStream';
 import {
     ARCHIVE_HIDE_MESSAGE, ARCHIVE_PUT_MESSAGE, ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, channelOf, loadArchiveSetting,
     sanitizeArchiveSetting, type ArchiveMode, type ArchivePlatform, type ArchivedChat,
@@ -6,7 +5,7 @@ import {
 
 /**
  * 콘텐츠 스크립트 쪽 보관함 기록기 — 필터를 통과한 채팅을 모아 FLUSH_MS마다 백그라운드로 보낸다.
- * 모아보기 버퍼와 따로 돈다: 캡쳐 중 일시 정지, 개수 제한, 초기화와 상관없이 기록한다.
+ * 무엇을 넣을지는 부르는 쪽이 정한다(치지직 라이브: chzzk-archive-feed, 트위치·다시보기: 모아보기 창).
  * 보내기에 실패하면(백그라운드 깨는 중) 다음에 다시 보낸다. 확장과 끊기면 남은 건 버린다.
  */
 const FLUSH_MS = 2000;
@@ -18,8 +17,13 @@ function ok(res: unknown) {
     if ((res as { ok?: boolean } | undefined)?.ok !== true) throw new Error('archive not saved');
 }
 
+/** 기록할 채팅 하나 — key는 같은 채널 안에서 채팅마다 하나(같은 채팅이 다시 오면 같은 값) */
+export type ArchiveEntry = Pick<ArchivedChat, 'time' | 'nickname' | 'text' | 'badges' | 'kind' | 'amount' | 'marker' | 'hidden'> & { key: string };
+
 export interface ArchiveRecorder {
-    record(chat: PassedChat): void;
+    record(entry: ArchiveEntry): void;
+    /** 이 사이 채팅이 빠졌을 수 있다 (from·until은 채팅 시각) */
+    gap(from: number, until: number): void;
     /** 이미 보관한 채팅이 나중에 블라인드됨 */
     hide(key: string): void;
     /** 남은 걸 바로 보낸다 (탭을 닫거나 숨길 때) */
@@ -63,27 +67,37 @@ export function createArchiveRecorder(
         }
     }
 
+    function push(chat: ArchivedChat) {
+        puts.push(chat);
+        if (puts.length > QUEUE_LIMIT) puts.shift();
+    }
+
     const timer = setInterval(flush, FLUSH_MS);
     const onHide = () => { if (document.visibilityState === 'hidden') void flush(); };
     document.addEventListener('visibilitychange', onHide);
     window.addEventListener('pagehide', onHide);
 
     return {
-        record(chat) {
-            if (!enabled || !chat.archive) return;
+        record(entry) {
+            if (!enabled) return;
             const ch = getChannel();
             if (!ch) return;
             const channel = channelOf(platform, ch.channelId, ch.mode);
-            const id = `${channel}|${chat.key}`;
-            idByKey.set(chat.key, id);
+            const id = `${channel}|${entry.key}`;
+            idByKey.set(entry.key, id);
             if (idByKey.size > QUEUE_LIMIT) idByKey.delete(idByKey.keys().next().value!);
-            const { badges, kind, amount, marker, hidden } = chat.archive;
-            puts.push({
-                id, channel, time: chat.time, savedAt: Date.now(),
-                nickname: chat.nickname, text: hidden ? '' : chat.text, badges, kind,
+            const { time, nickname, text, badges, kind, amount, marker, hidden } = entry;
+            push({
+                id, channel, time, savedAt: Date.now(), nickname, text: hidden ? '' : text, badges, kind,
                 ...(amount ? { amount } : {}), ...(marker ? { marker } : {}), ...(hidden ? { hidden } : {}),
             });
-            if (puts.length > QUEUE_LIMIT) puts.shift();
+        },
+        gap(from, until) {
+            if (!enabled) return;
+            const ch = getChannel();
+            if (!ch) return;
+            const channel = channelOf(platform, ch.channelId, ch.mode);
+            push({ id: `${channel}|gap_${from}`, channel, time: from, until, savedAt: Date.now(), nickname: '', text: '', badges: [], kind: 'gap' });
         },
         hide(key) {
             const id = idByKey.get(key);
