@@ -360,6 +360,7 @@ function Popup() {
         variant='primary'
         icon='filter_alt'
         block
+        className='tbc-popup-btn'
         onClick={() => onPageButtonClicked("filter")}
         style={{ marginTop: 4 }}
       >
@@ -370,6 +371,7 @@ function Popup() {
       <Button
         icon='settings'
         block
+        className='tbc-popup-btn'
         onClick={() => onPageButtonClicked("general")}
       >
         {browser.i18n.getMessage("settings" as any)}
@@ -379,6 +381,7 @@ function Popup() {
       <Button
         icon='photo_camera'
         block
+        className='tbc-popup-btn'
         disabled={!hostReady}
         onClick={() => sendToActiveContent('tbc-start-capture')}
       >
@@ -398,7 +401,7 @@ function Popup() {
           </Stack>
         </div>
       ) : (
-        <Button icon='delete_sweep' block disabled={!hostReady} onClick={() => setConfirmClear(true)}>
+        <Button icon='delete_sweep' block className='tbc-popup-btn' disabled={!hostReady} onClick={() => setConfirmClear(true)}>
           {browser.i18n.getMessage('clearCollectedChats' as any)}
         </Button>
       )}

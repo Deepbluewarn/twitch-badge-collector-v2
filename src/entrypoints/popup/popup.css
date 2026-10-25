@@ -30,3 +30,10 @@ a:active {
     font-size: 13px;
     font-weight: 700;
 }
+/* 큰 버튼 넷은 왼쪽 정렬 — 아이콘이 한 줄로 서고 글자도 같은 자리에서 시작한다.
+   #root로 한 단 높여 ui.module.css의 가운데 정렬보다 늘 앞선다(실리는 순서와 무관). */
+#root .tbc-popup-btn {
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 18px;
+}
