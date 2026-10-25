@@ -212,16 +212,21 @@ export async function clearArchive(): Promise<void> {
 }
 
 /**
- * 전체 보관 수 상한 — 채팅 하나가 디스크에서 약 630바이트(색인 포함, 2026-10-25 실측)라 약 630MB.
+ * 전체 보관 상한 — 보관 기간이 길면 더 많이 둔다. 채팅 하나가 디스크에서 약 630바이트(색인 포함, 2026-10-25 실측).
  * 보통은 기간 만료가 먼저 온다. 모든 채팅을 모으는 필터로 인기 방송을 오래 보는 경우만 닿는다(하루 20만 개 넘게).
+ * label은 화면 설명에 쓰는 대략 용량.
  */
-export const ARCHIVE_MAX_CHATS = 1_000_000;
+export function archiveCap(days: number): { chats: number; label: string } {
+    if (days >= 365) return { chats: 3_200_000, label: '2GB' };
+    if (days >= 90) return { chats: 2_000_000, label: '1.2GB' };
+    return { chats: 1_000_000, label: '600MB' };
+}
 
 /**
  * 보관 기간이 지난 채팅을 지우고, 그래도 상한을 넘으면 가장 오래 보관한 것부터 지운다.
  * 채팅이 하나도 안 남은 채널은 목록에서도 뺀다.
  */
-export async function purgeArchive(days: number, now = Date.now(), max = ARCHIVE_MAX_CHATS): Promise<void> {
+export async function purgeArchive(days: number, now = Date.now(), max = archiveCap(days).chats): Promise<void> {
     const db = await openDb();
     const tx = db.transaction([CHATS, CHANNELS], 'readwrite');
     const store = tx.objectStore(CHATS);

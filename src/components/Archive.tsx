@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, IconButton, Select, Spinner, Switch, TextInput } from '@/ui';
 import {
     ARCHIVE_DAYS, ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, clearArchive, csvHead, csvRow, deleteArchiveChannel, eachArchivedChat,
-    formatArchiveTime, listArchiveChannels, loadArchiveSetting, queryArchivedChats, sanitizeArchiveSetting, saveArchiveSetting,
+    archiveCap, formatArchiveTime, listArchiveChannels, loadArchiveSetting, queryArchivedChats, sanitizeArchiveSetting, saveArchiveSetting,
     textHead, textRow, type ArchiveChannel, type ArchiveSetting, type ArchivedChat,
 } from '@/archive/chat-archive';
 import { fetchChzzkChannel } from '@/api/chzzk-channel';
@@ -359,7 +359,7 @@ export default function Archive() {
         <>
             {!row ? (
                 <>
-                    <p className={s.intro}>{t('archive.intro', { days: setting.days })} {t('archive.responsibility')}</p>
+                    <p className={s.intro}>{t('archive.intro', { days: setting.days, cap: archiveCap(setting.days).label })} {t('archive.responsibility')}</p>
                     <SectionTitle>{t('archive.section_setting')}</SectionTitle>
                     <SettingsCard>
                         <SettingRow label={t('archive.enabled')}>

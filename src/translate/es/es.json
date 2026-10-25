@@ -381,7 +381,7 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Menos",
         "badges_more": "Más",
-        "intro": "Solo se guardan los chats atrapados por los filtros, por separado para cada canal. Pasados {{days}} días, o si el total supera 600 MB, se borran primero los más antiguos.",
+        "intro": "Solo se guardan los chats atrapados por los filtros, por separado para cada canal. Pasados {{days}} días, o si el total supera {{cap}}, se borran primero los más antiguos.",
         "responsibility": "La responsabilidad por cualquier problema derivado de los chats archivados recae en el usuario.",
         "section_setting": "Ajustes del archivo",
         "section_chats": "Chats archivados"

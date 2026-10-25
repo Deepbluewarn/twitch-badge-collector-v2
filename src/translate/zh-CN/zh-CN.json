@@ -381,7 +381,7 @@
         "badge_tooltip": "{{name}}\n{{count}} 条聊天",
         "badges_less": "收起",
         "badges_more": "更多",
-        "intro": "仅按频道单独保存被过滤器选中的聊天。超过 {{days}} 天或总容量超过 600MB 时，从最旧的聊天开始删除。",
+        "intro": "仅按频道单独保存被过滤器选中的聊天。超过 {{days}} 天或总容量超过 {{cap}} 时，从最旧的聊天开始删除。",
         "responsibility": "因保存的聊天产生的问题，责任由用户承担。",
         "section_setting": "保存设置",
         "section_chats": "已保存的聊天"

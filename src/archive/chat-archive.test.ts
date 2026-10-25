@@ -126,6 +126,11 @@ describe('상한과 페이지 단위 읽기', () => {
         expect((await getArchivedChats(CH)).map(c => c.time)).toEqual([3, 4, 5]);
     });
 
+    it('보관 기간이 길면 상한도 크다', async () => {
+        const { archiveCap } = await import('./chat-archive');
+        expect([7, 30, 90, 365].map(d => archiveCap(d).chats)).toEqual([1_000_000, 1_000_000, 2_000_000, 3_200_000]);
+    });
+
     it('최신부터 한 페이지씩 읽는다', async () => {
         await putArchivedChats(Array.from({ length: 25 }, (_, i) => chat(i + 1)));
         expect(await countArchivedChats(CH)).toBe(25);

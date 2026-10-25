@@ -381,7 +381,7 @@
         "badge_tooltip": "{{name}}\n{{count}} 則聊天",
         "badges_less": "收合",
         "badges_more": "更多",
-        "intro": "僅依頻道另外保存被過濾器選中的聊天。超過 {{days}} 天或總容量超過 600MB 時，從最舊的聊天開始刪除。",
+        "intro": "僅依頻道另外保存被過濾器選中的聊天。超過 {{days}} 天或總容量超過 {{cap}} 時，從最舊的聊天開始刪除。",
         "responsibility": "因保存的聊天產生的問題，責任由使用者承擔。",
         "section_setting": "保存設定",
         "section_chats": "已保存的聊天"

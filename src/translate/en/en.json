@@ -381,7 +381,7 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Less",
         "badges_more": "More",
-        "intro": "Only chats caught by filters are saved, separately per channel. After {{days}} days, or once the total exceeds 600MB, the oldest chats are deleted first.",
+        "intro": "Only chats caught by filters are saved, separately per channel. After {{days}} days, or once the total exceeds {{cap}}, the oldest chats are deleted first.",
         "responsibility": "You are responsible for any issues arising from archived chats.",
         "section_setting": "Archive settings",
         "section_chats": "Archived chats"

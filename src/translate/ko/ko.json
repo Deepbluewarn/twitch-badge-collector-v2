@@ -380,7 +380,7 @@
         "badge_tooltip": "{{name}}\n채팅 {{count}}개",
         "badges_less": "접기",
         "badges_more": "더보기",
-        "intro": "필터에 걸린 채팅만 채널별로 따로 저장합니다. {{days}}일이 지나거나 전체 용량이 600MB를 넘으면 오래된 채팅부터 지워집니다.",
+        "intro": "필터에 걸린 채팅만 채널별로 따로 저장합니다. {{days}}일이 지나거나 전체 용량이 {{cap}}를 넘으면 오래된 채팅부터 지워집니다.",
         "responsibility": "보관된 채팅으로 발생하는 문제에 대한 책임은 사용자에게 있습니다.",
         "section_setting": "보관 설정",
         "section_chats": "보관된 채팅"
