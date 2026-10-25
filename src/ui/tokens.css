@@ -10,6 +10,7 @@
     --ui-rule: #111111;   /* 구획 굵은 선 (표 머리 아래 등) */
     --ui-hair: #e7e5df;
     --ui-tint: #f5f4ef;
+    --ui-canvas: #f3f2ed; /* 설정 페이지 바탕 — 흰 카드가 떠 보이게 */
     --ui-soft: #fff6c2;
     --ui-muted: #6b6a66;
     --ui-danger: #e5484d;
@@ -32,6 +33,7 @@
     --ui-rule: #6a665a;   /* 글자색(크림) 2px 선은 너무 밝아 낮춘다 */
     --ui-hair: #2c2a25;
     --ui-tint: #23211c;
+    --ui-canvas: #161512; /* 어둡게는 카드와 같은 바탕 그대로 */
     --ui-soft: #3b3413;
     --ui-muted: #a19d90;
 

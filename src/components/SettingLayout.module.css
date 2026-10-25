@@ -13,7 +13,7 @@
     gap: 24px;
     align-items: center;
     padding: 10px 24px;
-    background: var(--ui-paper);
+    background: var(--ui-canvas);
     border-bottom: 1px solid var(--ui-hair);
 }
 
@@ -61,7 +61,7 @@
 }
 
 .item:hover {
-    background: var(--ui-tint);
+    background: var(--ui-hair);
 }
 
 .item.active {
@@ -96,6 +96,7 @@
     padding: 14px 20px;
     border: 1px solid var(--ui-hair);
     border-radius: 10px;
+    background: var(--ui-paper);
     cursor: pointer;
 }
 
@@ -148,7 +149,7 @@
         flex-direction: row;
         padding: 8px 0;
         overflow-x: auto;
-        background: var(--ui-paper);
+        background: var(--ui-canvas);
         border-bottom: 1px solid var(--ui-hair);
     }
 
