@@ -272,7 +272,8 @@ function ChannelPower({ info, setInfo }: { info: HostInfo | null | undefined; se
     setChannelOff(info.platform, channelId, !on, info.name, info.image);
   };
   return (
-    <div style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--ui-tint)' }}>
+    // 회색 바탕 위 흰 카드 — 설정 페이지 카드와 같은 모양
+    <div style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid var(--ui-hair)', background: 'var(--ui-paper)' }}>
       <SettingRow
         label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
           <ChannelAvatar src={info.image} size={20} />
@@ -343,7 +344,7 @@ function Popup() {
           <img src={browser.runtime.getURL('/assets/icon.png')} alt="" style={{ width: '1rem', height: '1rem' }} />
           <span>{browser.i18n.getMessage('ExtensionName')}</span>
         </a>
-        <Tag>{`v${browser.runtime.getManifest().version}`}</Tag>
+        <Tag tone='off'>{`v${browser.runtime.getManifest().version}`}</Tag>
       </Stack>
 
       <ChannelPower info={host} setInfo={setHost} />
