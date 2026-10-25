@@ -29,6 +29,9 @@ export async function fetchAndApplyOta(): Promise<{ updated: boolean; rev?: numb
         const res = await fetch(SELECTORS_URL, { cache: 'no-cache' });
         if (!res.ok) return { updated: false, error: `HTTP ${res.status}` };
         const json = await res.json();
+        // 받았으면 rev가 그대로여도 시각을 남긴다. 적용될 때만 남기면 평소(rev 변화 없음)엔
+        // 시각이 안 바뀌어 SW가 깰 때마다 다시 받는다 — 사용자당 하루 수십 번이었다.
+        await browser.storage.local.set({ [FETCHED_AT_KEY]: Date.now() });
 
         const beforeRev = getManifest().rev;
         const applied = setManifest(json);
@@ -39,10 +42,7 @@ export async function fetchAndApplyOta(): Promise<{ updated: boolean; rev?: numb
 
         const afterRev = getManifest().rev;
         // 적용된 것을 storage에도 영속화 (다른 컨텍스트가 다음 reload 때 사용)
-        await browser.storage.local.set({
-            [STORAGE_KEY]: json as SelectorsManifest,
-            [FETCHED_AT_KEY]: Date.now(),
-        });
+        await browser.storage.local.set({ [STORAGE_KEY]: json as SelectorsManifest });
         console.log('[ota-fetch] applied selectors rev', afterRev);
         return { updated: true, rev: afterRev };
     } catch (e) {

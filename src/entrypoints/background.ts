@@ -14,7 +14,7 @@ export default defineBackground(() => {
 
   // OTA selectors fetch — install/update 시 즉시 + browser startup + 매 SW wake 시 stale 체크.
   // alarms permission 안 씀 — MV3 SW는 다양한 이벤트(content msg, tab nav 등)로 자주 깨므로
-  // 능동 사용자에겐 사실상 6시간 내 갱신됨. 비활동 사용자는 다음 사용 시 갱신.
+  // 능동 사용자에겐 사실상 1시간(TTL) 내 갱신됨. 비활동 사용자는 다음 사용 시 갱신.
   browser.runtime.onInstalled.addListener(() => { fetchAndApplyOta(); });
   browser.runtime.onStartup.addListener(() => { fetchIfStale(); });
   // 채팅 유지는 브라우저를 다시 켜면 비운다(storage.local에 두지만 수명은 예전 storage.session과 같게).

@@ -16,7 +16,8 @@
 **공통:**
 - 사용자측 SW가 깰 때마다 `fetchIfStale()` → jsDelivr CDN에서 fetch.
 - 받은 manifest는 `browser.storage.local`에 저장. content-script는 `manifestReady` 후 init.
-- 6시간 stale 판정 + `rev` 비교. 활성 사용자는 SW wake가 잦아 ~수 시간 내 갱신.
+- 1시간 stale 판정 + `rev` 비교. 활성 사용자는 SW wake가 잦아 ~1시간 내 갱신.
+  받은 시각은 rev가 그대로여도 남긴다 (예전엔 적용될 때만 남겨서 SW wake마다 받았다 — 사용자당 하루 ~40번).
 
 ### realm 두 개 — MAIN은 storage를 못 읽는다
 
