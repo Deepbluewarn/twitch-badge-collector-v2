@@ -381,11 +381,7 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Menos",
         "badges_more": "Mais",
-        "cond_title": "O que é arquivado",
-        "cond_filter": "Só chats pegos pelos filtros",
-        "cond_page": "Enquanto a página da live estiver aberta",
-        "cond_off": "Exceto canais desativados",
-        "cond_local": "Salvo só neste navegador",
+        "intro": "Guarda separadamente, por um período, os chats coletados em cada canal. A coleta segue os filtros configurados no momento, então nem todos os chats são coletados. Com a configuração atual, os chats ficam guardados por {{days}} dias após a coleta e, quando o total passa de 600 MB, os mais antigos são apagados primeiro.",
         "responsibility": "Você é responsável por qualquer problema causado pelos chats arquivados.",
         "section_setting": "Configurações do arquivo",
         "section_chats": "Chats arquivados"

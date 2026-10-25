@@ -381,11 +381,7 @@
         "badge_tooltip": "{{name}}\n{{count}} Chats",
         "badges_less": "Weniger",
         "badges_more": "Mehr",
-        "cond_title": "Was gespeichert wird",
-        "cond_filter": "Nur von Filtern erfasste Chats",
-        "cond_page": "Solange die Streamseite offen ist",
-        "cond_off": "Außer ausgeschaltete Kanäle",
-        "cond_local": "Nur in diesem Browser gespeichert",
+        "intro": "Speichert die in jedem Kanal gesammelten Chats für einen bestimmten Zeitraum separat. Gesammelt wird nach den jeweils eingestellten Filtern, daher werden nicht alle Chats gesammelt. Mit der aktuellen Einstellung bleiben Chats {{days}} Tage nach dem Sammeln gespeichert. Überschreiten alle Chats 600 MB, werden die ältesten zuerst gelöscht.",
         "responsibility": "Für Probleme durch gespeicherte Chats bist du selbst verantwortlich.",
         "section_setting": "Archiv-Einstellungen",
         "section_chats": "Archivierte Chats"

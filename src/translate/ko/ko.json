@@ -380,11 +380,7 @@
         "badge_tooltip": "{{name}}\n채팅 {{count}}개",
         "badges_less": "접기",
         "badges_more": "더보기",
-        "cond_title": "보관 조건",
-        "cond_filter": "필터에 걸린 채팅만",
-        "cond_page": "방송 페이지를 열어 둔 동안",
-        "cond_off": "끈 채널은 제외",
-        "cond_local": "이 브라우저에만 저장",
+        "intro": "각 채널에서 수집된 채팅을 일정 기간 동안 별도로 저장하는 기능입니다. 당시 설정된 필터 조건에 따라 수집되며 전체 채팅이 수집되지 않습니다. 현재 설정에 따라 수집 직후 {{days}}일까지 채팅이 저장되며, 전체 채팅 용량이 600MB를 넘으면 가장 오래된 채팅부터 삭제됩니다.",
         "responsibility": "보관된 채팅으로 생기는 문제는 사용자 책임입니다.",
         "section_setting": "보관 설정",
         "section_chats": "보관된 채팅"

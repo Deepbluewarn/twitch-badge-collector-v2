@@ -381,11 +381,7 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Less",
         "badges_more": "More",
-        "cond_title": "What gets archived",
-        "cond_filter": "Only chats caught by filters",
-        "cond_page": "While the stream page is open",
-        "cond_off": "Except channels turned off",
-        "cond_local": "Saved in this browser only",
+        "intro": "Stores chats collected from each channel separately for a set period. Chats are collected according to the filters set at the time, so not every chat is collected. With the current setting, chats are kept for {{days}} days after collection, and once all chats exceed 600MB the oldest are deleted first.",
         "responsibility": "You are responsible for any issues arising from archived chats.",
         "section_setting": "Archive settings",
         "section_chats": "Archived chats"

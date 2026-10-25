@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Icon, IconButton, Select, Spinner, Switch, TextInput } from '@/ui';
+import { Button, IconButton, Select, Spinner, Switch, TextInput } from '@/ui';
 import {
     ARCHIVE_DAYS, ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, clearArchive, csvHead, csvRow, deleteArchiveChannel, eachArchivedChat,
     formatArchiveTime, listArchiveChannels, loadArchiveSetting, queryArchivedChats, sanitizeArchiveSetting, saveArchiveSetting,
@@ -16,14 +16,6 @@ import { fetchBadgesCached } from '@/utils/badgeCache';
 import { getAdapter } from '@/platform';
 import type { CompositeFilterElement } from '@/interfaces/filter';
 import s from './Archive.module.css';
-
-/** 보관 조건 — 아이콘과 짧은 이름으로 한눈에 */
-const ARCHIVE_CONDITIONS = [
-    ['filter_alt', 'cond_filter'],
-    ['tab', 'cond_page'],
-    ['block', 'cond_off'],
-    ['computer', 'cond_local'],
-] as const;
 
 type ChannelRow = ArchiveChannel & { count: number };
 
@@ -364,6 +356,7 @@ export default function Archive() {
         <>
             {!row ? (
                 <>
+                    <p className={s.intro}>{t('archive.intro', { days: setting.days })}</p>
                     <SectionTitle>{t('archive.section_setting')}</SectionTitle>
                     <SettingsCard>
                         <SettingRow label={t('archive.enabled')}>
@@ -374,14 +367,6 @@ export default function Archive() {
                                 onChange={v => setSetting({ ...setting, days: Number(v) })}
                                 options={ARCHIVE_DAYS.map(d => ({ value: String(d), label: t('archive.days_option', { count: d }) }))} />
                         </SettingRow>
-                    </SettingsCard>
-                    <SectionTitle>{t('archive.cond_title')}</SectionTitle>
-                    <SettingsCard>
-                        <ul className={s.conds}>
-                            {ARCHIVE_CONDITIONS.map(([icon, key]) => (
-                                <li key={key}><Icon name={icon} />{t(`archive.${key}`)}</li>
-                            ))}
-                        </ul>
                     </SettingsCard>
                     <Note>{t('archive.responsibility')}</Note>
 

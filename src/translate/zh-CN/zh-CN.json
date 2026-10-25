@@ -381,11 +381,7 @@
         "badge_tooltip": "{{name}}\n{{count}} 条聊天",
         "badges_less": "收起",
         "badges_more": "更多",
-        "cond_title": "保存条件",
-        "cond_filter": "仅保存被过滤器选中的聊天",
-        "cond_page": "直播页面打开期间",
-        "cond_off": "已关闭的频道除外",
-        "cond_local": "仅保存在此浏览器",
+        "intro": "将各频道收集的聊天单独保存一段时间。按当时设置的过滤条件收集，因此不会收集全部聊天。按当前设置，聊天会在收集后保存 {{days}} 天；聊天总容量超过 600MB 时，从最旧的开始删除。",
         "responsibility": "因保存的聊天产生的问题由用户自行负责。",
         "section_setting": "保存设置",
         "section_chats": "已保存的聊天"
