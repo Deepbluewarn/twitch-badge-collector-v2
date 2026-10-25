@@ -357,6 +357,7 @@
     "archive": {
         "title": "Chat-Archiv",
         "enabled": "Chats archivieren",
+        "usage": "Belegt",
         "days": "Aufbewahren für",
         "days_option": "{{count}} Tage",
         "disclaimer": "Gesammelte Chats werden nur lokal in deinem Browser gespeichert und weder an einen Server gesendet noch dort gespeichert. Für Probleme, die durch gesammelte Chats entstehen, bist du selbst verantwortlich.",

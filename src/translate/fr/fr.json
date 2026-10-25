@@ -357,6 +357,7 @@
     "archive": {
         "title": "Archives du chat",
         "enabled": "Archiver les chats",
+        "usage": "Espace utilisé",
         "days": "Conserver",
         "days_option": "{{count}} jours",
         "disclaimer": "Les chats collectés sont enregistrés uniquement en local dans votre navigateur et ne sont jamais envoyés ni stockés sur un serveur. Vous êtes responsable de tout problème lié aux chats collectés.",

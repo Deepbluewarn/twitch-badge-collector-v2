@@ -126,6 +126,15 @@ describe('상한과 페이지 단위 읽기', () => {
         expect((await getArchivedChats(CH)).map(c => c.time)).toEqual([3, 4, 5]);
     });
 
+    it('지울 때가 가까운 채팅: 7일 보관은 하루, 30일 보관은 사흘 남았을 때부터', async () => {
+        const { expiresSoon } = await import('./chat-archive');
+        const day = 86_400_000, now = 100 * day;
+        expect(expiresSoon(now - 6.5 * day, 7, now)).toBe(true);
+        expect(expiresSoon(now - 5 * day, 7, now)).toBe(false);
+        expect(expiresSoon(now - 28 * day, 30, now)).toBe(true);
+        expect(expiresSoon(now - 26 * day, 30, now)).toBe(false);
+    });
+
     it('보관 기간이 길면 상한도 크다', async () => {
         const { archiveCap } = await import('./chat-archive');
         expect([7, 30, 90, 365].map(d => archiveCap(d).chats)).toEqual([1_000_000, 1_000_000, 2_000_000, 3_200_000]);

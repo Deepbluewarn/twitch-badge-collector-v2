@@ -216,6 +216,15 @@ export async function clearArchive(): Promise<void> {
  * 보통은 기간 만료가 먼저 온다. 모든 채팅을 모으는 필터로 인기 방송을 오래 보는 경우만 닿는다(하루 20만 개 넘게).
  * label은 화면 설명에 쓰는 대략 용량.
  */
+/** 채팅 하나가 디스크에서 차지하는 대략 크기(바이트) — 사용량 표시에 쓴다 */
+export const CHAT_DISK_BYTES = 630;
+
+/** 지울 때가 가까운 채팅 — 남은 시간이 이보다 짧으면 살짝 표시한다. 7일 보관이면 하루, 그보다 길면 사흘 */
+export function expiresSoon(savedAt: number, days: number, now = Date.now()): boolean {
+    const left = savedAt + days * 86_400_000 - now;
+    return left < Math.min(3, days / 7) * 86_400_000;
+}
+
 export function archiveCap(days: number): { chats: number; label: string } {
     if (days >= 365) return { chats: 3_200_000, label: '2GB' };
     if (days >= 90) return { chats: 2_000_000, label: '1.2GB' };

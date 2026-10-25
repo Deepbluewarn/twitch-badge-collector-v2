@@ -357,6 +357,7 @@
     "archive": {
         "title": "Arquivo do chat",
         "enabled": "Arquivar chats",
+        "usage": "Espaço usado",
         "days": "Manter por",
         "days_option": "{{count}} dias",
         "disclaimer": "Os chats coletados são salvos apenas localmente no seu navegador e nunca são enviados ou armazenados em nenhum servidor. Você é responsável por quaisquer problemas decorrentes dos chats coletados.",

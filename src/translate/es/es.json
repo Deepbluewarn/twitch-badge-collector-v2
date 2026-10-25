@@ -357,6 +357,7 @@
     "archive": {
         "title": "Archivo de chat",
         "enabled": "Archivar chats",
+        "usage": "Espacio usado",
         "days": "Conservar durante",
         "days_option": "{{count}} días",
         "disclaimer": "Los chats recopilados se guardan solo localmente en tu navegador y nunca se envían ni se guardan en ningún servidor. Eres responsable de cualquier problema derivado de los chats recopilados.",

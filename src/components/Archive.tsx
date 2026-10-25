@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, IconButton, Select, Spinner, Switch, TextInput } from '@/ui';
+import { Button, Icon, IconButton, Select, Spinner, Switch, TextInput } from '@/ui';
 import {
     ARCHIVE_DAYS, ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, clearArchive, csvHead, csvRow, deleteArchiveChannel, eachArchivedChat,
-    archiveCap, formatArchiveTime, listArchiveChannels, loadArchiveSetting, queryArchivedChats, sanitizeArchiveSetting, saveArchiveSetting,
+    archiveCap, CHAT_DISK_BYTES, expiresSoon, formatArchiveTime, listArchiveChannels, loadArchiveSetting, queryArchivedChats, sanitizeArchiveSetting, saveArchiveSetting,
     textHead, textRow, type ArchiveChannel, type ArchiveSetting, type ArchivedChat,
 } from '@/archive/chat-archive';
 import { fetchChzzkChannel } from '@/api/chzzk-channel';
@@ -124,8 +124,17 @@ const BADGE_LIMIT = 100;
 /** 접힌 상태에서 보이는 배지 수(대략 한 줄) */
 const BADGE_COLLAPSED = 10;
 
-function ChatRow({ chat, mode, hiddenLabel, selected, onClick }: {
+/** 대략 크기 — 1MB 밑은 KB, 1000MB부터 GB */
+function formatBytes(n: number): string {
+    if (n < 1e6) return `${Math.max(1, Math.round(n / 1e3))}KB`;
+    if (n < 1e9) return `${Math.round(n / 1e6)}MB`;
+    return `${(n / 1e9).toFixed(1)}GB`;
+}
+
+function ChatRow({ chat, mode, hiddenLabel, selected, onClick, expiring }: {
     chat: ArchivedChat; mode: ArchiveChannel['mode']; hiddenLabel: string; selected?: boolean; onClick?: (e: React.MouseEvent) => void;
+    /** 곧 지워질 채팅 — 흐리게, 시각 옆에 모래시계 */
+    expiring?: boolean;
 }) {
     const { t } = useTranslation();
     // 끊김 구간 — 이 사이 채팅이 빠졌을 수 있다. 눌러 고르는 채팅이 아니다
@@ -138,12 +147,12 @@ function ChatRow({ chat, mode, hiddenLabel, selected, onClick }: {
     return (
         <li
             {...{ [CAPTURE_KEY_ATTR]: chat.id }}
-            className={`${s.chat} ${onClick ? s.selectable : ''} ${selected ? s.selected : ''}`}
+            className={`${s.chat} ${onClick ? s.selectable : ''} ${selected ? s.selected : ''} ${expiring ? s.expiring : ''}`}
             style={chat.marker ? { boxShadow: `inset 3px 0 0 ${chat.marker}` } : undefined}
             onClick={onClick}
             aria-selected={onClick ? !!selected : undefined}
         >
-            <span className={s.time}>{formatArchiveTime(chat, mode)}</span>
+            <span className={s.time}>{formatArchiveTime(chat, mode)}{expiring && <Icon name="hourglass_bottom" className={s.expiringIcon} />}</span>
             {chat.badges.filter(isBadgeUrl).slice(0, 3).map(b => <img key={b} className={s.badge} src={b} alt="" loading="lazy" />)}
             <span className={s.nick}>{chat.nickname}</span>
             {chat.amount ? <span className={s.amount}>{chat.amount.toLocaleString()}</span> : null}
@@ -214,6 +223,8 @@ export default function Archive() {
     useEffect(() => { void reload(); }, []);
 
     const row = rows?.find(r => r.channel === selected) ?? null;
+    const cap = archiveCap(setting.days);
+    const usedChats = rows?.reduce((n, r) => n + r.count, 0) ?? 0;
     const nameOf = (r: ChannelRow) => r.mode === 'vod'
         ? t('archive.vod', { id: r.channelId })
         : info[r.channelId]?.name ?? r.channelId;
@@ -359,11 +370,17 @@ export default function Archive() {
         <>
             {!row ? (
                 <>
-                    <p className={s.intro}>{t('archive.intro', { days: setting.days, cap: archiveCap(setting.days).label })} {t('archive.responsibility')}</p>
+                    <p className={s.intro}>{t('archive.intro', { days: setting.days, cap: cap.label })} {t('archive.responsibility')}</p>
                     <SectionTitle>{t('archive.section_setting')}</SectionTitle>
                     <SettingsCard>
                         <SettingRow label={t('archive.enabled')}>
                             <Switch checked={setting.enabled} onChange={enabled => setSetting({ ...setting, enabled })} />
+                        </SettingRow>
+                        <SettingRow label={t('archive.usage')}>
+                            <span className={s.usage}>
+                                {formatBytes(usedChats * CHAT_DISK_BYTES)} / {cap.label}
+                                <i className={s.usageBar}><i style={{ width: `${Math.min(100, usedChats / cap.chats * 100)}%` }} /></i>
+                            </span>
                         </SettingRow>
                         <SettingRow label={t('archive.days')}>
                             <Select size="sm" value={String(setting.days)} className={s.days} aria-label={t('archive.days')}
@@ -452,7 +469,8 @@ export default function Archive() {
                                 <ol className={s.list} ref={listRef}>
                                     {items.map(c => (
                                         <ChatRow key={c.id} chat={c} mode={row.mode} hiddenLabel={t('archive.hidden')}
-                                            selected={picked.has(c.id)} onClick={selectMode ? e => pick(c, e) : undefined} />
+                                            selected={picked.has(c.id)} onClick={selectMode ? e => pick(c, e) : undefined}
+                                            expiring={c.kind !== 'gap' && expiresSoon(c.savedAt, setting.days)} />
                                     ))}
                                 </ol>
                                 </div>

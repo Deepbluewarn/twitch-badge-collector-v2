@@ -228,3 +228,38 @@
     line-height: 1.6;
     color: var(--ui-muted);
 }
+
+/* 사용량 — 숫자 옆 가는 막대 */
+.usage {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.usageBar {
+    width: 80px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--ui-hair);
+    overflow: hidden;
+}
+
+.usageBar > i {
+    display: block;
+    height: 100%;
+    background: var(--ui-ink);
+}
+
+/* 곧 지워질 채팅 — 눈에 띄지 않게 흐리게 */
+.expiring {
+    opacity: 0.55;
+}
+
+.expiringIcon {
+    margin-left: 2px;
+    font-size: 12px;
+    vertical-align: -2px;
+}
