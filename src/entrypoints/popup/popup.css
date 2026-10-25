@@ -1,6 +1,6 @@
 /* 팝업 전용 바탕 — 공통 바탕·토큰은 src/ui/base.css (useDocumentTheme이 싣는다). */
 body {
-    width: 22rem;
+    width: 20rem;
 }
 a,
 a:link,
