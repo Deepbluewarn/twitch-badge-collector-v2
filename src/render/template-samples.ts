@@ -54,6 +54,10 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
             label: 'blinded',
             chat: sample({ uid: 'sample-d', nickname: '익명123', message: '보이면 안 되는 말', status: 'BLIND' }),
         },
+        {
+            label: 'verified',
+            chat: sample({ uid: 'sample-v', nickname: '공식채널', message: '오늘도 응원합니다', verified: true, badges: [`${G}/icon/12m.png`] }),
+        },
     ],
     donation: [
         {

@@ -97,6 +97,7 @@ const S = TEMPLATE_SAMPLES;
 const PREVIEW_MIX: { chat: (typeof S.chat)[number]['chat']; marker?: string }[] = [
     { chat: S.chat[0].chat, marker: '#FFC107' },
     { chat: S.chat[1].chat, marker: '#4da3ff' },
+    { chat: S.chat[6].chat },
     { chat: S.chat[2].chat },
     { chat: S.donation[0].chat, marker: '#FFC107' },
     { chat: S.chat[3].chat },
@@ -111,12 +112,15 @@ const PREVIEW_MIX: { chat: (typeof S.chat)[number]['chat']; marker?: string }[] 
  * 모아보기처럼 그린 미리보기. 누르면 그 부분을 고르고(onPick), 마우스를 올리면 부분 이름을 띄운다.
  * 렌더러가 만든 요소를 그대로 붙인다 — 이미 sanitize된 요소다.
  */
-function Preview({ templates, style, dark, chatTime, part, onPick }: {
+function Preview({ templates, style, dark, chatTime, part, onPick, boxRef }: {
     templates: ChzzkTemplates; style: TemplateStyle; dark: boolean; chatTime: boolean;
-    part: Part | null; onPick: (p: Part, rect: DOMRect) => void;
+    part: Part | null; onPick: (p: Part, rect?: DOMRect) => void;
+    /** 미리보기 창 요소 — 부분 상자를 그 옆에 붙이는 데 쓴다 */
+    boxRef?: React.RefObject<HTMLDivElement | null>;
 }) {
     const { t } = useTranslation();
-    const ref = useRef<HTMLDivElement>(null);
+    const ownRef = useRef<HTMLDivElement>(null);
+    const ref = boxRef ?? ownRef;
     const [hover, setHover] = useState<{ p: Part; x: number; y: number } | null>(null);
     const verifiedIconUrl = getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined;
 
@@ -148,8 +152,8 @@ function Preview({ templates, style, dark, chatTime, part, onPick }: {
                     e.preventDefault();   // 클린봇 <details>가 펼쳐지지 않게
                     const target = e.target as HTMLElement;
                     const p = partOf(target);
-                    const anchor = p === 'window' ? ref.current! : (target.closest(PART_ANCHOR) ?? target);
-                    onPick(p, anchor.getBoundingClientRect());
+                    const anchor = p === 'window' ? undefined : (target.closest(PART_ANCHOR) ?? target);
+                    onPick(p, anchor?.getBoundingClientRect());
                 }}
                 onMouseMove={e => setHover({ p: partOf(e.target as HTMLElement), x: e.clientX, y: e.clientY })}
                 onMouseLeave={() => setHover(null)}
@@ -284,9 +288,12 @@ export default function TemplateSetting() {
         if (look && Object.keys(lookDefaults).length) setLook(lookDefaults);
     };
 
-    const pickPart = (p: Part, rect: DOMRect) => {
+    // 부분 상자는 늘 미리보기 창 옆에 — 누른 요소 옆에 붙이면 미리보기를 가린다. 높이만 누른 줄에 맞춘다.
+    const previewBoxRef = useRef<HTMLDivElement>(null);
+    const pickPart = (p: Part, rect?: DOMRect) => {
+        const box = previewBoxRef.current?.getBoundingClientRect();
         setPart(p);
-        setAnchor(rect);
+        setAnchor(box ? new DOMRect(box.left, rect?.top ?? box.top, box.width, 0) : rect ?? null);
     };
 
     const insertField = (text: string) => {
@@ -302,7 +309,7 @@ export default function TemplateSetting() {
         setSavedAt(Date.now());
     };
 
-    // 부분 상자는 누른 곳 오른쪽(자리가 없으면 왼쪽)에, 화면 안으로
+    // 부분 상자는 미리보기 창 오른쪽(자리가 없으면 왼쪽)에, 화면 안으로
     const BOX_WIDTH = 440;
     const boxPos = anchor && {
         left: anchor.right + 12 + BOX_WIDTH < window.innerWidth ? anchor.right + 12 : Math.max(8, anchor.left - 12 - BOX_WIDTH),
@@ -432,13 +439,13 @@ export default function TemplateSetting() {
                     <div className={s.parts}>
                             {PARTS.map(key => (
                                 <button key={key} type="button" className={s.partChip} aria-pressed={part === key}
-                                    onClick={e => pickPart(key, e.currentTarget.getBoundingClientRect())}>
+                                    onClick={() => pickPart(key)}>
                                     {t(`template.parts.${key}`)}
                                     {partModified(key, style, look) && <span className={s.partDot} aria-hidden="true" />}
                                 </button>
                             ))}
                     </div>
-                    <Preview templates={previewTemplates} style={style} dark={dark} chatTime={chatTime} part={part} onPick={pickPart} />
+                    <Preview templates={previewTemplates} style={style} dark={dark} chatTime={chatTime} part={part} onPick={pickPart} boxRef={previewBoxRef} />
                 </SettingsCard>
 
                 {part && boxPos && (
