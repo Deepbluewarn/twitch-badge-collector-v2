@@ -17,3 +17,14 @@ a:active {
     overflow: auto;
     user-select: none;
 }
+.tbc-popup-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 2px solid var(--ui-yellow);
+    border-radius: 10px;
+    background: var(--ui-soft);
+    font-size: 13px;
+    font-weight: 700;
+}

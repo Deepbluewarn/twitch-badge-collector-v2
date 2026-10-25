@@ -214,7 +214,8 @@
         "share_imported": "Cargado",
         "share_invalid": "Código no válido",
         "confirm_overwrite": "Se sobrescribirá tu plantilla HTML editada a mano.",
-        "close": "Cerrar"
+        "close": "Cerrar",
+        "overwrite": "Sobrescribir"
     },
     "platform": {
         "twitch": "Twitch",

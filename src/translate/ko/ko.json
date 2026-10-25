@@ -214,7 +214,8 @@
         "share_imported": "불러왔습니다",
         "share_invalid": "코드가 올바르지 않습니다",
         "confirm_overwrite": "HTML을 직접 고친 템플릿을 덮어씁니다.",
-        "close": "닫기"
+        "close": "닫기",
+        "overwrite": "덮어쓰기"
     },
     "platform": {
         "twitch": "트위치",

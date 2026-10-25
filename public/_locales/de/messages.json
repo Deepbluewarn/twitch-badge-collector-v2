@@ -83,6 +83,12 @@
   "templateSettingButton": {
     "message": "Vorlagen-Einstellungen"
   },
+  "clearCollectedChatsConfirm": {
+    "message": "Alle Chats im Sammelfenster werden gelöscht."
+  },
+  "clearCollectedChatsDo": {
+    "message": "Löschen"
+  },
   "chatLookButton": {
     "message": "Chat-Darstellung"
   },

@@ -83,6 +83,12 @@
   "templateSettingButton": {
     "message": "模板设置"
   },
+  "clearCollectedChatsConfirm": {
+    "message": "将删除收集窗口中的所有聊天。"
+  },
+  "clearCollectedChatsDo": {
+    "message": "删除"
+  },
   "chatLookButton": {
     "message": "聊天样式"
   },

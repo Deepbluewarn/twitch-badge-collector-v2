@@ -83,6 +83,12 @@
   "templateSettingButton": {
     "message": "Template settings"
   },
+  "clearCollectedChatsConfirm": {
+    "message": "All chats in the collected chat window will be deleted."
+  },
+  "clearCollectedChatsDo": {
+    "message": "Delete"
+  },
   "chatLookButton": {
     "message": "Chat look"
   },

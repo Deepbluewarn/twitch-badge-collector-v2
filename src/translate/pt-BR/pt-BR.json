@@ -214,7 +214,8 @@
         "share_imported": "Carregado",
         "share_invalid": "Código inválido",
         "confirm_overwrite": "Seu modelo HTML editado à mão será substituído.",
-        "close": "Fechar"
+        "close": "Fechar",
+        "overwrite": "Substituir"
     },
     "platform": {
         "twitch": "Twitch",

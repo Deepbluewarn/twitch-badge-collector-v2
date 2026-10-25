@@ -214,7 +214,8 @@
         "share_imported": "已载入",
         "share_invalid": "代码无效",
         "confirm_overwrite": "将覆盖你手动编辑的 HTML 模板。",
-        "close": "关闭"
+        "close": "关闭",
+        "overwrite": "覆盖"
     },
     "platform": {
         "twitch": "Twitch",

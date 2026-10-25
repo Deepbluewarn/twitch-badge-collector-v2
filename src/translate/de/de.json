@@ -214,7 +214,8 @@
         "share_imported": "Geladen",
         "share_invalid": "Ungültiger Code",
         "confirm_overwrite": "Deine von Hand bearbeitete HTML-Vorlage wird überschrieben.",
-        "close": "Schließen"
+        "close": "Schließen",
+        "overwrite": "Überschreiben"
     },
     "platform": {
         "twitch": "Twitch",

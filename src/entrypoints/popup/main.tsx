@@ -12,7 +12,7 @@ import { SettingInterface } from "@/interfaces/setting";
 import { getPlatformConfig, manifestReady } from "@/platform/host-selectors";
 import { ensureRolloutBucket, isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
-import { Button, Dialog, IconButton, Segmented, Stack, Switch, Tag, TextInput } from "@/ui";
+import { Button, Dialog, IconButton, Notice, Segmented, Stack, Switch, Tag, TextInput } from "@/ui";
 import { CHANNEL_INFO_MESSAGE, CHANNEL_OFF_KEY, getOffChannels, parseChannelKey, setChannelOff, type ChannelInfo, type OffChannels } from "@/utils/channel-off";
 import { fetchChzzkChannel } from "@/api/chzzk-channel";
 import { ChannelAvatar } from "@/components/filter/ChannelSearch";
@@ -564,6 +564,9 @@ function Popup() {
     });
   };
 
+  const [confirmClear, setConfirmClear] = React.useState(false);
+  const [hostOnly, setHostOnly] = React.useState(false);
+
   const onRatioResetButtonClicked = () => {
     browser.storage.local.set({containerRatio: 30});
   }
@@ -591,8 +594,9 @@ function Popup() {
       await browser.tabs.sendMessage(id, { type });
       window.close();
     } catch {
-      // content script 미주입 탭 — 안내 후 그대로 둠.
-      alert(browser.i18n.getMessage('onlyOnHostPage' as any));
+      // content script 미주입 탭 — 팝업 안에 안내하고 그대로 둠 (브라우저 alert는 팝업에서 잘린다).
+      setConfirmClear(false);
+      setHostOnly(true);
     }
   }
 
@@ -674,14 +678,25 @@ function Popup() {
         {browser.i18n.getMessage('startCapture' as any)}
       </Button>
 
-      {/* 저장된 채팅 비우기 */}
-      <Button
-        icon='delete_sweep'
-        block
-        onClick={() => sendToActiveContent('tbc-clear-chats')}
-      >
-        {browser.i18n.getMessage('clearCollectedChats' as any)}
-      </Button>
+      {/* 저장된 채팅 비우기 — 실수로 누르면 "채팅이 사라졌다"가 된다. 그 자리에서 한 번 묻는다
+          (브라우저 confirm은 좁은 팝업 안에서 잘려 보인다). */}
+      {confirmClear ? (
+        <div className='tbc-popup-confirm' role='alertdialog' aria-label={browser.i18n.getMessage('clearCollectedChatsConfirm' as any)}>
+          <span>{browser.i18n.getMessage('clearCollectedChatsConfirm' as any)}</span>
+          <Stack dir='row' gap={6} justify='end'>
+            <Button size='sm' onClick={() => setConfirmClear(false)}>{browser.i18n.getMessage('cancel' as any)}</Button>
+            <Button size='sm' variant='primary' icon='delete_sweep' onClick={() => sendToActiveContent('tbc-clear-chats')}>
+              {browser.i18n.getMessage('clearCollectedChatsDo' as any)}
+            </Button>
+          </Stack>
+        </div>
+      ) : (
+        <Button icon='delete_sweep' block onClick={() => setConfirmClear(true)}>
+          {browser.i18n.getMessage('clearCollectedChats' as any)}
+        </Button>
+      )}
+
+      {hostOnly && <Notice tone='warning' role='status'>{browser.i18n.getMessage('onlyOnHostPage' as any)}</Notice>}
 
       {/* tertiary: 비율 초기화 — 가끔 쓰는 액션은 text variant로 demote */}
       <Button

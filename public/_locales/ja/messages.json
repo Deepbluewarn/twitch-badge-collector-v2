@@ -83,6 +83,12 @@
   "templateSettingButton": {
     "message": "テンプレート設定"
   },
+  "clearCollectedChatsConfirm": {
+    "message": "まとめ表示のチャットをすべて削除します。"
+  },
+  "clearCollectedChatsDo": {
+    "message": "削除"
+  },
   "chatLookButton": {
     "message": "チャットの見た目"
   },

@@ -83,6 +83,12 @@
   "templateSettingButton": {
     "message": "Configurar template"
   },
+  "clearCollectedChatsConfirm": {
+    "message": "Todos os chats da janela de coleta serão excluídos."
+  },
+  "clearCollectedChatsDo": {
+    "message": "Excluir"
+  },
   "chatLookButton": {
     "message": "Aparência do chat"
   },

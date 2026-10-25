@@ -83,6 +83,12 @@
   "templateSettingButton": {
     "message": "템플릿 설정"
   },
+  "clearCollectedChatsConfirm": {
+    "message": "모아보기 창의 채팅을 모두 지웁니다."
+  },
+  "clearCollectedChatsDo": {
+    "message": "지우기"
+  },
   "chatLookButton": {
     "message": "채팅 모양"
   },

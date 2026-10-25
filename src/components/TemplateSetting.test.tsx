@@ -97,15 +97,14 @@ describe('TemplateSetting', () => {
 
     it('직접 고친 템플릿은 묻고 나서 덮는다 — 취소하면 그대로', async () => {
         await fakeBrowser.storage.local.set({ chzzkTemplates: { chat: '<b>{{nickname}}</b>' } });
-        const confirm = vi.fn(() => false);
-        vi.stubGlobal('confirm', confirm);
         renderPage();
         await waitFor(() => expect(editorValue()).toBe('<b>{{nickname}}</b>'));
         fireEvent.click(screen.getByRole('button', { name: /창 전체|Whole window/ }));
-        fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^(두 줄|Two lines)$/ }));
-        expect(confirm).toHaveBeenCalled();
+        fireEvent.click(within(screen.getAllByRole('dialog')[0]).getByRole('button', { name: /^(두 줄|Two lines)$/ }));
+        const ask = await screen.findByRole('dialog', { name: /덮어씁니다|overwrite/i });
+        fireEvent.click(within(ask).getByRole('button', { name: /취소|Cancel/ }));
+        await waitFor(() => expect(screen.queryByRole('dialog', { name: /덮어씁니다|overwrite/i })).toBeNull());
         expect(editorValue()).toBe('<b>{{nickname}}</b>');
-        vi.stubGlobal('confirm', () => true);
     });
 
     it('스타일은 미리보기에 바로 걸리고 저장되며, 바꾼 부분에 점이 붙는다', async () => {

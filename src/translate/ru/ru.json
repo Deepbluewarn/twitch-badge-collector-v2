@@ -214,7 +214,8 @@
         "share_imported": "Загружено",
         "share_invalid": "Неверный код",
         "confirm_overwrite": "Ваш вручную изменённый HTML-шаблон будет перезаписан.",
-        "close": "Закрыть"
+        "close": "Закрыть",
+        "overwrite": "Перезаписать"
     },
     "platform": {
         "twitch": "Twitch",

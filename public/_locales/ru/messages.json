@@ -83,6 +83,12 @@
   "templateSettingButton": {
     "message": "Настройки шаблона"
   },
+  "clearCollectedChatsConfirm": {
+    "message": "Все сообщения в окне сбора будут удалены."
+  },
+  "clearCollectedChatsDo": {
+    "message": "Удалить"
+  },
   "chatLookButton": {
     "message": "Вид чата"
   },

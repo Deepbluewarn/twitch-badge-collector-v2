@@ -214,7 +214,8 @@
         "share_imported": "已載入",
         "share_invalid": "代碼無效",
         "confirm_overwrite": "將覆寫你手動編輯的 HTML 範本。",
-        "close": "關閉"
+        "close": "關閉",
+        "overwrite": "覆寫"
     },
     "platform": {
         "twitch": "Twitch",

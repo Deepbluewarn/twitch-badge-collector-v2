@@ -83,6 +83,12 @@
   "templateSettingButton": {
     "message": "Réglages du modèle"
   },
+  "clearCollectedChatsConfirm": {
+    "message": "Tous les chats de la fenêtre de collecte seront supprimés."
+  },
+  "clearCollectedChatsDo": {
+    "message": "Supprimer"
+  },
   "chatLookButton": {
     "message": "Apparence du chat"
   },

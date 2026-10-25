@@ -214,7 +214,8 @@
         "share_imported": "読み込みました",
         "share_invalid": "コードが正しくありません",
         "confirm_overwrite": "直接編集したHTMLテンプレートを上書きします。",
-        "close": "閉じる"
+        "close": "閉じる",
+        "overwrite": "上書き"
     },
     "platform": {
         "twitch": "Twitch",

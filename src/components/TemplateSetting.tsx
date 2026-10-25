@@ -19,6 +19,7 @@ import { getPlatformConfig } from '@/platform/host-selectors';
 import { PARTS, PartControls, partModified, partOf, type Part } from './template/StyleParts';
 import SocialFooter from './SocialFooter';
 import i18n from '@/translate/i18n';
+import { useConfirm } from '@/ui/useConfirm';
 import s from './TemplateSetting.module.css';
 
 /** 페이지 테마(<html data-theme>)가 어두운지. 바뀌면 따라간다. */
@@ -209,6 +210,7 @@ export default function TemplateSetting() {
     const styleLoadedRef = useRef(false);
     const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
     const editorRef = useRef<ReactCodeMirrorRef>(null);
+    const [confirm, confirmDialog] = useConfirm();
 
     useEffect(() => { document.title = `${t('template.title')} - TBC`; }, []);
 
@@ -273,7 +275,7 @@ export default function TemplateSetting() {
 
     /** 템플릿 네 종류를 바꾸고 바로 저장한다. 직접 고친 템플릿을 덮을 때는 묻는다. */
     const replaceTemplates = async (next: ChzzkTemplates, ask = true) => {
-        if (ask && !detectLook(drafts) && !window.confirm(t('template.confirm_overwrite'))) return false;
+        if (ask && !detectLook(drafts) && !await confirm({ title: t('template.confirm_overwrite'), confirmLabel: t('template.overwrite'), cancelLabel: t('common.cancel') })) return false;
         setDrafts(next);
         await saveTemplates(templatesToStore(next));
         return true;
@@ -465,6 +467,7 @@ export default function TemplateSetting() {
                 </>}
             </>}
 
+            {confirmDialog}
             <SocialFooter />
         </div>
     );

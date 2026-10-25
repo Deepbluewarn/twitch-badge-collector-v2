@@ -83,6 +83,12 @@
   "templateSettingButton": {
     "message": "Ajustes de plantilla"
   },
+  "clearCollectedChatsConfirm": {
+    "message": "Se eliminarán todos los chats de la ventana de recopilación."
+  },
+  "clearCollectedChatsDo": {
+    "message": "Eliminar"
+  },
   "chatLookButton": {
     "message": "Apariencia del chat"
   },

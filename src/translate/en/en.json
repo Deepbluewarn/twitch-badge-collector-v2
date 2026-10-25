@@ -214,7 +214,8 @@
         "share_imported": "Loaded",
         "share_invalid": "Invalid code",
         "confirm_overwrite": "This will overwrite your hand-edited HTML template.",
-        "close": "Close"
+        "close": "Close",
+        "overwrite": "Overwrite"
     },
     "platform": {
         "twitch": "Twitch",
