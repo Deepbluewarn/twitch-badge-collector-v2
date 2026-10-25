@@ -72,7 +72,7 @@
     "message": "오른쪽"
   },
   "clearCollectedChatsConfirm": {
-    "message": "모아보기 창의 채팅을 모두 지웁니다."
+    "message": "수집 영역의 채팅을 모두 지웁니다."
   },
   "clearCollectedChatsDo": {
     "message": "지우기"
