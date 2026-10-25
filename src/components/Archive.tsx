@@ -24,6 +24,8 @@ type ChannelRow = ArchiveChannel & { count: number };
 
 /** 한 페이지의 채팅 수 */
 const PAGE = 100;
+/** 채널 목록 한 페이지 */
+const CHANNEL_PAGE = 20;
 
 function useArchiveSetting(): [ArchiveSetting, (s: ArchiveSetting) => void] {
     const [setting, setSetting] = useState(DEFAULT_ARCHIVE_SETTING);
@@ -186,6 +188,7 @@ export default function Archive() {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(0);
     const [channelQuery, setChannelQuery] = useState('');
+    const [channelPage, setChannelPage] = useState(0);
     const [badgeFilter, setBadgeFilter] = useState<Set<string>>(new Set());
     const [badgesOpen, setBadgesOpen] = useState(false);
     const [selectMode, setSelectMode] = useState(false);
@@ -234,6 +237,7 @@ export default function Archive() {
         if (!rows || !q) return rows ?? [];
         return rows.filter(r => nameOf(r).toLowerCase().includes(q) || r.channelId.toLowerCase().includes(q));
     }, [rows, channelQuery, info]);
+    const shownPage = Math.min(channelPage, Math.max(0, Math.ceil(visibleRows.length / CHANNEL_PAGE) - 1));
 
     function endSelect() { setSelectMode(false); setPicked(new Map()); lastPickRef.current = null; }
 
@@ -396,17 +400,24 @@ export default function Archive() {
                         {rows && rows.length > 8 && (
                             <SettingRow>
                                 <TextInput size="sm" lead="search" value={channelQuery} placeholder={t('archive.search_channel')}
-                                    aria-label={t('archive.search_channel')} onChange={e => setChannelQuery(e.target.value)} style={{ flex: 1 }} />
+                                    aria-label={t('archive.search_channel')} onChange={e => { setChannelQuery(e.target.value); setChannelPage(0); }} style={{ flex: 1 }} />
                             </SettingRow>
                         )}
                         {!rows && <SettingRow className={s.center}><Spinner label={t('archive.loading')} /></SettingRow>}
                         {rows && rows.length === 0 && <SettingRow className={ui.muted}>{t('archive.empty')}</SettingRow>}
-                        {visibleRows.map(r => (
+                        {visibleRows.slice(shownPage * CHANNEL_PAGE, (shownPage + 1) * CHANNEL_PAGE).map(r => (
                             <LinkRow key={r.channel} onClick={() => setSelected(r.channel)}>
                                 <ChannelAvatar src={r.mode === 'live' ? info[r.channelId]?.image : undefined} size={32} />
                                 <RowLabel label={nameOf(r)} platform={r.platform} hint={t('archive.count', { count: r.count })} />
                             </LinkRow>
                         ))}
+                        {visibleRows.length > CHANNEL_PAGE && (
+                            <div className={s.channelPager}>
+                                <Pager page={shownPage} pages={Math.ceil(visibleRows.length / CHANNEL_PAGE)} start={shownPage * CHANNEL_PAGE}
+                                    count={Math.min(CHANNEL_PAGE, visibleRows.length - shownPage * CHANNEL_PAGE)} total={visibleRows.length}
+                                    setPage={setChannelPage} />
+                            </div>
+                        )}
                     </SettingsCard>
                     {rows && rows.length > 0 && (
                         <SettingsCard style={{ marginTop: 16 }}>

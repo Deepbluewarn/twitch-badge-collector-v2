@@ -98,6 +98,13 @@
     margin-top: 12px;
 }
 
+/* 채널 목록 카드 안 — 줄 사이 선 아래에 */
+.channelPager {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 20px;
+}
+
 /* 배지로 거르기 */
 .badges {
     display: flex;
