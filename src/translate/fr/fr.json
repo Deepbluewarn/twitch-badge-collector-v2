@@ -382,7 +382,7 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Moins",
         "badges_more": "Plus",
-        "intro": "Seuls les chats captés par les filtres sont conservés, séparément pour chaque chaîne. Après {{days}} jours, ou au-delà de {{cap}} au total, les plus anciens sont supprimés en premier.",
+        "intro": "Seuls les chats en direct captés par les filtres sont conservés, séparément pour chaque chaîne. Après {{days}} jours, ou au-delà de {{cap}} au total, les plus anciens sont supprimés en premier.",
         "responsibility": "La responsabilité de tout problème lié aux chats archivés incombe à l'utilisateur.",
         "section_setting": "Paramètres d'archive",
         "section_chats": "Chats archivés"

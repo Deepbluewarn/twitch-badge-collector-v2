@@ -116,16 +116,16 @@ export default function Local({
     const styled = type === 'chzzk' && globalSetting.chzzkCustomTemplate === 'on';
     const styledCss = useMemo(() => styled ? styleCss(templateStyle) : null, [styled, templateStyle]);
     useEffect(() => { if (styled) ensureStyleFont(templateStyle); }, [styled, templateStyle]);
-    // 보관함 — 소켓이 없는 트위치와 치지직 다시보기만 여기서(필터 통과 지점) 기록한다. 모아보기 버퍼
-    // (캡쳐 중 정지, 개수 제한, 초기화)와는 따로 돈다. 치지직 라이브는 창과 무관하게 chzzk-archive-feed가 맡는다.
+    // 보관함 — 라이브만 보관한다(다시보기 채팅은 영상에서 언제든 다시 볼 수 있다). 소켓이 없는 트위치 라이브만
+    // 여기서(필터 통과 지점) 기록하고, 수집 영역 버퍼(캡쳐 중 정지, 개수 제한, 초기화)와는 따로 돈다.
+    // 치지직 라이브는 창과 무관하게 chzzk-archive-feed가 맡는다.
     const archiveRef = useRef<ArchiveRecorder | null>(null);
     useEffect(() => {
         const recorder = createArchiveRecorder(type, () => {
             const id = adapter.getCurrentChannelId();
             const mode = adapter.getPageMode();
-            // 트위치 다시보기는 채팅 시각(영상 안 위치)을 알 수 없어 보관하지 않는다
-            if (!id || mode === 'unknown' || (type === 'chzzk' && mode === 'live') || (type === 'twitch' && mode !== 'live')) return null;
-            return { channelId: id, mode: mode === 'live' ? 'live' : 'vod' };
+            if (type !== 'twitch' || !id || mode !== 'live') return null;
+            return { channelId: id, mode: 'live' };
         });
         archiveRef.current = recorder;
         return () => { void recorder.flush(); recorder.stop(); archiveRef.current = null; };

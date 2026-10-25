@@ -13,7 +13,6 @@ import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-
 import { applyBlindEvent, toChatInfo, type ChzzkSocketChat } from "@/platform/chzzk-socket";
 import { renderChzzkChat, type ChzzkTemplates } from "@/render/chzzk-render";
 import { getPlatformConfig } from "@/platform/host-selectors";
-import { archiveFieldsOf } from "@/archive/chzzk-archive-feed";
 import type { ArchiveKind } from "@/archive/chat-archive";
 
 export interface PassedChat {
@@ -28,7 +27,7 @@ export interface PassedChat {
     /** bar preview 등 파생 뷰용 — buffer 안에서 latest 재emit 위해 함께 전달. */
     nickname: string;
     text: string;
-    /** 보관함(src/archive)에 넣을 나머지 값 — 화면용 clone과 별개로 데이터에서 바로 뽑는다. 치지직 라이브는 비운다(chzzk-archive-feed가 따로 기록). */
+    /** 보관함(src/archive)에 넣을 나머지 값 — 화면용 clone과 별개로 데이터에서 바로 뽑는다. 보관함엔 트위치 라이브만 쓴다(치지직 라이브는 chzzk-archive-feed가 따로 기록, 다시보기는 보관하지 않는다). */
     archive?: { badges: string[]; kind: ArchiveKind; amount?: number; marker?: string; hidden?: boolean };
 }
 
@@ -359,8 +358,6 @@ export default function useChatStream(
                 prevKey: msg.prevKey,
                 nickname: info.nickName,
                 text: previewText(chat),
-                // 다시보기 보관함 값 — 블라인드·클린봇이면 본문(text)이 이미 비어 있고 가려짐 표시만 남긴다.
-                archive: { ...archiveFieldsOf(chat), marker: result.markerColor },
             });
             applyHighlight(msg.key, result.markerColor);
         }

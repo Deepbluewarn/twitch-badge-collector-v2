@@ -22,7 +22,7 @@ import type { ArchiveEntry, ArchiveRecorder } from './archive-recorder';
  * 접속 직후 최근 채팅, 확장 업데이트 때 옛 스크립트가 받고 못 보낸 채팅을 메운다. 이미 본 채팅은 건너뛴다.
  */
 
-/** 필터를 다시 볼 필요 없는 값 — 다시보기 경로(useChatStream)도 같이 쓴다. */
+/** 필터를 다시 볼 필요 없는 값 */
 export function archiveFieldsOf(chat: ChzzkSocketChat): Pick<ArchiveEntry, 'badges' | 'kind' | 'amount' | 'hidden'> {
     const kind = kindOf(chat.type);
     const amount = kind === 'donation' ? Number(chat.extras.payAmount) || undefined : undefined;

@@ -382,7 +382,7 @@
         "badge_tooltip": "{{name}}\n{{count}} Chats",
         "badges_less": "Weniger",
         "badges_more": "Mehr",
-        "intro": "Nur von Filtern erfasste Chats werden pro Kanal separat gespeichert. Nach {{days}} Tagen oder ab insgesamt über {{cap}} werden die ältesten Chats zuerst gelöscht.",
+        "intro": "Nur von Filtern erfasste Live-Chats werden pro Kanal separat gespeichert. Nach {{days}} Tagen oder ab insgesamt über {{cap}} werden die ältesten Chats zuerst gelöscht.",
         "responsibility": "Für Probleme, die durch gespeicherte Chats entstehen, bist du selbst verantwortlich.",
         "section_setting": "Archiv-Einstellungen",
         "section_chats": "Archivierte Chats"
