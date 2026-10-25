@@ -1,12 +1,13 @@
 /* 설정 페이지(필터·템플릿) 바탕. 공통 바탕은 src/ui/base.css. */
 body {
     height: 100vh;
-    background: var(--ui-canvas);
     overflow: hidden;
     overscroll-behavior: contain;
 }
+/* 바탕색은 body가 아니라 여기 — body는 base.css도 칠해서, 둘 중 늦게 실린 쪽이 이긴다(개발 모드와 빌드의 순서가 다르다). */
 #root {
     width: 100%;
     height: 100%;
     overflow: auto;
+    background: var(--ui-canvas);
 }
