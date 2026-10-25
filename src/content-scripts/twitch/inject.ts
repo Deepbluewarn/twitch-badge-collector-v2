@@ -1,3 +1,4 @@
+import { isChannelOffNow } from "../base/channel-off-flag";
 import { getReactProps } from "@/utils/react";
 import { Observer } from "../base/observer";
 import { CHAT_ATTR, TBC_CHAT_PASSED_ACTION, TbcChatPassedMessage } from "@/interfaces/chat-attributes";
@@ -10,7 +11,8 @@ function isLive() {
 }
 
 const callback = (_elem: Element | null, mr?: MutationRecord[]) => {
-    if (!mr) return;
+    // 꺼진 채널 — 원본 채팅에 아무것도 붙이지 않고 넘기지도 않는다
+    if (!mr || isChannelOffNow()) return;
 
     const records = Array.from(mr);
 
@@ -19,6 +21,8 @@ const callback = (_elem: Element | null, mr?: MutationRecord[]) => {
         if (!addedNodes) return;
 
         addedNodes.forEach((node) => {
+            // 채팅 목록에 텍스트·주석 노드가 끼어 들어올 때가 있다 — 요소만
+            if (!(node instanceof Element)) return;
             const _props = getReactProps(node);
             const paths = getPlatformConfig('twitch').reactPropsPaths!;
             const propPaths = isLive() ? paths.live! : paths.vod!;

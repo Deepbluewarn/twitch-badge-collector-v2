@@ -1,4 +1,5 @@
 import { BLOCK_LIST_URL, VOD_CHATS_URL, parseBlockListResponse, parseVodChatResponse } from "@/platform/chzzk-socket";
+import { isChannelOffNow } from '../base/channel-off-flag';
 import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
 
 /**
@@ -11,7 +12,8 @@ import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-
  */
 
 type Post = (msg: TbcSocketChatMessage) => void;
-const defaultPost: Post = (msg) => window.postMessage(msg, '*');
+// 꺼진 채널에서는 아무것도 넘기지 않는다
+const defaultPost: Post = (msg) => { if (!isChannelOffNow()) window.postMessage(msg, '*'); };
 const TAPPED = Symbol.for('tbc.chzzkRestTap');
 
 /** 엿볼 주소와, 응답 본문을 메시지로 바꾸는 방법. */

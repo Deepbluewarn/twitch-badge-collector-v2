@@ -1,5 +1,6 @@
 import { installChzzkSocketTap } from '../../content-scripts/chzzk/ws-tap';
 import { installChzzkRestTap } from '../../content-scripts/chzzk/rest-tap';
+import { isChannelOffNow } from '../../content-scripts/base/channel-off-flag';
 
 export default defineContentScript({
   matches: [
@@ -18,11 +19,14 @@ export default defineContentScript({
     // 다른 탭/백그라운드 진입 시 chzzk가 visibilitychange를 듣고 채팅 렌더를 멈춤.
     // → 이벤트 차단 + document.hidden / visibilityState 위조로 host에게 항상 visible로 보이게.
     // (Chrome timer throttle 같은 브라우저-레벨 제약은 우회 못함. 라이브 audio 재생 중이면 throttle 면제됨.)
+    // 꺼진 채널에서는 위조하지 않는다 — 확장을 끈 것과 같게 원래 값을 돌려준다.
+    const hiddenOf = Object.getOwnPropertyDescriptor(Document.prototype, 'hidden')?.get;
+    const stateOf = Object.getOwnPropertyDescriptor(Document.prototype, 'visibilityState')?.get;
     document.addEventListener('visibilitychange', e => {
-      e.stopImmediatePropagation();
+      if (!isChannelOffNow()) e.stopImmediatePropagation();
     }, true);
-    Object.defineProperty(document, 'hidden', { get: () => false, configurable: true });
-    Object.defineProperty(document, 'visibilityState', { get: () => 'visible', configurable: true });
+    Object.defineProperty(document, 'hidden', { get: () => isChannelOffNow() && hiddenOf ? hiddenOf.call(document) : false, configurable: true });
+    Object.defineProperty(document, 'visibilityState', { get: () => isChannelOffNow() && stateOf ? stateOf.call(document) : 'visible', configurable: true });
 
     // 실제 content script 로직 import
     import('../../content-scripts/chzzk/inject');

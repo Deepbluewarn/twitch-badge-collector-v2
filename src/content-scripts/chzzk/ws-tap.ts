@@ -1,4 +1,5 @@
 import { CHZZK_CMD, parseChzzkBlindEvent, parseChzzkPacket } from "@/platform/chzzk-socket";
+import { isChannelOffNow } from '../base/channel-off-flag';
 import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
 
 /**
@@ -18,7 +19,8 @@ const TAPPED = Symbol.for('tbc.chzzkSocketTap');
 
 type Post = (msg: TbcSocketChatMessage) => void;
 
-const defaultPost: Post = (msg) => window.postMessage(msg, '*');
+// 꺼진 채널에서는 아무것도 넘기지 않는다 (탭 자체는 페이지가 소켓을 열기 전에 걸어야 해서 그대로 둔다)
+const defaultPost: Post = (msg) => { if (!isChannelOffNow()) window.postMessage(msg, '*'); };
 
 function attach(ws: WebSocket, post: Post) {
     ws.addEventListener('message', (e: MessageEvent) => {

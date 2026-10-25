@@ -13,7 +13,8 @@ import { registerDiagnoseListener } from "@/platform/diagnose";
 import { applyChatSide, trackSidebarSwap } from "./chat-side";
 import { ensureRolloutBucket } from "./socket-mode";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
-import { setupChannelOff } from "../base/channel-off";
+import { clearHostMarks, setupChannelOff } from "../base/channel-off";
+import { isChannelOffNow } from "../base/channel-off-flag";
 import { onTeardown, startInstance } from "../base/lifecycle";
 
 async function bootstrap() {
@@ -51,11 +52,19 @@ async function bootstrap() {
     });
 
     const adapter = new ChzzkAdapter();
-    // 이 채널에서 끄기 — 끄면 화면 조정도 원래대로, 다시 켜면 창을 만든다(이미 있으면 숨김만 풀린다).
+    // 이 채널에서 끄기 — 끄면 창을 걷어 수집·보관까지 멈추고 화면 조정도 원래대로, 다시 켜면 창을 새로 만든다
+    // (채팅 유지가 켜져 있으면 끄기 전 채팅을 다시 불러온다).
     const channelOff = setupChannelOff(adapter, async off => {
         applyChatSide(off ? undefined : (await browser.storage.local.get('chzzkChatSide')).chzzkChatSide);
         trackSidebarSwap();
-        if (!off) init();
+        if (off) {
+            for (const c of [liveContainer, vodContainer]) { c.destroy(); c.restoreHost(); }
+            floatingLive.destroy();
+            clearHostMarks();
+            releaseFullscreen();
+        } else {
+            init();
+        }
     });
     registerDiagnoseListener(adapter, 'chzzk');
 
@@ -124,7 +133,7 @@ async function bootstrap() {
             window.dispatchEvent(new CustomEvent('tbc-channel-changed'));
         });
     }
-    setupFullscreenKeepAlive();
+    const releaseFullscreen = setupFullscreenKeepAlive();
 
     if (SEL.pointButton) {
         const pointObserver = new Observer(SEL.pointButton, false);
@@ -149,7 +158,7 @@ async function bootstrap() {
 // 해결: aside의 class를 MutationObserver로 watch.
 //  - is_folded 클래스 있음 = chzzk가 의도적으로 hide → 우리가 offscreen으로 keep-alive
 //  - is_folded 클래스 없음 = chzzk가 보이려 함 → 우리 override 제거, chzzk 정상 렌더
-function setupFullscreenKeepAlive() {
+function setupFullscreenKeepAlive(): () => void {
     const ASIDE_ID = 'aside-chatting';
     // chzzk CSS-in-JS 패턴 변동 대응 — selector JSON에서 substring 읽음.
     // 구 패턴: `live_chatting_is_folded_xxx` (prefix). 신 패턴: `_is_folded_xxx_n`.
@@ -190,7 +199,8 @@ function setupFullscreenKeepAlive() {
     function sync() {
         const aside = document.getElementById(ASIDE_ID);
         if (!aside) return;
-        if (isFolded(aside)) applyOverride(aside);
+        // 꺼진 채널 — 치지직이 접은 채팅창을 그대로 둔다
+        if (isFolded(aside) && !isChannelOffNow()) applyOverride(aside);
         else removeOverride(aside);
     }
 
@@ -209,6 +219,12 @@ function setupFullscreenKeepAlive() {
             mo = null;
         }
     });
+
+    // 채널을 끄면 덮어쓴 스타일을 바로 걷는다 — 다시 켜면 다음 sync()에서 다시 건다
+    return () => {
+        const aside = document.getElementById(ASIDE_ID);
+        if (aside) removeOverride(aside);
+    };
 }
 
 bootstrap();

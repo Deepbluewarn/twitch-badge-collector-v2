@@ -9,7 +9,7 @@ import {
     SELECTORS_MESSAGE_TYPE, SELECTORS_REQUEST_TYPE,
 } from "@/platform/host-selectors";
 import { registerDiagnoseListener } from "@/platform/diagnose";
-import { setupChannelOff } from "../base/channel-off";
+import { clearHostMarks, setupChannelOff } from "../base/channel-off";
 import { onTeardown, startInstance } from "../base/lifecycle";
 
 async function bootstrap() {
@@ -53,8 +53,15 @@ async function bootstrap() {
         '#tbc-clone__twitchui',
     );
 
-    // 이 채널에서 끄기 — 다시 켜면 창을 만든다(이미 있으면 숨김만 풀린다).
-    const channelOff = setupChannelOff(adapter, off => { if (!off) init(); });
+    // 이 채널에서 끄기 — 끄면 창을 걷어 수집·보관까지 멈추고, 다시 켜면 창을 새로 만든다.
+    const channelOff = setupChannelOff(adapter, off => {
+        if (off) {
+            for (const c of [liveContainer, vodContainer]) { c.destroy(); c.restoreHost(); }
+            clearHostMarks();
+        } else {
+            init();
+        }
+    });
 
     async function init() {
         if (await channelOff.evaluate()) return;

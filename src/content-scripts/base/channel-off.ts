@@ -1,14 +1,27 @@
 /**
  * 이 탭의 채널이 꺼져 있는지 보고 적용한다 (src/utils/channel-off.ts).
- * 켜고 끌 때 새로고침하지 않게, 이미 붙은 모아보기 창은 <html>의 클래스 하나로 숨긴다(content style.css).
+ * 꺼진 채널은 확장을 끈 것과 같아야 한다. 끄면 호출 측(onChange)이 모아보기 창을 걷고 수집 표시를 지우며,
+ * 페이지 쪽 스크립트는 <html>의 클래스(channel-off-flag.ts)를 보고 감시·전달·위조를 멈춘다.
  * 처음부터 꺼진 채널이면 호출 측(init)이 창을 아예 만들지 않는다.
  */
 import type { PlatformAdapter } from '@/platform';
 import { addStorageUpdateListener } from '@/utils/utils-browser';
 import { onTeardown } from './lifecycle';
 import { CHANNEL_INFO_MESSAGE, CHANNEL_OFF_BADGE_MESSAGE, CHANNEL_OFF_KEY, channelKey, getOffChannels, type ChannelInfo } from '@/utils/channel-off';
+import { CHAT_ATTR, PROCESSED_CHAT_CLASS } from '@/interfaces/chat-attributes';
+import { CHANNEL_OFF_CLASS } from './channel-off-flag';
 
-export const CHANNEL_OFF_CLASS = 'tbcv2-channel-off';
+export { CHANNEL_OFF_CLASS };
+
+/** 원본 채팅창에 붙인 수집 표시(색 띠)와 표시용 속성을 걷는다 — 꺼진 채널은 확장이 없던 모습이어야 한다. */
+export function clearHostMarks() {
+    document.querySelectorAll<HTMLElement>(`.${PROCESSED_CHAT_CLASS}`).forEach(el => {
+        el.classList.remove(PROCESSED_CHAT_CLASS);
+        el.style.removeProperty('--tbc-marker-color');
+    });
+    const attrs = Object.values(CHAT_ATTR);
+    document.querySelectorAll(attrs.map(a => `[${a}]`).join(',')).forEach(el => attrs.forEach(a => el.removeAttribute(a)));
+}
 
 export function setupChannelOff(adapter: PlatformAdapter, onChange: (off: boolean) => void) {
     let off = false;
