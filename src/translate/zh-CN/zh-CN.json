@@ -97,13 +97,13 @@
         "fields_title": "可用的值",
         "fields": {
             "nickname": "昵称（匿名打赏时为 '익명의 후원자'）",
-            "messageHtml": "消息 HTML — 包含表情及 cleanbot/屏蔽隐藏处理",
+            "messageHtml": "消息 HTML，包含表情及 cleanbot/屏蔽隐藏处理",
             "message": "原始消息（表情为 {:name:}，不做隐藏）",
             "hasMessage": "有消息时为 true",
-            "badges": "徽章列表 — 每项含 url",
+            "badges": "徽章列表，每项含 url",
             "verifiedIconUrl": "认证标识图片（仅限认证用户）",
             "time": "时间（例：14:05）",
-            "nickStyle": "昵称颜色 CSS 变量（含装饰用的结束色、背景色）— 直接放入 style 属性",
+            "nickStyle": "昵称颜色 CSS 变量（含装饰用的结束色、背景色），直接放入 style 属性",
             "nickEffect": "二级订阅者昵称装饰：gradient / highlight / stealth / 空",
             "nickColorLight": "浅色主题昵称颜色",
             "nickColorDark": "深色主题昵称颜色",
@@ -152,7 +152,7 @@
             "text": "正文",
             "emoji": "表情",
             "bubble": "气泡",
-            "card": "打赏·订阅卡片",
+            "card": "打赏、订阅卡片",
             "hidden": "被屏蔽的聊天"
         },
         "style": {

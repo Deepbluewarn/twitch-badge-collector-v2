@@ -122,7 +122,7 @@ function buildMarkdown(r: DiagnoseReport): string {
             const emoji = failCount === 0 ? '✅' : failCount === tot ? '❌' : '⚠️';
             return `${emoji} ${cat} ${tot - failCount}/${tot}`;
         })
-        .join(' · ');
+        .join(', ');
 
     const labelOf = (v: DiagnoseReport['sample']['extract']) =>
         v === 'pass' ? '✅ pass'
@@ -144,7 +144,7 @@ function buildMarkdown(r: DiagnoseReport): string {
     const degraded = r.health?.degraded ?? [];
 
     const lines: string[] = [];
-    lines.push(`## TBC 진단 리포트 — \`${r.platform}\` rev ${r.manifest.rev} (${r.manifest.source})`);
+    lines.push(`## TBC 진단 리포트: \`${r.platform}\` rev ${r.manifest.rev} (${r.manifest.source})`);
     lines.push('');
     lines.push(`**추출**: ${extractLabel}`);
     lines.push(`**Inject wrapper**: ${r.injectWrapper.exists ? `exists, chats ${r.injectWrapper.chatsWithKeyAttr}/${r.injectWrapper.chatCountInside}` : '**없음**'}`);
@@ -154,12 +154,12 @@ function buildMarkdown(r: DiagnoseReport): string {
         const vLabel = r.health.verdict === 'ok' ? '✅ ok'
             : r.health.verdict === 'broken' ? '❌ broken'
             : '⚠️ unknown (채팅이 없어 판정 보류)';
-        lines.push(`**Selector 판정**: ${vLabel} · 근거 채팅 ${r.health.chatCount}개`);
+        lines.push(`**Selector 판정**: ${vLabel}, 근거 채팅 ${r.health.chatCount}개`);
     }
     if (unavailableUnion.length > 0) {
-        lines.push(`**부분 수집**: 확정 못 한 필드 \`${unavailableUnion.join(', ')}\` — 해당 필드를 쓰는 필터는 평가에서 제외됨`);
+        lines.push(`**부분 수집**: 확정 못 한 필드 \`${unavailableUnion.join(', ')}\`. 해당 필드를 쓰는 필터는 평가에서 제외됨`);
     }
-    lines.push(`**필터**: 전체 ${r.filters.totalGroupCount} · 플랫폼 대상 ${r.filters.currentPlatformGroupCount}`);
+    lines.push(`**필터**: 전체 ${r.filters.totalGroupCount}, 플랫폼 대상 ${r.filters.currentPlatformGroupCount}`);
     if (r.filters.firstGroupSummary) {
         lines.push(`  - 첫 그룹: \`${r.filters.firstGroupSummary.slice(0, 120)}\``);
     }
@@ -182,14 +182,14 @@ function buildMarkdown(r: DiagnoseReport): string {
     }
     if (degraded.length > 0) {
         lines.push('### ⚠️ 죽은 selector branch (기능은 정상)');
-        lines.push('_selector list 중 일부만 사망 — 남은 branch가 받치고 있다. 다음 롤링 전 교체 권장._');
+        lines.push('_selector list 중 일부만 사망. 남은 branch가 받치고 있다. 다음 롤링 전 교체 권장._');
         for (const d of degraded) {
             lines.push(`- \`${d.name}\`: ${d.deadBranches.map(b => `\`${b}\``).join(' , ')}`);
         }
         lines.push('');
     }
     if (optionalEmpty.length > 0) {
-        lines.push(`_참고: 조건별 optional selector ${optionalEmpty.length}개 count=0 (${optionalEmpty.map(s => s.name).join(', ')}) — 화면에 해당 요소가 없어서일 가능성._`);
+        lines.push(`_참고: 조건별 optional selector ${optionalEmpty.length}개 count=0 (${optionalEmpty.map(s => s.name).join(', ')}). 화면에 해당 요소가 없어서일 가능성._`);
         lines.push('');
     }
 

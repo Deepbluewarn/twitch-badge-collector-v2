@@ -97,13 +97,13 @@
         "fields_title": "可用的值",
         "fields": {
             "nickname": "暱稱（匿名斗內時為 '익명의 후원자'）",
-            "messageHtml": "訊息 HTML — 包含表情符號及 cleanbot/遮蔽隱藏處理",
+            "messageHtml": "訊息 HTML，包含表情符號及 cleanbot/遮蔽隱藏處理",
             "message": "原始訊息（表情符號為 {:name:}，不做隱藏）",
             "hasMessage": "有訊息時為 true",
-            "badges": "徽章清單 — 每項含 url",
+            "badges": "徽章清單，每項含 url",
             "verifiedIconUrl": "認證標章圖片（僅限認證使用者）",
             "time": "時間（例：14:05）",
-            "nickStyle": "暱稱顏色 CSS 變數（含裝飾用的結束色、背景色）— 直接放入 style 屬性",
+            "nickStyle": "暱稱顏色 CSS 變數（含裝飾用的結束色、背景色），直接放入 style 屬性",
             "nickEffect": "第 2 階訂閱者暱稱裝飾：gradient / highlight / stealth / 空值",
             "nickColorLight": "淺色主題暱稱顏色",
             "nickColorDark": "深色主題暱稱顏色",
@@ -152,7 +152,7 @@
             "text": "內文",
             "emoji": "表情",
             "bubble": "對話框",
-            "card": "斗內·訂閱卡片",
+            "card": "斗內、訂閱卡片",
             "hidden": "被遮蔽的聊天"
         },
         "style": {
