@@ -71,18 +71,6 @@
   "chatSideRight": {
     "message": "Rechts"
   },
-  "chzzkChatRender": {
-    "message": "Aussehen gesammelter Chats (CHZZK)"
-  },
-  "chatRenderNative": {
-    "message": "Standard"
-  },
-  "chatRenderTemplate": {
-    "message": "Eigene"
-  },
-  "templateSettingButton": {
-    "message": "Vorlagen-Einstellungen"
-  },
   "clearCollectedChatsConfirm": {
     "message": "Alle Chats im Sammelfenster werden gelöscht."
   },

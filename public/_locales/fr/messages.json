@@ -71,18 +71,6 @@
   "chatSideRight": {
     "message": "Droite"
   },
-  "chzzkChatRender": {
-    "message": "Apparence des messages collectés (CHZZK)"
-  },
-  "chatRenderNative": {
-    "message": "Par défaut"
-  },
-  "chatRenderTemplate": {
-    "message": "Personnalisé"
-  },
-  "templateSettingButton": {
-    "message": "Réglages du modèle"
-  },
   "clearCollectedChatsConfirm": {
     "message": "Tous les chats de la fenêtre de collecte seront supprimés."
   },

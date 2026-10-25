@@ -7,7 +7,7 @@ import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
-import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide, setChzzkCustomTemplate } from "@/reducer/setting";
+import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide } from "@/reducer/setting";
 import { SettingInterface } from "@/interfaces/setting";
 import { getPlatformConfig, manifestReady } from "@/platform/host-selectors";
 import { ensureRolloutBucket, isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
@@ -83,13 +83,6 @@ function BgColorPicker({ value, onChange }: { value: string; onChange: (c: strin
 function PopupSetting() {
   const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
   const t = (k: string) => browser.i18n.getMessage(k as any);
-  // "모아보기 채팅 모양"(커스텀 템플릿)은 소켓 렌더 모드에서만 동작한다. 이 사용자에게 아직 켜지지
-  // 않았으면(비율 배포·비상 끄기) 골라도 아무 변화가 없으니 항목 자체를 숨긴다.
-  const [socketRenderEnabled, setSocketRenderEnabled] = React.useState(false);
-  useEffect(() => {
-    Promise.all([manifestReady, ensureRolloutBucket()]).then(([, bucket]) =>
-      setSocketRenderEnabled(isSocketRenderEnabled(getPlatformConfig('chzzk').constants, null, bucket)));
-  }, []);
   const [otaInfo, setOtaInfo] = React.useState<{ rev: number | null; fetchedAt: number | null }>({ rev: null, fetchedAt: null });
   useEffect(() => {
     browser.storage.local.get(['tbcv2-selectors-manifest', 'tbcv2-selectors-fetched-at']).then((r) => {
@@ -249,36 +242,6 @@ function PopupSetting() {
           ]}
         />
       </SettingRow>
-
-      {/* 모아보기 채팅 모양 — 치지직 전용. 기본(치지직 원본 복제) / 커스텀(사용자 템플릿).
-          설명은 두지 않는다 — 비개발자에게 내부 동작(원본 대기·속도)을 풀어 쓰면 오히려 헷갈린다
-          (prototype/chat-render-setting 브랜치의 시안 비교 결과). 커스텀을 고르면 이름 아래에 템플릿 설정으로 가는 링크. */}
-      {socketRenderEnabled && <SettingRow
-        label={t('chzzkChatRender')}
-        hint={globalSetting.chzzkCustomTemplate === 'on' && (
-          <button
-            type='button'
-            onClick={() => browser.tabs.create({ url: browser.runtime.getURL('/setting.html?initialPath=template') })}
-            style={{
-              border: 0, background: 'none', padding: 0, cursor: 'pointer', font: 'inherit', color: 'var(--ui-ink)',
-              textDecoration: 'underline', textDecorationColor: 'var(--ui-yellow)', textDecorationThickness: 3, textUnderlineOffset: 3,
-            }}
-          >
-            {t('templateSettingButton')} →
-          </button>
-        )}
-      >
-        <Segmented<SettingInterface['chzzkCustomTemplate']>
-          size='sm'
-          label={t('chzzkChatRender')}
-          value={globalSetting.chzzkCustomTemplate === 'on' ? 'on' : 'off'}
-          onChange={(v) => dispatchGlobalSetting(setChzzkCustomTemplate(v))}
-          options={[
-            { value: 'off', label: t('chatRenderNative') },
-            { value: 'on', label: t('chatRenderTemplate') },
-          ]}
-        />
-      </SettingRow>}
 
       {/* 채팅 최대 개수 */}
       <SettingRow

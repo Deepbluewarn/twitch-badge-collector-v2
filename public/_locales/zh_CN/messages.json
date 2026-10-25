@@ -71,18 +71,6 @@
   "chatSideRight": {
     "message": "右侧"
   },
-  "chzzkChatRender": {
-    "message": "收集消息外观（CHZZK）"
-  },
-  "chatRenderNative": {
-    "message": "默认"
-  },
-  "chatRenderTemplate": {
-    "message": "自定义"
-  },
-  "templateSettingButton": {
-    "message": "模板设置"
-  },
   "clearCollectedChatsConfirm": {
     "message": "将删除收集窗口中的所有聊天。"
   },

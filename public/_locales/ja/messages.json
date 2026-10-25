@@ -71,18 +71,6 @@
   "chatSideRight": {
     "message": "右"
   },
-  "chzzkChatRender": {
-    "message": "収集チャットの見た目（CHZZK）"
-  },
-  "chatRenderNative": {
-    "message": "デフォルト"
-  },
-  "chatRenderTemplate": {
-    "message": "カスタム"
-  },
-  "templateSettingButton": {
-    "message": "テンプレート設定"
-  },
   "clearCollectedChatsConfirm": {
     "message": "まとめ表示のチャットをすべて削除します。"
   },

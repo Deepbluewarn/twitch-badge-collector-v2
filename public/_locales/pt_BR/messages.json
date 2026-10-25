@@ -71,18 +71,6 @@
   "chatSideRight": {
     "message": "Direita"
   },
-  "chzzkChatRender": {
-    "message": "Aparência dos chats coletados (CHZZK)"
-  },
-  "chatRenderNative": {
-    "message": "Padrão"
-  },
-  "chatRenderTemplate": {
-    "message": "Personalizado"
-  },
-  "templateSettingButton": {
-    "message": "Configurar template"
-  },
   "clearCollectedChatsConfirm": {
     "message": "Todos os chats da janela de coleta serão excluídos."
   },

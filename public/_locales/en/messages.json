@@ -71,18 +71,6 @@
   "chatSideRight": {
     "message": "Right"
   },
-  "chzzkChatRender": {
-    "message": "Collected chat look (Chzzk)"
-  },
-  "chatRenderNative": {
-    "message": "Default"
-  },
-  "chatRenderTemplate": {
-    "message": "Custom"
-  },
-  "templateSettingButton": {
-    "message": "Template settings"
-  },
   "clearCollectedChatsConfirm": {
     "message": "All chats in the collected chat window will be deleted."
   },

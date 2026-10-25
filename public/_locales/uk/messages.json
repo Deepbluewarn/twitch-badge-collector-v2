@@ -71,18 +71,6 @@
   "chatSideRight": {
     "message": "Праворуч"
   },
-  "chzzkChatRender": {
-    "message": "Вигляд зібраних повідомлень (CHZZK)"
-  },
-  "chatRenderNative": {
-    "message": "Типовий"
-  },
-  "chatRenderTemplate": {
-    "message": "Власний"
-  },
-  "templateSettingButton": {
-    "message": "Налаштування шаблону"
-  },
   "clearCollectedChatsConfirm": {
     "message": "Усі повідомлення у вікні збору буде видалено."
   },

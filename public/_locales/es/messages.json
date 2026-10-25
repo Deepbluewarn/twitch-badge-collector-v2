@@ -71,18 +71,6 @@
   "chatSideRight": {
     "message": "Derecha"
   },
-  "chzzkChatRender": {
-    "message": "Aspecto de chats recopilados (CHZZK)"
-  },
-  "chatRenderNative": {
-    "message": "Predeterminado"
-  },
-  "chatRenderTemplate": {
-    "message": "Personalizado"
-  },
-  "templateSettingButton": {
-    "message": "Ajustes de plantilla"
-  },
   "clearCollectedChatsConfirm": {
     "message": "Se eliminarán todos los chats de la ventana de recopilación."
   },

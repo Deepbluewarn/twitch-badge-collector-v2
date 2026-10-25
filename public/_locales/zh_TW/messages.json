@@ -71,18 +71,6 @@
   "chatSideRight": {
     "message": "右側"
   },
-  "chzzkChatRender": {
-    "message": "收集訊息外觀（CHZZK）"
-  },
-  "chatRenderNative": {
-    "message": "預設"
-  },
-  "chatRenderTemplate": {
-    "message": "自訂"
-  },
-  "templateSettingButton": {
-    "message": "範本設定"
-  },
   "clearCollectedChatsConfirm": {
     "message": "將刪除收集視窗中的所有聊天。"
   },
