@@ -197,7 +197,11 @@ export default function useFilteredChatBuffer(
                     : loaded;
                 if (prev.length === 0) return trimmed;
                 const loadedKeys = new Set(trimmed.map(c => c.key));
-                const newLiveChats = prev.filter(c => !loadedKeys.has(c.key));
+                // 시각으로도 맞춘다(addChat과 같다) — 소켓 모드에선 옛 창에서 떠 온 채팅의 key가 화면 key라
+                // 저장소 key와 모양이 달라, key만 보면 업데이트 전 채팅이 두 번 들어간다.
+                const loadedTimes = new Set(trimmed.map(c => c.time));
+                const newLiveChats = prev.filter(c => !loadedKeys.has(c.key)
+                    && !(adapter.supportsChatPersistence && loadedTimes.has(c.time)));
                 if (newLiveChats.length === 0) return trimmed;
                 return adapter.chatOrder === 'newest-top'
                     ? [...newLiveChats, ...trimmed]
