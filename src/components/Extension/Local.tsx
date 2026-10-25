@@ -4,6 +4,7 @@ import useFilterGroup from "@/hooks/useFilterGroup";
 import useChatStream from "@/hooks/useChatStream";
 import { useStoredTemplates } from "@/render/template-store";
 import { ensureStyleFont, styleAttrs, useStoredStyleState } from "@/render/chzzk-style";
+import { createArchiveRecorder, type ArchiveRecorder } from "@/archive/archive-recorder";
 import useFilteredChatBuffer from "@/hooks/useFilteredChatBuffer";
 import { findElement } from "@/utils/utils-common";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
@@ -115,6 +116,27 @@ export default function Local({
     const styled = type === 'chzzk' && globalSetting.chzzkCustomTemplate === 'on';
     const styledAttrs = useMemo(() => styled ? styleAttrs(templateStyle) : null, [styled, templateStyle]);
     useEffect(() => { if (styled) ensureStyleFont(templateStyle); }, [styled, templateStyle]);
+    // 보관함 — 모아보기 버퍼(캡쳐 중 정지, 개수 제한, 초기화)와 따로 필터 통과 지점에서 바로 기록한다.
+    const archiveRef = useRef<ArchiveRecorder | null>(null);
+    useEffect(() => {
+        const recorder = createArchiveRecorder(type, () => {
+            const id = adapter.getCurrentChannelId();
+            const mode = adapter.getPageMode();
+            if (!id || mode === 'unknown') return null;
+            return { channelId: id, mode: mode === 'live' ? 'live' : 'vod' };
+        });
+        archiveRef.current = recorder;
+        return () => { void recorder.flush(); recorder.stop(); archiveRef.current = null; };
+    }, [adapter, type]);
+    const onChatPassed = useCallback((chat: Parameters<typeof addChat>[0]) => {
+        archiveRef.current?.record(chat);
+        guardedAddChat(chat);
+    }, [guardedAddChat]);
+    const onChatUpdated = useCallback((update: Parameters<typeof updateChat>[0]) => {
+        // 나중에 블라인드되면 본문이 빈다 — 보관해 둔 본문도 지운다
+        if (!update.text) archiveRef.current?.hide(update.key);
+        updateChat(update);
+    }, [updateChat]);
     // useChatStream은 처음 받은 판정 함수를 계속 쓴다 — 채널은 ref로 읽어야 SPA로 채널을 옮겨도 채널 지정 필터가 맞는다.
     const filterChannelRef = useRef(channelId);
     filterChannelRef.current = channelId;
@@ -128,7 +150,7 @@ export default function Local({
                 ? undefined
                 : (r.markerColor ?? '#FFC107'),
         };
-    }, guardedAddChat, updateChat, () => templateModeRef.current);
+    }, onChatPassed, onChatUpdated, () => templateModeRef.current);
 
     // 캡쳐 모드 OFF로 전환되면 선택 + anchor + range 초기화.
     useEffect(() => {

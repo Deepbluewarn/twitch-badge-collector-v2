@@ -7,6 +7,7 @@ import { installChzzkApiOriginRule } from "@/api/chzzk-channel";
 import { CHANNEL_OFF_BADGE_MESSAGE } from "@/utils/channel-off";
 import { clearAllChatHistory } from "@/utils/chat-history-store";
 import { migrateLargeLook } from "@/render/chzzk-style";
+import { ARCHIVE_HIDE_MESSAGE, ARCHIVE_PUT_MESSAGE, hideArchivedChats, loadArchiveSetting, purgeArchive, putArchivedChats, sanitizeArchivedChat } from "@/archive/chat-archive";
 
 export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id });
@@ -115,6 +116,15 @@ export default defineBackground(() => {
 
     await browser.storage.local.set({ filter: updatedFilter });
   }
+
+  // 보관함 기간 만료 — 시작할 때와, 쓰는 중에는 한 시간에 한 번
+  let lastArchivePurge = 0;
+  function purgeArchiveIfDue() {
+    if (Date.now() - lastArchivePurge < 3_600_000) return;
+    lastArchivePurge = Date.now();
+    loadArchiveSetting().then(s => purgeArchive(s.days)).catch(e => console.warn('[tbcv2 bg] archive purge failed', e));
+  }
+  purgeArchiveIfDue();
 
   // 기본값은 네트워크와 무관하게 항상. SW wake마다 불리지만 위 조기 return 덕에
   // 정상 상태에선 storage read 1회로 끝난다.
@@ -230,6 +240,20 @@ export default defineBackground(() => {
       // 이 채널에서 끈 탭은 확장 아이콘을 흑백으로 — 끈 걸 잊고 "고장 났나?" 하지 않게.
       setChannelOffBadge(_sender.tab.id, !!msg.off);
       return false;
+    }
+    // 보관함 (src/archive) — 콘텐츠 스크립트가 2초마다 묶어 보낸다. 실패하면 ok:false로 알려 다시 보내게 한다.
+    if (msg?.type === ARCHIVE_PUT_MESSAGE && Array.isArray(msg.chats) && _sender.id === browser.runtime.id) {
+      const chats = msg.chats.map(sanitizeArchivedChat).filter((c: unknown) => c !== null);
+      putArchivedChats(chats)
+        .then(() => { sendResponse({ ok: true }); purgeArchiveIfDue(); })
+        .catch(e => { console.warn('[tbcv2 bg] archive put failed', e); sendResponse({ ok: false }); });
+      return true;
+    }
+    if (msg?.type === ARCHIVE_HIDE_MESSAGE && Array.isArray(msg.ids) && _sender.id === browser.runtime.id) {
+      hideArchivedChats(msg.ids.filter((id: unknown) => typeof id === 'string'))
+        .then(() => sendResponse({ ok: true }))
+        .catch(e => { console.warn('[tbcv2 bg] archive hide failed', e); sendResponse({ ok: false }); });
+      return true;
     }
     if (msg?.type === 'tbc-force-ota-fetch') {
       // content script가 selector 매칭 실패 감지 시 즉시 OTA fetch 요청.

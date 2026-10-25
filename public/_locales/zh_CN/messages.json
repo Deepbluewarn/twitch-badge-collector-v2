@@ -89,6 +89,9 @@
   "clearCollectedChatsDo": {
     "message": "删除"
   },
+  "chatArchiveButton": {
+    "message": "聊天存档"
+  },
   "chatLookButton": {
     "message": "聊天样式"
   },

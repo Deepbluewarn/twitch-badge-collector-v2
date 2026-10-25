@@ -89,6 +89,9 @@
   "clearCollectedChatsDo": {
     "message": "Eliminar"
   },
+  "chatArchiveButton": {
+    "message": "Archivo de chat"
+  },
   "chatLookButton": {
     "message": "Apariencia del chat"
   },

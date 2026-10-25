@@ -337,7 +337,7 @@ function MarkerColor({ row, onChange }: { row: Row; onChange: (c: string) => voi
     );
 }
 
-function Pager({ page, pages, setPage, start, count, total }: { page: number; pages: number; setPage: (p: number) => void; start: number; count: number; total: number }) {
+export function Pager({ page, pages, setPage, start, count, total }: { page: number; pages: number; setPage: (p: number) => void; start: number; count: number; total: number }) {
     const { t } = useTranslation();
     // 1 … 5 6 [7] 8 9 … 20
     const nums = Array.from({ length: pages }, (_, i) => i).filter(i => i === 0 || i === pages - 1 || Math.abs(i - page) <= 2);

@@ -18,6 +18,7 @@ import AlertContainer from "@/components/AlertContainer";
 import { FilterGroupContext } from "@/context/FilterGroup";
 import Filter from "@/components/Filter";
 import TemplateSetting from "@/components/TemplateSetting";
+import Archive from "@/components/Archive";
 import "@/render/chzzk-chat.css";
 import i18n from '@/translate/i18n';
 import { useTranslation } from 'react-i18next';
@@ -80,6 +81,7 @@ function Router() {
         <Routes>
           <Route path="/filter" element={<Filter />} />
           <Route path="/template" element={<TemplateSetting />} />
+          <Route path="/archive" element={<Archive />} />
           <Route path="*" element={<Navigate to="/filter" replace />} />
         </Routes>
       </MemoryRouter>

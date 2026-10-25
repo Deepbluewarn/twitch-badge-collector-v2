@@ -108,7 +108,7 @@ function nickStyleOf(c: NicknameColor): string {
     return vars.filter(([, v]) => /^[#a-zA-Z0-9(),.\s%]+$/.test(v)).map(([k, v]) => `--tbc-nick-${k}:${v}`).join(';');
 }
 
-function kindOf(type: number): ChzzkChatKind {
+export function kindOf(type: number): ChzzkChatKind {
     if (type === CHZZK_MSG_TYPE.DONATION) return 'donation';
     if (type === CHZZK_MSG_TYPE.SUBSCRIPTION) return 'subscription';
     if (type === CHZZK_MSG_TYPE.SUBSCRIPTION_GIFT) return 'gift';

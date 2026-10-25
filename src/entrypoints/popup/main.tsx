@@ -669,6 +669,15 @@ function Popup() {
         </Button>
       )}
 
+      {/* 채팅 보관함 — 필터를 통과한 채팅을 이 브라우저에 쌓아 둔 곳 (src/archive) */}
+      <Button
+        icon='inventory_2'
+        block
+        onClick={() => onPageButtonClicked("archive")}
+      >
+        {browser.i18n.getMessage('chatArchiveButton' as any)}
+      </Button>
+
       {/* 채팅 캡쳐 시작 — 활성 탭의 content script로 메시지 */}
       <Button
         icon='photo_camera'

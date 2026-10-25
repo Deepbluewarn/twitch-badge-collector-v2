@@ -89,6 +89,9 @@
   "clearCollectedChatsDo": {
     "message": "Удалить"
   },
+  "chatArchiveButton": {
+    "message": "Архив чата"
+  },
   "chatLookButton": {
     "message": "Вид чата"
   },

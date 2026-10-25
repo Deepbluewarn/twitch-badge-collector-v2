@@ -89,6 +89,9 @@
   "clearCollectedChatsDo": {
     "message": "지우기"
   },
+  "chatArchiveButton": {
+    "message": "채팅 보관함"
+  },
   "chatLookButton": {
     "message": "채팅 모양"
   },

@@ -42,7 +42,9 @@ export default defineConfig({
       // WithHostAccess는 설치·업데이트 때 경고가 없다 — 실제 동작은 아래 optional 호스트 권한을 받은 뒤부터.
       "declarativeNetRequestWithHostAccess",
       // 업데이트 직후 열린 탭에 새 콘텐츠 스크립트를 다시 넣는다(background reinjectContentScripts). 경고 없음.
-      "scripting"
+      "scripting",
+      // 채팅 보관함(IndexedDB, src/archive) — 디스크가 부족해져도 브라우저가 통째로 지우지 않게. 경고 없음.
+      "unlimitedStorage"
     ],
 
     // 처음 채널을 검색할 때 요청한다 (업데이트만으로 확장이 꺼지지 않게 optional).

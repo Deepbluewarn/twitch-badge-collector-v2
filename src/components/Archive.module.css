@@ -1,0 +1,303 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 1080px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 16px;
+    box-sizing: border-box;
+    color: var(--ui-ink);
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+}
+
+.title {
+    margin: 0 auto 0 0;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.days {
+    width: auto;
+}
+
+.meta {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ui-muted);
+}
+
+.empty {
+    padding: 40px 20px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--ui-muted);
+}
+
+.body {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+@media (max-width: 720px) {
+    .body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.channels {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.channelList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    /* 채널이 수백 개여도 목록만 스크롤 */
+    max-height: max(240px, calc(100vh - 340px));
+    overflow-y: auto;
+}
+
+.channel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 2px solid var(--ui-hair);
+    border-radius: 10px;
+    background: var(--ui-paper);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.channel[aria-pressed='true'] {
+    border-color: var(--ui-yellow);
+    background: var(--ui-soft);
+}
+
+.channelText {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.channelName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.removeAll {
+    align-self: flex-start;
+    margin-top: 8px;
+}
+
+.chats {
+    padding: 16px;
+}
+
+.chatsHead {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.chatsHead > :first-child {
+    flex: 1;
+    min-width: 160px;
+}
+
+.list {
+    /* 페이지는 고정 높이 안에서 스크롤 — 머리(검색·내보내기)와 페이지 번호는 늘 보인다 */
+    max-height: max(320px, calc(100vh - 340px));
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.chat {
+    padding: 4px 8px;
+    word-break: break-all;
+}
+
+.chat + .chat {
+    border-top: 1px solid var(--ui-hair);
+}
+
+.time {
+    margin-right: 8px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ui-muted);
+}
+
+.badge {
+    width: 16px;
+    height: 16px;
+    margin-right: 3px;
+    vertical-align: -3px;
+}
+
+.nick {
+    margin-right: 6px;
+    font-weight: 800;
+}
+
+.amount {
+    margin-right: 6px;
+    font-weight: 800;
+    color: var(--ui-ok-fg);
+}
+
+.hidden {
+    font-style: italic;
+    color: var(--ui-muted);
+}
+
+.pager {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+/* 배지로 거르기 */
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.badgeMore {
+    padding: 2px 10px;
+    border: 2px dashed var(--ui-line);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.badgeChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px 2px 4px;
+    border: 2px solid var(--ui-hair);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.badgeChip img {
+    width: 18px;
+    height: 18px;
+}
+
+.badgeChip[aria-pressed='true'] {
+    border-color: var(--ui-yellow);
+    background: var(--ui-soft);
+}
+
+/* 캡쳐 */
+.captureBar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.captureBar > :first-child {
+    margin-right: auto;
+}
+
+.selectable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.selectable:hover {
+    background: var(--ui-tint);
+}
+
+.selected,
+.selected:hover {
+    background: var(--ui-soft);
+}
+
+/* 캡쳐용 — 화면 밖에 그려 둔다(display:none이면 크기를 잴 수 없다). 옮기는 건 바깥 상자만 */
+.captureStage {
+    position: fixed;
+    left: -10000px;
+    top: 0;
+}
+
+.captureList {
+    width: 480px;
+    max-height: none;
+    padding: 8px;
+    background: var(--ui-paper);
+    color: var(--ui-ink);
+}
+
+/* 읽는 중 — 지금 목록은 흐리게 두고 위에 스피너 */
+.listWrap {
+    position: relative;
+    min-height: 120px;
+}
+
+.listWrap[aria-busy='true'] .list {
+    opacity: 0.4;
+}
+
+.listLoading {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tooltip {
+    position: fixed;
+    z-index: 70;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--ui-ink);
+    color: var(--ui-paper);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: pre;
+    text-align: center;
+    pointer-events: none;
+}

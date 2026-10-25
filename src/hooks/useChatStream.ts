@@ -13,6 +13,8 @@ import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-
 import { applyBlindEvent, toChatInfo, type ChzzkSocketChat } from "@/platform/chzzk-socket";
 import { renderChzzkChat, type ChzzkTemplates } from "@/render/chzzk-render";
 import { getPlatformConfig } from "@/platform/host-selectors";
+import { kindOf } from "@/render/chzzk-chat-view";
+import type { ArchiveKind } from "@/archive/chat-archive";
 
 export interface PassedChat {
     /** 후처리 완료된 복제 노드 (DOM 삽입 직전 상태) */
@@ -26,6 +28,8 @@ export interface PassedChat {
     /** bar preview 등 파생 뷰용 — buffer 안에서 latest 재emit 위해 함께 전달. */
     nickname: string;
     text: string;
+    /** 보관함(src/archive)에 넣을 나머지 값 — 화면용 clone과 별개로 데이터에서 바로 뽑는다. */
+    archive?: { badges: string[]; kind: ArchiveKind; amount?: number; marker?: string; hidden?: boolean };
 }
 
 /**
@@ -112,7 +116,7 @@ export default function useChatStream(
             // 팝오버 목록과 완전 같은 진입점 = 두 뷰 어긋날 여지 없음 (persistence 복원 포함).
             const nickname = chat.nickName;
             const text = chat.textContents.filter(Boolean).join(' ').trim();
-            onChatPassed({ clone: element, key, time, prevKey, nickname, text });
+            onChatPassed({ clone: element, key, time, prevKey, nickname, text, archive: { badges: chat.badges, kind: 'chat', marker: result.markerColor } });
         }
 
         // Phase 1: mount 시점에 이미 chzzk DOM에 있는 chats를 retroactive 스캔.
@@ -202,6 +206,13 @@ export default function useChatStream(
         const recentHostHtml = new Map<string, string>();
         const RECENT_HOST_HTML_LIMIT = 300;
 
+        /** 보관함 값 — 블라인드·클린봇이면 본문(text)이 이미 비어 있고 가려짐 표시만 남긴다. */
+        function archiveOf(chat: ChzzkSocketChat): PassedChat['archive'] {
+            const kind = kindOf(chat.type);
+            const amount = kind === 'donation' ? Number((chat.extras as Record<string, unknown>).payAmount) || undefined : undefined;
+            return { badges: chat.badges, kind, amount, marker: processedColors.get(chat.id), hidden: chat.status !== 'NORMAL' || undefined };
+        }
+
         function passedChatOf(chat: ChzzkSocketChat, clone: HTMLElement): PassedChat {
             return {
                 clone,
@@ -212,6 +223,7 @@ export default function useChatStream(
                 prevKey: '',
                 nickname: toChatInfo(chat).nickName,
                 text: previewText(chat),
+                archive: archiveOf(chat),
             };
         }
 
@@ -343,6 +355,7 @@ export default function useChatStream(
                 prevKey: msg.prevKey,
                 nickname: info.nickName,
                 text: previewText(chat),
+                archive: archiveOf(chat),
             });
             applyHighlight(msg.key, result.markerColor);
         }
