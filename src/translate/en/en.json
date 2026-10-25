@@ -381,7 +381,7 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Less",
         "badges_more": "More",
-        "intro": "Stores chats collected from each channel separately for a set period. Chats are collected according to the filters set at the time, so not every chat is collected. With the current setting, chats are kept for {{days}} days after collection, and once all chats exceed 600MB the oldest are deleted first.",
+        "intro": "Only chats caught by filters are saved, separately per channel. After {{days}} days, or once the total exceeds 600MB, the oldest chats are deleted first.",
         "responsibility": "You are responsible for any issues arising from archived chats.",
         "section_setting": "Archive settings",
         "section_chats": "Archived chats"

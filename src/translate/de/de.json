@@ -381,8 +381,8 @@
         "badge_tooltip": "{{name}}\n{{count}} Chats",
         "badges_less": "Weniger",
         "badges_more": "Mehr",
-        "intro": "Speichert die in jedem Kanal gesammelten Chats für einen bestimmten Zeitraum separat. Gesammelt wird nach den jeweils eingestellten Filtern, daher werden nicht alle Chats gesammelt. Mit der aktuellen Einstellung bleiben Chats {{days}} Tage nach dem Sammeln gespeichert. Überschreiten alle Chats 600 MB, werden die ältesten zuerst gelöscht.",
-        "responsibility": "Für Probleme durch gespeicherte Chats bist du selbst verantwortlich.",
+        "intro": "Nur von Filtern erfasste Chats werden pro Kanal separat gespeichert. Nach {{days}} Tagen oder ab insgesamt über 600 MB werden die ältesten Chats zuerst gelöscht.",
+        "responsibility": "Für Probleme, die durch gespeicherte Chats entstehen, bist du selbst verantwortlich.",
         "section_setting": "Archiv-Einstellungen",
         "section_chats": "Archivierte Chats"
     },

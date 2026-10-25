@@ -381,8 +381,8 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Menos",
         "badges_more": "Mais",
-        "intro": "Guarda separadamente, por um período, os chats coletados em cada canal. A coleta segue os filtros configurados no momento, então nem todos os chats são coletados. Com a configuração atual, os chats ficam guardados por {{days}} dias após a coleta e, quando o total passa de 600 MB, os mais antigos são apagados primeiro.",
-        "responsibility": "Você é responsável por qualquer problema causado pelos chats arquivados.",
+        "intro": "Só os chats pegos pelos filtros são salvos, separados por canal. Depois de {{days}} dias, ou quando o total passa de 600 MB, os mais antigos são apagados primeiro.",
+        "responsibility": "A responsabilidade por problemas causados pelos chats arquivados é do usuário.",
         "section_setting": "Configurações do arquivo",
         "section_chats": "Chats arquivados"
     },

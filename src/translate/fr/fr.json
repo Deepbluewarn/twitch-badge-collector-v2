@@ -381,8 +381,8 @@
         "badge_tooltip": "{{name}}\n{{count}} chats",
         "badges_less": "Moins",
         "badges_more": "Plus",
-        "intro": "Conserve séparément, pendant une durée donnée, les chats collectés sur chaque chaîne. La collecte suit les filtres définis à ce moment-là, donc tous les chats ne sont pas collectés. Avec le réglage actuel, les chats sont conservés {{days}} jours après la collecte, et au-delà de 600 Mo au total les plus anciens sont supprimés en premier.",
-        "responsibility": "Vous êtes responsable de tout problème lié aux chats archivés.",
+        "intro": "Seuls les chats captés par les filtres sont conservés, séparément pour chaque chaîne. Après {{days}} jours, ou au-delà de 600 Mo au total, les plus anciens sont supprimés en premier.",
+        "responsibility": "La responsabilité de tout problème lié aux chats archivés incombe à l'utilisateur.",
         "section_setting": "Paramètres d'archive",
         "section_chats": "Chats archivés"
     },
