@@ -16,6 +16,8 @@ a:active {
     max-height: 600px;
     overflow: auto;
     user-select: none;
+    /* 설정 페이지와 같은 바탕. body가 아니라 여기에 둔다 (setting.css 참고) */
+    background: var(--ui-canvas);
 }
 .tbc-popup-confirm {
     display: flex;
