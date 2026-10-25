@@ -115,8 +115,11 @@ export default function Local({
     const styled = type === 'chzzk' && globalSetting.chzzkCustomTemplate === 'on';
     const styledAttrs = useMemo(() => styled ? styleAttrs(templateStyle) : null, [styled, templateStyle]);
     useEffect(() => { if (styled) ensureStyleFont(templateStyle); }, [styled, templateStyle]);
+    // useChatStream은 처음 받은 판정 함수를 계속 쓴다 — 채널은 ref로 읽어야 SPA로 채널을 옮겨도 채널 지정 필터가 맞는다.
+    const filterChannelRef = useRef(channelId);
+    filterChannelRef.current = channelId;
     useChatStream(adapter, chat => {
-        const r = checkFilter(chat, channelId);
+        const r = checkFilter(chat, filterChannelRef.current);
         return {
             pass: r.pass,
             // marker 꺼져 있으면 undefined → highlight 스킵. 켜져 있고 그룹별 색 없으면
