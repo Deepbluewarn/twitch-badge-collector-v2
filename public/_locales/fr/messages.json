@@ -59,9 +59,6 @@
   "needRefresh": {
     "message": "Rechargement requis"
   },
-  "chzzkChatSide": {
-    "message": "Côté du chat (CHZZK)"
-  },
   "chzzkChatSideHint": {
     "message": "Inverse le panneau de chat et la barre latérale de navigation"
   },
@@ -76,12 +73,6 @@
   },
   "clearCollectedChatsDo": {
     "message": "Supprimer"
-  },
-  "chatArchiveButton": {
-    "message": "Archives du chat"
-  },
-  "chatLookButton": {
-    "message": "Apparence du chat"
   },
   "auto": {
     "message": "Auto"
@@ -199,5 +190,8 @@
   },
   "extensionDisconnected": {
     "message": "Connexion à l'extension perdue. Cliquez pour recharger"
+  },
+  "chatSide": {
+    "message": "Côté du chat"
   }
 }

@@ -59,9 +59,6 @@
   "needRefresh": {
     "message": "需要重新整理"
   },
-  "chzzkChatSide": {
-    "message": "聊天室位置（CHZZK）"
-  },
   "chzzkChatSideHint": {
     "message": "左右對調聊天室與導覽側邊欄"
   },
@@ -76,12 +73,6 @@
   },
   "clearCollectedChatsDo": {
     "message": "刪除"
-  },
-  "chatArchiveButton": {
-    "message": "聊天存檔"
-  },
-  "chatLookButton": {
-    "message": "聊天樣式"
   },
   "auto": {
     "message": "自動"
@@ -199,5 +190,8 @@
   },
   "extensionDisconnected": {
     "message": "擴充功能連線已中斷。點擊重新整理"
+  },
+  "chatSide": {
+    "message": "聊天室位置"
   }
 }

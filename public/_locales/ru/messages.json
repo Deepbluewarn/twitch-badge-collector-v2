@@ -59,9 +59,6 @@
   "needRefresh": {
     "message": "Требуется обновить страницу"
   },
-  "chzzkChatSide": {
-    "message": "Сторона чата (CHZZK)"
-  },
   "chzzkChatSideHint": {
     "message": "Меняет местами панель чата и боковое меню"
   },
@@ -76,12 +73,6 @@
   },
   "clearCollectedChatsDo": {
     "message": "Удалить"
-  },
-  "chatArchiveButton": {
-    "message": "Архив чата"
-  },
-  "chatLookButton": {
-    "message": "Вид чата"
   },
   "auto": {
     "message": "Авто"
@@ -199,5 +190,8 @@
   },
   "extensionDisconnected": {
     "message": "Связь с расширением потеряна. Нажмите, чтобы перезагрузить"
+  },
+  "chatSide": {
+    "message": "Сторона чата"
   }
 }

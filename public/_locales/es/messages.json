@@ -59,9 +59,6 @@
   "needRefresh": {
     "message": "Hay que recargar"
   },
-  "chzzkChatSide": {
-    "message": "Lado del chat (CHZZK)"
-  },
   "chzzkChatSideHint": {
     "message": "Intercambia el panel de chat y la barra lateral"
   },
@@ -76,12 +73,6 @@
   },
   "clearCollectedChatsDo": {
     "message": "Eliminar"
-  },
-  "chatArchiveButton": {
-    "message": "Archivo de chat"
-  },
-  "chatLookButton": {
-    "message": "Apariencia del chat"
   },
   "auto": {
     "message": "Auto"
@@ -199,5 +190,8 @@
   },
   "extensionDisconnected": {
     "message": "Se perdió la conexión con la extensión. Haz clic para recargar"
+  },
+  "chatSide": {
+    "message": "Lado del chat"
   }
 }

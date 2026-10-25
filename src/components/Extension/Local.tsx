@@ -3,7 +3,7 @@ import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import useFilterGroup from "@/hooks/useFilterGroup";
 import useChatStream from "@/hooks/useChatStream";
 import { useStoredTemplates } from "@/render/template-store";
-import { ensureStyleFont, styleAttrs, useStoredStyleState } from "@/render/chzzk-style";
+import { ensureStyleFont, styleCss, useStoredStyleState } from "@/render/chzzk-style";
 import { createArchiveRecorder, type ArchiveRecorder } from "@/archive/archive-recorder";
 import useFilteredChatBuffer from "@/hooks/useFilteredChatBuffer";
 import { findElement } from "@/utils/utils-common";
@@ -114,7 +114,7 @@ export default function Local({
     // 스타일 설정 — 사용자 템플릿일 때만 채팅 목록에 건다 (원본 복제엔 tbc-chat-*가 없다).
     const { style: templateStyle } = useStoredStyleState();
     const styled = type === 'chzzk' && globalSetting.chzzkCustomTemplate === 'on';
-    const styledAttrs = useMemo(() => styled ? styleAttrs(templateStyle) : null, [styled, templateStyle]);
+    const styledCss = useMemo(() => styled ? styleCss(templateStyle) : null, [styled, templateStyle]);
     useEffect(() => { if (styled) ensureStyleFont(templateStyle); }, [styled, templateStyle]);
     // 보관함 — 소켓이 없는 트위치와 치지직 다시보기만 여기서(필터 통과 지점) 기록한다. 모아보기 버퍼
     // (캡쳐 중 정지, 개수 제한, 초기화)와는 따로 돈다. 치지직 라이브는 창과 무관하게 chzzk-archive-feed가 맡는다.
@@ -440,13 +440,13 @@ export default function Local({
                 .tbcv2-capture-mode:hover { outline: 1px dashed rgba(255,193,7,0.6); outline-offset: -1px; }
                 .tbcv2-capture-selected { background-color: rgba(255,193,7,0.18) !important; outline: 2px solid #FFC107; outline-offset: -2px; }
             `}</style>
+            {styledCss !== null && <style>{styledCss}</style>}
 
             <div
                 id={`tbc-clone__${type}ui`}
-                className={styledAttrs?.className}
+                className={styledCss !== null ? 'tbc-styled' : undefined}
                 onClick={onChatClick}
                 style={{
-                    ...styledAttrs?.style,
                     marginTop: 0,
                     paddingTop: 0,
                     // capture 모드의 하단 액션 바(약 52px)에 가려지지 않도록 채팅 영역 height 축소.

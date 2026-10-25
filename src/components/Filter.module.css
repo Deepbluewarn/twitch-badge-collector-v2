@@ -1,0 +1,59 @@
+/* 플랫폼 색 — 트위치 보라, 치지직 초록. 칠하지 않고 포인트로만 */
+.page[data-platform='twitch'] {
+    --plat: #9146ff;
+    --plat-on: #ffffff;
+}
+
+.page[data-platform='chzzk'] {
+    --plat: #00ffa3;
+    --plat-on: #111111;
+}
+
+.page i[data-platform] {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.page i[data-platform='twitch'] {
+    background: #9146ff;
+}
+
+.page i[data-platform='chzzk'] {
+    background: #00ffa3;
+}
+
+.option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.platformSeg button[aria-pressed='true'] {
+    background: var(--plat) !important;
+    color: var(--plat-on) !important;
+}
+
+.platformSeg button[aria-pressed='true'] i {
+    background: var(--plat-on) !important;
+    opacity: 0.7;
+}
+
+.platformChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 10px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--plat) 16%, transparent);
+    font-size: 12px;
+    font-weight: 800;
+    vertical-align: 2px;
+}
+
+.list {
+    padding: 12px 16px;
+    border-top: 3px solid var(--plat);
+}

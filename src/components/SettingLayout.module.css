@@ -1,0 +1,164 @@
+/* 설정 페이지 틀 (Chrome 설정형) — 위 검색 막대 + 왼쪽 메뉴 + 가운데 열 */
+.layout {
+    min-height: 100%;
+    color: var(--ui-ink);
+}
+
+.bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1040px);
+    gap: 24px;
+    align-items: center;
+    padding: 10px 24px;
+    background: var(--ui-paper);
+    border-bottom: 1px solid var(--ui-hair);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ui-ink);
+    font-size: 18px;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.brand img {
+    width: 22px;
+    height: 22px;
+}
+
+.body {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1040px);
+    gap: 24px;
+    padding: 0 24px;
+}
+
+.nav {
+    position: sticky;
+    top: 60px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-radius: 0 999px 999px 0;
+    color: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.item:hover {
+    background: var(--ui-tint);
+}
+
+.item.active {
+    background: var(--ui-soft);
+    box-shadow: inset 4px 0 0 var(--ui-yellow);
+    font-weight: 900;
+}
+
+.item > :last-child:not(span) {
+    margin-left: auto;
+}
+
+.main {
+    min-width: 0;
+    padding: 20px 0 40px;
+}
+
+.title {
+    margin: 0 0 20px;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.hit {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 14px 20px;
+    border: 1px solid var(--ui-hair);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.hit b {
+    flex: 1;
+}
+
+.hit:hover {
+    background: var(--ui-tint);
+}
+
+.where {
+    padding: 10px 20px 0;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--ui-muted);
+}
+
+.empty {
+    color: var(--ui-muted);
+    font-weight: 700;
+}
+
+.footer {
+    margin-top: 32px;
+}
+
+/* 좁은 창 — 메뉴를 위쪽 탭 줄로 */
+@media (max-width: 760px) {
+    .bar {
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 12px;
+        padding: 8px 12px;
+    }
+
+    .brand span {
+        display: none;
+    }
+
+    .body {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+        padding: 0 12px;
+    }
+
+    .nav {
+        position: sticky;
+        top: 57px;
+        z-index: 10;
+        flex-direction: row;
+        padding: 8px 0;
+        overflow-x: auto;
+        background: var(--ui-paper);
+        border-bottom: 1px solid var(--ui-hair);
+    }
+
+    .item {
+        flex: none;
+        padding: 8px 12px;
+        border-radius: 999px;
+    }
+
+    .item.active {
+        box-shadow: none;
+    }
+}

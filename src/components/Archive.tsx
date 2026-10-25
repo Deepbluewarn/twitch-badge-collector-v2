@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, IconButton, Notice, Select, Spinner, Switch, TextInput } from '@/ui';
+import { Button, IconButton, Select, Spinner, Switch, TextInput } from '@/ui';
 import {
     ARCHIVE_DAYS, ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, clearArchive, csvHead, csvRow, deleteArchiveChannel, eachArchivedChat,
     formatArchiveTime, listArchiveChannels, loadArchiveSetting, queryArchivedChats, sanitizeArchiveSetting, saveArchiveSetting,
@@ -9,7 +9,7 @@ import {
 import { fetchChzzkChannel } from '@/api/chzzk-channel';
 import { ChannelAvatar } from './filter/ChannelSearch';
 import { Pager } from './filter/FilterList';
-import SocialFooter from './SocialFooter';
+import { LinkRow, Note, RowLabel, SectionTitle, SettingRow, SettingsCard, SubHeader, settingsClass as ui } from './settings/SettingsUI';
 import { useConfirm } from '@/ui/useConfirm';
 import { captureChats } from '@/utils/captureChat';
 import { fetchBadgesCached } from '@/utils/badgeCache';
@@ -205,7 +205,8 @@ export default function Archive() {
     const reload = async () => {
         const list = await listArchiveChannels();
         setRows(list);
-        setSelected(sel => sel && list.some(r => r.channel === sel) ? sel : list[0]?.channel ?? null);
+        // 목록 화면에서 시작한다(채널을 누르면 하위 페이지). 보던 채널이 사라졌으면 목록으로
+        setSelected(sel => sel && list.some(r => r.channel === sel) ? sel : null);
     };
     useEffect(() => { void reload(); }, []);
 
@@ -350,105 +351,117 @@ export default function Archive() {
         await reload();
     };
 
+    // 보관 설정 + 채널 줄 목록. 채널을 누르면 하위 페이지
     return (
-        <div className={s.page}>
-            <Card className={s.toolbar}>
-                <h1 className={s.title}>{t('archive.title')}</h1>
-                <IconButton icon="refresh" size="sm" label={t('archive.refresh')} disabled={loading} onClick={() => void refresh()} />
-                <Select size="sm" value={String(setting.days)} className={s.days} aria-label={t('archive.days')}
-                    onChange={v => setSetting({ ...setting, days: Number(v) })}
-                    options={ARCHIVE_DAYS.map(d => ({ value: String(d), label: t('archive.days_option', { count: d }) }))} />
-                <Switch checked={setting.enabled} onChange={enabled => setSetting({ ...setting, enabled })} label={t('archive.enabled')} />
-            </Card>
+        <>
+            {!row ? (
+                <>
+                    <SectionTitle>{t('archive.section_setting')}</SectionTitle>
+                    <SettingsCard>
+                        <SettingRow label={t('archive.enabled')}>
+                            <Switch checked={setting.enabled} onChange={enabled => setSetting({ ...setting, enabled })} />
+                        </SettingRow>
+                        <SettingRow label={t('archive.days')}>
+                            <Select size="sm" value={String(setting.days)} className={s.days} aria-label={t('archive.days')}
+                                onChange={v => setSetting({ ...setting, days: Number(v) })}
+                                options={ARCHIVE_DAYS.map(d => ({ value: String(d), label: t('archive.days_option', { count: d }) }))} />
+                        </SettingRow>
+                    </SettingsCard>
+                    <Note>{t('archive.scope')}<br />{t('archive.disclaimer')}</Note>
 
-            <Notice tone="info">{t('archive.scope')}</Notice>
-            <Notice tone="info">{t('archive.disclaimer')}</Notice>
-
-            {!rows && <Card className={s.empty}><Spinner label={t('archive.loading')} /></Card>}
-            {rows && rows.length === 0 && <Card className={s.empty}>{t('archive.empty')}</Card>}
-
-            {rows && rows.length > 0 && (
-                <div className={s.body}>
-                    <nav className={s.channels} aria-label={t('archive.channels')}>
-                        {rows.length > 8 && (
-                            <TextInput size="sm" lead="search" value={channelQuery} placeholder={t('archive.search_channel')} aria-label={t('archive.search_channel')}
-                                onChange={e => setChannelQuery(e.target.value)} />
+                    <SectionTitle actions={<IconButton icon="refresh" size="sm" label={t('archive.refresh')} disabled={loading} onClick={() => void refresh()} />}>
+                        {t('archive.section_chats')}
+                    </SectionTitle>
+                    <SettingsCard>
+                        {rows && rows.length > 8 && (
+                            <SettingRow>
+                                <TextInput size="sm" lead="search" value={channelQuery} placeholder={t('archive.search_channel')}
+                                    aria-label={t('archive.search_channel')} onChange={e => setChannelQuery(e.target.value)} style={{ flex: 1 }} />
+                            </SettingRow>
                         )}
-                        <div className={s.channelList}>
+                        {!rows && <SettingRow className={s.center}><Spinner label={t('archive.loading')} /></SettingRow>}
+                        {rows && rows.length === 0 && <SettingRow className={ui.muted}>{t('archive.empty')}</SettingRow>}
                         {visibleRows.map(r => (
-                            <button key={r.channel} type="button" className={s.channel} aria-pressed={r.channel === selected} onClick={() => setSelected(r.channel)}>
-                                <ChannelAvatar src={r.mode === 'live' ? info[r.channelId]?.image : undefined} size={28} />
-                                <span className={s.channelText}>
-                                    <span className={s.channelName}>{nameOf(r)}</span>
-                                    <span className={s.meta}>{t('archive.count', { count: r.count })}</span>
-                                </span>
-                            </button>
+                            <LinkRow key={r.channel} onClick={() => setSelected(r.channel)}>
+                                <ChannelAvatar src={r.mode === 'live' ? info[r.channelId]?.image : undefined} size={32} />
+                                <RowLabel label={nameOf(r)} hint={t('archive.count', { count: r.count })} />
+                            </LinkRow>
                         ))}
-                        </div>
-                        <Button variant="text" size="sm" onClick={removeAll} className={s.removeAll}>{t('archive.delete_all')}</Button>
-                    </nav>
-
-                    {row && (
-                        <Card className={s.chats}>
-                            <div className={s.chatsHead}>
-                                <TextInput size="sm" lead="search" value={query} placeholder={t('archive.search')} aria-label={t('archive.search')}
-                                    onChange={e => setQuery(e.target.value)} />
-                                <Button size="sm" icon="download" disabled={exporting} onClick={() => void exportAs('txt')}>TXT</Button>
-                                <Button size="sm" icon="download" disabled={exporting} onClick={() => void exportAs('csv')}>CSV</Button>
-                                {exporting && <Spinner label={t('archive.loading')} />}
-                                <Button size="sm" icon="photo_camera" onClick={() => selectMode ? endSelect() : setSelectMode(true)} aria-pressed={selectMode}>
-                                    {t('archive.capture')}
-                                </Button>
-                                <Button size="sm" variant="text" onClick={removeChannel}>{t('archive.delete_channel')}</Button>
-                            </div>
-                            {badgeCounts.length > 0 && (
-                                <div className={s.badges} role="group" aria-label={t('archive.badges')}>
-                                    {/* 접혀 있으면 많이 쓰인 몇 개만 — 고른 배지는 순위 밖이어도 늘 보인다 */}
-                                    {(badgesOpen ? badgeCounts : badgeCounts.filter(([b], i) => i < BADGE_COLLAPSED || badgeFilter.has(b))).map(([b, n]) => (
-                                        <button key={b} type="button" className={s.badgeChip} aria-pressed={badgeFilter.has(b)} onClick={() => toggleBadge(b)} aria-label={badgeLabel(b)}
-                                            onMouseEnter={e => showTip(e.currentTarget, t('archive.badge_tooltip', { name: badgeLabel(b), count: n }))}
-                                            onFocus={e => showTip(e.currentTarget, t('archive.badge_tooltip', { name: badgeLabel(b), count: n }))}
-                                            onMouseLeave={() => setTip(null)} onBlur={() => setTip(null)}>
-                                            <img src={b} alt="" loading="lazy" />
-                                            <span>{n}</span>
-                                        </button>
-                                    ))}
-                                    {badgeCounts.length > BADGE_COLLAPSED && (
-                                        <button type="button" className={s.badgeMore} aria-expanded={badgesOpen} onClick={() => setBadgesOpen(o => !o)}>
-                                            {badgesOpen ? t('archive.badges_less') : t('archive.badges_more')}
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                            {selectMode && (
-                                <div className={s.captureBar}>
-                                    <span className={s.meta}>{t('common.selected_count', { count: picked.size })}</span>
-                                    <Button size="sm" onClick={endSelect}>{t('common.cancel')}</Button>
-                                    <Button size="sm" variant="primary" icon="photo_camera" disabled={picked.size === 0 || !!capturing} onClick={startCapture}>
-                                        {t('archive.capture_save')}
-                                    </Button>
-                                </div>
-                            )}
-                            <div className={s.listWrap} aria-busy={loading}>
-                            {loading && <div className={s.listLoading}><Spinner label={t('archive.loading')} /></div>}
-                            <ol className={s.list} ref={listRef}>
-                                {items.map(c => (
-                                    <ChatRow key={c.id} chat={c} mode={row.mode} hiddenLabel={t('archive.hidden')}
-                                        selected={picked.has(c.id)} onClick={selectMode ? e => pick(c, e) : undefined} />
-                                ))}
-                            </ol>
-                            </div>
-                            {total > PAGE && (
-                                <div className={s.pager}>
-                                    <Pager page={page} pages={pages} start={page * PAGE} count={items.length} total={total}
-                                        setPage={p => { setPage(p); listRef.current?.scrollTo({ top: 0 }); }} />
-                                </div>
-                            )}
-                        </Card>
+                    </SettingsCard>
+                    {rows && rows.length > 0 && (
+                        <SettingsCard style={{ marginTop: 16 }}>
+                            <LinkRow danger trailing="delete" onClick={removeAll}>
+                                <RowLabel label={t('archive.delete_all')} />
+                            </LinkRow>
+                        </SettingsCard>
                     )}
-                </div>
+                </>
+            ) : (
+                <>
+                    <SubHeader title={<span className={s.subTitle}>
+                        <ChannelAvatar src={row.mode === 'live' ? info[row.channelId]?.image : undefined} size={28} />{nameOf(row)}
+                    </span>} backLabel={t('common.close')} onBack={() => setSelected(null)}>
+                        <span className={ui.muted} style={{ fontSize: 13 }}>{t('archive.count', { count: row.count })}</span>
+                        <IconButton icon="refresh" size="sm" label={t('archive.refresh')} disabled={loading} onClick={() => void refresh()} />
+                    </SubHeader>
+                    <SettingsCard className={s.chatsCard}>
+                                <SettingRow className={s.tools}>
+                                    <TextInput size="sm" lead="search" value={query} placeholder={t('archive.search')} aria-label={t('archive.search')}
+                                        onChange={e => setQuery(e.target.value)} />
+                                    <Button size="sm" icon="download" disabled={exporting} onClick={() => void exportAs('txt')}>TXT</Button>
+                                    <Button size="sm" icon="download" disabled={exporting} onClick={() => void exportAs('csv')}>CSV</Button>
+                                    {exporting && <Spinner label={t('archive.loading')} />}
+                                    <Button size="sm" icon="photo_camera" onClick={() => selectMode ? endSelect() : setSelectMode(true)} aria-pressed={selectMode}>
+                                        {t('archive.capture')}
+                                    </Button>
+                                    <Button size="sm" variant="text" onClick={removeChannel}>{t('archive.delete_channel')}</Button>
+                                </SettingRow>
+                                {badgeCounts.length > 0 && (
+                                    <div className={s.badges} role="group" aria-label={t('archive.badges')}>
+                                        {/* 접혀 있으면 많이 쓰인 몇 개만 — 고른 배지는 순위 밖이어도 늘 보인다 */}
+                                        {(badgesOpen ? badgeCounts : badgeCounts.filter(([b], i) => i < BADGE_COLLAPSED || badgeFilter.has(b))).map(([b, n]) => (
+                                            <button key={b} type="button" className={s.badgeChip} aria-pressed={badgeFilter.has(b)} onClick={() => toggleBadge(b)} aria-label={badgeLabel(b)}
+                                                onMouseEnter={e => showTip(e.currentTarget, t('archive.badge_tooltip', { name: badgeLabel(b), count: n }))}
+                                                onFocus={e => showTip(e.currentTarget, t('archive.badge_tooltip', { name: badgeLabel(b), count: n }))}
+                                                onMouseLeave={() => setTip(null)} onBlur={() => setTip(null)}>
+                                                <img src={b} alt="" loading="lazy" />
+                                                <span>{n}</span>
+                                            </button>
+                                        ))}
+                                        {badgeCounts.length > BADGE_COLLAPSED && (
+                                            <button type="button" className={s.badgeMore} aria-expanded={badgesOpen} onClick={() => setBadgesOpen(o => !o)}>
+                                                {badgesOpen ? t('archive.badges_less') : t('archive.badges_more')}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                {selectMode && (
+                                    <div className={s.captureBar}>
+                                        <span className={s.meta}>{t('common.selected_count', { count: picked.size })}</span>
+                                        <Button size="sm" onClick={endSelect}>{t('common.cancel')}</Button>
+                                        <Button size="sm" variant="primary" icon="photo_camera" disabled={picked.size === 0 || !!capturing} onClick={startCapture}>
+                                            {t('archive.capture_save')}
+                                        </Button>
+                                    </div>
+                                )}
+                                <div className={s.listWrap} aria-busy={loading}>
+                                {loading && <div className={s.listLoading}><Spinner label={t('archive.loading')} /></div>}
+                                <ol className={s.list} ref={listRef}>
+                                    {items.map(c => (
+                                        <ChatRow key={c.id} chat={c} mode={row.mode} hiddenLabel={t('archive.hidden')}
+                                            selected={picked.has(c.id)} onClick={selectMode ? e => pick(c, e) : undefined} />
+                                    ))}
+                                </ol>
+                                </div>
+                                {total > PAGE && (
+                                    <div className={s.pager}>
+                                        <Pager page={page} pages={pages} start={page * PAGE} count={items.length} total={total}
+                                            setPage={p => { setPage(p); listRef.current?.scrollTo({ top: 0 }); }} />
+                                    </div>
+                                )}
+                    </SettingsCard>
+                </>
             )}
-
             {capturing && row && (
                 // 화면 밖 자리는 바깥 상자가 잡는다 — 캡쳐는 요소의 계산된 스타일을 복사해서, 목록 자체를 옮기면 이미지 안에서도 밀려난다
                 <div className={s.captureStage} aria-hidden="true">
@@ -459,7 +472,8 @@ export default function Archive() {
             )}
             {tip && <div className={s.tooltip} role="tooltip" style={{ left: tip.left, top: tip.top }}>{tip.text}</div>}
             {confirmDialog}
-            <SocialFooter />
-        </div>
+        </>
     );
+
+
 }

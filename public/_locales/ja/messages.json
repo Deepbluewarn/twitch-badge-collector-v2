@@ -59,9 +59,6 @@
   "needRefresh": {
     "message": "再読み込みが必要"
   },
-  "chzzkChatSide": {
-    "message": "チャット欄の位置（CHZZK）"
-  },
   "chzzkChatSideHint": {
     "message": "チャット欄とメニューサイドバーの左右を入れ替えます"
   },
@@ -76,12 +73,6 @@
   },
   "clearCollectedChatsDo": {
     "message": "削除"
-  },
-  "chatArchiveButton": {
-    "message": "チャット保管庫"
-  },
-  "chatLookButton": {
-    "message": "チャットの見た目"
   },
   "auto": {
     "message": "自動"
@@ -199,5 +190,8 @@
   },
   "extensionDisconnected": {
     "message": "拡張機能との接続が切れました。クリックして再読み込み"
+  },
+  "chatSide": {
+    "message": "チャット欄の位置"
   }
 }

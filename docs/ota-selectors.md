@@ -187,7 +187,7 @@ fetch(browser.runtime.getURL('platform/bundled-selectors.json')).then(r => r.jso
   개발 빌드(`npm run dev`)는 이 값을 무시하고 켠다 (`socketRender: 0`은 따른다).
 - `constants.socketRender: 0`: 비율과 상관없이 **전원 끄기**(비상 스위치).
 - 둘 다 ISOLATED가 읽으므로 사용자 쪽에선 manifest 갱신 후 **페이지 새로고침 시점부터** 적용된다.
-- 꺼진 사용자에게는 팝업의 "채팅 모양" 버튼도 숨겨진다(커스텀 템플릿이 소켓 모드에서만 동작하므로).
+- 꺼진 사용자에게는 설정 페이지 사이드바의 "채팅 모양"도 숨겨진다(커스텀 템플릿이 소켓 모드에서만 동작하므로).
 
 절차: 값을 바꾸고 `rev` +1 → 푸시 → (급하면) jsDelivr purge. 문제가 생기면 `socketRenderPercent: 0` 또는 `socketRender: 0`.
 

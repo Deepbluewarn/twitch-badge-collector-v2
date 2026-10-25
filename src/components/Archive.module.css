@@ -1,27 +1,35 @@
-.page {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    max-width: 1080px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 16px;
-    box-sizing: border-box;
-    color: var(--ui-ink);
+/* 채널 하위 페이지 — 카드 안은 줄 사이 선 없이, 도구 줄 아래로 좌우 여백을 맞춘다 */
+.chatsCard {
+    padding-bottom: 12px;
 }
 
-.toolbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.chatsCard > * + * {
+    border-top: 0 !important;
+}
+
+.chatsCard > :not(:first-child) {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.tools {
     flex-wrap: wrap;
-    padding: 12px 16px;
+    gap: 8px;
 }
 
-.title {
-    margin: 0 auto 0 0;
-    font-size: 18px;
-    font-weight: 900;
+.tools > :first-child {
+    flex: 1;
+    min-width: 160px;
+}
+
+.subTitle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.center {
+    justify-content: center;
 }
 
 .days {
@@ -32,96 +40,6 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--ui-muted);
-}
-
-.empty {
-    padding: 40px 20px;
-    text-align: center;
-    font-weight: 700;
-    color: var(--ui-muted);
-}
-
-.body {
-    display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 16px;
-    align-items: start;
-}
-
-@media (max-width: 720px) {
-    .body {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
-
-.channels {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.channelList {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    /* 채널이 수백 개여도 목록만 스크롤 */
-    max-height: max(240px, calc(100vh - 340px));
-    overflow-y: auto;
-}
-
-.channel {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border: 2px solid var(--ui-hair);
-    border-radius: 10px;
-    background: var(--ui-paper);
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-}
-
-.channel[aria-pressed='true'] {
-    border-color: var(--ui-yellow);
-    background: var(--ui-soft);
-}
-
-.channelText {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.channelName {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 14px;
-    font-weight: 800;
-}
-
-.removeAll {
-    align-self: flex-start;
-    margin-top: 8px;
-}
-
-.chats {
-    padding: 16px;
-}
-
-.chatsHead {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-}
-
-.chatsHead > :first-child {
-    flex: 1;
-    min-width: 160px;
 }
 
 .list {

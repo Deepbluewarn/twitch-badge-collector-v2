@@ -8,7 +8,7 @@ import { useCallback, useRef } from "react";
 import { useAlertContext } from "@/context/Alert";
 import { Button, LabelButton } from "@/ui";
 
-export function ImportFilter() {
+export function ImportFilter({ size }: { size?: 'sm' | 'md' } = {}) {
     const {globalSetting} = useGlobalSettingContext();
     const { filterGroup, setFilterGroup, addCompositeFilters } = useFilterGroupContext();
     const { t } = useTranslation();
@@ -52,7 +52,7 @@ export function ImportFilter() {
     
     return (
         <>
-            <LabelButton htmlFor="upload-filter" icon="file_upload">
+            <LabelButton htmlFor="upload-filter" icon="file_upload" size={size}>
                 {t('common.filter_import')}
             </LabelButton>
             <input ref={inputRef} type='file' accept='.tbc' className='hidden' id='upload-filter' onChange={handleChange}></input>
@@ -60,7 +60,7 @@ export function ImportFilter() {
     )
 }
 
-export function ExportFilter() {
+export function ExportFilter({ size }: { size?: 'sm' | 'md' } = {}) {
     const { globalSetting } = useGlobalSettingContext();
     const { filterGroup } = useFilterGroupContext();
     const { t } = useTranslation();
@@ -78,7 +78,7 @@ export function ExportFilter() {
     }, [filterGroup, globalSetting.platform])
 
     return (
-        <Button icon="file_download" onClick={clickHandler}>
+        <Button icon="file_download" size={size} onClick={clickHandler}>
             {t('common.filter_export')}
         </Button>
     );

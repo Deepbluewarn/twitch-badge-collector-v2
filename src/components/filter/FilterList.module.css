@@ -114,11 +114,10 @@
 
 /* ── 표 ─────────────────────────────── */
 .table {
-    border-top: 2px solid var(--ui-rule);
-    border-bottom: 1px solid var(--ui-hair);
-    /* 높이 고정 — 10줄(줄 44 + 선 1). 페이지·필터 수가 바뀌어도 페이지가 덜컹거리지 않고,
-       페이지당 20개 이상이면 안에서 스크롤한다. */
-    height: calc(45px * 10);
+    /* 설정 페이지 카드가 경계를 잡는다 — 위는 가는 선, 아래는 카드 테두리.
+       10줄(줄 44 + 선 1)이 넘으면 안에서 스크롤한다. */
+    border-top: 1px solid var(--ui-hair);
+    max-height: calc(45px * 10);
     overflow-y: auto;
 }
 /* 마지막 줄의 아래 선은 표 아래 선과 겹치지 않게 */

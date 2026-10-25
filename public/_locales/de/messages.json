@@ -59,9 +59,6 @@
   "needRefresh": {
     "message": "Neuladen nötig"
   },
-  "chzzkChatSide": {
-    "message": "Chat-Seite (CHZZK)"
-  },
   "chzzkChatSideHint": {
     "message": "Tauscht Chat-Panel und Navigationsleiste"
   },
@@ -76,12 +73,6 @@
   },
   "clearCollectedChatsDo": {
     "message": "Löschen"
-  },
-  "chatArchiveButton": {
-    "message": "Chat-Archiv"
-  },
-  "chatLookButton": {
-    "message": "Chat-Darstellung"
   },
   "auto": {
     "message": "Auto"
@@ -199,5 +190,8 @@
   },
   "extensionDisconnected": {
     "message": "Verbindung zur Erweiterung getrennt. Zum Neuladen klicken"
+  },
+  "chatSide": {
+    "message": "Chat-Seite"
   }
 }

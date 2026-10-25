@@ -30,6 +30,7 @@ function renderPage(custom: 'on' | 'off' = 'off') {
 const view = () => EditorView.findFromDOM(document.querySelector('.cm-editor') as HTMLElement)!;
 const editorValue = () => view().state.doc.toString();
 const openEditor = async () => fireEvent.click(await screen.findByRole('button', { name: /HTML/ }));
+const closeEditor = () => fireEvent.click(screen.getByRole('button', { name: /^(닫기|Close)$/ }));
 const typeTemplate = (value: string) => act(() => {
     view().dispatch({ changes: { from: 0, to: view().state.doc.length, insert: value } });
 });
@@ -87,10 +88,12 @@ describe('TemplateSetting', () => {
         expect(document.querySelector('.tbc-chat-badge')).toBeNull();
     });
 
-    it('직접 고친 템플릿이 저장돼 있으면 편집기를 펼치고 배치는 선택 없이 보인다', async () => {
+    it('직접 고친 템플릿이 저장돼 있으면 편집기에 그대로, 배치는 선택 없이 보인다', async () => {
         await fakeBrowser.storage.local.set({ chzzkTemplates: { chat: '<b>{{nickname}}</b>' } });
         renderPage();
+        await openEditor();
         await waitFor(() => expect(editorValue()).toBe('<b>{{nickname}}</b>'));
+        closeEditor();
         fireEvent.click(screen.getByRole('button', { name: /창 전체|Whole window/ }));
         expect(within(screen.getByRole('dialog')).getByRole('button', { name: /^(한 줄|One line)$/ }).getAttribute('aria-pressed')).toBe('false');
     });
@@ -98,12 +101,15 @@ describe('TemplateSetting', () => {
     it('직접 고친 템플릿은 묻고 나서 덮는다 — 취소하면 그대로', async () => {
         await fakeBrowser.storage.local.set({ chzzkTemplates: { chat: '<b>{{nickname}}</b>' } });
         renderPage();
+        await openEditor();
         await waitFor(() => expect(editorValue()).toBe('<b>{{nickname}}</b>'));
+        closeEditor();
         fireEvent.click(screen.getByRole('button', { name: /창 전체|Whole window/ }));
         fireEvent.click(within(screen.getAllByRole('dialog')[0]).getByRole('button', { name: /^(두 줄|Two lines)$/ }));
         const ask = await screen.findByRole('dialog', { name: /덮어씁니다|overwrite/i });
         fireEvent.click(within(ask).getByRole('button', { name: /취소|Cancel/ }));
         await waitFor(() => expect(screen.queryByRole('dialog', { name: /덮어씁니다|overwrite/i })).toBeNull());
+        await openEditor();
         expect(editorValue()).toBe('<b>{{nickname}}</b>');
     });
 
@@ -114,14 +120,14 @@ describe('TemplateSetting', () => {
         fireEvent.click(chip);
         const [divider] = within(screen.getByRole('dialog')).getAllByRole('switch');
         fireEvent.click(divider);
-        expect(document.querySelector('.tbc-styled--divider')).not.toBeNull();
+        expect(document.querySelector('.tbc-styled')!.previousElementSibling!.textContent).toContain('border-top');
         expect(chip.querySelector('span')).not.toBeNull();
         await waitFor(async () => {
             const stored = (await fakeBrowser.storage.local.get('chzzkTemplateStyle')).chzzkTemplateStyle;
-            expect(stored.divider).toBe(true);
+            expect(stored.line.divider).toBe(true);
         });
         fireEvent.click(screen.getByRole('button', { name: /이 부분 되돌리기|Reset this part/ }));
-        expect(document.querySelector('.tbc-styled--divider')).toBeNull();
+        expect(document.querySelector('.tbc-styled')!.previousElementSibling!.textContent).not.toContain('border-top');
     });
 
     it('미리보기의 닉네임을 누르면 닉네임 설정이 열린다', async () => {
@@ -144,7 +150,7 @@ describe('TemplateSetting', () => {
         await waitFor(async () => {
             const r = await fakeBrowser.storage.local.get(['chzzkTemplates', 'chzzkTemplateStyle']);
             expect(r.chzzkTemplates).toEqual(buildTemplates({ layout: 'inline', badges: false, size: 'normal' }));
-            expect(r.chzzkTemplateStyle.zebra).toBe(true);
+            expect(r.chzzkTemplateStyle.line.zebra).toBe(true);
         });
     });
 
@@ -153,7 +159,25 @@ describe('TemplateSetting', () => {
         await openEditor();
         await waitFor(() => expect(editorValue()).toBe(DEFAULT_CHZZK_TEMPLATES.chat));
         typeTemplate('');
+        fireEvent.click(screen.getByRole('button', { name: /^(쓸 수 있는 값|Available values)$/ }));
         fireEvent.click(screen.getByRole('button', { name: '{{nickname}}' }));
         expect(editorValue()).toBe('{{nickname}}');
+    });
+
+    it('모양 코드 적용 — 붙여 넣은 코드의 모양과 스타일을 저장하고, 틀린 코드는 알린다', async () => {
+        const { exportStyleCode, withStyle, DEFAULT_STYLE } = await import('@/render/chzzk-style');
+        const code = await exportStyleCode(withStyle(DEFAULT_STYLE, { line: { zebra: true } }), {});
+        renderPage();
+        fireEvent.click(await screen.findByRole('button', { name: /모양 코드 적용|Apply look code/ }));
+        const dialog = await screen.findByRole('dialog', { name: /모양 코드 적용|Apply look code/ });
+        fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'TBC2:nope' } });
+        fireEvent.click(within(dialog).getByRole('button', { name: /^(적용|Apply)$/ }));
+        expect(await within(dialog).findByRole('alert')).not.toBeNull();
+        fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: code } });
+        fireEvent.click(within(dialog).getByRole('button', { name: /^(적용|Apply)$/ }));
+        await waitFor(async () => {
+            const stored = (await fakeBrowser.storage.local.get('chzzkTemplateStyle')).chzzkTemplateStyle;
+            expect(stored?.line.zebra).toBe(true);
+        });
     });
 });

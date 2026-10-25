@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Notice, Segmented, Select, Switch, Tabs, TextArea } from '@/ui';
+import { Button, Card, Dialog, Notice, Segmented, Select, Switch, TextArea } from '@/ui';
 import CodeMirror, { EditorView, type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { html } from '@codemirror/lang-html';
 import { linter, type Diagnostic } from '@codemirror/lint';
@@ -13,11 +13,11 @@ import { TEMPLATE_KINDS, saveTemplates, useStoredTemplatesState, validateTemplat
 import { TEMPLATE_FIELDS, TEMPLATE_SAMPLES } from '@/render/template-samples';
 import {
     DEFAULT_STYLE, PRESETS, ensureStyleFont, exportStyleCode, importStyleCode, presetTemplates, saveStyle,
-    styleAttrs, templatesToStore, useStoredStyleState, type TemplateStyle,
+    styleCss, templatesToStore, useStoredStyleState, withStyle, type PartStyle, type TemplateStyle,
 } from '@/render/chzzk-style';
 import { getPlatformConfig } from '@/platform/host-selectors';
-import { PARTS, PartControls, partModified, partOf, type Part } from './template/StyleParts';
-import SocialFooter from './SocialFooter';
+import { PART_ANCHOR, PARTS, PartControls, partLookDefaults, partModified, partOf, type Part } from './template/StyleParts';
+import { LinkRow, Note, RowLabel, SectionTitle, SettingRow, SettingsCard, SubHeader, settingsClass as ui } from './settings/SettingsUI';
 import i18n from '@/translate/i18n';
 import { useConfirm } from '@/ui/useConfirm';
 import s from './TemplateSetting.module.css';
@@ -82,6 +82,16 @@ const SYNTAX_HELP: { code: string; key: string }[] = [
     { code: '{{^value}}…{{/value}}', key: 'help_inverted' },
 ];
 
+/** 쓸 수 있는 값 — 묶음과 짧은 이름(긴 설명은 마우스를 올리면). 편집 중인 종류의 묶음이 맨 위로 */
+const FIELD_GROUPS: { id: string; kind?: ChzzkChatKind; names: string[] }[] = [
+    { id: 'basic', names: ['nickname', 'messageHtml', 'time', 'badges'] },
+    { id: 'donation', kind: 'donation', names: ['donation.amountText', 'donation.missionText', 'donation.mission', 'donation.amount'] },
+    { id: 'subscription', kind: 'subscription', names: ['subscription.month', 'subscription.tierName'] },
+    { id: 'gift', kind: 'gift', names: ['gift.quantity', 'gift.tierName', 'gift.receiverNickname', 'gift.toChannel'] },
+    { id: 'condition', names: ['hasMessage', 'cleanbot', 'blinded', 'anonymous', 'verifiedIconUrl'] },
+    { id: 'nick', names: ['nickStyle', 'nickEffect', 'nickColorLight', 'nickColorDark', 'message'] },
+];
+
 /** 미리보기 채팅 — 실제 모아보기처럼 종류를 섞는다. marker는 그 채팅을 모은 필터의 표시 색. */
 const S = TEMPLATE_SAMPLES;
 const PREVIEW_MIX: { chat: (typeof S.chat)[number]['chat']; marker?: string }[] = [
@@ -125,20 +135,20 @@ function Preview({ templates, style, dark, chatTime, part, onPick }: {
         });
     }, [templates, verifiedIconUrl]);
 
-    const attrs = styleAttrs(style);
+    const css = useMemo(() => styleCss(style), [style]);
     return (
         // 렌더러 CSS가 쓰는 클래스: theme_dark(닉네임 색), tbcv2_chatTime_on/off(시각 표시)
         <div className={`${dark ? 'theme_dark' : ''} ${s.previewStage}`}>
+            <style>{css}</style>
             <div
                 ref={ref}
                 data-part={part ?? undefined}
-                className={`${attrs.className} ${chatTime ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'} ${s.preview} ${dark ? s.previewDark : s.previewLight}`}
-                style={attrs.style}
+                className={`tbc-styled ${chatTime ? 'tbcv2_chatTime_on' : 'tbcv2_chatTime_off'} ${s.preview} ${dark ? s.previewDark : s.previewLight}`}
                 onClick={e => {
                     e.preventDefault();   // 클린봇 <details>가 펼쳐지지 않게
                     const target = e.target as HTMLElement;
                     const p = partOf(target);
-                    const anchor = p === 'window' ? ref.current! : (target.closest('.tbc-chat-badge, .tbc-chat-verified, .tbc-chat-emoji, .tbcv2-chat-time, .tbc-chat-nick, .tbc-chat-bubble, .tbc-chat-text, .tbc-chat') ?? target);
+                    const anchor = p === 'window' ? ref.current! : (target.closest(PART_ANCHOR) ?? target);
                     onPick(p, anchor.getBoundingClientRect());
                 }}
                 onMouseMove={e => setHover({ p: partOf(e.target as HTMLElement), x: e.clientX, y: e.clientY })}
@@ -158,38 +168,6 @@ function Code({ children, onClick }: { children: string; onClick: () => void }) 
     );
 }
 
-function ShareBox({ style, templates, onImport }: {
-    style: TemplateStyle; templates: ChzzkTemplates; onImport: (style: TemplateStyle, templates: ChzzkTemplates) => void;
-}) {
-    const { t } = useTranslation();
-    const [input, setInput] = useState('');
-    const [status, setStatus] = useState('');
-    const copy = async () => {
-        await navigator.clipboard.writeText(exportStyleCode(style, templatesToStore(templates)));
-        setStatus(t('template.share_copied'));
-    };
-    const load = () => {
-        const r = importStyleCode(input);
-        if (!r) { setStatus(t('template.share_invalid')); return; }
-        onImport(r.style, { ...DEFAULT_CHZZK_TEMPLATES, ...r.templates });
-        setInput('');
-        setStatus(t('template.share_imported'));
-    };
-    return (
-        <div className={s.share}>
-            <div className={s.shareRow}>
-                <Button size="sm" icon="content_copy" onClick={copy}>{t('template.share_copy')}</Button>
-                <span className={s.meta} role="status">{status}</span>
-            </div>
-            <div className={s.shareRow}>
-                <TextArea rows={1} value={input} placeholder="TBC1:…" aria-label={t('template.share_import')}
-                    onChange={e => setInput(e.target.value)} className={s.shareInput} />
-                <Button size="sm" onClick={load} disabled={!input.trim()}>{t('template.share_import')}</Button>
-            </div>
-        </div>
-    );
-}
-
 const STYLE_SAVE_DELAY = 250;
 
 export default function TemplateSetting() {
@@ -203,7 +181,17 @@ export default function TemplateSetting() {
     const [dark, setDark] = useState(true);
     const [savedAt, setSavedAt] = useState<number | null>(null);
     const [editorOpen, setEditorOpen] = useState(false);
-    const [shareOpen, setShareOpen] = useState(false);
+    const [sideTab, setSideTab] = useState<'preview' | 'fields'>('preview');
+    const [copied, setCopied] = useState(false);
+    const [applyOpen, setApplyOpen] = useState(false);
+    const [applyInput, setApplyInput] = useState('');
+    const [applyError, setApplyError] = useState('');
+    const applyCode = async () => {
+        const r = await importStyleCode(applyInput);
+        if (!r) { setApplyError(t('template.share_invalid')); return; }
+        if (await replaceTemplates({ ...DEFAULT_CHZZK_TEMPLATES, ...r.templates }, false)) setStyle(r.style);
+        setApplyOpen(false);
+    };
     const [part, setPart] = useState<Part | null>(null);
     const [anchor, setAnchor] = useState<DOMRect | null>(null);
     const loadedRef = useRef(false);
@@ -220,20 +208,18 @@ export default function TemplateSetting() {
         loadedRef.current = true;
         const initial = { ...DEFAULT_CHZZK_TEMPLATES, ...stored };
         setDrafts(initial);
-        // 직접 고친 템플릿이면 편집기를 펼친 채로 연다 — 부분 설정으로는 구조를 바꿀 수 없다.
-        if (!detectLook(initial)) setEditorOpen(true);
     }, [stored, loaded]);
     useEffect(() => {
         if (!styleLoaded || styleLoadedRef.current) return;
         styleLoadedRef.current = true;
         setStyleState(storedStyle);
     }, [storedStyle, styleLoaded]);
-    useEffect(() => ensureStyleFont(style), [style.font]);
+    useEffect(() => ensureStyleFont(style), [style]);
 
     // 상자는 화면 위치에 붙어 있어서 스크롤·크기 변경 뒤엔 엉뚱한 곳을 가리킨다 — 닫는다.
     useEffect(() => {
         const close = () => setPart(null);
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setPart(null); setShareOpen(false); } };
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPart(null); };
         window.addEventListener('scroll', close, true);
         window.addEventListener('resize', close);
         window.addEventListener('keydown', onKey);
@@ -263,9 +249,9 @@ export default function TemplateSetting() {
     );
 
     // 스타일은 고치는 대로 저장한다 — 열려 있는 치지직 탭의 모아보기가 바로 따라 바뀐다.
-    const setStyle = useCallback((change: Partial<TemplateStyle>) => {
+    const setStyle = useCallback((change: TemplateStyle | ((prev: TemplateStyle) => TemplateStyle)) => {
         setStyleState(prev => {
-            const next = { ...prev, ...change };
+            const next = typeof change === 'function' ? change(prev) : change;
             clearTimeout(saveTimer.current);
             saveTimer.current = setTimeout(() => saveStyle(next), STYLE_SAVE_DELAY);
             return next;
@@ -289,19 +275,18 @@ export default function TemplateSetting() {
         const p = PRESETS.find(x => x.id === id);
         if (!p) return;
         if (!(await replaceTemplates({ ...DEFAULT_CHZZK_TEMPLATES, ...presetTemplates(p) }))) return;
-        setStyle({ ...DEFAULT_STYLE, ...p.style });
+        setStyle(withStyle(DEFAULT_STYLE, p.style));
     };
 
     const resetPart = (p: Part) => {
-        const d = PARTS.find(x => x.key === p)!;
-        setStyle(Object.fromEntries(d.fields.map(f => [f, DEFAULT_STYLE[f]])));
-        if (look && d.look) setLook(Object.fromEntries(d.look.map(f => [f, DEFAULT_LOOK[f]])));
+        setStyle(prev => ({ ...prev, [p]: DEFAULT_STYLE[p] }));
+        const lookDefaults = partLookDefaults(p);
+        if (look && Object.keys(lookDefaults).length) setLook(lookDefaults);
     };
 
     const pickPart = (p: Part, rect: DOMRect) => {
         setPart(p);
         setAnchor(rect);
-        setShareOpen(false);
     };
 
     const insertField = (text: string) => {
@@ -318,95 +303,30 @@ export default function TemplateSetting() {
     };
 
     // 부분 상자는 누른 곳 오른쪽(자리가 없으면 왼쪽)에, 화면 안으로
-    const BOX_WIDTH = 380;
+    const BOX_WIDTH = 440;
     const boxPos = anchor && {
         left: anchor.right + 12 + BOX_WIDTH < window.innerWidth ? anchor.right + 12 : Math.max(8, anchor.left - 12 - BOX_WIDTH),
         top: Math.max(8, Math.min(anchor.top - 8, window.innerHeight - 440)),
     };
 
-    return (
-        <div className={s.page}>
-            <Card className={s.toolbar}>
-                <h1 className={s.title}>{t('template.title')}</h1>
-                {loaded && styleLoaded && <>
-                    <Select size="sm" value="" className={s.presetSelect} onChange={applyPreset} aria-label={t('template.presets.title')}
-                        options={[{ value: '', label: t('template.presets.title'), disabled: true }, ...PRESETS.map(p => ({ value: p.id, label: t(`template.presets.${p.id}`) }))]} />
-                    <div className={s.shareAnchor}>
-                        <Button size="sm" icon="share" aria-expanded={shareOpen} onClick={() => { setShareOpen(o => !o); setPart(null); }}>
-                            {t('template.share')}
-                        </Button>
-                        {shareOpen && (
-                            <Card className={s.sharePop}>
-                                <ShareBox style={style} templates={drafts} onImport={async (st, tpl) => {
-                                    if (await replaceTemplates(tpl, false)) setStyle(st);
-                                }} />
-                            </Card>
-                        )}
-                    </div>
-                    <Button size="sm" variant="text" onClick={() => setEditorOpen(o => !o)} aria-expanded={editorOpen}>
-                        {editorOpen ? t('template.edit_html_close') : t('template.edit_html')}
-                    </Button>
-                </>}
-                <Switch
-                    checked={custom}
-                    onChange={on => dispatchGlobalSetting(setChzzkCustomTemplate(on ? 'on' : 'off'))}
-                    label={t('template.use_custom')}
-                />
-            </Card>
-
-            {/* 저장된 값을 읽기 전엔 기본값을 저장된 것처럼 보이지 않게 그리지 않는다 */}
-            {loaded && styleLoaded && <>
-                <div className={s.partBar}>
-                    <div className={s.parts}>
-                        {PARTS.map(({ key }) => (
-                            <button key={key} type="button" className={s.partChip} aria-pressed={part === key}
-                                onClick={e => pickPart(key, e.currentTarget.getBoundingClientRect())}>
-                                {t(`template.parts.${key}`)}
-                                {partModified(key, style, look) && <span className={s.partDot} aria-hidden="true" />}
-                            </button>
-                        ))}
-                    </div>
-                    <Segmented
-                        size="sm"
-                        value={dark ? 'dark' : 'light'}
-                        onChange={m => setDark(m === 'dark')}
-                        options={[
-                            { value: 'dark' as const, label: t('template.preview_dark') },
-                            { value: 'light' as const, label: t('template.preview_light') },
-                        ]}
-                    />
-                </div>
-
-                <Preview templates={previewTemplates} style={style} dark={dark} chatTime={chatTime} part={part} onPick={pickPart} />
-
-                {part && boxPos && (
-                    <Card className={s.partBox} style={boxPos} role="dialog" aria-label={t(`template.parts.${part}`)}>
-                        <div className={s.partBoxHead}>
-                            <h2 className={s.subtitle}>{t(`template.parts.${part}`)}</h2>
-                            <button type="button" className={`material-icons-round ${s.close}`} aria-label={t('template.close')} onClick={() => setPart(null)}>close</button>
-                        </div>
-                        <div className={s.controls}>
-                            <PartControls
-                                part={part} style={style} look={look} chatTime={chatTime}
-                                setStyle={setStyle} setLook={setLook}
-                                setChatTime={on => dispatchGlobalSetting(setChatTime(on ? 'on' : 'off'))}
-                            />
-                        </div>
-                        <Button variant="text" size="sm" style={{ marginTop: 8 }} disabled={!partModified(part, style, look)} onClick={() => resetPart(part)}>
-                            {t('template.style.reset_part')}
-                        </Button>
-                    </Card>
-                )}
-
-                {editorOpen && <>
-                    <Card className={s.card}>
-                        <div className={s.kindBar}>
-                            <Tabs
-                                value={kind}
-                                onChange={setKind}
-                                items={TEMPLATE_KINDS.map(k => ({ value: k, label: `${t(`template.kinds.${k}`)}${validations[k].ok ? '' : ' ⚠'}` }))}
-                            />
-                        </div>
+    // HTML 직접 편집은 하위 페이지 — 편집에 넓은 화면이 필요해 본문 열보다 넓게, 미리보기는 옆에 붙인다
+    if (editorOpen && loaded && styleLoaded) return (
+        <div className={s.wide}>
+            <SubHeader title={t('template.edit_html')} backLabel={t('template.close')} onBack={() => setEditorOpen(false)}>
+                <span className={ui.status}>{dirty ? t('template.unsaved') : savedAt ? t('template.saved') : ''}</span>
+                <Button variant="text" size="sm" onClick={() => setDrafts(d => ({ ...d, [kind]: DEFAULT_CHZZK_TEMPLATES[kind] }))}
+                    disabled={drafts[kind] === DEFAULT_CHZZK_TEMPLATES[kind]}>
+                    {t('template.reset_kind', { kind: t(`template.kinds.${kind}`) })}
+                </Button>
+                <Button size="sm" variant="primary" onClick={onSave} disabled={!dirty || !allValid}>{t('template.save')}</Button>
+            </SubHeader>
+            <div className={s.split}>
+                <SettingsCard>
+                    <SettingRow>
+                        <Segmented size="sm" value={kind} onChange={setKind} label={t('template.edit_html')}
+                            options={TEMPLATE_KINDS.map(k => ({ value: k, label: `${t(`template.kinds.${k}`)}${validations[k].ok ? '' : ' ⚠'}` }))} />
+                    </SettingRow>
+                    <div className={s.editorBody}>
                         <div className={`${s.editor} ${v.ok ? '' : s.editorError}`}>
                             <CodeMirror
                                 ref={editorRef}
@@ -416,7 +336,7 @@ export default function TemplateSetting() {
                                 onChange={val => setDrafts(d => ({ ...d, [kind]: val }))}
                                 extensions={EDITOR_EXTENSIONS}
                                 theme={pageDark ? 'dark' : 'light'}
-                                minHeight="240px"
+                                minHeight="420px"
                                 basicSetup={{ foldGutter: false, highlightActiveLine: false }}
                             />
                         </div>
@@ -427,48 +347,129 @@ export default function TemplateSetting() {
                                 </Notice>
                             </div>
                         )}
-                        <div className={s.actions}>
-                            <Button variant="primary" onClick={onSave} disabled={!dirty || !allValid}>
-                                {t('template.save')}
-                            </Button>
-                            <span className={`${s.meta} ${s.status}`}>
-                                {dirty ? t('template.unsaved') : savedAt ? t('template.saved') : ''}
-                            </span>
-                            <Button
-                                variant="text"
-                                size="sm"
-                                onClick={() => setDrafts(d => ({ ...d, [kind]: DEFAULT_CHZZK_TEMPLATES[kind] }))}
-                                disabled={drafts[kind] === DEFAULT_CHZZK_TEMPLATES[kind]}
-                            >
-                                {t('template.reset_kind', { kind: t(`template.kinds.${kind}`) })}
-                            </Button>
+                    </div>
+                </SettingsCard>
+                <div className={s.side}>
+                    <Segmented size="sm" value={sideTab} onChange={setSideTab} label={t('template.edit_html')}
+                        options={[{ value: 'preview', label: t('template.preview') }, { value: 'fields', label: t('template.fields_title') }]} />
+                    {sideTab === 'preview' ? (
+                        <div className={s.sideScroll}>
+                            <Preview templates={previewTemplates} style={style} dark={dark} chatTime={chatTime} part={null} onPick={() => {}} />
                         </div>
-                    </Card>
-
-                    <Card className={s.card}>
-                        <h2 className={s.subtitle} style={{ marginBottom: 2 }}>{t('template.fields_title')}</h2>
-                        <div className={s.meta}>{t('template.insert_hint')}</div>
-                        <table className={s.fields}>
-                            <tbody>
+                    ) : (
+                        <div className={s.sideScroll}>
+                            {FIELD_GROUPS.filter(g => !g.kind || g.kind === kind).sort((a, b) => (b.kind === kind ? 1 : 0) - (a.kind === kind ? 1 : 0)).map(g => (
+                                <section key={g.id} className={s.fieldGroup}>
+                                    <h3 className={s.h3}>{t(`template.field_groups.${g.id}`)}</h3>
+                                    <SettingsCard>
+                                        {g.names.map(name => (
+                                            // i18next는 키의 '.'을 계층으로 읽어서 문구 키는 '_'로 바꿔 둔다.
+                                            <div key={name} className={s.field} title={t(`template.fields.${name.replace('.', '_')}`)}>
+                                                <span>{t(`template.field_short.${name.replace('.', '_')}`)}</span>
+                                                <Code onClick={() => insertField(usageOf(name))}>{usageOf(name)}</Code>
+                                            </div>
+                                        ))}
+                                    </SettingsCard>
+                                </section>
+                            ))}
+                            <details className={s.syntax}>
+                                <summary>{t('template.syntax')}</summary>
                                 {SYNTAX_HELP.map(h => (
-                                    <tr key={h.key}><td><Code onClick={() => insertField(h.code)}>{h.code}</Code></td><td>{t(`template.${h.key}`)}</td></tr>
+                                    <div key={h.key} className={s.field}><span>{t(`template.${h.key}`)}</span><Code onClick={() => insertField(h.code)}>{h.code}</Code></div>
                                 ))}
-                                <tr><td colSpan={2}><span className={s.meta}>{t('template.help_safety')}</span></td></tr>
-                                {TEMPLATE_FIELDS.filter(f => !f.kinds || f.kinds.includes(kind)).map(f => (
-                                    // i18next는 키의 '.'을 계층으로 읽어서 문구 키는 '_'로 바꿔 둔다.
-                                    <tr key={f.name}>
-                                        <td><Code onClick={() => insertField(usageOf(f.name))}>{usageOf(f.name)}</Code></td>
-                                        <td>{t(`template.fields.${f.name.replace('.', '_')}`)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </Card>
+                                <Note>{t('template.help_safety')}</Note>
+                            </details>
+                        </div>
+                    )}
+                </div>
+            </div>
+            {confirmDialog}
+        </div>
+    );
+
+    return (
+        <>
+            <SectionTitle>{t('template.section_display')}</SectionTitle>
+            <SettingsCard>
+                <SettingRow label={t('template.use_custom')}>
+                    <Switch checked={custom} onChange={on => dispatchGlobalSetting(setChzzkCustomTemplate(on ? 'on' : 'off'))} />
+                </SettingRow>
+                {loaded && styleLoaded && <>
+                    <SettingRow label={t('template.presets.title')}>
+                        <Select size="sm" value="" className={s.presetSelect} onChange={applyPreset} aria-label={t('template.presets.title')}
+                            options={[{ value: '', label: t('template.presets.title'), disabled: true }, ...PRESETS.map(p => ({ value: p.id, label: t(`template.presets.${p.id}`) }))]} />
+                    </SettingRow>
+                    {/* 복사와 적용을 따로 — 적용은 붙여 넣는 대화상자 */}
+                    <SettingRow label={t('template.share')}>
+                        <span className={ui.status} role="status">{copied ? t('template.share_copied') : ''}</span>
+                        <Button size="sm" icon="content_copy" onClick={async () => {
+                            await navigator.clipboard.writeText(await exportStyleCode(style, templatesToStore(drafts)));
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                        }}>{t('template.share_copy')}</Button>
+                        <Button size="sm" icon="input" onClick={() => { setApplyOpen(true); setApplyInput(''); setApplyError(''); }}>{t('template.share_apply')}</Button>
+                    </SettingRow>
+                    <LinkRow onClick={() => { setEditorOpen(true); setPart(null); }}>
+                        <RowLabel label={t('template.edit_html')} />
+                    </LinkRow>
                 </>}
+            </SettingsCard>
+
+            {/* 저장된 값을 읽기 전엔 기본값을 저장된 것처럼 보이지 않게 그리지 않는다 */}
+            {loaded && styleLoaded && <>
+                <SectionTitle actions={
+                    <Segmented
+                        size="sm"
+                        value={dark ? 'dark' : 'light'}
+                        onChange={m => setDark(m === 'dark')}
+                        options={[
+                            { value: 'dark' as const, label: t('template.preview_dark') },
+                            { value: 'light' as const, label: t('template.preview_light') },
+                        ]}
+                    />
+                }>{t('template.preview')}</SectionTitle>
+                <SettingsCard className={s.previewCard}>
+                    <div className={s.parts}>
+                            {PARTS.map(key => (
+                                <button key={key} type="button" className={s.partChip} aria-pressed={part === key}
+                                    onClick={e => pickPart(key, e.currentTarget.getBoundingClientRect())}>
+                                    {t(`template.parts.${key}`)}
+                                    {partModified(key, style, look) && <span className={s.partDot} aria-hidden="true" />}
+                                </button>
+                            ))}
+                    </div>
+                    <Preview templates={previewTemplates} style={style} dark={dark} chatTime={chatTime} part={part} onPick={pickPart} />
+                </SettingsCard>
+
+                {part && boxPos && (
+                    <Card className={s.partBox} style={boxPos} role="dialog" aria-label={t(`template.parts.${part}`)}>
+                        <div className={s.partBoxHead}>
+                            <h2 className={s.subtitle}>{t(`template.parts.${part}`)}</h2>
+                            <button type="button" className={`material-icons-round ${s.close}`} aria-label={t('template.close')} onClick={() => setPart(null)}>close</button>
+                        </div>
+                        <PartControls
+                            key={part} part={part} style={style} look={look} chatTime={chatTime}
+                            setPartStyle={(change: PartStyle) => setStyle(prev => ({ ...prev, [part]: { ...prev[part], ...change } }))}
+                            setLook={setLook}
+                            setChatTime={on => dispatchGlobalSetting(setChatTime(on ? 'on' : 'off'))}
+                        />
+                        <Button variant="text" size="sm" style={{ marginTop: 8 }} disabled={!partModified(part, style, look)} onClick={() => resetPart(part)}>
+                            {t('template.style.reset_part')}
+                        </Button>
+                    </Card>
+                )}
             </>}
 
+            <Dialog open={applyOpen} onClose={() => setApplyOpen(false)} title={t('template.share_apply')} width="xs"
+                actions={<>
+                    <Button size="sm" onClick={() => setApplyOpen(false)}>{t('common.cancel')}</Button>
+                    <Button size="sm" variant="primary" disabled={!applyInput.trim()} onClick={() => void applyCode()}>{t('template.apply')}</Button>
+                </>}>
+                <TextArea rows={3} value={applyInput} placeholder="TBC2:…" aria-label={t('template.share_apply')} autoFocus
+                    onChange={e => { setApplyInput(e.target.value); setApplyError(''); }} className={s.applyInput} />
+                {applyError && <div className={s.applyError} role="alert">{applyError}</div>}
+            </Dialog>
             {confirmDialog}
-            <SocialFooter />
-        </div>
+        </>
     );
 }

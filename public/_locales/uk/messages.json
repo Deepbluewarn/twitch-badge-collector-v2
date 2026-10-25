@@ -59,9 +59,6 @@
   "needRefresh": {
     "message": "Потрібно оновити сторінку"
   },
-  "chzzkChatSide": {
-    "message": "Бік чату (CHZZK)"
-  },
   "chzzkChatSideHint": {
     "message": "Міняє місцями панель чату й бічне меню"
   },
@@ -76,12 +73,6 @@
   },
   "clearCollectedChatsDo": {
     "message": "Видалити"
-  },
-  "chatArchiveButton": {
-    "message": "Архів чату"
-  },
-  "chatLookButton": {
-    "message": "Вигляд чату"
   },
   "auto": {
     "message": "Авто"
@@ -199,5 +190,8 @@
   },
   "extensionDisconnected": {
     "message": "Зʼєднання з розширенням втрачено. Натисніть, щоб перезавантажити"
+  },
+  "chatSide": {
+    "message": "Бік чату"
   }
 }

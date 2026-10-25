@@ -1,44 +1,9 @@
-.page {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    max-width: 900px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 16px;
-    box-sizing: border-box;
-    color: var(--ui-ink);
-}
-
-.card {
-    padding: 20px;
-}
-
-.toolbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 12px 16px;
-}
-
-.title {
-    margin: 0 auto 0 0;
-    font-size: 18px;
-    font-weight: 900;
-}
-
 .subtitle {
     margin: 0;
     font-size: 15px;
     font-weight: 900;
 }
 
-.meta {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ui-muted);
-}
 
 .label {
     font-size: 13px;
@@ -50,46 +15,17 @@
     width: auto;
 }
 
-/* ── 공유 ── */
-.shareAnchor {
-    position: relative;
+
+
+/* 부분 상자의 묶음(기본·글자·배경) 탭 */
+.groupTabs {
+    margin-bottom: 12px;
 }
 
-.sharePop {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 8px);
-    z-index: 60;
-    width: 360px;
-    padding: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
 
-.share {
-    display: grid;
-    gap: 8px;
-}
 
-.shareRow {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.shareInput {
-    flex: 1;
-    min-width: 0;
-    font-size: 12px;
-}
 
 /* ── 부분 목록 ── */
-.partBar {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-}
 
 .parts {
     display: flex;
@@ -168,7 +104,7 @@
     cursor: pointer;
 }
 
-.preview :global(:is(.tbc-chat-nick, .tbc-chat-badge, .tbc-chat-emoji, .tbc-chat-text, .tbc-chat-bubble, .tbcv2-chat-time)):hover {
+.preview :global(:is(.tbc-chat-nick, .tbc-chat-badge, .tbc-chat-emoji, .tbc-chat-text, .tbc-chat-bubble, .tbcv2-chat-time, .tbc-chat-cleanbot > summary, .tbc-chat-blinded)):hover {
     outline: 2px dashed var(--ui-yellow);
     outline-offset: 1px;
 }
@@ -179,7 +115,8 @@
 .preview[data-part='text'] :global(.tbc-chat-text),
 .preview[data-part='bubble'] :global(.tbc-chat-bubble),
 .preview[data-part='time'] :global(.tbcv2-chat-time),
-.preview[data-part='card'] :global(:is(.tbc-chat--donation, .tbc-chat--subscription, .tbc-chat--gift)) {
+.preview[data-part='card'] :global(:is(.tbc-chat--donation, .tbc-chat--subscription, .tbc-chat--gift)),
+.preview[data-part='hidden'] :global(:is(.tbc-chat-cleanbot > summary, .tbc-chat-blinded)) {
     outline: 2px solid var(--ui-yellow);
     outline-offset: 1px;
 }
@@ -211,7 +148,7 @@
 .partBox {
     position: fixed;
     z-index: 50;
-    width: 380px;
+    width: 440px;
     padding: 16px;
     box-sizing: border-box;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -235,7 +172,7 @@
 
 .controls {
     display: grid;
-    grid-template-columns: 100px 1fr;
+    grid-template-columns: 110px 1fr;
     align-items: center;
     column-gap: 12px;
     row-gap: 8px;
@@ -271,10 +208,6 @@
     cursor: pointer;
 }
 
-/* ── HTML 편집기 ── */
-.kindBar {
-    margin-bottom: 12px;
-}
 
 .editor {
     border: 2px solid var(--ui-line);
@@ -287,32 +220,10 @@
     border-color: var(--ui-danger);
 }
 
-.actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 16px;
-}
 
-.status {
-    flex: 1;
-}
 
-.fields {
-    margin-top: 8px;
-    border-collapse: collapse;
-    width: 100%;
-    font-size: 13px;
-}
 
-.fields td {
-    padding: 2px 16px 2px 0;
-    vertical-align: middle;
-}
 
-.fields tr + tr td {
-    border-top: 1px solid var(--ui-hair);
-}
 
 .code {
     display: inline-block;
@@ -334,4 +245,128 @@
 
 .code:focus-visible {
     outline: 2px solid var(--ui-yellow);
+}
+
+/* ── 미리보기 카드 ── */
+.previewCard {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 20px;
+}
+
+.previewCard > * + * {
+    border-top: 0 !important;
+}
+
+/* ── 모양 코드 적용 대화상자 ── */
+.applyInput {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 13px;
+}
+
+.applyError {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ui-bad-fg);
+}
+
+/* ── HTML 직접 편집 하위 페이지: 본문 열보다 넓게, 미리보기는 옆에 ── */
+.wide {
+    width: min(1180px, calc(100vw - 330px));
+}
+
+.split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 20px;
+    align-items: stretch;
+}
+
+.editorBody {
+    padding: 0 20px 16px;
+    border-top: 0 !important;
+}
+
+.editorBody .editor {
+    border-width: 1px;
+    border-color: var(--ui-hair);
+}
+
+/* 오른쪽 칸은 높이를 내지 않는다(contain: size) — 줄 높이는 왼쪽 편집기 카드가 정하고, 오른쪽은 그만큼 늘어나 안에서 스크롤 */
+.side {
+    contain: size;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+}
+
+.sideScroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.fieldGroup + .fieldGroup {
+    margin-top: 12px;
+}
+
+.h3 {
+    margin: 0 0 6px 4px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--ui-muted);
+}
+
+.field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 36px;
+    padding: 2px 8px 2px 14px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.field > button {
+    flex: none;
+    max-width: 60%;
+    overflow-wrap: anywhere;
+    text-align: right;
+    color: var(--ui-muted);
+}
+
+.syntax {
+    margin-top: 14px;
+}
+
+.syntax summary {
+    padding: 4px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--ui-muted);
+    cursor: pointer;
+}
+
+.syntax .field + .field {
+    border-top: 1px solid var(--ui-hair);
+}
+
+/* 좁은 창 — 편집기와 옆 칸을 위아래로 */
+@media (max-width: 1000px) {
+    .wide {
+        width: auto;
+    }
+
+    .split {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .side {
+        contain: none;
+    }
 }

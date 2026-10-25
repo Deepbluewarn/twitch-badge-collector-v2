@@ -2,18 +2,13 @@ import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import SocialFooter from "@/components/SocialFooter";
 import TranslationNotice from "@/components/TranslationNotice";
-import { GlobalSettingContext, useGlobalSettingContext } from "@/context/GlobalSetting";
+import { GlobalSettingContext } from "@/context/GlobalSetting";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
-import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
-import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide } from "@/reducer/setting";
-import { SettingInterface } from "@/interfaces/setting";
-import { getPlatformConfig, manifestReady } from "@/platform/host-selectors";
-import { ensureRolloutBucket, isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
-import { Button, Dialog, IconButton, Notice, Segmented, Stack, Switch, Tag, TextInput } from "@/ui";
-import { CHANNEL_INFO_MESSAGE, CHANNEL_OFF_KEY, getOffChannels, parseChannelKey, setChannelOff, type ChannelInfo, type OffChannels } from "@/utils/channel-off";
+import { Button, Dialog, Stack, Switch, Tag } from "@/ui";
+import { CHANNEL_INFO_MESSAGE, setChannelOff, type ChannelInfo } from "@/utils/channel-off";
 import { fetchChzzkChannel } from "@/api/chzzk-channel";
 import { ChannelAvatar } from "@/components/filter/ChannelSearch";
 import "./popup.css";
@@ -22,66 +17,28 @@ import "./popup.css";
 const metaButtonStyle: React.CSSProperties = { height: 24, fontSize: 12, fontWeight: 700 };
 const metaTextStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, lineHeight: 1.2 };
 
-const routes = [
-  {
-    path: "/",
-    element: <Popup />
-  },
-  {
-    path: "/setting",
-    element: <PopupSetting />
-  }
-];
-
-const router = createMemoryRouter(routes, {
-  initialEntries: ["/"],
-  initialIndex: 1,
-});
-
-/**
- * 색상 swatch + native picker. change 이벤트만 청취해 드래그 중 storage 폭주 방지.
- * 빈 값은 "자동" 의미 — reset 버튼으로 비울 수 있음.
- */
-function BgColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  React.useEffect(() => {
-    const el = inputRef.current;
-    if (!el) return;
-    const handler = (e: Event) => onChange((e.target as HTMLInputElement).value);
-    el.addEventListener('change', handler);
-    return () => el.removeEventListener('change', handler);
-  }, [onChange]);
+/** 좌측 라벨(+선택 hint) + 우측 컨트롤 한 줄 레이아웃. */
+function SettingRow({ label, hint, children }: { label: React.ReactNode; hint?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <Stack dir='row' gap={4} align='center'>
-      <div
-        onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
-        style={{
-          width: 24, height: 24, borderRadius: '50%',
-          // 빈 값(자동)일 땐 체커보드 패턴으로 "색 미지정" 시각화 — 팝업 배경과 동화 방지.
-          backgroundColor: value || undefined,
-          backgroundImage: value ? 'none' : 'conic-gradient(rgba(128,128,128,0.15) 0deg 90deg, rgba(128,128,128,0.4) 90deg 180deg, rgba(128,128,128,0.15) 180deg 270deg, rgba(128,128,128,0.4) 270deg 360deg)',
-          border: '2px solid var(--ui-line)',
-          cursor: 'pointer',
-        }}
-      >
-        <input
-          ref={inputRef}
-          type='color'
-          defaultValue={value || '#2a2a30'}
-          style={{ position: 'absolute', visibility: 'hidden', width: 0, height: 0 }}
-        />
+    <Stack dir='row' align='center' justify='space-between' gap={8}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 800 }}>{label}</div>
+        {hint && (
+          <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.2, color: 'var(--ui-muted)' }}>
+            {hint}
+          </div>
+        )}
       </div>
-      {value && (
-        <Button size='sm' variant='text' onClick={() => onChange('')} style={metaButtonStyle}>
-          {browser.i18n.getMessage('auto' as any)}
-        </Button>
-      )}
+      {children}
     </Stack>
   );
 }
 
-function PopupSetting() {
-  const { globalSetting, dispatchGlobalSetting } = useGlobalSettingContext();
+/**
+ * OTA selector 버전 + 진단 — 지금 방송 탭의 content script에 진단을 요청하므로 팝업에 남긴다
+ * (설정 페이지는 별도 탭이라 대상이 될 수 없다). 문제 보고 시 참고용.
+ */
+function DiagnoseBar({ enabled, leading }: { enabled: boolean; leading: React.ReactNode }) {
   const t = (k: string) => browser.i18n.getMessage(k as any);
   const [otaInfo, setOtaInfo] = React.useState<{ rev: number | null; fetchedAt: number | null }>({ rev: null, fetchedAt: null });
   useEffect(() => {
@@ -190,201 +147,59 @@ function PopupSetting() {
     doSubmit();
   };
 
+  const otaText = otaInfo.rev !== null ? `OTA rev ${otaInfo.rev}` : t('otaBundled');
+  const reportUrl: string | undefined = (import.meta as unknown as { env?: Record<string, string> }).env?.WXT_PUBLIC_REPORT_WEBHOOK_URL;
+  const reportLabel =
+    submitState === 'submitted' ? t('reportSubmitted') :
+    submitState === 'submitting' ? t('reportSubmitting') :
+    submitState === 'failed' ? t('reportFailed') :
+    cooldownMin > 0 ? `${cooldownMin}m` :
+    t('report');
+
   return (
-    <Stack gap={12} style={{ padding: 12 }}>
-      {/* 헤더 */}
-      <Stack dir='row' align='center' gap={8}>
-        <IconButton icon='arrow_back' label={t('back')} size='sm' onClick={() => router.navigate('/')} />
-        <span style={{ fontSize: 16, fontWeight: 900 }}>
-          {t('generalSetting')}
-        </span>
-      </Stack>
-
-      {/* 테마 — 시스템 / 라이트 / 다크 */}
-      <SettingRow label={t('theme')}>
-        <Segmented<SettingInterface['darkTheme']>
+    <>
+      {/* 가끔 쓰는 동작 한 줄 — 비율 초기화와 진단을 같은 작은 글자 버튼으로 */}
+      <Stack dir='row' align='center' justify='space-between' gap={8}>
+        {leading}
+        <Button
+          variant='text'
           size='sm'
-          label={t('theme')}
-          value={globalSetting.darkTheme}
-          onChange={(v) => dispatchGlobalSetting(setDarkTheme(v))}
-          options={[
-            { value: 'system', icon: 'settings_brightness', label: t('themeSystem') },
-            { value: 'light', icon: 'light_mode', label: t('themeLight') },
-            { value: 'dark', icon: 'dark_mode', label: t('themeDark') },
-          ]}
-        />
-      </SettingRow>
-
-      {/* 채팅 위치 — 위/아래 토글 */}
-      <SettingRow label={t('chatPosition')}>
-        <Segmented<SettingInterface['position']>
-          size='sm'
-          label={t('chatPosition')}
-          value={globalSetting.position}
-          onChange={(v) => dispatchGlobalSetting(setPosition(v))}
-          options={[
-            { value: 'up', label: t('up') },
-            { value: 'down', label: t('down') },
-          ]}
-        />
-      </SettingRow>
-
-      {/* 채팅창 좌/우 — 치지직 전용. 호스트 사이드바(원본 채팅 + 모아보기)를 통째로 옮긴다. */}
-      <SettingRow label={t('chzzkChatSide')} hint={t('chzzkChatSideHint')}>
-        <Segmented<SettingInterface['chzzkChatSide']>
-          size='sm'
-          label={t('chzzkChatSide')}
-          value={globalSetting.chzzkChatSide}
-          onChange={(v) => dispatchGlobalSetting(setChzzkChatSide(v))}
-          options={[
-            { value: 'left', label: t('chatSideLeft') },
-            { value: 'right', label: t('chatSideRight') },
-          ]}
-        />
-      </SettingRow>
-
-      {/* 채팅 최대 개수 */}
-      <SettingRow
-        label={t('maximumNumberChats')}
-        hint={t('needRefresh')}
-      >
-        <TextInput
-          type='number'
-          size='sm'
-          min={1}
-          aria-label={t('maximumNumberChats')}
-          value={globalSetting.maximumNumberChats}
-          onChange={(e) => dispatchGlobalSetting(setMaximumNumberChats(Number(e.target.value)))}
-          style={{ width: 100 }}
-        />
-      </SettingRow>
-
-      {/* 채팅 시간 표시 — 스위치 */}
-      <SettingRow label={t('chatTime')}>
-        <Switch
-          checked={globalSetting.chatTime === 'on'}
-          onChange={(checked) => dispatchGlobalSetting(setChatTime(checked ? 'on' : 'off'))}
-        />
-      </SettingRow>
-
-      {/* 수집된 채팅 마커 표시 — 호스트 채팅창 좌측 띠 */}
-      <SettingRow label={t('collectedChatMarker')}>
-        <Switch
-          checked={globalSetting.collectedChatMarker !== 'off'}
-          onChange={(checked) => dispatchGlobalSetting(setCollectedChatMarker(checked ? 'on' : 'off'))}
-        />
-      </SettingRow>
-
-      {/* 맨 아래로 버튼 표시 */}
-      <SettingRow label={t('jumpToBottomButton' as any)}>
-        <Switch
-          checked={globalSetting.jumpToBottomButton !== 'off'}
-          onChange={(checked) => dispatchGlobalSetting(setJumpToBottomButton(checked ? 'on' : 'off'))}
-        />
-      </SettingRow>
-
-      {/* 새로고침/탭전환 후 수집된 채팅 유지 */}
-      <SettingRow label={t('chatPersistence' as any)}>
-        <Switch
-          checked={globalSetting.chatPersistence !== 'off'}
-          onChange={(checked) => dispatchGlobalSetting(setChatPersistence(checked ? 'on' : 'off'))}
-        />
-      </SettingRow>
-
-      {/* 표시 방식 — inline(합치기) / floating(아이콘+팝오버). 새로고침 필요. */}
-      <SettingRow label={t('displayMode' as any)} hint={t('needRefresh')}>
-        <Segmented<NonNullable<SettingInterface['displayMode']>>
-          size='sm'
-          label={t('displayMode' as any)}
-          value={globalSetting.displayMode ?? 'inline'}
-          onChange={(v) => dispatchGlobalSetting(setDisplayMode(v))}
-          options={[
-            { value: 'inline', label: t('displayModeInline' as any) },
-            { value: 'floating', label: t('displayModeFloating' as any) },
-          ]}
-        />
-      </SettingRow>
-
-      {/* floating 팝오버 배경색 — 비어 있으면 자동 감지. 사용자가 chzzk 톤에 맞게 직접 지정 가능. */}
-      {globalSetting.displayMode === 'floating' && (
-        <SettingRow label={t('floatingBgColor' as any)} hint={t('needRefresh')}>
-          <BgColorPicker
-            value={globalSetting.floatingBgColor || ''}
-            onChange={(c) => dispatchGlobalSetting(setFloatingBgColor(c))}
-          />
-        </SettingRow>
-      )}
-
-      <OffChannelList />
-
-      {/* OTA selector 버전 + 진단 — 하단 caption row. 문제 보고 시 참고용. */}
-      <Stack dir='row' align='center' justify='space-between' gap={8} style={{ marginTop: 4 }}>
-        <span
-          style={{ ...metaTextStyle, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--ui-muted)' }}
+          icon='troubleshoot'
+          onClick={runDiagnose}
+          disabled={!enabled || diag.kind === 'running'}
+          title={otaText}
+          style={{ color: 'var(--ui-muted)' }}
         >
-          {otaInfo.rev !== null
-            ? `OTA selectors rev ${otaInfo.rev}${otaInfo.fetchedAt ? ` (${new Date(otaInfo.fetchedAt).toLocaleString()})` : ''}`
-            : t('otaBundled')}
-        </span>
-        <Stack dir='row' gap={2} align='center'>
+          {diag.kind === 'running' ? t('diagRunning') : t('diagRun')}
+        </Button>
+      </Stack>
+      {/* 진단을 돌렸을 때만 결과 한 줄 — OTA 판, 통과 수, 복사·제보 */}
+      {(diag.kind === 'done' || diag.kind === 'error') && (
+        <Stack dir='row' align='center' gap={8} style={{ ...metaTextStyle, padding: '0 6px', color: 'var(--ui-muted)' }}>
+          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {otaText}
+            {diag.kind === 'done' && (
+              <b style={{ marginLeft: 8, color: diag.failCount > 0 ? 'var(--ui-bad-fg)' : 'var(--ui-ok-fg)' }}>
+                {diag.failCount > 0 ? browser.i18n.getMessage('diagFailCount' as any, [String(diag.failCount), String(diag.passCount + diag.failCount)]) : `OK ${diag.passCount}`}
+              </b>
+            )}
+            {diag.kind === 'error' && <b style={{ marginLeft: 8, color: 'var(--ui-bad-fg)' }}>{diag.message}</b>}
+          </span>
           {diag.kind === 'done' && (
-            <span style={{ ...metaTextStyle, color: diag.failCount > 0 ? 'var(--ui-bad-fg)' : 'var(--ui-ok-fg)' }}>
-              {diag.failCount > 0 ? browser.i18n.getMessage('diagFailCount' as any, [String(diag.failCount), String(diag.passCount + diag.failCount)]) : `OK ${diag.passCount}`}
-            </span>
-          )}
-          {diag.kind === 'error' && (
-            <span style={{ ...metaTextStyle, color: 'var(--ui-bad-fg)' }}>{diag.message}</span>
-          )}
-          <Button
-            size='sm'
-            variant='text'
-            onClick={runDiagnose}
-            disabled={diag.kind === 'running'}
-            style={metaButtonStyle}
-          >
-            {diag.kind === 'running' ? t('diagRunning') : t('diagRun')}
-          </Button>
-          {diag.kind === 'done' && (
-            <Button
-              size='sm'
-              variant='text'
-              onClick={copyReport}
-              style={metaButtonStyle}
-            >
+            <Button size='sm' variant='text' onClick={copyReport} style={metaButtonStyle}>
               {copyState === 'copied' ? t('copied') : t('copy')}
             </Button>
           )}
-          {diag.kind === 'done' && (() => {
-            // Discord webhook 미설정 시 렌더 자체 X.
-            const url: string | undefined = (import.meta as unknown as { env?: Record<string, string> }).env?.WXT_PUBLIC_REPORT_WEBHOOK_URL;
-            if (!url) return null;
-            const disabled = submitState === 'submitting' || cooldownMin > 0;
-            const label =
-              submitState === 'submitted' ? t('reportSubmitted') :
-              submitState === 'submitting' ? t('reportSubmitting') :
-              submitState === 'failed' ? t('reportFailed') :
-              cooldownMin > 0 ? `${cooldownMin}m` :
-              t('report');
-            return (
-              <Button
-                size='sm'
-                variant='text'
-                onClick={onSubmitClick}
-                disabled={disabled}
-                style={metaButtonStyle}
-              >
-                {label}
-              </Button>
-            );
-          })()}
+          {diag.kind === 'done' && reportUrl && (
+            <Button size='sm' variant='text' onClick={onSubmitClick} disabled={submitState === 'submitting' || cooldownMin > 0} style={metaButtonStyle}>
+              {reportLabel}
+            </Button>
+          )}
         </Stack>
-      </Stack>
-      {submitError && (
-        <span style={{ ...metaTextStyle, color: 'var(--ui-bad-fg)', textAlign: 'right' }}>
-          {submitError}
-        </span>
       )}
-      {/* 첫 제보 시 동의 다이얼로그 — sanitize된 실 payload 미리보기 후 승인. */}
+      {submitError && (
+        <span style={{ ...metaTextStyle, padding: '0 6px', color: 'var(--ui-bad-fg)' }}>{submitError}</span>
+      )}
       <Dialog
         open={consentDialog.open}
         onClose={closeConsentDialog}
@@ -415,51 +230,46 @@ function PopupSetting() {
           </pre>
         </Stack>
       </Dialog>
-    </Stack>
+    </>
   );
 }
 
-/** 좌측 라벨(+선택 hint) + 우측 컨트롤 한 줄 레이아웃. 컴팩트한 설정 행 패턴. */
-function SettingRow({ label, hint, children }: { label: React.ReactNode; hint?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <Stack dir='row' align='center' justify='space-between' gap={8}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 800 }}>{label}</div>
-        {hint && (
-          <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.2, color: 'var(--ui-muted)' }}>
-            {hint}
-          </div>
-        )}
-      </div>
-      {children}
-    </Stack>
-  );
-}
 /**
  * 방송 페이지에서 팝업을 열면 맨 위에: 지금 채널 + "이 채널에서 사용" 스위치 (src/utils/channel-off.ts).
  * 끄면 그 탭에서 새로고침 없이 모아보기 창·수집 표시가 사라지고, 확장 아이콘이 흑백이 된다.
  * 방송 페이지가 아니면(채널 ID가 없으면) 그리지 않는다.
  */
-function ChannelPower() {
-  const t = (k: string) => browser.i18n.getMessage(k as any);
-  const [info, setInfo] = React.useState<(ChannelInfo & { channelId: string; name?: string; image?: string }) | null>(null);
+type HostInfo = ChannelInfo & { name?: string; image?: string };
+
+/**
+ * 지금 탭의 확장 스크립트에 채널 정보를 묻는다. 응답이 오면 방송 페이지(치지직·트위치)다 —
+ * 캡쳐·초기화·진단은 이때만 누를 수 있다. 응답이 없으면 null, 묻는 중이면 undefined.
+ */
+function useHostTab(): [HostInfo | null | undefined, React.Dispatch<React.SetStateAction<HostInfo | null | undefined>>] {
+  const [info, setInfo] = React.useState<HostInfo | null | undefined>(undefined);
   useEffect(() => {
     (async () => {
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-      if (tab?.id == null) return;
+      if (tab?.id == null) { setInfo(null); return; }
       const r = await browser.tabs.sendMessage(tab.id, { type: CHANNEL_INFO_MESSAGE }, { frameId: 0 }).catch(() => null) as ChannelInfo | null;
-      if (!r?.channelId) return;
-      setInfo({ ...r, channelId: r.channelId, name: r.platform === 'twitch' ? r.channelId : undefined });
+      if (!r) { setInfo(null); return; }
+      setInfo({ ...r, name: r.platform === 'twitch' && r.channelId ? r.channelId : undefined });
       // 치지직은 이름·사진을 채널 정보로 (지금 탭이 치지직이라 권한 없이 그 탭을 거친다)
-      if (r.platform === 'chzzk') {
+      if (r.platform === 'chzzk' && r.channelId) {
         fetchChzzkChannel(r.channelId).then(c => setInfo(i => i && { ...i, name: c.name, image: c.imageUrl })).catch(() => {});
       }
     })();
   }, []);
-  if (!info) return null;
+  return [info, setInfo];
+}
+
+function ChannelPower({ info, setInfo }: { info: HostInfo | null | undefined; setInfo: React.Dispatch<React.SetStateAction<HostInfo | null | undefined>> }) {
+  const t = (k: string) => browser.i18n.getMessage(k as any);
+  if (!info?.channelId) return null;
+  const channelId = info.channelId;
   const toggle = (on: boolean) => {
     setInfo({ ...info, off: !on });
-    setChannelOff(info.platform, info.channelId, !on, info.name, info.image);
+    setChannelOff(info.platform, channelId, !on, info.name, info.image);
   };
   return (
     <div style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--ui-tint)' }}>
@@ -475,51 +285,6 @@ function ChannelPower() {
   );
 }
 
-/** 일반 설정의 꺼진 채널 목록 — 그 방송에 다시 들어가지 않고도 켤 수 있게. 꺼진 채널이 없으면 그리지 않는다. */
-function OffChannelList() {
-  const t = (k: string) => browser.i18n.getMessage(k as any);
-  const [map, setMap] = React.useState<OffChannels>({});
-  useEffect(() => {
-    getOffChannels().then(setMap);
-    const onChange = (changes: Record<string, unknown>, area: string) => {
-      if (area === 'local' && CHANNEL_OFF_KEY in changes) getOffChannels().then(setMap);
-    };
-    browser.storage.onChanged.addListener(onChange);
-    return () => browser.storage.onChanged.removeListener(onChange);
-  }, []);
-  const [q, setQ] = React.useState('');
-  const all = Object.entries(map).sort((a, b) => b[1].at - a[1].at);
-  if (!all.length) return null;
-  // 많아지면(필터 목록의 채널 목록과 같은 기준) 이름·ID로 찾는다
-  const query = q.trim().toLowerCase();
-  const entries = query ? all.filter(([key, v]) => (v.name ?? '').toLowerCase().includes(query) || parseChannelKey(key).id.toLowerCase().includes(query)) : all;
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ fontSize: 13, fontWeight: 800 }}>{t('offChannels')}</div>
-      {all.length > 8 && (
-        <TextInput size='sm' lead='search' value={q} onChange={e => setQ(e.target.value)} aria-label={t('offChannels')} />
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 220, overflowY: 'auto', padding: 4, borderRadius: 10, background: 'var(--ui-tint)' }}>
-        {entries.map(([key, v]) => {
-          const { platform, id } = parseChannelKey(key);
-          return (
-            <Stack key={key} dir='row' align='center' gap={8} style={{ padding: '4px 6px' }}>
-              <ChannelAvatar src={v.image} size={20} />
-              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 700 }}>
-                {v.name || id}
-              </span>
-              <Tag>{platform === 'chzzk' ? 'CHZZK' : 'Twitch'}</Tag>
-              <Button size='sm' variant='text' style={metaButtonStyle} onClick={() => setChannelOff(platform, id, false)}>
-                {t('turnOn')}
-              </Button>
-            </Stack>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 function Popup() {
   const onPageButtonClicked = (path: string) => {
     browser.tabs.create({
@@ -528,27 +293,16 @@ function Popup() {
   };
 
   const [confirmClear, setConfirmClear] = React.useState(false);
-  const [hostOnly, setHostOnly] = React.useState(false);
+  const [host, setHost] = useHostTab();
+  // 캡쳐·초기화는 방송 페이지에서, 이 채널을 켜 둔 동안만 동작한다 — 아니면 잠근다
+  const hostReady = !!host && !host.off;
 
   const onRatioResetButtonClicked = () => {
     browser.storage.local.set({containerRatio: 30});
   }
 
-  // 채팅 모양(템플릿)은 치지직 소켓 렌더 모드에서만 동작한다. 꺼진 사용자와 트위치 탭에서는 버튼을 숨긴다.
-  const [showChatLook, setShowChatLook] = React.useState(false);
-  useEffect(() => {
-    Promise.all([
-      manifestReady,
-      ensureRolloutBucket(),
-      browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => tab?.url ?? '').catch(() => ''),
-    ]).then(([, bucket, url]) => {
-      const onTwitch = /^https?:\/\/([^/]+\.)?twitch\.tv\//.test(url);
-      setShowChatLook(!onTwitch && isSocketRenderEnabled(getPlatformConfig('chzzk').constants, null, bucket));
-    });
-  }, []);
-
   // 활성 탭의 content script로 메시지 전송. content는 chzzk/twitch 페이지에서만 mount
-  // 되므로 다른 탭에선 sendMessage가 reject 됨 — 그땐 alert로 안내만 하고 silent.
+  // 되므로 다른 탭에선 sendMessage가 reject 됨 — 버튼이 잠겨 있어 보통은 오지 않는다.
   const sendToActiveContent = async (type: 'tbc-start-capture' | 'tbc-clear-chats') => {
     try {
       const tabs = await browser.tabs.query({ active: true, currentWindow: true });
@@ -557,9 +311,8 @@ function Popup() {
       await browser.tabs.sendMessage(id, { type });
       window.close();
     } catch {
-      // content script 미주입 탭 — 팝업 안에 안내하고 그대로 둠 (브라우저 alert는 팝업에서 잘린다).
+      // 버튼은 방송 페이지에서만 열려 있다 — 그새 탭이 닫혔거나 확장과 끊긴 경우. 확인 줄만 접는다.
       setConfirmClear(false);
-      setHostOnly(true);
     }
   }
 
@@ -593,7 +346,7 @@ function Popup() {
         <Tag>{`v${browser.runtime.getManifest().version}`}</Tag>
       </Stack>
 
-      <ChannelPower />
+      <ChannelPower info={host} setInfo={setHost} />
 
       <TranslationNotice
         language={browser.i18n.getUILanguage()}
@@ -612,39 +365,20 @@ function Popup() {
         {browser.i18n.getMessage("p_filter_btn")}
       </Button>
 
-      {/* secondary: 일반 설정 */}
+      {/* secondary: 일반 설정 — 설정 페이지(일반 설정·채팅 모양·채팅 보관함, 사이드바로 이동)를 연다 */}
       <Button
         icon='settings'
         block
-        onClick={() => router.navigate("/setting")}
+        onClick={() => onPageButtonClicked("general")}
       >
         {browser.i18n.getMessage("generalSetting")}
-      </Button>
-
-      {/* 채팅 모양 — 치지직 템플릿 설정 페이지 */}
-      {showChatLook && (
-        <Button
-          icon='palette'
-          block
-          onClick={() => onPageButtonClicked("template")}
-        >
-          {browser.i18n.getMessage('chatLookButton' as any)}
-        </Button>
-      )}
-
-      {/* 채팅 보관함 — 필터를 통과한 채팅을 이 브라우저에 쌓아 둔 곳 (src/archive) */}
-      <Button
-        icon='inventory_2'
-        block
-        onClick={() => onPageButtonClicked("archive")}
-      >
-        {browser.i18n.getMessage('chatArchiveButton' as any)}
       </Button>
 
       {/* 채팅 캡쳐 시작 — 활성 탭의 content script로 메시지 */}
       <Button
         icon='photo_camera'
         block
+        disabled={!hostReady}
         onClick={() => sendToActiveContent('tbc-start-capture')}
       >
         {browser.i18n.getMessage('startCapture' as any)}
@@ -663,23 +397,24 @@ function Popup() {
           </Stack>
         </div>
       ) : (
-        <Button icon='delete_sweep' block onClick={() => setConfirmClear(true)}>
+        <Button icon='delete_sweep' block disabled={!hostReady} onClick={() => setConfirmClear(true)}>
           {browser.i18n.getMessage('clearCollectedChats' as any)}
         </Button>
       )}
 
-      {hostOnly && <Notice tone='warning' role='status'>{browser.i18n.getMessage('onlyOnHostPage' as any)}</Notice>}
 
-      {/* tertiary: 비율 초기화 — 가끔 쓰는 액션은 text variant로 demote */}
-      <Button
-        variant='text'
-        size='sm'
-        icon='restart_alt'
-        onClick={onRatioResetButtonClicked}
-        style={{ alignSelf: 'flex-start', color: 'var(--ui-muted)' }}
-      >
-        {browser.i18n.getMessage('reset_chat_ratio')}
-      </Button>
+      {/* 가끔 쓰는 동작: 비율 초기화(어디서나) + 진단(방송 페이지에서만) */}
+      <DiagnoseBar enabled={!!host} leading={
+        <Button
+          variant='text'
+          size='sm'
+          icon='restart_alt'
+          onClick={onRatioResetButtonClicked}
+          style={{ color: 'var(--ui-muted)' }}
+        >
+          {browser.i18n.getMessage('reset_chat_ratio')}
+        </Button>
+      } />
 
       {/* 푸터: socials only */}
       <div style={{ marginTop: 4, borderTop: '1px solid var(--ui-hair)', paddingTop: 8 }}>
@@ -699,7 +434,7 @@ const ContextRouter = () => {
     <GlobalSettingContext.Provider
       value={{ globalSetting, dispatchGlobalSetting }}
     >
-      <RouterProvider router={router} />
+      <Popup />
     </GlobalSettingContext.Provider>
   )
 }

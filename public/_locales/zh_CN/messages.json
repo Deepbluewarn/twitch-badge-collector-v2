@@ -59,9 +59,6 @@
   "needRefresh": {
     "message": "需要刷新"
   },
-  "chzzkChatSide": {
-    "message": "聊天框位置（CHZZK）"
-  },
   "chzzkChatSideHint": {
     "message": "左右互换聊天框与导航侧边栏"
   },
@@ -76,12 +73,6 @@
   },
   "clearCollectedChatsDo": {
     "message": "删除"
-  },
-  "chatArchiveButton": {
-    "message": "聊天存档"
-  },
-  "chatLookButton": {
-    "message": "聊天样式"
   },
   "auto": {
     "message": "自动"
@@ -199,5 +190,8 @@
   },
   "extensionDisconnected": {
     "message": "扩展程序连接已断开。点击刷新"
+  },
+  "chatSide": {
+    "message": "聊天框位置"
   }
 }

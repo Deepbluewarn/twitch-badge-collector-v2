@@ -59,9 +59,6 @@
   "needRefresh": {
     "message": "Need to refresh"
   },
-  "chzzkChatSide": {
-    "message": "Chat panel side (Chzzk)"
-  },
   "chzzkChatSideHint": {
     "message": "Swaps the chat panel and the navigation sidebar"
   },
@@ -76,12 +73,6 @@
   },
   "clearCollectedChatsDo": {
     "message": "Delete"
-  },
-  "chatArchiveButton": {
-    "message": "Chat archive"
-  },
-  "chatLookButton": {
-    "message": "Chat look"
   },
   "auto": {
     "message": "Auto"
@@ -199,5 +190,8 @@
   },
   "extensionDisconnected": {
     "message": "Extension disconnected. Click to reload"
+  },
+  "chatSide": {
+    "message": "Chat panel side"
   }
 }

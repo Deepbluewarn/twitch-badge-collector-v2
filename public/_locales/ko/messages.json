@@ -59,9 +59,6 @@
   "needRefresh": {
     "message": "새로고침 필요"
   },
-  "chzzkChatSide": {
-    "message": "채팅창 위치 (치지직)"
-  },
   "chzzkChatSideHint": {
     "message": "채팅창과 메뉴 사이드바의 좌우를 맞바꿉니다"
   },
@@ -76,12 +73,6 @@
   },
   "clearCollectedChatsDo": {
     "message": "지우기"
-  },
-  "chatArchiveButton": {
-    "message": "채팅 보관함"
-  },
-  "chatLookButton": {
-    "message": "채팅 모양"
   },
   "auto": {
     "message": "자동"
@@ -196,5 +187,8 @@
   },
   "extensionDisconnected": {
     "message": "확장 프로그램 연결이 끊겼습니다. 눌러서 새로고침"
+  },
+  "chatSide": {
+    "message": "채팅창 위치"
   }
 }
