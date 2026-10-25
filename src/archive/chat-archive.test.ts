@@ -74,8 +74,10 @@ describe('sanitizeArchivedChat', () => {
 
     it('가려진 채팅의 본문은 받지 않고, 모르는 값은 정리한다', () => {
         expect(sanitizeArchivedChat({ ...chat(1), hidden: true, text: '원문' })).toMatchObject({ text: '', hidden: true });
-        expect(sanitizeArchivedChat({ ...chat(1), kind: 'evil', marker: 'red;x', badges: ['a', 1] }))
-            .toMatchObject({ kind: 'chat', badges: ['a'] });
+        expect(sanitizeArchivedChat({ ...chat(1), kind: 'evil', marker: 'red;x', badges: ['https://x/a.png', 1] }))
+            .toMatchObject({ kind: 'chat', badges: ['https://x/a.png'] });
+        // 트위치 배지 식별자(이미지 주소가 아님)는 받지 않는다
+        expect(sanitizeArchivedChat({ ...chat(1), badges: ['subscriber/12', 'https://x/b.png'] })).toMatchObject({ badges: ['https://x/b.png'] });
         expect(sanitizeArchivedChat({ ...chat(1), marker: 'red;x' })).not.toHaveProperty('marker');
     });
 

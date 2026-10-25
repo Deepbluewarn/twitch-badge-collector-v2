@@ -51,6 +51,18 @@ export interface ChatPredicateResult {
     markerColor?: string;
 }
 
+/**
+ * 보관함에 넣을 배지 이미지 주소. 트위치의 ChatInfo.badges는 필터용 식별자(`subscriber/12`, UUID)라
+ * 그대로 넣으면 이미지가 깨진다. 화면에 그려진 배지 이미지 주소를 쓴다.
+ */
+function archiveBadgesOf(platform: PlatformAdapter['type'], element: HTMLElement, chat: ChatInfo): string[] {
+    if (platform !== 'twitch') return chat.badges;
+    const sel = getPlatformConfig('twitch').selectors.badge;
+    return Array.from(element.querySelectorAll(sel))
+        .map(el => (el instanceof HTMLImageElement ? el : el.querySelector('img'))?.src ?? '')
+        .filter(src => src.startsWith('https://'));
+}
+
 export default function useChatStream(
     adapter: PlatformAdapter,
     predicate: (chat: ChatInfo) => ChatPredicateResult,
@@ -116,7 +128,7 @@ export default function useChatStream(
             // 팝오버 목록과 완전 같은 진입점 = 두 뷰 어긋날 여지 없음 (persistence 복원 포함).
             const nickname = chat.nickName;
             const text = chat.textContents.filter(Boolean).join(' ').trim();
-            onChatPassed({ clone: element, key, time, prevKey, nickname, text, archive: { badges: chat.badges, kind: 'chat', marker: result.markerColor } });
+            onChatPassed({ clone: element, key, time, prevKey, nickname, text, archive: { badges: archiveBadgesOf(adapter.type, element, chat), kind: 'chat', marker: result.markerColor } });
         }
 
         // Phase 1: mount 시점에 이미 chzzk DOM에 있는 chats를 retroactive 스캔.

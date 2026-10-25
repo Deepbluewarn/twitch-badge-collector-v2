@@ -123,14 +123,16 @@ export default function Local({
         const recorder = createArchiveRecorder(type, () => {
             const id = adapter.getCurrentChannelId();
             const mode = adapter.getPageMode();
-            if (!id || mode === 'unknown' || (type === 'chzzk' && mode === 'live')) return null;
+            // 트위치 다시보기는 채팅 시각(영상 안 위치)을 알 수 없어 보관하지 않는다
+            if (!id || mode === 'unknown' || (type === 'chzzk' && mode === 'live') || (type === 'twitch' && mode !== 'live')) return null;
             return { channelId: id, mode: mode === 'live' ? 'live' : 'vod' };
         });
         archiveRef.current = recorder;
         return () => { void recorder.flush(); recorder.stop(); archiveRef.current = null; };
     }, [adapter, type]);
     const onChatPassed = useCallback((chat: Parameters<typeof addChat>[0]) => {
-        if (chat.archive) archiveRef.current?.record({ key: chat.key, time: chat.time, nickname: chat.nickname, text: chat.text, ...chat.archive });
+        // 트위치는 채팅 시각을 넘기지 않는다(0) — 받은 시각으로 남긴다
+        if (chat.archive) archiveRef.current?.record({ key: chat.key, time: chat.time || Date.now(), nickname: chat.nickname, text: chat.text, ...chat.archive });
         guardedAddChat(chat);
     }, [guardedAddChat]);
     const onChatUpdated = useCallback((update: Parameters<typeof updateChat>[0]) => {

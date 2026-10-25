@@ -363,7 +363,7 @@ export function sanitizeArchivedChat(v: unknown): ArchivedChat | null {
         id: c.id, channel: c.channel, time: c.time, savedAt: c.savedAt,
         nickname: str(c.nickname, 100),
         text: hidden ? '' : str(c.text, 2000),
-        badges: Array.isArray(c.badges) ? c.badges.filter((b): b is string => typeof b === 'string').slice(0, 20).map(b => b.slice(0, 500)) : [],
+        badges: Array.isArray(c.badges) ? c.badges.filter((b): b is string => typeof b === 'string' && b.startsWith('https://')).slice(0, 20).map(b => b.slice(0, 500)) : [],
         kind,
         ...(typeof c.amount === 'number' && c.amount > 0 ? { amount: c.amount } : {}),
         ...(typeof c.marker === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.marker) ? { marker: c.marker } : {}),

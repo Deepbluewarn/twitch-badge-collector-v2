@@ -9,13 +9,16 @@ import {
 import { fetchChzzkChannel } from '@/api/chzzk-channel';
 import { ChannelAvatar } from './filter/ChannelSearch';
 import { Pager } from './filter/FilterList';
-import { LinkRow, RowLabel, SectionTitle, SettingRow, SettingsCard, SubHeader, settingsClass as ui } from './settings/SettingsUI';
+import { LinkRow, PlatformChip, RowLabel, SectionTitle, SettingRow, SettingsCard, SubHeader, settingsClass as ui } from './settings/SettingsUI';
 import { useConfirm } from '@/ui/useConfirm';
 import { captureChats } from '@/utils/captureChat';
 import { fetchBadgesCached } from '@/utils/badgeCache';
 import { getAdapter } from '@/platform';
 import type { CompositeFilterElement } from '@/interfaces/filter';
 import s from './Archive.module.css';
+
+/** 예전 트위치 보관분엔 이미지 주소 대신 배지 식별자가 들어 있다 — 깨진 이미지로 그리지 않는다 */
+const isBadgeUrl = (b: string) => b.startsWith('https://');
 
 type ChannelRow = ArchiveChannel & { count: number };
 
@@ -141,7 +144,7 @@ function ChatRow({ chat, mode, hiddenLabel, selected, onClick }: {
             aria-selected={onClick ? !!selected : undefined}
         >
             <span className={s.time}>{formatArchiveTime(chat, mode)}</span>
-            {chat.badges.slice(0, 3).map(b => <img key={b} className={s.badge} src={b} alt="" loading="lazy" />)}
+            {chat.badges.filter(isBadgeUrl).slice(0, 3).map(b => <img key={b} className={s.badge} src={b} alt="" loading="lazy" />)}
             <span className={s.nick}>{chat.nickname}</span>
             {chat.amount ? <span className={s.amount}>{chat.amount.toLocaleString()}</span> : null}
             <span className={chat.hidden ? s.hidden : undefined}>{chat.hidden ? hiddenLabel : chat.text}</span>
@@ -239,7 +242,7 @@ export default function Archive() {
         const m = new Map<string, number>();
         // 첫 페이지가 먼저 뜨게 조금 뒤에 센다
         const timer = setTimeout(() => {
-            eachArchivedChat(selected, c => { for (const b of new Set(c.badges)) m.set(b, (m.get(b) ?? 0) + 1); })
+            eachArchivedChat(selected, c => { for (const b of new Set(c.badges.filter(isBadgeUrl))) m.set(b, (m.get(b) ?? 0) + 1); })
                 .then(() => { if (alive) setBadgeCounts([...m].sort((a, b) => b[1] - a[1]).slice(0, BADGE_LIMIT)); });
         }, 300);
         return () => { alive = false; clearTimeout(timer); };
@@ -384,7 +387,7 @@ export default function Archive() {
                         {visibleRows.map(r => (
                             <LinkRow key={r.channel} onClick={() => setSelected(r.channel)}>
                                 <ChannelAvatar src={r.mode === 'live' ? info[r.channelId]?.image : undefined} size={32} />
-                                <RowLabel label={nameOf(r)} hint={t('archive.count', { count: r.count })} />
+                                <RowLabel label={nameOf(r)} platform={r.platform} hint={t('archive.count', { count: r.count })} />
                             </LinkRow>
                         ))}
                     </SettingsCard>
@@ -399,7 +402,7 @@ export default function Archive() {
             ) : (
                 <>
                     <SubHeader title={<span className={s.subTitle}>
-                        <ChannelAvatar src={row.mode === 'live' ? info[row.channelId]?.image : undefined} size={28} />{nameOf(row)}
+                        <ChannelAvatar src={row.mode === 'live' ? info[row.channelId]?.image : undefined} size={28} />{nameOf(row)}<PlatformChip platform={row.platform} />
                     </span>} backLabel={t('common.close')} onBack={() => setSelected(null)}>
                         <span className={ui.muted} style={{ fontSize: 13 }}>{t('archive.count', { count: row.count })}</span>
                         <IconButton icon="refresh" size="sm" label={t('archive.refresh')} disabled={loading} onClick={() => void refresh()} />
