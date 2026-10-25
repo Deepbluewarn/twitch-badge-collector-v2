@@ -43,7 +43,8 @@ export default defineConfig({
       "declarativeNetRequestWithHostAccess",
       // 업데이트 직후 열린 탭에 새 콘텐츠 스크립트를 다시 넣는다(background reinjectContentScripts). 경고 없음.
       "scripting",
-      // 채팅 보관함(IndexedDB, src/archive) — 디스크가 부족해져도 브라우저가 통째로 지우지 않게. 경고 없음.
+      // 채팅 보관함(IndexedDB, src/archive) — 디스크가 부족해져도 브라우저가 통째로 지우지 않게.
+      // Chrome은 경고 없음. Firefox는 설치·업데이트 때 묻는 권한이라 아래 훅에서 뺀다.
       "unlimitedStorage"
     ],
 
@@ -86,6 +87,9 @@ export default defineConfig({
       if (wxt.config.manifestVersion !== 2) return;
       const hosts = (manifest as { optional_host_permissions?: string[] }).optional_host_permissions ?? ["https://api.chzzk.naver.com/*"];
       manifest.optional_permissions = [...(manifest.optional_permissions ?? []), ...hosts];
+      // Firefox는 unlimitedStorage를 "클라이언트 쪽 데이터를 무제한 저장"으로 묻는다 — 업데이트가 사용자 승인을 기다리게 된다.
+      // 확장 IndexedDB는 Firefox에서 원래 지속 저장소라 빼도 보관함은 그대로 쌓인다.
+      manifest.permissions = manifest.permissions?.filter(p => p !== 'unlimitedStorage');
     },
   },
 });
