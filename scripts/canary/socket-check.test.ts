@@ -99,13 +99,15 @@ describe('checkSocketCapture', () => {
 
     it('처음 보는 cmd·메시지 종류·상태·blindType은 경고', () => {
         const r = checkSocketCapture([channel([
-            JSON.stringify({ cmd: 99999, bdy: {} }),
+            JSON.stringify({ cmd: 99999, bdy: { type: 'NEW_THING' } }),
+            JSON.stringify({ cmd: 99999, bdy: { type: 'SECOND' } }),
             chatPacket(item({ msgTypeCode: 77, msgStatusType: 'SHADOW' }), item()),
             JSON.stringify({ cmd: 94008, bdy: { userId: 'u', messageTime: 1, blindType: 'AI_BLIND' } }),
         ])]);
         expect(r.errors).toEqual([]);
         const w = r.warnings.join('\n');
-        expect(w).toMatch(/cmd: 99999/);
+        expect(w).toMatch(/cmd: 99999 — .*NEW_THING/);
+        expect(w).not.toMatch(/SECOND/);
         expect(w).toMatch(/msgTypeCode: 77/);
         expect(w).toMatch(/msgStatusType: SHADOW/);
         expect(w).toMatch(/blindType: AI_BLIND/);

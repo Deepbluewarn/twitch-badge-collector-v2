@@ -25,6 +25,8 @@ export const KNOWN_STATUSES = new Set(['NORMAL', ...[...KNOWN_BLIND_TYPES].filte
 
 /** 이 비율을 넘게 깨져야 error. */
 export const BROKEN_RATIO = 0.05;
+/** 처음 보는 cmd 알림에 붙이는 원본 길이. Discord 한 메시지(2000자)에 여러 개가 들어가야 한다. */
+export const UNKNOWN_SAMPLE_CHARS = 300;
 /** 배지가 하나도 안 나오는 걸 "깨짐"으로 보려면 이만큼은 채팅이 있어야 한다. */
 export const MIN_CHATS_FOR_BADGE_CHECK = 200;
 
@@ -69,7 +71,8 @@ export function checkSocketCapture(captures: ChannelCapture[]): SocketCheckResul
     const warnings: string[] = [];
     const byCmd: Record<string, number> = {};
     const byMsgType: Record<string, number> = {};
-    const unknownCmds = new Set<string>();
+    /** cmd → 처음 본 원본 일부. 알림만 보고 무슨 패킷인지 알 수 있게 한다. */
+    const unknownCmds = new Map<string, string>();
     const unknownTypes = new Set<string>();
     const unknownStatuses = new Set<string>();
     const unknownBlindTypes = new Set<string>();
@@ -88,7 +91,7 @@ export function checkSocketCapture(captures: ChannelCapture[]): SocketCheckResul
             let p: Json;
             try { p = JSON.parse(raw); } catch { badJson++; continue; }
             inc(byCmd, p.cmd);
-            if (!KNOWN_CMDS.has(p.cmd)) unknownCmds.add(String(p.cmd));
+            if (!KNOWN_CMDS.has(p.cmd) && !unknownCmds.has(String(p.cmd))) unknownCmds.set(String(p.cmd), raw.slice(0, UNKNOWN_SAMPLE_CHARS));
             if (p.cmd === 10100) sawConnected = true;
 
             if (p.cmd === 94008) {
@@ -149,7 +152,7 @@ export function checkSocketCapture(captures: ChannelCapture[]): SocketCheckResul
 
     // ---- warn ----
     if (captures.length > 0 && connected > 0 && connected < captures.length / 2) warnings.push(`접속 완료를 받은 채널이 절반 미만 — ${connected}/${captures.length}`);
-    if (unknownCmds.size) warnings.push(`처음 보는 cmd: ${[...unknownCmds].join(', ')}`);
+    for (const [cmd, sample] of unknownCmds) warnings.push(`처음 보는 cmd: ${cmd} — ${sample}`);
     if (unknownTypes.size) warnings.push(`처음 보는 msgTypeCode: ${[...unknownTypes].join(', ')} — 새 메시지 종류. 렌더러에서 일반 채팅으로 그려진다`);
     if (unknownStatuses.size) warnings.push(`처음 보는 msgStatusType: ${[...unknownStatuses].join(', ')} — 렌더러는 블라인드로 처리한다`);
     if (unknownBlindTypes.size) warnings.push(`처음 보는 blindType: ${[...unknownBlindTypes].join(', ')}`);
