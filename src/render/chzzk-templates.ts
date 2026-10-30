@@ -51,15 +51,28 @@ ${indent(h)}
 `;
 }
 
-/**
- * 모양에 맞는 네 종류 템플릿. 편집기에 그대로 보이므로 읽기 좋게 줄을 나눠 둔다 — 줄바꿈
- * 공백은 렌더 때 지워진다(stripNewlineWhitespace).
- */
-export function buildTemplates(look: TemplateLook): ChzzkTemplates {
-    const h = head(look.badges);
-    const out: ChzzkTemplates = {
-        chat: chat(h, look.layout),
-        donation: `<div class="tbc-chat-event-head">
+/** 후원 카드 — host처럼 이름 줄, 본문, 맨 아래 금액 순서. 금액이 없는 후원은 금액 줄을 뺀다. */
+function donation(h: string) {
+    return `<div class="tbc-chat-event-head">
+${indent(h)}
+</div>
+{{#donation.missionText}}
+    <div class="tbc-chat-mission">{{donation.missionText}}</div>
+{{/donation.missionText}}
+{{#hasMessage}}
+    <div class="tbc-chat-text">{{{messageHtml}}}</div>
+{{/hasMessage}}
+{{#donation.amount}}
+    <div class="tbc-chat-event-foot">
+        <strong class="tbc-chat-amount tbc-chat-cheese">{{donation.amountNumber}}</strong>
+    </div>
+{{/donation.amount}}
+`;
+}
+
+/** 2026-10-28 전의 후원 템플릿 (금액이 이름 줄 끝). 저장된 모양을 알아보고 옮기는 데만 쓴다. */
+function legacyDonation(h: string) {
+    return `<div class="tbc-chat-event-head">
 ${indent(h)}
     <strong class="tbc-chat-amount">{{donation.amountText}}</strong>
 </div>
@@ -69,7 +82,18 @@ ${indent(h)}
 {{#hasMessage}}
     <div class="tbc-chat-text">{{{messageHtml}}}</div>
 {{/hasMessage}}
-`,
+`;
+}
+
+/**
+ * 모양에 맞는 네 종류 템플릿. 편집기에 그대로 보이므로 읽기 좋게 줄을 나눠 둔다 — 줄바꿈
+ * 공백은 렌더 때 지워진다(stripNewlineWhitespace).
+ */
+export function buildTemplates(look: TemplateLook, legacy = false): ChzzkTemplates {
+    const h = head(look.badges);
+    const out: ChzzkTemplates = {
+        chat: chat(h, look.layout),
+        donation: legacy ? legacyDonation(h) : donation(h),
         subscription: `<div class="tbc-chat-event-head">
 ${indent(h)}
     <strong class="tbc-chat-amount">{{subscription.month}}개월 구독</strong>
@@ -110,10 +134,22 @@ const ALL_LOOKS: TemplateLook[] = LOOK_LAYOUTS.flatMap(layout =>
     [true, false].flatMap(badges => LOOK_SIZES.map(size => ({ layout, badges, size }))),
 );
 
-/** 템플릿 네 개가 어떤 모양 선택과 정확히 같으면 그 모양. 직접 고쳤으면 null. */
+const sameAs = (built: ChzzkTemplates, templates: ChzzkTemplates) =>
+    (Object.keys(built) as ChzzkChatKind[]).every(k => built[k] === templates[k]);
+
+/**
+ * 템플릿 네 개가 어떤 모양 선택과 정확히 같으면 그 모양. 직접 고쳤으면 null.
+ * 예전 후원 템플릿으로 만든 모양도 같은 모양으로 본다 — 다시 고르면 새 템플릿으로 바뀐다.
+ */
 export function detectLook(templates: ChzzkTemplates): TemplateLook | null {
-    return ALL_LOOKS.find(look => {
-        const built = buildTemplates(look);
-        return (Object.keys(built) as ChzzkChatKind[]).every(k => built[k] === templates[k]);
-    }) ?? null;
+    return ALL_LOOKS.find(look => sameAs(buildTemplates(look), templates))
+        ?? ALL_LOOKS.find(look => sameAs(buildTemplates(look, true), templates))
+        ?? null;
+}
+
+/** 예전 후원 템플릿으로 만든 모양이면 지금 템플릿으로 다시 만든 것, 아니면 null. */
+export function upgradeLegacyLook(templates: ChzzkTemplates): ChzzkTemplates | null {
+    if (ALL_LOOKS.some(look => sameAs(buildTemplates(look), templates))) return null;
+    const look = ALL_LOOKS.find(look => sameAs(buildTemplates(look, true), templates));
+    return look ? buildTemplates(look) : null;
 }

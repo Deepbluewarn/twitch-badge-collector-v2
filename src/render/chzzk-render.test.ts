@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import type { ChzzkSocketChat } from '@/platform/chzzk-socket';
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
-import { messageToHtml, toChzzkChatView } from './chzzk-chat-view';
+import { donationLevel, messageToHtml, toChzzkChatView } from './chzzk-chat-view';
 import { renderChzzkChat, DEFAULT_CHZZK_TEMPLATES } from './chzzk-render';
 
 const T = Date.UTC(2026, 9, 10, 5, 7);
@@ -60,8 +60,13 @@ describe('toChzzkChatView', () => {
         }));
         expect(v).toMatchObject({
             kind: 'donation', isDonation: true, nickname: '익명의 후원자', hasMessage: false,
-            donation: { amount: 10000, amountText: '10,000치즈', mission: false },
+            donation: { amount: 10000, amountText: '10,000치즈', amountNumber: '10,000', mission: false },
         });
+    });
+
+    it('후원 카드 색 단계는 host 금액 구간을 따른다', () => {
+        expect([0, 1, 9999, 10000, 99999, 100000, 499999, 500000, 999999, 1000000].map(donationLevel))
+            .toEqual([null, 0, 0, 1, 1, 2, 2, 3, 3, 4]);
     });
 
     it('미션 후원', () => {
@@ -132,11 +137,25 @@ describe('renderChzzkChat', () => {
         expect(el.querySelector('.tbc-chat-text img.tbc-chat-emoji')!.getAttribute('src')).toBe('https://e/c.gif');
     });
 
-    it('후원 템플릿: 금액, 메시지 없으면 본문 줄 생략', () => {
+    it('후원 템플릿: 금액 단계 class, 맨 아래 금액, 메시지 없으면 본문 줄 생략', () => {
         const el = renderChzzkChat(chat({ type: 10, message: '', extras: { payAmount: 1000 } }));
-        expect(el.className).toBe('tbc-chat tbc-chat--donation');
-        expect(el.querySelector('.tbc-chat-amount')!.textContent).toBe('1,000치즈');
+        expect(el.className).toBe('tbc-chat tbc-chat--donation tbc-chat--level0');
+        expect(el.querySelector('.tbc-chat-event-foot .tbc-chat-amount')!.textContent).toBe('1,000');
         expect(el.querySelector('.tbc-chat-text')).toBeNull();
+    });
+
+    it('칭호 색이 있으면 본문 색 변수를 단다 (일반 채팅만)', () => {
+        const el = renderChzzkChat(chat({ titleColor: '#D9B04F' }));
+        expect(el.classList.contains('tbc-chat--titled')).toBe(true);
+        expect(el.style.getPropertyValue('--tbc-title-color')).toBe('#D9B04F');
+        expect(renderChzzkChat(chat({ titleColor: 'red;x:y' })).classList.contains('tbc-chat--titled')).toBe(false);
+        expect(renderChzzkChat(chat({ type: 10, titleColor: '#D9B04F', extras: { payAmount: 1000 } })).classList.contains('tbc-chat--titled')).toBe(false);
+    });
+
+    it('금액 없는 후원은 단계 class도 금액 줄도 없다', () => {
+        const el = renderChzzkChat(chat({ type: 10, message: '응원해요', extras: { payAmount: 0 } }));
+        expect(el.className).toBe('tbc-chat tbc-chat--donation');
+        expect(el.querySelector('.tbc-chat-event-foot')).toBeNull();
     });
 
     it('닉네임 꾸미기 클래스가 붙는다', () => {

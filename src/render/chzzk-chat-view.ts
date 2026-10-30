@@ -49,7 +49,8 @@ export interface ChzzkChatView {
     isDonation: boolean;
     isSubscription: boolean;
     isGift: boolean;
-    donation?: { amount: number; amountText: string; mission: boolean; missionText?: string };
+    /** amountText는 "1,000치즈", amountNumber는 단위 없이 "1,000" (기본 템플릿은 치즈 아이콘 옆에 쓴다). */
+    donation?: { amount: number; amountText: string; amountNumber: string; mission: boolean; missionText?: string };
     subscription?: { month: number; tierName: string };
     /**
      * 구독권 선물 (type 12). 실측(2026-10-11)상 두 갈래로 온다:
@@ -108,6 +109,15 @@ function nickStyleOf(c: NicknameColor): string {
     return vars.filter(([, v]) => /^[#a-zA-Z0-9(),.\s%]+$/.test(v)).map(([k, v]) => `--tbc-nick-${k}:${v}`).join(';');
 }
 
+/**
+ * 후원 카드 색 단계 — host 번들의 후원 채팅 규칙과 같다 (1만 미만 0, 10만 미만 1, 50만 미만 2,
+ * 100만 미만 3, 그 위 4). 금액이 없으면 null(회색 카드).
+ */
+export function donationLevel(amount: number): number | null {
+    if (!(amount > 0)) return null;
+    return amount < 1e4 ? 0 : amount < 1e5 ? 1 : amount < 5e5 ? 2 : amount < 1e6 ? 3 : 4;
+}
+
 export function kindOf(type: number): ChzzkChatKind {
     if (type === CHZZK_MSG_TYPE.DONATION) return 'donation';
     if (type === CHZZK_MSG_TYPE.SUBSCRIPTION) return 'subscription';
@@ -161,6 +171,7 @@ export function toChzzkChatView(chat: ChzzkSocketChat, opts: ChzzkViewOptions = 
             donation: {
                 amount,
                 amountText: `${amount.toLocaleString('ko-KR')}${labels.currency}`,
+                amountNumber: amount.toLocaleString('ko-KR'),
                 mission: x.donationType === 'MISSION',
                 ...(typeof x.missionText === 'string' ? { missionText: x.missionText } : {}),
             },

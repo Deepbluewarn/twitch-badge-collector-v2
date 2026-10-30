@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildTemplates, detectLook, DEFAULT_CHZZK_TEMPLATES, DEFAULT_LOOK, LOOK_LAYOUTS, LOOK_SIZES } from './chzzk-templates';
+import { buildTemplates, detectLook, upgradeLegacyLook, DEFAULT_CHZZK_TEMPLATES, DEFAULT_LOOK, LOOK_LAYOUTS, LOOK_SIZES } from './chzzk-templates';
 import { validateTemplate } from './template-store';
 
 const ALL = LOOK_LAYOUTS.flatMap(layout => [true, false].flatMap(badges => LOOK_SIZES.map(size => ({ layout, badges, size }))));
@@ -32,5 +32,21 @@ describe('detectLook', () => {
 
     it('한 종류라도 고쳤으면 null', () => {
         expect(detectLook({ ...DEFAULT_CHZZK_TEMPLATES, gift: '<b>{{nickname}}</b>' })).toBeNull();
+    });
+});
+
+describe('예전 후원 템플릿', () => {
+    it('예전 후원 템플릿으로 만든 모양도 같은 모양으로 알아본다', () => {
+        for (const look of ALL) expect(detectLook(buildTemplates(look, true))).toEqual(look);
+    });
+
+    it('지금 템플릿으로 바꾼다', () => {
+        const look = { ...DEFAULT_LOOK, badges: false };
+        expect(upgradeLegacyLook(buildTemplates(look, true))).toEqual(buildTemplates(look));
+    });
+
+    it('지금 모양이나 직접 고친 템플릿은 그대로 둔다', () => {
+        expect(upgradeLegacyLook(DEFAULT_CHZZK_TEMPLATES)).toBeNull();
+        expect(upgradeLegacyLook({ ...buildTemplates(DEFAULT_LOOK, true), chat: '<b>{{nickname}}</b>' })).toBeNull();
     });
 });

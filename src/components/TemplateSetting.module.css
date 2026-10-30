@@ -75,6 +75,9 @@
 }
 
 .preview {
+    /* 모아보기 창처럼 채팅을 flex 항목으로 — 위아래 여백이 겹치지 않아야 카드 사이가 같게 보인다 */
+    display: flex;
+    flex-direction: column;
     width: 340px;
     min-height: 420px;
     padding: 6px 12px;
@@ -104,7 +107,7 @@
     cursor: pointer;
 }
 
-.preview :global(:is(.tbc-chat-nick, .tbc-chat-badge, .tbc-chat-emoji, .tbc-chat-text, .tbc-chat-bubble, .tbcv2-chat-time, .tbc-chat-cleanbot > summary, .tbc-chat-blinded)):hover {
+.preview :global(:is(.tbc-chat-nick, .tbc-chat-badge, .tbc-chat-emoji, .tbc-chat-text, .tbc-chat-mission, .tbc-chat-bubble, .tbcv2-chat-time, .tbc-chat-cleanbot > summary, .tbc-chat-blinded)):hover {
     outline: 2px dashed var(--ui-yellow);
     outline-offset: 1px;
 }
@@ -112,7 +115,7 @@
 .preview[data-part='nick'] :global(.tbc-chat-nick),
 .preview[data-part='badge'] :global(.tbc-chat-badge),
 .preview[data-part='emoji'] :global(.tbc-chat-emoji),
-.preview[data-part='text'] :global(.tbc-chat-text),
+.preview[data-part='text'] :global(:is(.tbc-chat-text, .tbc-chat-mission)),
 .preview[data-part='bubble'] :global(.tbc-chat-bubble),
 .preview[data-part='time'] :global(.tbcv2-chat-time),
 .preview[data-part='card'] :global(:is(.tbc-chat--donation, .tbc-chat--subscription, .tbc-chat--gift)),

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Segmented, Select, Switch, TextInput } from '@/ui';
-import { PART_KEYS, PART_SPEC, partIsDefault, type FieldGroup, type FieldSpec, type FieldValue, type Part, type PartStyle, type TemplateStyle } from '@/render/chzzk-style';
+import { DONATION_LEVEL_BG, PART_KEYS, PART_SPEC, partIsDefault, type FieldGroup, type FieldSpec, type FieldValue, type Part, type PartStyle, type TemplateStyle } from '@/render/chzzk-style';
 import { DEFAULT_LOOK, LOOK_LAYOUTS, type TemplateLook } from '@/render/chzzk-templates';
 import s from '../TemplateSetting.module.css';
 
@@ -22,14 +22,14 @@ export function partOf(el: Element): Part {
     if (el.closest('.tbc-chat-nick')) return 'nick';
     if (el.closest('.tbc-chat-cleanbot, .tbc-chat-blinded')) return 'hidden';
     if (el.closest('.tbc-chat-bubble')) return 'bubble';
-    if (el.closest('.tbc-chat-text')) return 'text';
+    if (el.closest('.tbc-chat-text, .tbc-chat-mission')) return 'text';
     if (el.closest('.tbc-chat--donation, .tbc-chat--subscription, .tbc-chat--gift')) return 'card';
     if (el.closest('.tbc-chat')) return 'line';
     return 'window';
 }
 
 /** 미리보기에서 누른 부분을 가리킬 요소. */
-export const PART_ANCHOR = '.tbc-chat-badge, .tbc-chat-verified, .tbc-chat-emoji, .tbcv2-chat-time, .tbc-chat-nick, .tbc-chat-cleanbot, .tbc-chat-blinded, .tbc-chat-bubble, .tbc-chat-text, .tbc-chat';
+export const PART_ANCHOR = '.tbc-chat-badge, .tbc-chat-verified, .tbc-chat-emoji, .tbcv2-chat-time, .tbc-chat-nick, .tbc-chat-cleanbot, .tbc-chat-blinded, .tbc-chat-bubble, .tbc-chat-text, .tbc-chat-mission, .tbc-chat';
 
 /** look이 null이면(HTML을 직접 고친 템플릿) 구조는 비교하지 않는다. */
 export function partModified(part: Part, style: TemplateStyle, look: TemplateLook | null) {
@@ -84,7 +84,10 @@ function fieldShown(k: string, v: PartStyle): boolean {
 }
 
 /** 자동 색을 켤 때 처음 보일 색 — 기본값이 있으면 그것, 없으면 무난한 색. */
-const COLOR_START: Partial<Record<string, string>> = { bg: '#80808033', color: '#ffffff', amountColor: '#ffd400' };
+const COLOR_START: Partial<Record<string, string>> = {
+    bg: '#80808033', color: '#ffffff', amountColor: '#ffd400',
+    ...Object.fromEntries(DONATION_LEVEL_BG.map((c, i) => [`donationLevel${i}`, c])),
+};
 
 function Field({ part, k, f, value, onChange }: { part: Part; k: string; f: FieldSpec; value: FieldValue; onChange: (v: FieldValue) => void }) {
     const { t } = useTranslation();

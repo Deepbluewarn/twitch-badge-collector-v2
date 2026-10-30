@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { buildTemplates, detectLook, DEFAULT_CHZZK_TEMPLATES, type TemplateLook } from "./chzzk-templates";
+import { buildTemplates, detectLook, DEFAULT_CHZZK_TEMPLATES, upgradeLegacyLook, type TemplateLook } from "./chzzk-templates";
 import { TEMPLATE_KINDS, TEMPLATE_STORAGE_KEY, sanitizeStoredTemplates, validateTemplate, type StoredTemplates } from "./template-store";
 
 /**
@@ -32,6 +32,9 @@ export const FONTS: { key: FontKey; family: string }[] = [
     { key: 'custom', family: '' },
 ];
 const FONT_KEYS = FONTS.map(f => f.key);
+
+/** 후원 금액 단계별 기본 배경 — chzzk-chat.css의 .tbc-chat--level0~4와 같다. 설정 화면에서 켤 때 시작 색. */
+export const DONATION_LEVEL_BG = ['#574fa8', '#2d7b8b', '#23815a', '#d18e3c', '#c54952'] as const;
 
 // ── 틀 ─────────────────────────
 
@@ -68,9 +71,9 @@ function text(o: { weight?: number; size?: [number, number]; color?: string } = 
 }
 
 /** 배경 묶음. 기본값은 chzzk-chat.css의 기본 모양과 같게 준다. */
-function box(padY: number, padX: number, radius: number, bg = ''): Record<string, FieldSpec> {
+function box(padY: number, padX: number, radius: number, bg = '', auto = 'none'): Record<string, FieldSpec> {
     return {
-        bg: { g: 'box', t: 'color', def: bg, auto: 'none' },
+        bg: { g: 'box', t: 'color', def: bg, auto },
         padY: { g: 'box', t: 'range', min: 0, max: 16, step: 1, def: padY, unit: 'px' },
         padX: { g: 'box', t: 'range', min: 0, max: 20, step: 1, def: padX, unit: 'px' },
         radius: { g: 'box', t: 'range', min: 0, max: 20, step: 1, def: radius, unit: 'px' },
@@ -93,7 +96,7 @@ export const PART_SPEC: Record<Part, Record<string, FieldSpec>> = {
         ...box(0, 0, 0),
     },
     line: {
-        gap: { g: 'own', t: 'range', min: 0, max: 16, step: 1, def: 0, unit: 'px' },
+        gap: { g: 'own', t: 'range', min: 0, max: 16, step: 1, def: 3, unit: 'px' },
         divider: { g: 'own', t: 'bool', def: false },
         dividerColor: { g: 'own', t: 'color', def: '#80808038' },
         zebra: { g: 'own', t: 'bool', def: false },
@@ -125,12 +128,19 @@ export const PART_SPEC: Record<Part, Record<string, FieldSpec>> = {
     bubble: { ...box(4, 10, 12, '#80808029') },
     card: {
         donationBg: { g: 'own', t: 'color', def: '', auto: 'same_card' },
+        // 금액 단계별 후원 배경 (donationLevel). 정한 단계는 후원 배경보다 앞선다
+        donationLevel0: { g: 'own', t: 'color', def: '', auto: 'same_card' },
+        donationLevel1: { g: 'own', t: 'color', def: '', auto: 'same_card' },
+        donationLevel2: { g: 'own', t: 'color', def: '', auto: 'same_card' },
+        donationLevel3: { g: 'own', t: 'color', def: '', auto: 'same_card' },
+        donationLevel4: { g: 'own', t: 'color', def: '', auto: 'same_card' },
         subscriptionBg: { g: 'own', t: 'color', def: '', auto: 'same_card' },
         giftBg: { g: 'own', t: 'color', def: '', auto: 'same_card' },
         amountColor: { g: 'own', t: 'color', def: '', auto: 'auto' },
         amountWeight: { g: 'own', t: 'enum', values: [0, ...WEIGHTS], def: 0 },
         ...text(),
-        ...box(8, 10, 8, '#00ffa314'),
+        // 정하지 않은 배경은 chzzk-chat.css의 카드 색(후원은 금액 단계별)
+        ...box(10, 12, 8, '', 'same_card'),
     },
     hidden: {
         mode: { g: 'own', t: 'enum', values: ['dim', 'hide'], def: 'dim' },
@@ -204,8 +214,8 @@ const SEL: Record<Part, { text: string; box: string }> = {
     time: { text: '.tbc-chat .tbcv2-chat-time', box: '.tbc-chat .tbcv2-chat-time' },
     badge: { text: '', box: '.tbc-chat-badge, .tbc-chat-verified' },
     nick: { text: '.tbc-chat-nick', box: '.tbc-chat-nick' },
-    // 말풍선 배치에선 본문이 말풍선에 바로 들어간다 — 글자는 말풍선에도, 배경은 본문 칸에만
-    text: { text: '.tbc-chat-text, .tbc-chat-bubble', box: '.tbc-chat-text' },
+    // 말풍선 배치에선 본문이 말풍선에 바로 들어간다 — 글자는 말풍선과 미션 내용에도, 배경은 본문 칸에만
+    text: { text: '.tbc-chat-text, .tbc-chat-bubble, .tbc-chat-mission', box: '.tbc-chat-text' },
     emoji: { text: '', box: '.tbc-chat-emoji' },
     bubble: { text: '', box: '.tbc-chat-bubble' },
     card: { text: '.tbc-chat--donation, .tbc-chat--subscription, .tbc-chat--gift', box: '.tbc-chat--donation, .tbc-chat--subscription, .tbc-chat--gift' },
@@ -231,6 +241,8 @@ export function styleCss(input: TemplateStyle): string {
         const v = st[p];
         if (p === 'window') return [
             `font-family: ${familyOf(v.font as string, v.fontCustom as string)}`,
+            // 카드 머리글은 기본으로 치지직 웹폰트(chzzk-chat.css) — 글꼴을 고르면 그 글꼴로
+            v.font !== 'chzzk' && `--tbc-card-font: ${familyOf(v.font as string, v.fontCustom as string)}`,
             `font-size: ${base}px`,
             `line-height: ${Math.round(base * (v.lineHeight as number))}px`,
             `font-weight: ${v.weight}`,
@@ -239,6 +251,7 @@ export function styleCss(input: TemplateStyle): string {
         ];
         return [
             v.font !== 'inherit' && `font-family: ${familyOf(v.font as string, v.fontCustom as string)}`,
+            p === 'card' && v.font !== 'inherit' && `--tbc-card-font: ${familyOf(v.font as string, v.fontCustom as string)}`,
             v.size !== 100 && `font-size: ${Math.round(base * (v.size as number) / 100)}px`,
             v.weight !== 0 && `font-weight: ${v.weight}`,
             v.italic === true && 'font-style: italic',
@@ -251,10 +264,12 @@ export function styleCss(input: TemplateStyle): string {
         const side = v.borderSide === 'all' ? 'border' : `border-${v.borderSide}`;
         // 닉네임은 기본 모양에서 뒤에 4px를 띄운다
         const padRight = p === 'nick' ? `; padding-right: ${(v.padX as number) + 4}px` : '';
+        // 본문은 구독 카드 안에서 따로 상자 모양이 있다 — 기본값 그대로면 덮지 않는다
+        const keep = p === 'text' && v.padY === 0 && v.padX === 0 && v.radius === 0;
         return [
             !!v.bg && `background: ${v.bg}`,
-            `padding: ${v.padY}px ${v.padX}px${padRight}`,
-            `border-radius: ${v.radius}px`,
+            !keep && `padding: ${v.padY}px ${v.padX}px${padRight}`,
+            !keep && `border-radius: ${v.radius}px`,
             (v.borderWidth as number) > 0 && `${side}: ${v.borderWidth}px solid ${v.borderColor}`,
         ];
     };
@@ -267,18 +282,22 @@ export function styleCss(input: TemplateStyle): string {
 
     // 줄
     const line = st.line;
-    rule('.tbc-chat', boxDecls('line'));
-    if ((line.gap as number) > 0) rule('.tbc-chat + .tbc-chat', [`margin-top: ${line.gap}px`]);
+    rule('.tbc-chat', [...boxDecls('line'), `margin-bottom: ${line.gap}px`]);
     if (line.divider) rule('.tbc-chat ~ .tbc-chat', [`border-top: 1px solid ${line.dividerColor}`]);
     // 번갈아 배경: 순번(nth-child)이 아니라 그릴 때 정한 표시 — 새 채팅이 앞에 들어와도 색이 뒤집히지 않게
     if (line.zebra) rule('.tbc-chat--alt', [`background: ${line.zebraColor}`]);
 
     // 카드 — 줄 다음에 둬서 줄 배경·번갈아 배경보다 앞선다
-    rule(SEL.card.box, boxDecls('card'));
+    // 카드는 위·옆 여백이 따로 있고, 아래는 줄 사이에 4px를 더한다 (chzzk-chat.css와 같게)
+    rule(SEL.card.box, [...boxDecls('card'), `margin-bottom: ${(line.gap as number) + 4}px`]);
     rule(SEL.card.text, textDecls('card'));
     for (const k of ['donation', 'subscription', 'gift'] as const) {
         const bg = st.card[`${k}Bg`];
         if (bg) rule(`.tbc-chat--${k}`, [`background: ${bg}`]);
+    }
+    for (let i = 0; i < DONATION_LEVEL_BG.length; i++) {
+        const bg = st.card[`donationLevel${i}`];
+        if (bg) rule(`.tbc-chat--donation.tbc-chat--level${i}`, [`background: ${bg}`]);
     }
     rule('.tbc-chat-amount', [!!st.card.amountColor && `color: ${st.card.amountColor}`, st.card.amountWeight !== 0 && `font-weight: ${st.card.amountWeight}`]);
 
@@ -597,4 +616,15 @@ export async function migrateLargeLook(): Promise<void> {
         [TEMPLATE_STORAGE_KEY]: templatesToStore(buildTemplates({ ...look, size: 'normal' })),
         [STYLE_STORAGE_KEY]: withStyle(style, { window: { size: 18, lineHeight: 1.44 }, badge: { size: 22 }, emoji: { size: 30 } }),
     });
+}
+
+/**
+ * 예전 후원 템플릿(금액이 이름 줄 끝)으로 고른 모양을 지금 템플릿으로 바꾼다. 직접 고친 템플릿은
+ * 건드리지 않는다. migrateLargeLook 뒤에 부른다 — 크게 모양은 거기서 이미 새 템플릿이 된다.
+ */
+export async function migrateLegacyDonation(): Promise<void> {
+    const res = await browser.storage.local.get(TEMPLATE_STORAGE_KEY);
+    const stored = sanitizeStoredTemplates(res[TEMPLATE_STORAGE_KEY]);
+    const upgraded = upgradeLegacyLook({ ...DEFAULT_CHZZK_TEMPLATES, ...stored });
+    if (upgraded) await browser.storage.local.set({ [TEMPLATE_STORAGE_KEY]: templatesToStore(upgraded) });
 }

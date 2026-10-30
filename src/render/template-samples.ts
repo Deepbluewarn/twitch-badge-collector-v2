@@ -24,6 +24,15 @@ function sample(over: Partial<ChzzkSocketChat> & { uid: string }): ChzzkSocketCh
 export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: ChzzkSocketChat }[]> = {
     chat: [
         {
+            label: 'streamer',
+            chat: sample({
+                uid: 'sample-s', nickname: '스트리머', message: '다들 와줘서 고마워요', userRoleCode: 'streamer',
+                // 스트리머 칭호 색 실측 #D9B04F
+                titleColor: '#D9B04F',
+                badges: [`${G}/icon/streamer.png`],
+            }),
+        },
+        {
             label: 'badge_emoji',
             chat: sample({
                 uid: 'sample-a', nickname: '고양이집사', message: '오늘 방송 재밌다 {:mlb_13:}',
@@ -35,6 +44,8 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
             label: 'manager',
             chat: sample({
                 uid: 'sample-b', nickname: '방장대리', message: '공지 확인해주세요', userRoleCode: 'streaming_chat_manager',
+                // 칭호 색 — host는 칭호가 있는 사람의 닉네임과 본문을 이 색으로 칠한다 (매니저 실측 #749FFE)
+                titleColor: '#749FFE',
                 badges: [`${G}/icon/manager.png`, `${G}/badge/cheatkey_12m.png`],
             }),
         },
@@ -125,6 +136,7 @@ export const TEMPLATE_FIELDS: { name: string; kinds?: ChzzkChatKind[] }[] = [
     { name: 'blinded' },
     { name: 'anonymous' },
     { name: 'donation.amountText', kinds: ['donation'] },
+    { name: 'donation.amountNumber', kinds: ['donation'] },
     { name: 'donation.amount', kinds: ['donation'] },
     { name: 'donation.mission', kinds: ['donation'] },
     { name: 'donation.missionText', kinds: ['donation'] },

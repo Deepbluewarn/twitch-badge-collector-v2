@@ -3,9 +3,13 @@
    치지직 class(hash)에 기대지 않는다 — 우리 class만 쓴다.
    닉네임 색은 렌더러가 라이트/다크 두 값을 CSS 변수로 넣고, 치지직 테마(html.theme_dark)로 고른다.
    선택자를 `.theme_dark` 조상으로 둔 건 설정 페이지 미리보기가 다크 테마를 흉내 내기 위해서.
-   글꼴·크기·색은 치지직 채팅 CSS(index-*.css의 body, _chatting_message_, _nickname_ 규칙) 실측값.
+   글꼴·크기·색·간격은 치지직 채팅의 실측값(scripts/capture/chzzk-chat-style.ts, 2026-10-28 20채널)을
+   우리 class로 옮긴 것. 원본 복제와 섞여 보이므로 줄 간격까지 맞춘다. 스타일 설정(chzzk-style.ts)이
+   같은 속성을 덮어쓰므로 host의 flex 배치 같은 구조는 가져오지 않고 inline 흐름 그대로 둔다.
    글꼴을 명시하는 이유: Container 안은 확장 UI(MUI)의 Roboto를 물려받아 같은 굵기도 다르게 보인다. */
 .tbc-chat {
+    /* host 채팅 항목 사이 3px — 원본 복제본엔 host class로 붙어 온다 */
+    margin-bottom: 3px;
     padding: 4px 6px;
     font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", Helvetica, Arial, sans-serif;
     font-size: 14px;
@@ -24,16 +28,23 @@
     vertical-align: -4px;
 }
 .tbc-chat-nick {
-    margin-left: 1px;
+    /* 닉네임과 본문 사이 8px (host: 이름 상자 안쪽 4px + 바깥 4px) */
+    margin-right: 4px;
     padding-right: 4px;
     font-weight: 500;
     color: var(--tbc-nick-light);
+}
+.tbc-chat-badge + .tbc-chat-nick {
+    /* host는 배지 뒤에서만 1px 더 띄운다 */
+    margin-left: 1px;
 }
 .theme_dark .tbc-chat-nick {
     color: var(--tbc-nick-dark);
 }
 .tbc-chat-verified {
-    margin-left: -4px;
+    /* 닉네임 뒤 여백(8px)을 당겨 닉네임에 붙이고, 본문과는 닉네임처럼 8px */
+    margin-left: -8px;
+    margin-right: 8px;
 }
 
 /* 2단계 구독자 닉네임 꾸미기 — 치지직 닉네임 컴포넌트와 같은 방식 (index-*.css의
@@ -48,8 +59,8 @@
     background-image: linear-gradient(to right, var(--tbc-nick-dark), var(--tbc-nick-dark-end));
 }
 .tbc-chat-nick--highlight {
-    margin: -2px 2px -2px -2px;
-    padding: 2px;
+    margin: -2px 4px -2px -2px;
+    padding: 2px 4px 2px 2px;
     background-color: var(--tbc-nick-light-bg);
 }
 .theme_dark .tbc-chat-nick--highlight {
@@ -58,37 +69,154 @@
 .tbc-chat-nick--stealth {
     color: transparent !important;
 }
+/* 칭호가 있는 사람(스트리머 노랑, 매니저 파랑 등)의 본문 — 색은 렌더러가 소켓의 칭호 색으로 넣는다 */
+.tbc-chat--titled .tbc-chat-text,
+.tbc-chat--titled .tbc-chat-bubble {
+    color: var(--tbc-title-color);
+}
+/* 이모티콘이 있는 채팅은 host처럼 줄 높이를 25px로 (이모티콘 24px + 아래 1px) */
+.tbc-chat:has(.tbc-chat-emoji) {
+    line-height: 25px;
+}
 .tbc-chat-emoji {
+    /* host는 이모티콘을 줄 위에 맞추고 양옆 1px씩 띄운다 */
     width: 24px;
     height: 24px;
-    margin-right: 1px;
-    vertical-align: middle;
+    margin: 0 1px 1px;
+    vertical-align: top;
 }
 .tbcv2_chatTime_on .tbc-chat .tbcv2-chat-time {
     display: inline;
     opacity: 0.6;
 }
 
-/* 후원·구독: 일반 채팅과 구별되는 카드 */
+/* 후원·구독·선물 카드 — host 카드의 실측값. 바깥 여백은 host 항목 여백(4px 6px)과 항목 사이 3px. */
 .tbc-chat--donation,
 .tbc-chat--subscription,
 .tbc-chat--gift {
-    margin: 4px 0;
-    padding: 8px 10px;
+    position: relative;
+    margin: 4px 6px 7px;
+    padding: 10px 12px;
     border-radius: 8px;
-    background: rgba(0, 255, 163, 0.08);
+    --tbc-card-bg: #f0f1f2;
+    --tbc-card-color: #0e0f10;
+    --tbc-card-detail-bg: #e1e1e5;
+    --tbc-card-detail-color: #2e3033;
+    --tbc-card-em: #23815a;
+    background: var(--tbc-card-bg);
+    color: var(--tbc-card-color);
+}
+.theme_dark .tbc-chat--donation,
+.theme_dark .tbc-chat--subscription,
+.theme_dark .tbc-chat--gift {
+    --tbc-card-bg: #202224;
+    --tbc-card-color: #fff;
+    --tbc-card-detail-bg: #2e3033;
+    --tbc-card-detail-color: #c9cedc;
+    --tbc-card-em: #00ffa3;
+}
+/* 카드 안 닉네임은 host처럼 카드 글자색 하나로 (구독자 꾸미기도 뺀다) */
+.tbc-chat.tbc-chat--donation .tbc-chat-nick,
+.tbc-chat.tbc-chat--subscription .tbc-chat-nick,
+.tbc-chat.tbc-chat--gift .tbc-chat-nick {
+    color: inherit !important;
+    background: none;
+}
+.tbc-chat-event-head {
+    font-size: 13px;
+    line-height: 18px;
 }
 .tbc-chat-amount {
     margin-left: 2px;
 }
-.tbc-chat-tier,
-.tbc-chat-mission {
+/* host 카드는 머리글(후원은 닉네임만)과 구독 본문을 치지직 웹폰트로 쓴다. @font-face는 치지직 페이지에 있어
+   모아보기에선 그대로 잡히고, 설정 페이지 미리보기에선 뒤의 대체 글꼴로 보인다.
+   스타일 설정에서 창·카드 글꼴을 고르면 --tbc-card-font로 넘어온다. */
+.tbc-chat--donation .tbc-chat-nick,
+.tbc-chat--subscription .tbc-chat-event-head,
+.tbc-chat--subscription .tbc-chat-text {
+    font-family: var(--tbc-card-font, "Sandoll Nemony2", "Apple SD Gothic NEO", "Helvetica Neue", Helvetica, 나눔고딕, NanumGothic, "Malgun Gothic", "맑은 고딕", 굴림, gulim, 새굴림, "noto sans", 돋움, Dotum, sans-serif);
+}
+.tbc-chat-tier {
     margin-left: 6px;
+    opacity: 0.7;
+}
+.tbc-chat-mission {
     opacity: 0.7;
 }
 .tbc-chat-event-head + .tbc-chat-text,
 .tbc-chat-mission {
     margin-top: 4px;
+}
+
+/* 후원: 금액 단계별 색 카드(테마와 무관), 흰 글자, 굵은 본문, 맨 아래 금액 */
+.tbc-chat.tbc-chat--donation {
+    --tbc-card-bg: #838383;
+    --tbc-card-color: #fff;
+}
+.tbc-chat.tbc-chat--level0 { --tbc-card-bg: #574fa8; }
+.tbc-chat.tbc-chat--level1 { --tbc-card-bg: #2d7b8b; }
+.tbc-chat.tbc-chat--level2 { --tbc-card-bg: #23815a; }
+.tbc-chat.tbc-chat--level3 { --tbc-card-bg: #d18e3c; }
+.tbc-chat.tbc-chat--level4 { --tbc-card-bg: #c54952; }
+.tbc-chat--donation .tbc-chat-text {
+    font-weight: 700;
+    line-height: 20px;
+}
+.tbc-chat--donation .tbc-chat-text:has(img) {
+    line-height: 25px;
+}
+.tbc-chat-event-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px 15px;
+    padding-top: 5px;
+}
+.tbc-chat-cheese {
+    display: flex;
+    align-items: center;
+    column-gap: 2px;
+    min-height: 25px;
+    margin-left: 0;
+    padding: 0 9px 0 7px;
+    border-radius: 13px;
+    background: rgba(0, 0, 0, 0.15);
+    font-weight: 900;
+}
+.tbc-chat-cheese::before {
+    content: "";
+    flex: none;
+    width: 18px;
+    height: 18px;
+    background: url("https://ssl.pstatic.net/static/nng/glive/image/icon_cheese.png") center / cover no-repeat;
+}
+
+/* 구독: 오른쪽 위 메달, 개월 수는 강조색, 본문은 안쪽 상자 */
+.tbc-chat--subscription .tbc-chat-event-head {
+    padding-right: 66px;
+}
+.tbc-chat--subscription::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    right: 0;
+    width: 96px;
+    height: 64px;
+    background: url("https://ssl.pstatic.net/static/nng/glive/chatting/silver_medal_image.png") center / cover no-repeat;
+}
+.tbc-chat--subscription .tbc-chat-amount {
+    color: var(--tbc-card-em);
+}
+.tbc-chat--subscription .tbc-chat-text {
+    margin-top: 10px;
+    padding: 7px 10px 6px;
+    border-radius: 8px;
+    background: var(--tbc-card-detail-bg);
+    color: var(--tbc-card-detail-color);
+    /* 웹폰트 자체가 굵은 글꼴이다 — 굵기를 올리면 가짜 굵기가 얹힌다 */
+    font-weight: 400;
+    line-height: 20px;
 }
 
 /* 클린봇: 기본으로 가리고 클릭하면 원문을 이탤릭으로 (펼친 뒤엔 안내 문구를 숨김) */

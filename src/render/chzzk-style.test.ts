@@ -60,6 +60,13 @@ describe('styleCss', () => {
         expect(css).toContain('.tbc-chat--donation { background: #00112233; }');
     });
 
+    it('후원 금액 단계별 배경은 정한 단계만, 후원 배경보다 앞서게', () => {
+        const css = styleCss(withStyle(DEFAULT_STYLE, { card: { donationBg: '#111111', donationLevel2: '#222222' } }));
+        expect(css).toContain('.tbc-chat--donation.tbc-chat--level2 { background: #222222; }');
+        expect(css).not.toContain('tbc-chat--level0');
+        expect(css.indexOf('.tbc-chat--donation { background: #111111; }')).toBeLessThan(css.indexOf('tbc-chat--level2'));
+    });
+
     it('특징 설정', () => {
         const css = styleCss(withStyle(DEFAULT_STYLE, {
             line: { divider: true, zebra: true, marker: 'fill' }, badge: { firstOnly: true, verified: false },
