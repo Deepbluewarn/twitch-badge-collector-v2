@@ -3,7 +3,7 @@ import { fakeBrowser } from '@webext-core/fake-browser';
 import { buildTemplates, DEFAULT_LOOK } from './chzzk-templates';
 
 vi.stubGlobal('browser', fakeBrowser);
-const { DEFAULT_STYLE, PART_KEYS, PRESETS, sanitizeStyle, styleCss, exportStyleCode, importStyleCode, migrateLargeLook, presetTemplates, templatesToStore, withStyle } = await import('./chzzk-style');
+const { DEFAULT_STYLE, PART_KEYS, PRESETS, sanitizeStyle, styleCss, exportStyleCode, importStyleCode, migrateLargeLook, migrateLegacyDonation, presetTemplates, templatesToStore, withStyle } = await import('./chzzk-style');
 
 describe('sanitizeStyle', () => {
     it('모르는 값은 기본값', () => {
@@ -57,14 +57,14 @@ describe('styleCss', () => {
         expect(rulesFor(css, 'tbc-chat-text {').join()).toContain('background: #00000080');
         expect(rulesFor(css, 'tbc-chat-emoji').join()).toMatch(/background: #123456.*border-radius: 6px/);
         expect(css).toContain('border-left: 3px solid #ffd400');
-        expect(css).toContain('.tbc-chat--donation { background: #00112233; }');
+        expect(css).toContain('.tbc-chat--donation { background: #00112233; color: #fff; }');
     });
 
     it('후원 금액 단계별 배경은 정한 단계만, 후원 배경보다 앞서게', () => {
         const css = styleCss(withStyle(DEFAULT_STYLE, { card: { donationBg: '#111111', donationLevel2: '#222222' } }));
-        expect(css).toContain('.tbc-chat--donation.tbc-chat--level2 { background: #222222; }');
+        expect(css).toContain('.tbc-chat--donation.tbc-chat--level2 { background: #222222; color: #fff; }');
         expect(css).not.toContain('tbc-chat--level0');
-        expect(css.indexOf('.tbc-chat--donation { background: #111111; }')).toBeLessThan(css.indexOf('tbc-chat--level2'));
+        expect(css.indexOf('.tbc-chat--donation { background: #111111; color: #fff; }')).toBeLessThan(css.indexOf('tbc-chat--level2'));
     });
 
     it('특징 설정', () => {
@@ -117,6 +117,19 @@ describe('공유 코드', () => {
         expect((await importStyleCode(await exportStyleCode(style, {})))?.style).toEqual(style);
     });
 
+    it('카드 배경을 하나로 정하면 후원 글자는 일반 글자색, 후원 배경을 따로 정하면 흰 글자', () => {
+        const one = styleCss(withStyle(DEFAULT_STYLE, { card: { bg: '#ff7ab61f' } }));
+        expect(one).toMatch(/\.tbc-chat--donation \{ color: inherit; \}/);
+        const own = styleCss(withStyle(DEFAULT_STYLE, { card: { bg: '#ff7ab61f', donationLevel0: '#112233' } }));
+        expect(own).toMatch(/\.tbc-chat--level0 \{ background: #112233; color: #fff; \}/);
+        expect(styleCss(withStyle(DEFAULT_STYLE, { card: { bg: '#ff7ab61f', color: '#000000' } }))).not.toContain('color: inherit');
+    });
+
+    it('후원 단계별 배경도 돌아온다', async () => {
+        const style = withStyle(DEFAULT_STYLE, { card: { donationLevel0: '#112233', donationLevel4: '#aabbcc80', bg: '#00000033' } });
+        expect((await importStyleCode(await exportStyleCode(style, {})))?.style).toEqual(style);
+    });
+
     it('형식이 틀리거나 템플릿 문법이 틀리면 null', async () => {
         expect(await importStyleCode('hello')).toBeNull();
         expect(await importStyleCode('TBC2:x123')).toBeNull();
@@ -149,5 +162,33 @@ describe('migrateLargeLook', () => {
         await fakeBrowser.storage.local.set({ chzzkTemplates: templatesToStore(buildTemplates(DEFAULT_LOOK)) });
         await migrateLargeLook();
         expect((await fakeBrowser.storage.local.get('chzzkTemplateStyle')).chzzkTemplateStyle).toBeUndefined();
+    });
+});
+
+describe('업데이트 때 옮기기 (background 순서)', () => {
+    beforeEach(() => fakeBrowser.reset());
+
+    // buildTemplates(look, true)는 v2.24.1이 저장하던 템플릿과 글자까지 같다 (2026-10-31 열두 모양 대조)
+    const migrate = async () => { await migrateLargeLook(); await migrateLegacyDonation(); };
+
+    it.each([
+        { layout: 'inline', badges: false, size: 'normal' },
+        { layout: 'stacked', badges: true, size: 'large' },
+        { layout: 'bubble', badges: false, size: 'large' },
+    ] as const)('예전 모양 $layout/$badges/$size는 새 후원 템플릿의 보통 모양이 된다', async (look) => {
+        await fakeBrowser.storage.local.set({ chzzkTemplates: templatesToStore(buildTemplates(look, true)) });
+        await migrate();
+        const r = await fakeBrowser.storage.local.get('chzzkTemplates');
+        expect(r.chzzkTemplates).toEqual(templatesToStore(buildTemplates({ ...look, size: 'normal' })));
+    });
+
+    it('직접 고친 템플릿과 저장된 게 없는 경우는 그대로', async () => {
+        const own = { ...templatesToStore(buildTemplates({ layout: 'inline', badges: false, size: 'normal' }, true)), chat: '<b>{{nickname}}</b>' };
+        await fakeBrowser.storage.local.set({ chzzkTemplates: own });
+        await migrate();
+        expect((await fakeBrowser.storage.local.get('chzzkTemplates')).chzzkTemplates).toEqual(own);
+        fakeBrowser.reset();
+        await migrate();
+        expect((await fakeBrowser.storage.local.get('chzzkTemplates')).chzzkTemplates).toBeUndefined();
     });
 });

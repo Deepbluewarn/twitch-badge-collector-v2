@@ -290,14 +290,19 @@ export function styleCss(input: TemplateStyle): string {
     // 카드 — 줄 다음에 둬서 줄 배경·번갈아 배경보다 앞선다
     // 카드는 위·옆 여백이 따로 있고, 아래는 줄 사이에 4px를 더한다 (chzzk-chat.css와 같게)
     rule(SEL.card.box, [...boxDecls('card'), `margin-bottom: ${(line.gap as number) + 4}px`]);
+    // 후원 카드는 기본으로 진한 단계 색에 흰 글자다. 카드 배경을 하나로 정하면(옅은 반투명이 흔하다)
+    // 흰 글자가 라이트 테마에서 안 보이므로 일반 글자색을 따른다. 후원 배경을 따로 정한 곳은 다시 흰 글자.
+    const cardColor = !!st.card.color;
+    if (st.card.bg && !cardColor) rule('.tbc-chat--donation', ['color: inherit']);
     rule(SEL.card.text, textDecls('card'));
+    const donationText = !cardColor && 'color: #fff';
     for (const k of ['donation', 'subscription', 'gift'] as const) {
         const bg = st.card[`${k}Bg`];
-        if (bg) rule(`.tbc-chat--${k}`, [`background: ${bg}`]);
+        if (bg) rule(`.tbc-chat--${k}`, [`background: ${bg}`, k === 'donation' && donationText]);
     }
     for (let i = 0; i < DONATION_LEVEL_BG.length; i++) {
         const bg = st.card[`donationLevel${i}`];
-        if (bg) rule(`.tbc-chat--donation.tbc-chat--level${i}`, [`background: ${bg}`]);
+        if (bg) rule(`.tbc-chat--donation.tbc-chat--level${i}`, [`background: ${bg}`, donationText]);
     }
     rule('.tbc-chat-amount', [!!st.card.amountColor && `color: ${st.card.amountColor}`, st.card.amountWeight !== 0 && `font-weight: ${st.card.amountWeight}`]);
 
