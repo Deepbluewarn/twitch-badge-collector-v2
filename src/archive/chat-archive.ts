@@ -59,7 +59,8 @@ export function parseChannel(channel: string): Omit<ArchiveChannel, 'lastAt' | '
 export const ARCHIVE_SETTING_KEY = 'chatArchive';
 export const ARCHIVE_DAYS = [7, 30, 90, 365] as const;
 export interface ArchiveSetting { enabled: boolean; days: number }
-export const DEFAULT_ARCHIVE_SETTING: ArchiveSetting = { enabled: true, days: 30 };
+// 기본은 끔. 모르는 사이에 수백 MB를 쓰지 않게, 사용자가 보관함 화면에서 직접 켠다
+export const DEFAULT_ARCHIVE_SETTING: ArchiveSetting = { enabled: false, days: 30 };
 
 export function sanitizeArchiveSetting(v: unknown): ArchiveSetting {
     const src = (v && typeof v === 'object' ? v : {}) as Record<string, unknown>;
