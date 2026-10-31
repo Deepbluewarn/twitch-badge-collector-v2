@@ -1,0 +1,170 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- 스토어 이미지 틀. render.mjs가 .frame[data-out]마다 찍는다.
+     노란 바탕 + 왼쪽 로고와 문구 + 오른쪽 화면. 채팅창은 지어낸 채팅으로 그리고, 필터 목록은 capture.mjs가 찍은 실제 화면을 쓴다. -->
+<style>
+@font-face { font-family: "Pretendard"; src: url("../../public/fonts/pretendard/PretendardVariable.woff2") format("woff2"); font-weight: 45 920; }
+body { margin: 0; background: #888; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 20px; padding: 20px; }
+.frame { box-sizing: border-box; position: relative; overflow: hidden; background: #ffd60a; color: #111; font-family: "Pretendard", sans-serif; }
+.frame * { box-sizing: border-box; }
+.logo { display: block; border-radius: 50%; }
+.headline { margin: 0; font-weight: 900; letter-spacing: -0.02em; line-height: 1.12; }
+.brand { display: flex; align-items: center; flex-wrap: wrap; font-weight: 900; }
+.plats { display: flex; }
+.plats span { display: inline-flex; align-items: center; border: 2px solid #111; background: #fff; border-radius: 999px; font-weight: 800; }
+.plats i { border-radius: 50%; background: var(--c); }
+.chips { display: flex; gap: 12px; flex-wrap: wrap; }
+.chips span { border: 3px solid #111; background: #fff; border-radius: 999px; padding: 8px 20px; font-weight: 800; font-size: 22px; }
+
+/* 스크린샷 (1280x800) */
+.shot { width: 1280px; height: 800px; }
+.shot .copy { position: absolute; left: 80px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; gap: 34px; }
+.shot .brand { gap: 16px; font-size: 28px; }
+.shot .plats { gap: 8px; margin-left: 10px; }
+.shot .plats span { gap: 7px; padding: 4px 12px 4px 10px; font-size: 16px; }
+.shot .plats i { width: 10px; height: 10px; }
+.shot.hero .headline { font-size: 70px; }
+.shot.hero .panel { position: absolute; left: 780px; right: 0; top: 70px; bottom: 0; }
+.shot.list .copy { width: 360px; gap: 30px; }
+.shot.list .brand { font-size: 24px; gap: 14px; }
+.shot.list .headline { font-size: 50px; line-height: 1.16; }
+.shot.list .win { position: absolute; left: 470px; right: -3px; top: 50%; transform: translateY(-50%); background: #fff; border: 3px solid #111; border-right: 0; border-radius: 18px 0 0 18px; padding: 20px 0; overflow: hidden; }
+.crop { overflow: hidden; }
+.crop img { display: block; }
+
+/* 채팅창 흉내 (치지직, 트위치 공통 어두운 채팅) */
+.panel { background: #141517; display: flex; flex-direction: column; border: 3px solid #111; border-right: 0; border-bottom: 0; border-radius: 18px 0 0 0; overflow: hidden; }
+.panel .ttl { height: 56px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 20px; border-bottom: 1px solid #2a2b2f; flex: none; }
+.panel .col { padding: 8px 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+.panel .collect { flex: none; background: #1c1d21; }
+.panel .grip { flex: none; height: 18px; display: flex; align-items: center; padding: 0 16px; }
+.panel .grip i { flex: 1; border-top: 2px solid #3a3a3a; }
+.chat { font-size: 19px; line-height: 28px; color: #e9e9ec; padding: 5px 14px 5px 18px; position: relative; word-break: keep-all; white-space: nowrap; }
+.chat .nick { font-weight: 600; margin-right: 8px; }
+.chat .b { display: inline-block; width: 22px; height: 22px; border-radius: 5px; margin-right: 5px; vertical-align: -4px; }
+.chat.hit::before { content: ""; position: absolute; left: 4px; top: 4px; bottom: 4px; width: 5px; border-radius: 3px; background: var(--c); }
+.b.sub { background: #8b5cf6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z'/%3E%3C/svg%3E") center/16px no-repeat; }
+.b.mgr { background: #16a34a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z'/%3E%3C/svg%3E") center/14px no-repeat; }
+.b.host { background: #ffd60a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23111' d='M4 17h16l-1.5-9-4.5 4-2-6-2 6-4.5-4z'/%3E%3C/svg%3E") center/16px no-repeat; }
+
+/* 작은 프로모션 타일 (440x280) */
+.tile { width: 440px; height: 280px; padding: 30px 32px; display: flex; flex-direction: column; justify-content: space-between; }
+.tile .brand { gap: 12px; font-size: 22px; }
+.tile .headline { font-size: 34px; }
+.tile .plats { gap: 6px; }
+.tile .plats span { gap: 6px; padding: 3px 10px 3px 8px; font-size: 13px; }
+.tile .plats i { width: 8px; height: 8px; }
+
+/* 마키 프로모션 타일 (1400x560) */
+.marquee { width: 1400px; height: 560px; }
+.marquee .copy { position: absolute; left: 90px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; gap: 30px; }
+.marquee .brand { gap: 16px; font-size: 28px; }
+.marquee .plats { gap: 8px; margin-left: 10px; }
+.marquee .plats span { gap: 7px; padding: 4px 12px 4px 10px; font-size: 16px; }
+.marquee .plats i { width: 10px; height: 10px; }
+.marquee .headline { font-size: 66px; }
+.marquee .panel { position: absolute; left: 860px; right: 0; top: 56px; bottom: 0; }
+</style>
+
+<div id="root"></div>
+
+<script>
+const LOGO = "../../public/icon/icon.png";
+const COPY = {
+  ko: {
+    plats: ["치지직", "트위치"],
+    hero: "보고 싶은 채팅만<br>골라서 한곳에",
+    chips: ["배지", "닉네임", "키워드"],
+    list: "배지, 닉네임,<br>키워드를 묶어<br>필터 하나로",
+    chatTitle: "채팅",
+    tile: "보고 싶은 채팅만<br>골라서 한곳에",
+  },
+  en: {
+    plats: ["Chzzk", "Twitch"],
+    hero: "Only the chats<br>you want to see",
+    chips: ["Badge", "Name", "Keyword"],
+    list: "Badges, names<br>and keywords<br>in one filter",
+    chatTitle: "Stream Chat",
+    tile: "Only the chats<br>you want to see",
+  },
+};
+// 지어낸 방송. 실제 닉네임은 쓰지 않는다. hit: 수집된 채팅의 표시 색 종류
+const COLOR = { host: "#ffd60a", mgr: "#4ade80", kw: "#60a5fa", sub: "#f472b6" };
+const CHAT = {
+  ko: [
+    ["감자튀김중독", "#7dd3fc", "", "ㅋㅋㅋㅋㅋㅋ"],
+    ["새벽세시반", "#fca5a5", "sub", "이번 판은 이긴다"],
+    ["노을빛방송", "#ffd60a", "host", "다음 판 끝나고 시청자 참여 받을게요", "host"],
+    ["고양이발바닥", "#a7f3d0", "", "오오오"],
+    ["매니저곰", "#4ade80", "mgr", "참여 신청은 공지 링크로 부탁드립니다", "mgr"],
+    ["모래시계", "#93c5fd", "", "ㅋㅋㅋㅋ 미쳤다"],
+    ["초록사과", "#86efac", "", "공지 어디 있어요?", "kw"],
+    ["밤하늘별똥", "#f9a8d4", "", "ㄹㅇ"],
+    ["라면은신라면", "#fde68a", "sub", "와 이걸 피하네"],
+    ["노을빛방송", "#ffd60a", "host", "그건 진짜 운이었다 ㅋㅋ", "host"],
+    ["구름위산책", "#a5b4fc", "", "ㅋㅋㅋㅋㅋㅋㅋ"],
+    ["단골손님", "#fda4af", "sub", "구독 3년차 기념 인사드려요", "sub"],
+    ["바나나킥", "#fcd34d", "", "?????"],
+    ["월요일싫어", "#67e8f9", "", "ㄷㄷㄷ"],
+    ["매니저곰", "#4ade80", "mgr", "도배는 자제 부탁드려요", "mgr"],
+    ["치즈볼", "#fdba74", "", "ㅋㅋㅋ"],
+    ["노을빛방송", "#ffd60a", "host", "단골손님 3년 감사합니다!!", "host"],
+  ],
+  en: [
+    ["potato_fries", "#7dd3fc", "", "LUL LUL"],
+    ["night_owl", "#fca5a5", "sub", "this round is ours"],
+    ["sunsetstream", "#ffd60a", "host", "viewer games right after this match", "host"],
+    ["catpaw22", "#a7f3d0", "", "Pog"],
+    ["ModBear", "#4ade80", "mgr", "sign up link is in the panels below", "mgr"],
+    ["hourglass", "#93c5fd", "", "no way KEKW"],
+    ["greenapple", "#86efac", "", "where is the giveaway link?", "kw"],
+    ["shootingstar", "#f9a8d4", "", "real"],
+    ["noodle_fan", "#fde68a", "sub", "how did he dodge that"],
+    ["sunsetstream", "#ffd60a", "host", "ok that was pure luck lol", "host"],
+    ["cloudwalk", "#a5b4fc", "", "LMAO"],
+    ["regular_viewer", "#fda4af", "sub", "3 years subbed today!", "sub"],
+    ["bananakick", "#fcd34d", "", "?????"],
+    ["mondayblues", "#67e8f9", "", "monkaS"],
+    ["ModBear", "#4ade80", "mgr", "please don't spam the chat", "mgr"],
+    ["cheeseball", "#fdba74", "", "LUL"],
+    ["sunsetstream", "#ffd60a", "host", "thank you for 3 years regular_viewer!!", "host"],
+  ],
+};
+const esc = s => s.replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+const line = ([nick, color, badge, text, hit]) =>
+  `<div class="chat${hit ? " hit" : ""}" style="--c:${COLOR[hit] || "transparent"}">${badge ? `<span class="b ${badge}"></span>` : ""}<span class="nick" style="color:${color}">${esc(nick)}</span>${esc(text)}</div>`;
+const logo = px => `<img class="logo" src="${LOGO}" width="${px}" height="${px}" alt="">`;
+const plats = c => `<span class="plats"><span><i style="--c:#00ffa3"></i>${c.plats[0]}</span><span><i style="--c:#9146ff"></i>${c.plats[1]}</span></span>`;
+const brand = (c, px) => `<div class="brand">${logo(px)}Badge Collector${plats(c)}</div>`;
+// 위는 모아보기(수집된 채팅만), 아래는 원본 채팅(수집된 줄에 색 띠)
+const panel = (lang, collectH, rawN) => {
+  const all = CHAT[lang], hits = all.filter(m => m[4]);
+  return `<div class="panel"><div class="ttl">${COPY[lang].chatTitle}</div>
+    <div class="collect col" style="height:${collectH}px">${hits.slice(-6).map(line).join("")}</div>
+    <div class="grip"><i></i></div>
+    <div class="col" style="flex:1">${all.slice(-rawN).map(line).join("")}</div></div>`;
+};
+const crop = (src, d) => `<div class="crop" style="width:${d.w * d.s}px;height:${d.h * d.s}px"><img src="${src}" style="width:${d.full * d.s}px;margin-left:${-d.x * d.s}px;margin-top:${-d.y * d.s}px" alt=""></div>`;
+// 필터 목록 캡처(css 폭 934)에서 왼쪽 채널 목록을 잘라 낸다
+const LIST_CROP = { ko: { full: 934, x: 235, y: 0, w: 699, h: 409, s: 1.16 }, en: { full: 934, x: 235, y: 0, w: 699, h: 365, s: 1.16 } };
+
+const FRAMES = lang => {
+  const c = COPY[lang];
+  return [
+    { out: `${lang}/screenshot-1.png`, cls: "shot hero", html: `
+      <div class="copy">${brand(c, 64)}<p class="headline">${c.hero}</p><div class="chips">${c.chips.map(x => `<span>${x}</span>`).join("")}</div></div>
+      ${panel(lang, 262, 10)}` },
+    { out: `${lang}/screenshot-2.png`, cls: "shot list", html: `
+      <div class="copy"><div class="brand">${logo(52)}Badge Collector</div><p class="headline">${c.list}</p></div>
+      <div class="win">${crop(`shots/filters-${lang}.png`, LIST_CROP[lang])}</div>` },
+    { out: `${lang}/promo-small.png`, cls: "tile", html: `
+      <div class="brand">${logo(48)}Badge Collector</div><p class="headline">${c.tile}</p>${plats(c)}` },
+    { out: `${lang}/promo-marquee.png`, cls: "marquee", html: `
+      <div class="copy">${brand(c, 64)}<p class="headline">${c.hero}</p><div class="chips">${c.chips.map(x => `<span>${x}</span>`).join("")}</div></div>
+      ${panel(lang, 238, 6)}` },
+  ];
+};
+
+document.getElementById("root").outerHTML = ["ko", "en"].flatMap(FRAMES)
+  .map(f => `<div class="frame ${f.cls}" data-out="${f.out}">${f.html}</div>`).join("");
+</script>
