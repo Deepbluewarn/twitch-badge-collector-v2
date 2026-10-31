@@ -14,7 +14,8 @@
     -ms-flex-direction: column;
     flex-direction: column;
     overflow-y: auto;
-    padding: 0 12px;
+    /* 채팅 줄마다 원본 여백(좌우 6px)이 있어 창 여백은 6px만 — 합쳐 12px */
+    padding: 0 6px;
     scrollbar-width: none;
     width: 100%;
     flex-direction: column-reverse;
@@ -25,7 +26,10 @@
        (템플릿 쪽 chzzk-chat.css와 같은 모양). 아래 여백을 두면 닉네임 상자(세로 가운데 정렬)가
        커져 닉네임·배지가 내려가므로 두지 않는다. */
     flex: none;
-    padding-right: 8px;
+    /* 닉네임 상자는 세로 가운데 정렬이라 작은 글자는 바닥선이 1px 높다 — 내려서 닉네임과 맞춘다 */
+    position: relative;
+    top: 1px;
+    padding-right: 6px;
     font-size: 12px;
     font-weight: 400;
     font-variant-numeric: tabular-nums;

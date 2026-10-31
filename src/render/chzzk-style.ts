@@ -259,8 +259,8 @@ export function styleCss(input: TemplateStyle): string {
     const boxDecls = (p: Part): (string | false)[] => {
         const v = st[p];
         const side = v.borderSide === 'all' ? 'border' : `border-${v.borderSide}`;
-        // 기본 모양에서 닉네임은 뒤에 4px, 시각은 8px를 띄운다 (chzzk-chat.css, content style.css)
-        const after = p === 'nick' ? 4 : p === 'time' ? 8 : 0;
+        // 기본 모양에서 닉네임은 뒤에 4px, 시각은 6px를 띄운다 (chzzk-chat.css, content style.css)
+        const after = p === 'nick' ? 4 : p === 'time' ? 6 : 0;
         const padRight = after ? `; padding-right: ${(v.padX as number) + after}px` : '';
         // 본문은 구독 카드 안에서 따로 상자 모양이 있다 — 기본값 그대로면 덮지 않는다
         const keep = p === 'text' && v.padY === 0 && v.padX === 0 && v.radius === 0;
