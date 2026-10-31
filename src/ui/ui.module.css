@@ -255,7 +255,11 @@
     background: var(--ui-soft);
 }
 .select {
-    appearance: none;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: left;
     padding-right: 32px;
     background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
     background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
@@ -263,6 +267,85 @@
     background-repeat: no-repeat;
     cursor: pointer;
 }
+/* 이름표 줄의 고른 값: 넘치면 말줄임 */
+.select > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.select[data-disabled] {
+    opacity: 0.5;
+    cursor: default;
+}
+.selectPlaceholder,
+.selectCleared {
+    color: var(--ui-off-fg);
+}
+
+/* 펼친 목록 — 대화상자(1300)보다 위 */
+.selectMenu {
+    z-index: 1400;
+    min-width: var(--radix-select-trigger-width);
+    max-height: min(320px, var(--radix-select-content-available-height));
+    overflow: hidden;
+    padding: 4px;
+    border: 2px solid var(--ui-line);
+    border-radius: 8px;
+    background: var(--ui-paper);
+    color: var(--ui-ink);
+    font-family: var(--ui-font);
+    font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.selectItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    padding: 4px 28px 4px 8px;
+    border-radius: 6px;
+    position: relative;
+    outline: none;
+    cursor: pointer;
+    user-select: none;
+}
+.selectItem .icon {
+    font-size: 16px;
+}
+.selectItem[data-highlighted] {
+    background: var(--ui-soft);
+}
+/* 키보드로 옮겨 다닐 때도 노란 면이 초점 표시라 전역 초점 테두리는 뺀다 */
+.selectItem:focus-visible {
+    outline: none;
+}
+.selectItem[data-state='checked'] {
+    font-weight: 700;
+}
+.selectItem[data-disabled] {
+    color: var(--ui-muted);
+    cursor: default;
+}
+.selectCheck {
+    position: absolute;
+    right: 6px;
+    display: inline-flex;
+}
+.selectCheck .icon {
+    font-size: 16px;
+}
+/* 정한 값을 지우는 항목 — 값들과 구별되게 흐린 글자 */
+.selectClear {
+    color: var(--ui-off-fg);
+}
+.selectClear[data-state='checked'] {
+    color: var(--ui-ink);
+}
+.selectSeparator {
+    height: 1px;
+    margin: 4px 2px;
+    background: var(--ui-hair);
+}
+
 .inputWrap {
     position: relative;
     display: flex;

@@ -95,14 +95,6 @@
     width: auto;
     min-width: 0;
 }
-/* 꺼진 상태 — 고른 글꼴이 없다는 것만 흐리게 */
-.fontSelectOff {
-    color: var(--ui-off-fg);
-}
-.fontSelectOff option {
-    color: var(--ui-ink);
-}
-
 .htmlDot {
     display: inline-block;
     width: 6px;

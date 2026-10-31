@@ -35,6 +35,13 @@ const typeTemplate = (value: string) => act(() => {
     view().dispatch({ changes: { from: 0, to: view().state.doc.length, insert: value } });
 });
 
+/** 고르기 상자(Radix Select) — 키보드로 펼치고 항목을 고른다 */
+async function pickOption(trigger: HTMLElement, name: RegExp) {
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    const option = await screen.findByRole('option', { name });
+    fireEvent.keyDown(option, { key: 'Enter' });
+}
+
 describe('TemplateSetting', () => {
     beforeEach(() => fakeBrowser.reset());
     afterEach(cleanup);
@@ -102,6 +109,20 @@ describe('TemplateSetting', () => {
         fireEvent.click(await screen.findByRole('button', { name: /^(닉네임|Nickname)/ }));
         expect(screen.getByRole('dialog')).not.toBeNull();
         fireEvent.scroll(window);
+        expect(screen.queryByRole('dialog')).not.toBeNull();
+    });
+
+    it('부분 글꼴은 목록에서 고르고, 목록 첫 항목 끄기로 지운다', async () => {
+        renderPage();
+        fireEvent.click(await screen.findByRole('button', { name: /^(닉네임|Nickname)/ }));
+        const dialog = screen.getByRole('dialog');
+        fireEvent.click(within(dialog).getByRole('button', { name: /^(글자|Text)$/ }));
+        const font = within(dialog).getByRole('combobox', { name: /^(글꼴|Font)$/ });
+        const nickFont = async () => (await fakeBrowser.storage.local.get('chzzkTemplateStyle')).chzzkTemplateStyle?.nick.font;
+        await pickOption(font, /^(명조|Serif)$/);
+        await waitFor(async () => expect(await nickFont()).toBe('serif'));
+        await pickOption(font, /^(끄기|Off)$/);
+        await waitFor(async () => expect(await nickFont()).toBe('inherit'));
         expect(screen.queryByRole('dialog')).not.toBeNull();
     });
 
@@ -174,7 +195,7 @@ describe('TemplateSetting', () => {
 
     it('완성된 모양을 고르면 템플릿과 스타일을 함께 바꾼다', async () => {
         renderPage();
-        fireEvent.change(await screen.findByRole('combobox', { name: /모양 불러오기|Load a look/ }), { target: { value: 'compact' } });
+        await pickOption(await screen.findByRole('combobox', { name: /모양 불러오기|Load a look/ }), /^(빽빽하게|Compact)$/);
         await waitFor(async () => {
             const r = await fakeBrowser.storage.local.get(['chzzkTemplates', 'chzzkTemplateStyle']);
             expect(r.chzzkTemplates).toEqual(buildTemplates({ layout: 'inline', badges: false, size: 'normal' }));

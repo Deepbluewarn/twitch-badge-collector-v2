@@ -6,7 +6,7 @@
    글꼴·크기·색·간격은 치지직 채팅의 실측값(scripts/capture/chzzk-chat-style.ts, 2026-10-28 20채널)을
    우리 class로 옮긴 것. 원본 복제와 섞여 보이므로 줄 간격까지 맞춘다. 스타일 설정(chzzk-style.ts)이
    같은 속성을 덮어쓰므로 host의 flex 배치 같은 구조는 가져오지 않고 inline 흐름 그대로 둔다.
-   글꼴을 명시하는 이유: Container 안은 확장 UI(MUI)의 Roboto를 물려받아 같은 굵기도 다르게 보인다. */
+   글꼴을 명시하는 이유: 모아보기 창과 설정 미리보기가 둘러싼 페이지의 글꼴을 물려받지 않게. */
 .tbc-chat {
     /* host 채팅 항목 사이 3px — 원본 복제본엔 host class로 붙어 온다 */
     margin-bottom: 3px;

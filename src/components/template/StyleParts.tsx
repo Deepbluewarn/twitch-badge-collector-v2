@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Segmented, Select, Switch, TextInput } from '@/ui';
-import { DONATION_LEVEL_BG, PART_KEYS, PART_SPEC, partIsDefault, type FieldGroup, type FieldSpec, type FieldValue, type Part, type PartStyle, type TemplateStyle } from '@/render/chzzk-style';
+import { DONATION_LEVEL_BG, FONTS, PART_KEYS, PART_SPEC, partIsDefault, type FieldGroup, type FieldSpec, type FieldValue, type Part, type PartStyle, type TemplateStyle } from '@/render/chzzk-style';
 import { DEFAULT_LOOK, LOOK_LAYOUTS, type TemplateLook } from '@/render/chzzk-templates';
 import s from '../TemplateSetting.module.css';
 
@@ -129,12 +129,14 @@ function Field({ part, k, f, value, onChange }: { part: Part; k: string; f: Fiel
                     <span className="material-icons-round" aria-hidden="true">block</span>{L('inherit')}
                 </button>
             );
-            // 선택지가 많은 글꼴은 고르기 상자로
+            // 선택지가 많은 글꼴은 고르기 상자로. 끄기는 목록 첫 항목(구분선 위), 글꼴 이름은 그 글꼴로 보인다
             if (k === 'font') return (
                 <Row label={label}>
-                    {offButton}
-                    <Select size="sm" className={`${s.fontSelect} ${isOff ? s.fontSelectOff : ''}`} value={isOff ? '' : String(value)} onChange={onChange} aria-label={label}
-                        options={[...(isOff ? [{ value: '', label, disabled: true }] : []), ...values.map(v => ({ value: String(v), label: optionLabel(v) }))]} />
+                    <Select size="sm" className={s.fontSelect} value={String(value)} onChange={onChange} aria-label={label}
+                        options={[
+                            ...(off !== undefined ? [{ value: String(off), label: L('inherit'), icon: 'block', clear: true }] : []),
+                            ...values.map(v => ({ value: String(v), label: optionLabel(v), style: { fontFamily: FONTS.find(f => f.key === v)?.family || undefined } })),
+                        ]} />
                 </Row>
             );
             return (

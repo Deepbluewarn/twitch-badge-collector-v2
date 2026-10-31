@@ -5,6 +5,7 @@
  */
 import React, { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import * as RadixSelect from '@radix-ui/react-select';
 import s from './ui.module.css';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
@@ -129,16 +130,60 @@ export function TextArea({ className, ...rest }: React.TextareaHTMLAttributes<HT
     return <textarea className={cx(s.textarea, className)} {...rest} />;
 }
 
-export function Select<T extends string>({ value, options, onChange, size = 'md', className, ...rest }: {
+export interface SelectOption<T extends string> {
     value: T;
-    options: { value: T; label: string; disabled?: boolean }[];
+    label: string;
+    disabled?: boolean;
+    /** 항목 앞 아이콘 (Material Icons 이름) */
+    icon?: string;
+    /** 값이 아니라 정한 값을 지우는 항목 — 흐리게, 아래에 구분선 */
+    clear?: boolean;
+    /** 항목 글자 모양 (글꼴 목록에서 그 글꼴로 보이기) */
+    style?: React.CSSProperties;
+}
+
+/**
+ * 고르기 상자. 목록을 우리 모양으로 그리려고 기본 <select> 대신 Radix Select에 모양을 입힌다.
+ * 값 ''은 "고른 게 없음" — 값이 ''인 항목은 목록에 넣지 않고 그 이름을 자리표시자로 보인다.
+ */
+export function Select<T extends string>({ value, options, onChange, size = 'md', className, style, id, disabled, ...aria }: {
+    value: T;
+    options: SelectOption<T>[];
     onChange: (v: T) => void;
     size?: 'md' | 'sm';
-} & Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'value' | 'onChange' | 'size'>) {
+    className?: string;
+    style?: React.CSSProperties;
+    id?: string;
+    disabled?: boolean;
+    'aria-label'?: string;
+}) {
+    const placeholder = options.find(o => o.value === '')?.label;
+    const items = options.filter(o => o.value !== '');
     return (
-        <select className={cx(s.select, size === 'sm' && s.sm, className)} value={value} onChange={e => onChange(e.target.value as T)} {...rest}>
-            {options.map(o => <option key={o.value} value={o.value} disabled={o.disabled}>{o.label}</option>)}
-        </select>
+        <RadixSelect.Root value={value === '' ? undefined : value} onValueChange={v => onChange(v as T)} disabled={disabled}>
+            {/* 지우는 항목을 고른 상태면 값이 없는 것처럼 흐리게 */}
+            <RadixSelect.Trigger id={id} className={cx(s.select, size === 'sm' && s.sm, items.some(o => o.clear && o.value === value) && s.selectCleared, className)}
+                style={style} aria-label={aria['aria-label']}>
+                <RadixSelect.Value placeholder={<span className={s.selectPlaceholder}>{placeholder}</span>} />
+            </RadixSelect.Trigger>
+            <RadixSelect.Portal>
+                {/* Esc는 목록만 닫는다 — 대화상자·부분 설정 상자의 Esc까지 가지 않게 */}
+                <RadixSelect.Content className={s.selectMenu} position="popper" sideOffset={4} onEscapeKeyDown={e => e.stopPropagation()}>
+                    <RadixSelect.Viewport>
+                        {items.map(o => (
+                            <React.Fragment key={o.value}>
+                                <RadixSelect.Item value={o.value} disabled={o.disabled} className={cx(s.selectItem, o.clear && s.selectClear)}>
+                                    {o.icon && <Icon name={o.icon} />}
+                                    <RadixSelect.ItemText><span style={o.style}>{o.label}</span></RadixSelect.ItemText>
+                                    <RadixSelect.ItemIndicator className={s.selectCheck}><Icon name="check" /></RadixSelect.ItemIndicator>
+                                </RadixSelect.Item>
+                                {o.clear && <RadixSelect.Separator className={s.selectSeparator} />}
+                            </React.Fragment>
+                        ))}
+                    </RadixSelect.Viewport>
+                </RadixSelect.Content>
+            </RadixSelect.Portal>
+        </RadixSelect.Root>
     );
 }
 
