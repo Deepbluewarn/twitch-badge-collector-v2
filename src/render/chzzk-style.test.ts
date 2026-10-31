@@ -72,7 +72,10 @@ describe('styleCss', () => {
             line: { divider: true, zebra: true, marker: 'fill' }, badge: { firstOnly: true, verified: false },
             nick: { effects: false }, hidden: { mode: 'hide' },
         }));
-        expect(css).toContain('.tbc-chat ~ .tbc-chat { border-top: 1px solid #80808038; }');
+        // 구분선은 줄 사이 간격(3px) 한가운데의 곧은 선, 카드 위는 여백 4px만큼 더 위
+        expect(css).toContain('.tbc-chat ~ .tbc-chat::after { content: ""; position: absolute; left: 0; right: 0; top: -2px; height: 1px; background: #80808038;');
+        expect(css).toContain('.tbc-chat ~ .tbc-chat--donation::after');
+        expect(css).toMatch(/--gift::after \{ top: -4px; left: -6px; right: -6px; \}/);
         expect(css).toContain('.tbc-chat--alt { background: #80808017; }');
         expect(css).toContain('.tbc-chat-badge ~ .tbc-chat-badge { display: none; }');
         expect(css).toContain('.tbc-chat-verified { display: none; }');
@@ -123,6 +126,11 @@ describe('공유 코드', () => {
         const own = styleCss(withStyle(DEFAULT_STYLE, { card: { bg: '#ff7ab61f', donationLevel0: '#112233' } }));
         expect(own).toMatch(/\.tbc-chat--level0 \{ background: #112233; color: #fff; \}/);
         expect(styleCss(withStyle(DEFAULT_STYLE, { card: { bg: '#ff7ab61f', color: '#000000' } }))).not.toContain('color: inherit');
+    });
+
+    it('줄 배경을 줘도 카드는 원래 카드 색, 카드 배경을 정하면 그 색', () => {
+        expect(styleCss(withStyle(DEFAULT_STYLE, { line: { bg: '#80808033' } }))).toMatch(/--gift \{[^}]*background: var\(--tbc-card-bg\)/);
+        expect(styleCss(withStyle(DEFAULT_STYLE, { line: { bg: '#80808033' }, card: { bg: '#112233' } }))).not.toContain('var(--tbc-card-bg)');
     });
 
     it('후원 단계별 배경도 돌아온다', async () => {

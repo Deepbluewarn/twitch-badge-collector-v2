@@ -169,14 +169,14 @@ describe('TemplateSetting', () => {
         fireEvent.click(chip);
         const [divider] = within(screen.getByRole('dialog')).getAllByRole('switch');
         fireEvent.click(divider);
-        expect(document.querySelector('.tbc-styled')!.previousElementSibling!.textContent).toContain('border-top');
+        expect(document.querySelector('.tbc-styled')!.previousElementSibling!.textContent).toContain('.tbc-chat ~ .tbc-chat::after');
         expect(chip.querySelector('span')).not.toBeNull();
         await waitFor(async () => {
             const stored = (await fakeBrowser.storage.local.get('chzzkTemplateStyle')).chzzkTemplateStyle;
             expect(stored.line.divider).toBe(true);
         });
         fireEvent.click(screen.getByRole('button', { name: /이 부분 되돌리기|Reset this part/ }));
-        expect(document.querySelector('.tbc-styled')!.previousElementSibling!.textContent).not.toContain('border-top');
+        expect(document.querySelector('.tbc-styled')!.previousElementSibling!.textContent).not.toContain('.tbc-chat ~ .tbc-chat::after');
     });
 
     it('미리보기의 닉네임을 누르면 닉네임 설정이 열린다', async () => {

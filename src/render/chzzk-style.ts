@@ -292,13 +292,23 @@ export function styleCss(input: TemplateStyle): string {
     // 줄
     const line = st.line;
     rule('.tbc-chat', [...boxDecls('line'), `margin-bottom: ${line.gap}px`]);
-    if (line.divider) rule('.tbc-chat ~ .tbc-chat', [`border-top: 1px solid ${line.dividerColor}`]);
+    // 구분선은 테두리가 아니라 줄 사이 간격 한가운데의 곧은 선 — 테두리로 그리면 줄 모서리 둥글기를 따라 휜다.
+    // 카드는 위 여백(4px)이 더 있어서 그만큼 위로.
+    if (line.divider) {
+        const mid = (space: number) => `top: ${-(space / 2) - 0.5}px`;
+        rule('.tbc-chat ~ .tbc-chat', ['position: relative']);
+        rule('.tbc-chat ~ .tbc-chat::after', ['content: ""', 'position: absolute', 'left: 0', 'right: 0', mid(line.gap as number), 'height: 1px',
+            `background: ${line.dividerColor}`, 'pointer-events: none']);
+        // 카드는 양옆 6px 안쪽에 있다 (chzzk-chat.css) — 선은 다른 줄과 같은 길이로
+        rule(SEL.card.box.split(',').map(x => `.tbc-chat ~ ${x.trim()}::after`).join(', '), [mid((line.gap as number) + 4), 'left: -6px', 'right: -6px']);
+    }
     // 번갈아 배경: 순번(nth-child)이 아니라 그릴 때 정한 표시 — 새 채팅이 앞에 들어와도 색이 뒤집히지 않게
     if (line.zebra) rule('.tbc-chat--alt', [`background: ${line.zebraColor}`]);
 
     // 카드 — 줄 다음에 둬서 줄 배경·번갈아 배경보다 앞선다
     // 카드는 위·옆 여백이 따로 있고, 아래는 줄 사이에 4px를 더한다 (chzzk-chat.css와 같게)
-    rule(SEL.card.box, [...boxDecls('card'), `margin-bottom: ${(line.gap as number) + 4}px`]);
+    // 카드 배경을 정하지 않았으면 줄 배경·번갈아 배경이 카드를 덮지 않게 원래 카드 색(chzzk-chat.css)으로 되돌린다
+    rule(SEL.card.box, [...boxDecls('card'), !st.card.bg && 'background: var(--tbc-card-bg)', `margin-bottom: ${(line.gap as number) + 4}px`]);
     // 후원 카드는 기본으로 진한 단계 색에 흰 글자다. 카드 배경을 하나로 정하면(옅은 반투명이 흔하다)
     // 흰 글자가 라이트 테마에서 안 보이므로 일반 글자색을 따른다. 후원 배경을 따로 정한 곳은 다시 흰 글자.
     const cardColor = !!st.card.color;
