@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Segmented, Select, Switch, TextInput } from '@/ui';
-import { DONATION_LEVEL_BG, FONTS, PART_KEYS, PART_SPEC, partIsDefault, type FieldGroup, type FieldSpec, type FieldValue, type Part, type PartStyle, type TemplateStyle } from '@/render/chzzk-style';
+import { FONTS, PART_KEYS, PART_SPEC, partIsDefault, type FieldGroup, type FieldSpec, type FieldValue, type Part, type PartStyle, type TemplateStyle } from '@/render/chzzk-style';
 import { DEFAULT_LOOK, LOOK_LAYOUTS, type TemplateLook } from '@/render/chzzk-templates';
 import s from '../TemplateSetting.module.css';
 
@@ -66,15 +66,17 @@ function Color({ value, onChange, label }: { value: string; onChange: (v: string
 }
 
 /** 이 부분이 보이는 상태일 때만 설정을 보인다 — 시각을 끄거나 배지를 숨기면 설정할 게 없다. */
-function partHidden(part: Part, look: TemplateLook | null, chatTime: boolean) {
+function partHidden(part: Part, v: PartStyle, look: TemplateLook | null, chatTime: boolean) {
     if (part === 'time') return !chatTime;
-    if (part === 'badge') return look?.badges === false;
+    if (part === 'badge') return v.hide === true || look?.badges === false;
     if (part === 'bubble') return look?.layout !== 'bubble';
     return false;
 }
 
 /** 다른 값에 따라 의미가 없는 줄은 감춘다. */
 function fieldShown(k: string, v: PartStyle): boolean {
+    // 배지 숨김은 표시/숨김 버튼으로 (PartControls)
+    if (k === 'hide') return false;
     if (k === 'fontCustom') return v.font === 'custom';
     if (k === 'borderColor' || k === 'borderSide') return (v.borderWidth as number) > 0;
     if (k === 'dividerColor') return v.divider === true;
@@ -84,18 +86,13 @@ function fieldShown(k: string, v: PartStyle): boolean {
 }
 
 /** 자동 색을 켤 때 처음 보일 색 — 기본값이 있으면 그것, 없으면 무난한 색. */
-const COLOR_START: Partial<Record<string, string>> = {
-    bg: '#80808033', color: '#ffffff', amountColor: '#ffd400',
-    ...Object.fromEntries(DONATION_LEVEL_BG.map((c, i) => [`donationLevel${i}`, c])),
-};
+const COLOR_START: Partial<Record<string, string>> = { bg: '#80808033', color: '#ffffff', amountColor: '#ffd400' };
 
 function Field({ part, k, f, value, onChange }: { part: Part; k: string; f: FieldSpec; value: FieldValue; onChange: (v: FieldValue) => void }) {
     const { t } = useTranslation();
     const L = (key: string) => t(`template.style.${key}`);
     const label = part === 'window' && k === 'size' ? L('font_size') : L(k);
     const optionLabel = (v: string | number) => {
-        // 금액은 원래 굵은 글자(<strong>)라 "창과 같게"가 아니라 기본값
-        if (v === 0 && k === 'amountWeight') return L('default');
         if (k === 'font') return t(`template.fonts.${v}`);
         if (k === 'weight' || k === 'amountWeight') return L(`weight_${v}`);
         if (k === 'borderSide') return L(`side_${v}`);
@@ -121,7 +118,7 @@ function Field({ part, k, f, value, onChange }: { part: Part; k: string; f: Fiel
         case 'enum': {
             // 'inherit'·0은 이 부분에 따로 정하지 않은 상태 — 값 사이에 두지 않고 따로 떨어진 '끄기'로 보인다.
             // 끄기는 값을 고르는 게 아니라 정한 값을 지우는 것이라 모양도 다르게.
-            const off = k !== 'amountWeight' && (f.values[0] === 'inherit' || f.values[0] === 0) ? f.values[0] : undefined;
+            const off = f.values[0] === 'inherit' || f.values[0] === 0 ? f.values[0] : undefined;
             const isOff = off !== undefined && value === off;
             const values = off === undefined ? f.values : f.values.slice(1);
             const offButton = off !== undefined && (
@@ -165,7 +162,7 @@ export function PartControls({ part, style, look, chatTime, setPartStyle, setLoo
     const { t } = useTranslation();
     const L = (k: string) => t(`template.style.${k}`);
     const v = style[part];
-    const hidden = partHidden(part, look, chatTime) || (part === 'hidden' && v.mode === 'hide');
+    const hidden = partHidden(part, v, look, chatTime) || (part === 'hidden' && v.mode === 'hide');
     const specs = Object.entries(PART_SPEC[part]);
 
     // 부분 표시 여부·구조처럼 템플릿·다른 설정에 걸린 줄 — 기본 탭 맨 위
@@ -184,8 +181,12 @@ export function PartControls({ part, style, look, chatTime, setPartStyle, setLoo
     );
     if (part === 'badge') extras.push(
         <Row key="show" label={t('template.look_badges')}>
-            <Segmented size="sm" value={look ? (look.badges ? 'show' : 'hide') : null} label={t('template.look_badges')}
-                onChange={b => setLook({ badges: b === 'show' })}
+            {/* 숨김은 스타일(CSS)로. 배지 없는 예전 템플릿에서 표시를 고르면 배지 있는 템플릿으로 되돌린다 */}
+            <Segmented size="sm" value={v.hide === true || look?.badges === false ? 'hide' : 'show'} label={t('template.look_badges')}
+                onChange={b => {
+                    setPartStyle({ hide: b === 'hide' });
+                    if (b === 'show' && look?.badges === false) setLook({ badges: true });
+                }}
                 options={[{ value: 'show', label: t('template.badges_show') }, { value: 'hide', label: t('template.badges_hide') }]} />
         </Row>,
     );

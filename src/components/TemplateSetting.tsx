@@ -315,9 +315,12 @@ export default function TemplateSetting() {
     const BOX_WIDTH = 440;
     const previewRect = part && anchorOffset !== null ? previewBoxRef.current?.getBoundingClientRect() : undefined;
     const anchor = previewRect && new DOMRect(previewRect.left, previewRect.top + anchorOffset!, previewRect.width, 0);
+    const boxTop = anchor && Math.max(8, Math.min(anchor.top - 8, window.innerHeight - 440));
     const boxPos = anchor && {
         left: anchor.right + 12 + BOX_WIDTH < window.innerWidth ? anchor.right + 12 : Math.max(8, anchor.left - 12 - BOX_WIDTH),
-        top: Math.max(8, Math.min(anchor.top - 8, window.innerHeight - 440)),
+        top: boxTop!,
+        // 줄이 많은 부분(후원, 구독의 배경)은 화면 아래로 넘치지 않게 상자 안에서 스크롤
+        maxHeight: window.innerHeight - boxTop! - 8,
     };
 
     // HTML 직접 편집은 하위 페이지 — 편집에 넓은 화면이 필요해 본문 열보다 넓게, 미리보기는 옆에 붙인다

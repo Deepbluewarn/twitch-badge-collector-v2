@@ -195,6 +195,7 @@
 .partBox {
     position: fixed;
     z-index: 50;
+    overflow-y: auto;
     width: 440px;
     padding: 16px;
     box-sizing: border-box;

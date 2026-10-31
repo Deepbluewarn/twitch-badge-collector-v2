@@ -3,7 +3,7 @@ import type { ChzzkSocketChat } from "@/platform/chzzk-socket";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 import { compileTemplate, type CompiledTemplate } from "./template";
 import { DEFAULT_CHZZK_TEMPLATES, type ChzzkTemplates } from "./chzzk-templates";
-import { CHZZK_VIEW_RAW_FIELDS, donationLevel, toChzzkChatView, type ChzzkChatKind, type ChzzkViewOptions } from "./chzzk-chat-view";
+import { CHZZK_VIEW_RAW_FIELDS, toChzzkChatView, type ChzzkChatKind, type ChzzkViewOptions } from "./chzzk-chat-view";
 
 /**
  * 소켓 채팅 → Container에 넣을 채팅 요소.
@@ -75,8 +75,7 @@ export function renderChzzkChat(chat: ChzzkSocketChat, opts: RenderOptions = {})
     root.className = `tbc-chat tbc-chat--${view.kind}`;
     if (view.cleanbot) root.classList.add('tbc-chat--cleanbot');
     // 후원 카드 색은 금액 단계로 — 템플릿이 무엇이든 붙도록 루트에 단다.
-    const level = view.donation ? donationLevel(view.donation.amount) : null;
-    if (level !== null) root.classList.add(`tbc-chat--level${level}`);
+    if (view.donation?.level !== undefined) root.classList.add(`tbc-chat--level${view.donation.level}`);
     // 칭호가 있는 사람(스트리머·매니저 등)의 일반 채팅은 host가 본문을 칭호 색으로 칠한다.
     // 템플릿에 넣지 않고 루트 변수로 — 사용자 템플릿에도 같이 먹는다. 색 모양만 통과.
     if (view.kind === 'chat' && chat.titleColor && /^#[0-9a-fA-F]{3,8}$/.test(chat.titleColor)) {

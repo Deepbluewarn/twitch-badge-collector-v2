@@ -33,9 +33,6 @@ export const FONTS: { key: FontKey; family: string }[] = [
 ];
 const FONT_KEYS = FONTS.map(f => f.key);
 
-/** 후원 금액 단계별 기본 배경 — chzzk-chat.css의 .tbc-chat--level0~4와 같다. 설정 화면에서 켤 때 시작 색. */
-export const DONATION_LEVEL_BG = ['#574fa8', '#2d7b8b', '#23815a', '#d18e3c', '#c54952'] as const;
-
 // ── 틀 ─────────────────────────
 
 export type Part = 'window' | 'line' | 'time' | 'badge' | 'nick' | 'text' | 'emoji' | 'bubble' | 'card' | 'hidden';
@@ -115,6 +112,9 @@ export const PART_SPEC: Record<Part, Record<string, FieldSpec>> = {
         ...box(0, 0, 0),
     },
     badge: {
+        // 숨김은 템플릿에서 배지를 빼지 않고 CSS로 감춘다 — 이미 그려진 채팅에도 바로 걸리고 되돌릴 수 있게.
+        // 편집 창에선 이 줄 대신 표시/숨김 버튼으로 보인다 (StyleParts).
+        hide: { g: 'own', t: 'bool', def: false },
         size: { g: 'own', t: 'range', min: 12, max: 32, step: 1, def: 18, unit: 'px' },
         firstOnly: { g: 'own', t: 'bool', def: false },
         verified: { g: 'own', t: 'bool', def: true },
@@ -132,19 +132,11 @@ export const PART_SPEC: Record<Part, Record<string, FieldSpec>> = {
     },
     bubble: { ...box(4, 10, 12, '#80808029') },
     card: {
-        donationBg: { g: 'own', t: 'color', def: '', auto: 'same_card' },
-        // 금액 단계별 후원 배경 (donationLevel). 정한 단계는 후원 배경보다 앞선다
-        donationLevel0: { g: 'own', t: 'color', def: '', auto: 'same_card' },
-        donationLevel1: { g: 'own', t: 'color', def: '', auto: 'same_card' },
-        donationLevel2: { g: 'own', t: 'color', def: '', auto: 'same_card' },
-        donationLevel3: { g: 'own', t: 'color', def: '', auto: 'same_card' },
-        donationLevel4: { g: 'own', t: 'color', def: '', auto: 'same_card' },
-        subscriptionBg: { g: 'own', t: 'color', def: '', auto: 'same_card' },
-        giftBg: { g: 'own', t: 'color', def: '', auto: 'same_card' },
-        amountColor: { g: 'own', t: 'color', def: '', auto: 'auto' },
-        amountWeight: { g: 'own', t: 'enum', values: [0, ...WEIGHTS], def: 0 },
         ...text(),
-        // 정하지 않은 배경은 chzzk-chat.css의 카드 색(후원은 금액 단계별)
+        amountColor: { g: 'text', t: 'color', def: '', auto: 'auto' },
+        amountWeight: { g: 'text', t: 'enum', values: [0, ...WEIGHTS], def: 0 },
+        // 정하지 않은 배경은 chzzk-chat.css의 카드 색(후원은 금액 단계별). 정하면 후원, 구독, 선물 카드 모두에.
+        // 종류나 금액에 따라 다르게 하려면 HTML에서 (donation.level 등)
         ...box(10, 12, 8, '', 'same_card'),
     },
     hidden: {
@@ -286,7 +278,7 @@ export function styleCss(input: TemplateStyle): string {
         (st.window.borderWidth as number) > 0 && `${st.window.borderSide === 'all' ? 'border' : `border-${st.window.borderSide}`}: ${st.window.borderWidth}px solid ${st.window.borderColor}`]);
     rule(SEL.window.text, textDecls('window'));
     // 닉네임(500)과 구독 본문(400, 웹폰트가 이미 굵다)은 기본 모양에서 굵기를 따로 쓴다. 창 굵기를 바꾸면
-    // 그 값을 따르게 한다 . 부분에서 굵기를 정하면 아래 부분 규칙이 다시 덮는다.
+    // 그 값을 따르게 한다. 부분에서 굵기를 정하면 아래 부분 규칙이 다시 덮는다.
     if (st.window.weight !== PART_SPEC.window.weight.def) rule('.tbc-chat-nick, .tbc-chat--subscription .tbc-chat-text', ['font-weight: inherit']);
 
     // 줄
@@ -310,19 +302,9 @@ export function styleCss(input: TemplateStyle): string {
     // 카드 배경을 정하지 않았으면 줄 배경·번갈아 배경이 카드를 덮지 않게 원래 카드 색(chzzk-chat.css)으로 되돌린다
     rule(SEL.card.box, [...boxDecls('card'), !st.card.bg && 'background: var(--tbc-card-bg)', `margin-bottom: ${(line.gap as number) + 4}px`]);
     // 후원 카드는 기본으로 진한 단계 색에 흰 글자다. 카드 배경을 하나로 정하면(옅은 반투명이 흔하다)
-    // 흰 글자가 라이트 테마에서 안 보이므로 일반 글자색을 따른다. 후원 배경을 따로 정한 곳은 다시 흰 글자.
-    const cardColor = !!st.card.color;
-    if (st.card.bg && !cardColor) rule('.tbc-chat--donation', ['color: inherit']);
+    // 흰 글자가 라이트 테마에서 안 보이므로 일반 글자색을 따른다.
+    if (st.card.bg && !st.card.color) rule('.tbc-chat--donation', ['color: inherit']);
     rule(SEL.card.text, textDecls('card'));
-    const donationText = !cardColor && 'color: #fff';
-    for (const k of ['donation', 'subscription', 'gift'] as const) {
-        const bg = st.card[`${k}Bg`];
-        if (bg) rule(`.tbc-chat--${k}`, [`background: ${bg}`, k === 'donation' && donationText]);
-    }
-    for (let i = 0; i < DONATION_LEVEL_BG.length; i++) {
-        const bg = st.card[`donationLevel${i}`];
-        if (bg) rule(`.tbc-chat--donation.tbc-chat--level${i}`, [`background: ${bg}`, donationText]);
-    }
     rule('.tbc-chat-amount', [!!st.card.amountColor && `color: ${st.card.amountColor}`, st.card.amountWeight !== 0 && `font-weight: ${st.card.amountWeight}`]);
 
     // 수집 표시 — 다른 배경보다 뒤에
@@ -336,10 +318,11 @@ export function styleCss(input: TemplateStyle): string {
     // 배지
     const badge = st.badge.size as number;
     rule(SEL.badge.box, [`width: ${badge}px`, `height: ${badge}px`, `vertical-align: ${-Math.round((badge - 10) / 2)}px`, ...boxDecls('badge')]);
+    if (st.badge.hide) rule('.tbc-chat-badge', ['display: none']);
     if (st.badge.firstOnly) rule('.tbc-chat-badge ~ .tbc-chat-badge', ['display: none']);
     if (!st.badge.verified) rule('.tbc-chat-verified', ['display: none']);
 
-    // 닉네임 — 한 가지 색을 고르면 구독자 꾸미기(그라데이션·형광펜)도 뺀다
+    // 닉네임 — 한 가지 색을 고르면 닉네임 효과(그라데이션·형광펜)도 뺀다
     rule(SEL.nick.text, [...textDecls('nick'), ...boxDecls('nick')]);
     if (!st.nick.effects || st.nick.color) {
         rule('.tbc-chat-nick--gradient', ['background-image: none !important']);
@@ -421,8 +404,8 @@ export const PRESETS: StylePreset[] = [
     { id: 'bubble', look: { layout: 'bubble', badges: true }, style: {
         bubble: { bg: '#ff7ab633', radius: 14 }, nick: { weight: 700 }, line: { padY: 5 }, card: { bg: '#ff7ab61f' },
     } },
-    { id: 'compact', look: { layout: 'inline', badges: false }, style: {
-        window: { size: 13, lineHeight: 1.3 }, line: { padY: 1, zebra: true, marker: 'fill' }, emoji: { size: 20 },
+    { id: 'compact', look: { layout: 'inline', badges: true }, style: {
+        badge: { hide: true }, window: { size: 13, lineHeight: 1.3 }, line: { padY: 1, zebra: true, marker: 'fill' }, emoji: { size: 20 },
     } },
     { id: 'overlay', look: { layout: 'stacked', badges: true }, style: {
         window: { size: 20 }, nick: { weight: 800, color: '#ffd400' }, text: { color: '#ffffff' },
@@ -646,6 +629,21 @@ export async function migrateLargeLook(): Promise<void> {
  * 예전 후원 템플릿(금액이 이름 줄 끝)으로 고른 모양을 지금 템플릿으로 바꾼다. 직접 고친 템플릿은
  * 건드리지 않는다. migrateLargeLook 뒤에 부른다 — 크게 모양은 거기서 이미 새 템플릿이 된다.
  */
+/**
+ * 배지 없는 템플릿(예전 "배지 숨김")을 배지 있는 템플릿 + 스타일의 배지 숨김으로 옮긴다. 그래야 나중에
+ * 표시로 바꿨을 때 이미 그려진 채팅에도 배지가 돌아온다. 직접 고친 템플릿은 건드리지 않는다.
+ * migrateLegacyDonation 뒤에 부른다.
+ */
+export async function migrateBadgeLook(): Promise<void> {
+    const res = await browser.storage.local.get([TEMPLATE_STORAGE_KEY, STYLE_STORAGE_KEY]);
+    const look = detectLook({ ...DEFAULT_CHZZK_TEMPLATES, ...sanitizeStoredTemplates(res[TEMPLATE_STORAGE_KEY]) });
+    if (!look || look.badges) return;
+    await browser.storage.local.set({
+        [TEMPLATE_STORAGE_KEY]: templatesToStore(buildTemplates({ ...look, badges: true })),
+        [STYLE_STORAGE_KEY]: withStyle(sanitizeStyle(res[STYLE_STORAGE_KEY]), { badge: { hide: true } }),
+    });
+}
+
 export async function migrateLegacyDonation(): Promise<void> {
     const res = await browser.storage.local.get(TEMPLATE_STORAGE_KEY);
     const stored = sanitizeStoredTemplates(res[TEMPLATE_STORAGE_KEY]);

@@ -60,13 +60,19 @@ describe('toChzzkChatView', () => {
         }));
         expect(v).toMatchObject({
             kind: 'donation', isDonation: true, nickname: '익명의 후원자', hasMessage: false,
-            donation: { amount: 10000, amountText: '10,000치즈', amountNumber: '10,000', mission: false },
+            donation: { amount: 10000, amountText: '10,000치즈', amountNumber: '10,000', level: 1, mission: false },
         });
     });
 
     it('후원 카드 색 단계는 host 금액 구간을 따른다', () => {
         expect([0, 1, 9999, 10000, 99999, 100000, 499999, 500000, 999999, 1000000].map(donationLevel))
             .toEqual([null, 0, 0, 1, 1, 2, 2, 3, 3, 4]);
+    });
+
+    it('금액 단계는 템플릿 변수 donation.level로도 쓴다 (금액이 없으면 없음)', () => {
+        const templates = { donation: '<i>{{donation.level}}</i>' };
+        expect(renderChzzkChat(chat({ type: 10, extras: { payAmount: 500000 } }), { templates }).querySelector('i')!.textContent).toBe('3');
+        expect(toChzzkChatView(chat({ type: 10, extras: { payAmount: 0 } })).donation!.level).toBeUndefined();
     });
 
     it('미션 후원', () => {

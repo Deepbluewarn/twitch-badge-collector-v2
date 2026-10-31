@@ -118,7 +118,7 @@
     --tbc-card-detail-color: #c9cedc;
     --tbc-card-em: #00ffa3;
 }
-/* 카드 안 닉네임은 host처럼 카드 글자색 하나로 (구독자 꾸미기도 뺀다) */
+/* 카드 안 닉네임은 host처럼 카드 글자색 하나로 (닉네임 효과도 뺀다) */
 .tbc-chat.tbc-chat--donation .tbc-chat-nick,
 .tbc-chat.tbc-chat--subscription .tbc-chat-nick,
 .tbc-chat.tbc-chat--gift .tbc-chat-nick {

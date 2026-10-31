@@ -81,7 +81,7 @@ describe('TemplateSetting', () => {
         expect((screen.getByRole('button', { name: /저장|Save/ }) as HTMLButtonElement).disabled).toBe(true);
     });
 
-    it('창 전체에서 배치를, 배지에서 숨김을 고르면 네 종류를 바꾸고 바로 저장한다', async () => {
+    it('창 전체에서 배치를 고르면 네 종류를 바꾸고, 배지 숨김은 템플릿을 두고 스타일로 감춘다', async () => {
         renderPage();
         fireEvent.click(await screen.findByRole('button', { name: /창 전체|Whole window/ }));
         fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^(말풍선|Bubble)$/ }));
@@ -89,10 +89,14 @@ describe('TemplateSetting', () => {
         fireEvent.click(screen.getByRole('button', { name: /^(배지|Badges)/ }));
         fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^(숨김|Hide)$/ }));
         await waitFor(async () => {
-            const stored = (await fakeBrowser.storage.local.get('chzzkTemplates')).chzzkTemplates;
-            expect(stored).toEqual(buildTemplates({ layout: 'bubble', badges: false, size: 'normal' }));
+            const r = await fakeBrowser.storage.local.get(['chzzkTemplates', 'chzzkTemplateStyle']);
+            // 기본과 다른 종류(말풍선 일반 채팅)만 저장된다
+            expect(r.chzzkTemplates).toEqual({ chat: buildTemplates({ layout: 'bubble', badges: true, size: 'normal' }).chat });
+            expect(r.chzzkTemplateStyle?.badge.hide).toBe(true);
         });
-        expect(document.querySelector('.tbc-chat-badge')).toBeNull();
+        // 배지는 그려진 채로 CSS로 감춘다 — 이미 그려진 채팅에도 걸린다
+        expect(document.querySelector('.tbc-chat-badge')).not.toBeNull();
+        expect(document.querySelector('.tbc-styled')!.previousElementSibling!.textContent).toContain('.tbc-chat-badge { display: none; }');
     });
 
     it('말풍선에서 켠 배치를 말풍선 설정에서 바로 되돌린다', async () => {
@@ -198,8 +202,10 @@ describe('TemplateSetting', () => {
         await pickOption(await screen.findByRole('combobox', { name: /모양 불러오기|Load a look/ }), /^(빽빽하게|Compact)$/);
         await waitFor(async () => {
             const r = await fakeBrowser.storage.local.get(['chzzkTemplates', 'chzzkTemplateStyle']);
-            expect(r.chzzkTemplates).toEqual(buildTemplates({ layout: 'inline', badges: false, size: 'normal' }));
+            // 빽빽하게: 템플릿은 기본(한 줄, 배지 있음)이라 저장할 게 없고 배지는 스타일로 숨긴다
+            expect(r.chzzkTemplates ?? {}).toEqual({});
             expect(r.chzzkTemplateStyle.line.zebra).toBe(true);
+            expect(r.chzzkTemplateStyle.badge.hide).toBe(true);
         });
     });
 

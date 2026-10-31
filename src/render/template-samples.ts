@@ -139,6 +139,7 @@ export const TEMPLATE_FIELDS: { name: string; kinds?: ChzzkChatKind[] }[] = [
     { name: 'anonymous' },
     { name: 'donation.amountText', kinds: ['donation'] },
     { name: 'donation.amountNumber', kinds: ['donation'] },
+    { name: 'donation.level', kinds: ['donation'] },
     { name: 'donation.amount', kinds: ['donation'] },
     { name: 'donation.mission', kinds: ['donation'] },
     { name: 'donation.missionText', kinds: ['donation'] },

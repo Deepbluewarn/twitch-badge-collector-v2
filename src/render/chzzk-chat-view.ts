@@ -49,8 +49,11 @@ export interface ChzzkChatView {
     isDonation: boolean;
     isSubscription: boolean;
     isGift: boolean;
-    /** amountText는 "1,000치즈", amountNumber는 단위 없이 "1,000" (기본 템플릿은 치즈 아이콘 옆에 쓴다). */
-    donation?: { amount: number; amountText: string; amountNumber: string; mission: boolean; missionText?: string };
+    /**
+     * amountText는 "1,000치즈", amountNumber는 단위 없이 "1,000" (기본 템플릿은 치즈 아이콘 옆에 쓴다).
+     * level은 금액 단계 0~4 (donationLevel) — 금액이 없으면 없다. 금액별 모양은 HTML에서 이걸로.
+     */
+    donation?: { amount: number; amountText: string; amountNumber: string; level?: number; mission: boolean; missionText?: string };
     subscription?: { month: number; tierName: string };
     /**
      * 구독권 선물 (type 12). 실측(2026-10-11)상 두 갈래로 온다:
@@ -144,6 +147,7 @@ export function toChzzkChatView(chat: ChzzkSocketChat, opts: ChzzkViewOptions = 
 
     const x = chat.extras as Record<string, any>;
     const amount = Number(x.payAmount) || 0;
+    const level = donationLevel(amount);
 
     return {
         kind,
@@ -172,6 +176,7 @@ export function toChzzkChatView(chat: ChzzkSocketChat, opts: ChzzkViewOptions = 
                 amount,
                 amountText: `${amount.toLocaleString('ko-KR')}${labels.currency}`,
                 amountNumber: amount.toLocaleString('ko-KR'),
+                ...(level !== null ? { level } : {}),
                 mission: x.donationType === 'MISSION',
                 ...(typeof x.missionText === 'string' ? { missionText: x.missionText } : {}),
             },
