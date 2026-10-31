@@ -193,6 +193,9 @@
     width: 480px;
     max-height: none;
     padding: 8px;
+    /* 이미지로 그릴 땐 웹폰트(Pretendard)를 못 쓴다 — 화면 계산과 그리기가 같은 글꼴이 되게 시스템 글꼴로.
+       다르면 이미지에서만 줄이 넘어가 다음 줄과 겹친다 */
+    font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans CJK KR", sans-serif;
     background: var(--ui-paper);
     color: var(--ui-ink);
 }
