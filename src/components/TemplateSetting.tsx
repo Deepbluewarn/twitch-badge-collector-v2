@@ -197,7 +197,9 @@ export default function TemplateSetting() {
         setApplyOpen(false);
     };
     const [part, setPart] = useState<Part | null>(null);
-    const [anchor, setAnchor] = useState<DOMRect | null>(null);
+    /** 누른 줄이 미리보기 창 위에서 얼마나 내려와 있는지 — 스크롤해도 같은 줄 옆에 상자를 다시 놓는다 */
+    const [anchorOffset, setAnchorOffset] = useState<number | null>(null);
+    const [, setViewTick] = useState(0);
     const loadedRef = useRef(false);
     const styleLoadedRef = useRef(false);
     const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -220,16 +222,16 @@ export default function TemplateSetting() {
     }, [storedStyle, styleLoaded]);
     useEffect(() => ensureStyleFont(style), [style]);
 
-    // 상자는 화면 위치에 붙어 있어서 스크롤·크기 변경 뒤엔 엉뚱한 곳을 가리킨다 — 닫는다.
+    // 상자는 화면 위치에 붙어 있다 — 스크롤·크기 변경 때 미리보기 창을 따라 다시 놓는다.
     useEffect(() => {
-        const close = () => setPart(null);
+        const follow = () => setViewTick(n => n + 1);
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPart(null); };
-        window.addEventListener('scroll', close, true);
-        window.addEventListener('resize', close);
+        window.addEventListener('scroll', follow, true);
+        window.addEventListener('resize', follow);
         window.addEventListener('keydown', onKey);
         return () => {
-            window.removeEventListener('scroll', close, true);
-            window.removeEventListener('resize', close);
+            window.removeEventListener('scroll', follow, true);
+            window.removeEventListener('resize', follow);
             window.removeEventListener('keydown', onKey);
         };
     }, []);
@@ -293,7 +295,7 @@ export default function TemplateSetting() {
     const pickPart = (p: Part, rect?: DOMRect) => {
         const box = previewBoxRef.current?.getBoundingClientRect();
         setPart(p);
-        setAnchor(box ? new DOMRect(box.left, rect?.top ?? box.top, box.width, 0) : rect ?? null);
+        setAnchorOffset(box && rect ? rect.top - box.top : 0);
     };
 
     const insertField = (text: string) => {
@@ -311,6 +313,8 @@ export default function TemplateSetting() {
 
     // 부분 상자는 미리보기 창 오른쪽(자리가 없으면 왼쪽)에, 화면 안으로
     const BOX_WIDTH = 440;
+    const previewRect = part && anchorOffset !== null ? previewBoxRef.current?.getBoundingClientRect() : undefined;
+    const anchor = previewRect && new DOMRect(previewRect.left, previewRect.top + anchorOffset!, previewRect.width, 0);
     const boxPos = anchor && {
         left: anchor.right + 12 + BOX_WIDTH < window.innerWidth ? anchor.right + 12 : Math.max(8, anchor.left - 12 - BOX_WIDTH),
         top: Math.max(8, Math.min(anchor.top - 8, window.innerHeight - 440)),
@@ -417,7 +421,8 @@ export default function TemplateSetting() {
                         <Button size="sm" icon="input" onClick={() => { setApplyOpen(true); setApplyInput(''); setApplyError(''); }}>{t('template.share_apply')}</Button>
                     </SettingRow>
                     <LinkRow onClick={() => { setEditorOpen(true); setPart(null); }}>
-                        <RowLabel label={t('template.edit_html')} />
+                        {/* 정해진 모양과 다른 HTML이면(직접 고쳤거나 그런 모양 코드를 적용했으면) 부분 버튼처럼 점으로 알린다 */}
+                        <RowLabel label={<>{t('template.edit_html')}{look === null && <span className={s.htmlDot} aria-hidden="true" />}</>} />
                     </LinkRow>
                 </>}
             </SettingsCard>

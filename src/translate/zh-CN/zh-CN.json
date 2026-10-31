@@ -195,7 +195,7 @@
             "mode": "显示方式",
             "opacity": "不透明度",
             "time": "时间",
-            "inherit": "与窗口相同",
+            "inherit": "关闭",
             "default": "默认",
             "weight_400": "常规",
             "weight_500": "中等",
@@ -216,7 +216,6 @@
             "group_own": "基本",
             "group_text": "文字",
             "group_box": "背景",
-            "to_bubble": "切换为气泡",
             "reset_part": "还原此部分"
         },
         "fonts": {

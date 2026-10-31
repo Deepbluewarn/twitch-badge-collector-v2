@@ -195,7 +195,7 @@
             "mode": "Anzeige",
             "opacity": "Deckkraft",
             "time": "Uhrzeit",
-            "inherit": "Wie Fenster",
+            "inherit": "Aus",
             "default": "Standard",
             "weight_400": "Normal",
             "weight_500": "Mittel",
@@ -216,7 +216,6 @@
             "group_own": "Grundlegend",
             "group_text": "Text",
             "group_box": "Hintergrund",
-            "to_bubble": "Auf Sprechblase umstellen",
             "reset_part": "Diesen Teil zurücksetzen"
         },
         "fonts": {

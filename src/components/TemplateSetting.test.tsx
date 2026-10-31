@@ -88,6 +88,34 @@ describe('TemplateSetting', () => {
         expect(document.querySelector('.tbc-chat-badge')).toBeNull();
     });
 
+    it('말풍선에서 켠 배치를 말풍선 설정에서 바로 되돌린다', async () => {
+        renderPage();
+        fireEvent.click(await screen.findByRole('button', { name: /^(말풍선|Bubble)/ }));
+        fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^(말풍선|Bubble)$/ }));
+        await waitFor(() => expect(document.querySelector('.tbc-chat-bubble')).not.toBeNull());
+        fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^(한 줄|One line)$/ }));
+        await waitFor(() => expect(document.querySelector('.tbc-chat-bubble')).toBeNull());
+    });
+
+    it('스크롤해도 부분 설정 상자는 닫히지 않는다', async () => {
+        renderPage();
+        fireEvent.click(await screen.findByRole('button', { name: /^(닉네임|Nickname)/ }));
+        expect(screen.getByRole('dialog')).not.toBeNull();
+        fireEvent.scroll(window);
+        expect(screen.queryByRole('dialog')).not.toBeNull();
+    });
+
+    it('정해진 모양과 다른 HTML이면 HTML 직접 편집 옆에 점이 붙는다', async () => {
+        const dot = () => screen.getByRole('button', { name: /HTML/ }).querySelector('span[aria-hidden="true"]:not(.material-icons-round)');
+        renderPage();
+        await screen.findByRole('button', { name: /HTML/ });
+        expect(dot()).toBeNull();
+        cleanup();
+        await fakeBrowser.storage.local.set({ chzzkTemplates: { chat: '<b>{{nickname}}</b>' } });
+        renderPage();
+        await waitFor(() => expect(dot()).not.toBeNull());
+    });
+
     it('직접 고친 템플릿이 저장돼 있으면 편집기에 그대로, 배치는 선택 없이 보인다', async () => {
         await fakeBrowser.storage.local.set({ chzzkTemplates: { chat: '<b>{{nickname}}</b>' } });
         renderPage();

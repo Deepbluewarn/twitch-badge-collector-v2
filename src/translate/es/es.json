@@ -195,7 +195,7 @@
             "mode": "Visualización",
             "opacity": "Opacidad",
             "time": "Hora",
-            "inherit": "Igual que la ventana",
+            "inherit": "Desactivar",
             "default": "Predeterminado",
             "weight_400": "Normal",
             "weight_500": "Medio",
@@ -216,7 +216,6 @@
             "group_own": "Básico",
             "group_text": "Texto",
             "group_box": "Fondo",
-            "to_bubble": "Cambiar a burbuja",
             "reset_part": "Restablecer esta parte"
         },
         "fonts": {

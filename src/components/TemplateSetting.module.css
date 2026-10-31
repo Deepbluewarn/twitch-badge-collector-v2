@@ -61,6 +61,58 @@
     background: var(--ui-yellow);
 }
 
+.offButton {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 8px 1px 6px;
+    border: 2px dashed var(--ui-line);
+    border-radius: 8px;
+    background: none;
+    color: var(--ui-off-fg);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.offButton .material-icons-round {
+    font-size: 14px;
+}
+.offButton:hover {
+    background: var(--ui-off-bg);
+}
+/* 꺼진 상태 — 노란색은 정한 값에만 쓰므로 회색으로 눌린 모양 */
+.offButton[aria-pressed='true'] {
+    border-style: solid;
+    border-color: var(--ui-off-fg);
+    background: var(--ui-off-bg);
+    color: var(--ui-ink);
+}
+
+.fontSelect {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+}
+/* 꺼진 상태 — 고른 글꼴이 없다는 것만 흐리게 */
+.fontSelectOff {
+    color: var(--ui-off-fg);
+}
+.fontSelectOff option {
+    color: var(--ui-ink);
+}
+
+.htmlDot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: 6px;
+    border-radius: 3px;
+    background: var(--ui-yellow);
+    vertical-align: middle;
+}
+
 .partChip[aria-pressed='true'] .partDot {
     background: var(--ui-on-yellow);
 }

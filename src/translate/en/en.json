@@ -195,7 +195,7 @@
             "mode": "Display",
             "opacity": "Opacity",
             "time": "Time",
-            "inherit": "Same as window",
+            "inherit": "Off",
             "default": "Default",
             "weight_400": "Regular",
             "weight_500": "Medium",
@@ -216,7 +216,6 @@
             "group_own": "Basics",
             "group_text": "Text",
             "group_box": "Background",
-            "to_bubble": "Switch to bubble",
             "reset_part": "Reset this part"
         },
         "fonts": {

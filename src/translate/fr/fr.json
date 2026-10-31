@@ -195,7 +195,7 @@
             "mode": "Affichage",
             "opacity": "Opacité",
             "time": "Heure",
-            "inherit": "Comme la fenêtre",
+            "inherit": "Désactiver",
             "default": "Par défaut",
             "weight_400": "Normal",
             "weight_500": "Moyen",
@@ -216,7 +216,6 @@
             "group_own": "Base",
             "group_text": "Texte",
             "group_box": "Arrière-plan",
-            "to_bubble": "Passer en bulle",
             "reset_part": "Réinitialiser cette partie"
         },
         "fonts": {

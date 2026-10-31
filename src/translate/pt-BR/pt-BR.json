@@ -195,7 +195,7 @@
             "mode": "Exibição",
             "opacity": "Opacidade",
             "time": "Horário",
-            "inherit": "Igual à janela",
+            "inherit": "Desativar",
             "default": "Padrão",
             "weight_400": "Normal",
             "weight_500": "Médio",
@@ -216,7 +216,6 @@
             "group_own": "Básico",
             "group_text": "Texto",
             "group_box": "Fundo",
-            "to_bubble": "Mudar para balão",
             "reset_part": "Redefinir esta parte"
         },
         "fonts": {

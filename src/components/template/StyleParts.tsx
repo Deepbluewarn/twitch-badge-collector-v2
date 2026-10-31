@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Segmented, Select, Switch, TextInput } from '@/ui';
+import { Segmented, Select, Switch, TextInput } from '@/ui';
 import { DONATION_LEVEL_BG, PART_KEYS, PART_SPEC, partIsDefault, type FieldGroup, type FieldSpec, type FieldValue, type Part, type PartStyle, type TemplateStyle } from '@/render/chzzk-style';
 import { DEFAULT_LOOK, LOOK_LAYOUTS, type TemplateLook } from '@/render/chzzk-templates';
 import s from '../TemplateSetting.module.css';
@@ -96,7 +96,6 @@ function Field({ part, k, f, value, onChange }: { part: Part; k: string; f: Fiel
     const optionLabel = (v: string | number) => {
         // 금액은 원래 굵은 글자(<strong>)라 "창과 같게"가 아니라 기본값
         if (v === 0 && k === 'amountWeight') return L('default');
-        if (v === 'inherit' || v === 0) return L('inherit');
         if (k === 'font') return t(`template.fonts.${v}`);
         if (k === 'weight' || k === 'amountWeight') return L(`weight_${v}`);
         if (k === 'borderSide') return L(`side_${v}`);
@@ -119,21 +118,34 @@ function Field({ part, k, f, value, onChange }: { part: Part; k: string; f: Fiel
                     onChange={e => onChange(e.target.value)} style={{ width: 160 }} />
             </Row>
         );
-        case 'enum':
+        case 'enum': {
+            // 'inherit'·0은 이 부분에 따로 정하지 않은 상태 — 값 사이에 두지 않고 따로 떨어진 '끄기'로 보인다.
+            // 끄기는 값을 고르는 게 아니라 정한 값을 지우는 것이라 모양도 다르게.
+            const off = k !== 'amountWeight' && (f.values[0] === 'inherit' || f.values[0] === 0) ? f.values[0] : undefined;
+            const isOff = off !== undefined && value === off;
+            const values = off === undefined ? f.values : f.values.slice(1);
+            const offButton = off !== undefined && (
+                <button type="button" className={s.offButton} aria-pressed={isOff} onClick={() => onChange(off)}>
+                    <span className="material-icons-round" aria-hidden="true">block</span>{L('inherit')}
+                </button>
+            );
             // 선택지가 많은 글꼴은 고르기 상자로
             if (k === 'font') return (
                 <Row label={label}>
-                    <Select size="sm" value={String(value)} onChange={onChange} aria-label={label}
-                        options={f.values.map(v => ({ value: String(v), label: optionLabel(v) }))} />
+                    {offButton}
+                    <Select size="sm" className={`${s.fontSelect} ${isOff ? s.fontSelectOff : ''}`} value={isOff ? '' : String(value)} onChange={onChange} aria-label={label}
+                        options={[...(isOff ? [{ value: '', label, disabled: true }] : []), ...values.map(v => ({ value: String(v), label: optionLabel(v) }))]} />
                 </Row>
             );
             return (
                 <Row label={label}>
-                    <Segmented size="sm" value={String(value)} label={label}
+                    {offButton}
+                    <Segmented size="sm" value={isOff ? null : String(value)} label={label}
                         onChange={v => onChange(typeof f.def === 'number' ? Number(v) : v)}
-                        options={f.values.map(v => ({ value: String(v), label: optionLabel(v) }))} />
+                        options={values.map(v => ({ value: String(v), label: optionLabel(v) }))} />
                 </Row>
             );
+        }
         case 'color':
             if (f.auto === undefined) return <Row label={label}><Color value={value as string} label={label} onChange={onChange} /></Row>;
             return (
@@ -157,7 +169,8 @@ export function PartControls({ part, style, look, chatTime, setPartStyle, setLoo
 
     // 부분 표시 여부·구조처럼 템플릿·다른 설정에 걸린 줄 — 기본 탭 맨 위
     const extras: React.ReactNode[] = [];
-    if (part === 'window') extras.push(
+    // 배치는 창 전체와 말풍선 양쪽에서 — 말풍선에서 켠 걸 거기서 바로 끌 수 있게
+    if (part === 'window' || part === 'bubble') extras.push(
         <Row key="layout" label={t('template.look_layout')}>
             <Segmented size="sm" value={look?.layout ?? null} label={t('template.look_layout')} onChange={layout => setLook({ layout })}
                 options={LOOK_LAYOUTS.map(l => ({ value: l, label: t(`template.layout_${l}`) }))} />
@@ -173,11 +186,6 @@ export function PartControls({ part, style, look, chatTime, setPartStyle, setLoo
             <Segmented size="sm" value={look ? (look.badges ? 'show' : 'hide') : null} label={t('template.look_badges')}
                 onChange={b => setLook({ badges: b === 'show' })}
                 options={[{ value: 'show', label: t('template.badges_show') }, { value: 'hide', label: t('template.badges_hide') }]} />
-        </Row>,
-    );
-    if (part === 'bubble' && look?.layout !== 'bubble') extras.push(
-        <Row key="layout" label={t('template.look_layout')}>
-            <Button size="sm" onClick={() => setLook({ layout: 'bubble' })}>{L('to_bubble')}</Button>
         </Row>,
     );
     // 가려진 채팅을 숨기면 표시 방식만 남는다

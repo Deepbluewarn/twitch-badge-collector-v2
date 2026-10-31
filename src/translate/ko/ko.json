@@ -195,7 +195,7 @@
             "mode": "표시 방식",
             "opacity": "진하기",
             "time": "시각",
-            "inherit": "창과 같게",
+            "inherit": "끄기",
             "default": "기본값",
             "weight_400": "보통",
             "weight_500": "중간",
@@ -216,7 +216,6 @@
             "group_own": "기본",
             "group_text": "글자",
             "group_box": "배경",
-            "to_bubble": "말풍선으로 바꾸기",
             "reset_part": "이 부분 되돌리기"
         },
         "fonts": {

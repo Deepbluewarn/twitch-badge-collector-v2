@@ -70,6 +70,11 @@ function text(o: { weight?: number; size?: [number, number]; color?: string } = 
     };
 }
 
+/** 묶음 안 key 뒤에 필드를 끼운다 (편집 창은 넣은 순서대로 보여 준다). */
+function insertAfter(o: Record<string, FieldSpec>, key: string, add: Record<string, FieldSpec>): Record<string, FieldSpec> {
+    return Object.fromEntries(Object.entries(o).flatMap(e => e[0] === key ? [e, ...Object.entries(add)] : [e]));
+}
+
 /** 배경 묶음. 기본값은 chzzk-chat.css의 기본 모양과 같게 준다. */
 function box(padY: number, padX: number, radius: number, bg = '', auto = 'none'): Record<string, FieldSpec> {
     return {
@@ -105,8 +110,8 @@ export const PART_SPEC: Record<Part, Record<string, FieldSpec>> = {
         ...box(4, 6, 8),
     },
     time: {
-        mono: { g: 'own', t: 'bool', def: false },
-        ...text({ size: [60, 150] }),
+        // 고정폭 숫자는 글꼴 바로 아래에 (글자 묶음)
+        ...insertAfter(text({ size: [60, 150] }), 'fontCustom', { mono: { g: 'text', t: 'bool', def: false } }),
         ...box(0, 0, 0),
     },
     badge: {
@@ -117,7 +122,7 @@ export const PART_SPEC: Record<Part, Record<string, FieldSpec>> = {
     },
     nick: {
         effects: { g: 'own', t: 'bool', def: true },
-        ...text({ weight: 500, color: 'chzzk' }),
+        ...text({ color: 'chzzk' }),
         ...box(0, 0, 0),
     },
     text: { ...text(), ...box(0, 0, 0) },
@@ -262,8 +267,9 @@ export function styleCss(input: TemplateStyle): string {
     const boxDecls = (p: Part): (string | false)[] => {
         const v = st[p];
         const side = v.borderSide === 'all' ? 'border' : `border-${v.borderSide}`;
-        // 닉네임은 기본 모양에서 뒤에 4px를 띄운다
-        const padRight = p === 'nick' ? `; padding-right: ${(v.padX as number) + 4}px` : '';
+        // 기본 모양에서 닉네임은 뒤에 4px, 시각은 8px를 띄운다 (chzzk-chat.css, content style.css)
+        const after = p === 'nick' ? 4 : p === 'time' ? 8 : 0;
+        const padRight = after ? `; padding-right: ${(v.padX as number) + after}px` : '';
         // 본문은 구독 카드 안에서 따로 상자 모양이 있다 — 기본값 그대로면 덮지 않는다
         const keep = p === 'text' && v.padY === 0 && v.padX === 0 && v.radius === 0;
         return [
@@ -279,6 +285,9 @@ export function styleCss(input: TemplateStyle): string {
         `border-radius: ${st.window.radius}px`,
         (st.window.borderWidth as number) > 0 && `${st.window.borderSide === 'all' ? 'border' : `border-${st.window.borderSide}`}: ${st.window.borderWidth}px solid ${st.window.borderColor}`]);
     rule(SEL.window.text, textDecls('window'));
+    // 닉네임(500)과 구독 본문(400, 웹폰트가 이미 굵다)은 기본 모양에서 굵기를 따로 쓴다. 창 굵기를 바꾸면
+    // 그 값을 따르게 한다 . 부분에서 굵기를 정하면 아래 부분 규칙이 다시 덮는다.
+    if (st.window.weight !== PART_SPEC.window.weight.def) rule('.tbc-chat-nick, .tbc-chat--subscription .tbc-chat-text', ['font-weight: inherit']);
 
     // 줄
     const line = st.line;

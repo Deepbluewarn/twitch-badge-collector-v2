@@ -35,8 +35,10 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
         {
             label: 'badge_emoji',
             chat: sample({
-                uid: 'sample-a', nickname: '고양이집사', message: '오늘 방송 재밌다 {:mlb_13:}',
-                emojis: { mlb_13: `${G}/icon/mlb/13.png` },
+                // 이모티콘은 여러 개 이어 쓰는 일이 흔하다. 치지직이 모두에게 주는 기본 이모티콘만 쓴다
+                // (스트리머 구독 이모티콘, 구단·팀 로고 이모티콘은 쓰지 않는다)
+                uid: 'sample-a', nickname: '고양이집사', message: '오늘 방송 재밌다 {:a_26:}{:a_26:}{:b_05:}',
+                emojis: { a_26: `${G}/icon/a_26.png`, b_05: `${G}/icon/b_05.gif` },
                 badges: [`${G}/icon/9m.png`, `${G}/badge/fan_03.png`],
             }),
         },

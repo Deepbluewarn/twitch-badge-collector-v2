@@ -123,8 +123,9 @@
     background: none;
 }
 .tbc-chat-event-head {
-    font-size: 13px;
-    line-height: 18px;
+    /* host 13px/18px (본문 14px 기준) — 창 글자 크기를 바꾸면 같은 비율로 */
+    font-size: 0.9286em;
+    line-height: 1.385;
 }
 .tbc-chat-amount {
     margin-left: 2px;
