@@ -6,6 +6,7 @@ import { getPlatformConfig, manifestReady } from '@/platform/host-selectors';
 import { ensureRolloutBucket, isSocketRenderEnabled } from '@/content-scripts/chzzk/socket-mode';
 import { GeneralRow, searchGeneral } from './GeneralSetting';
 import { PlatformChip, SettingsCard } from './settings/SettingsUI';
+import { siteUrl } from '@/utils/site-link';
 import SocialFooter from './SocialFooter';
 import s from './SettingLayout.module.css';
 
@@ -50,7 +51,7 @@ export default function SettingLayout() {
     return (
         <div className={s.layout}>
             <header className={s.bar}>
-                <a className={s.brand} href="https://badgecollector.dev" target="_blank" rel="noreferrer">
+                <a className={s.brand} href={siteUrl('/', 'settings_brand')} target="_blank" rel="noreferrer">
                     <img src={browser.runtime.getURL('/assets/icon.png' as any)} alt="" />
                     <span>{t('nav.title')}</span>
                 </a>
@@ -68,7 +69,7 @@ export default function SettingLayout() {
                             {'platform' in i && <PlatformChip platform={i.platform} />}
                         </NavLink>
                     ))}
-                    <a className={s.item} href="https://badgecollector.dev" target="_blank" rel="noreferrer">
+                    <a className={s.item} href={siteUrl('/', 'settings_nav')} target="_blank" rel="noreferrer">
                         <Icon name="public" />
                         <span>badgecollector.dev</span>
                         <Icon name="open_in_new" />

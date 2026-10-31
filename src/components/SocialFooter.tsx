@@ -3,6 +3,7 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { LinkButton, Stack } from '@/ui';
+import { siteUrl } from '@/utils/site-link';
 
 export default function SocialFooter({ showExtensionInfo = true }: { showExtensionInfo?: boolean }) {
     const iconUrl = browser.runtime.getURL('/icon/icon.png');
@@ -25,7 +26,7 @@ export default function SocialFooter({ showExtensionInfo = true }: { showExtensi
             {showExtensionInfo && (
                 <Stack dir="row" justify="flex-end" style={{ flex: 1 }}>
                     {/* 브랜드 = 사이트 링크 (사이트 로고가 확장 아이콘과 같다). 글자는 보조 단계 13/700 */}
-                    <a href="https://badgecollector.dev" target="_blank" rel="noreferrer" className="tbc-brand-link"
+                    <a href={siteUrl('/', 'footer')} target="_blank" rel="noreferrer" className="tbc-brand-link"
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--ui-muted)', textDecoration: 'none' }}>
                         <img src={iconUrl} alt="" style={{ width: 16, height: 16 }} />
                         <span>{name} v{version}</span>

@@ -11,6 +11,7 @@ import { Button, Dialog, Stack, Switch, Tag } from "@/ui";
 import { CHANNEL_INFO_MESSAGE, setChannelOff, type ChannelInfo } from "@/utils/channel-off";
 import { fetchChzzkChannel } from "@/api/chzzk-channel";
 import { ChannelAvatar } from "@/components/filter/ChannelSearch";
+import { siteUrl } from "@/utils/site-link";
 import "./popup.css";
 
 /** 진단 줄의 작은 글자 버튼 — 좁은 팝업 하단 한 줄에 들어가게. */
@@ -339,7 +340,7 @@ function Popup() {
       {/* 헤더: 로고 + 이름 + 버전 chip */}
       <Stack dir='row' align='center' gap={8}>
         {/* 로고 + 이름 = badgecollector.dev 링크 (사이트 로고가 확장 아이콘과 같다) */}
-        <a href='https://badgecollector.dev' target='_blank' rel='noreferrer' className='tbc-brand-link'
+        <a href={siteUrl('/', 'popup')} target='_blank' rel='noreferrer' className='tbc-brand-link'
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flex: 1, fontSize: 14, fontWeight: 800, color: 'inherit', textDecoration: 'none' }}>
           <img src={browser.runtime.getURL('/assets/icon.png')} alt="" style={{ width: '1rem', height: '1rem' }} />
           <span>{browser.i18n.getMessage('ExtensionName')}</span>
