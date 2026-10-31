@@ -21,8 +21,15 @@
 }
 
 .tbcv2-chat-time {
+    /* 원본 복제의 닉네임 상자 맨 앞에 붙는 시각. 본문보다 작고 흐리게, 숫자 폭은 고르게
+       (템플릿 쪽 chzzk-chat.css와 같은 모양). 아래 여백을 두면 닉네임 상자(세로 가운데 정렬)가
+       커져 닉네임·배지가 내려가므로 두지 않는다. */
+    flex: none;
     padding-right: 8px;
-    margin-bottom: 3px;
+    font-size: 12px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
 }
 
 .tbcv2_chatTime_on .tbcv2-chat-time {

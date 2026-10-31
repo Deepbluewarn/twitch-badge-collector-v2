@@ -58,12 +58,12 @@ export type TemplateStyle = Record<Part, PartStyle>;
 const WEIGHTS = [400, 500, 700, 800] as const;
 
 /** 글자 묶음. 창 전체가 아닌 부분의 크기는 창 글자 크기 대비 %, 글꼴·굵기는 0/'inherit'이면 창을 따른다. */
-function text(o: { weight?: number; size?: [number, number]; color?: string } = {}): Record<string, FieldSpec> {
+function text(o: { weight?: number; size?: [number, number]; sizeDef?: number; color?: string } = {}): Record<string, FieldSpec> {
     const [min, max] = o.size ?? [50, 200];
     return {
         font: { g: 'text', t: 'enum', values: ['inherit', ...FONT_KEYS], def: 'inherit' },
         fontCustom: { g: 'text', t: 'name', def: '' },
-        size: { g: 'text', t: 'range', min, max, step: 5, def: 100, unit: '%' },
+        size: { g: 'text', t: 'range', min, max, step: 5, def: o.sizeDef ?? 100, unit: '%' },
         weight: { g: 'text', t: 'enum', values: [0, ...WEIGHTS], def: o.weight ?? 0 },
         italic: { g: 'text', t: 'bool', def: false },
         color: { g: 'text', t: 'color', def: '', auto: o.color ?? 'auto' },
@@ -110,8 +110,8 @@ export const PART_SPEC: Record<Part, Record<string, FieldSpec>> = {
         ...box(4, 6, 8),
     },
     time: {
-        // 고정폭 숫자는 글꼴 바로 아래에 (글자 묶음)
-        ...insertAfter(text({ size: [60, 150] }), 'fontCustom', { mono: { g: 'text', t: 'bool', def: false } }),
+        // 고정폭 숫자는 글꼴 바로 아래에 (글자 묶음). 시각은 기본으로 본문보다 작게 (chzzk-chat.css와 같게 12px)
+        ...insertAfter(text({ size: [60, 150], sizeDef: 85 }), 'fontCustom', { mono: { g: 'text', t: 'bool', def: false } }),
         ...box(0, 0, 0),
     },
     badge: {

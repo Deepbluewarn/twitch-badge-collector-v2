@@ -86,7 +86,10 @@
     vertical-align: top;
 }
 .tbcv2_chatTime_on .tbc-chat .tbcv2-chat-time {
+    /* 본문보다 작고 흐리게, 숫자 폭은 고르게 (원본 복제의 시각 content style.css와 같은 모양) */
     display: inline;
+    font-size: 0.857em;
+    font-variant-numeric: tabular-nums;
     opacity: 0.6;
 }
 
