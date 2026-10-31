@@ -13,7 +13,17 @@
           "imageUrl": "https://ssl.pstatic.net/static/nng/glive/icon/streamer.png"
         },
         {
-          "name": "인증 마크",
+          "name": "파트너 마크",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/image/icon_partner_mark.png",
+          "condition": "파트너 스트리머"
+        },
+        {
+          "name": "챌린저 마크",
+          "imageUrl": "https://ssl.pstatic.net/static/nng/glive/image/icon_challenger_mark.png",
+          "condition": "챌린저 스트리머"
+        },
+        {
+          "name": "공식 마크",
           "imageUrl": "https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png",
           "condition": "공식 인증 계정"
         },
