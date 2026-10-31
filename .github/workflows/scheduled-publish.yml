@@ -13,6 +13,11 @@ on:
   schedule:
     - cron: '0 19 * * *'   # 19:00 UTC = 04:00 KST (GitHub 사정으로 늦어질 수 있다)
   workflow_dispatch:
+    inputs:
+      firefox_only:
+        description: 'Firefox만 제출 (Chrome 게시, 단계 올리기는 건너뜀)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # 릴리스 표시 파일
@@ -43,6 +48,7 @@ jobs:
 
   chrome:
     name: Chrome — rollout, publish staged
+    if: inputs.firefox_only != true
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.s.outputs.version }}
