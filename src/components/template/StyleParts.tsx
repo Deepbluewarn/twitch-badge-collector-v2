@@ -152,8 +152,7 @@ function Field({ part, k, f, value, onChange }: { part: Part; k: string; f: Fiel
             if (f.auto === undefined) return <Row label={label}><Color value={value as string} label={label} onChange={onChange} /></Row>;
             return (
                 <Row label={label}>
-                    <Switch checked={!!value} onChange={on => onChange(on ? (f.def || COLOR_START[k] || '#ffffff') : '')}
-                        label={value ? undefined : L(`auto_${f.auto}`)} />
+                    <Switch checked={!!value} onChange={on => onChange(on ? (f.def || COLOR_START[k] || '#ffffff') : '')} />
                     {!!value && <Color value={value as string} label={label} onChange={onChange} />}
                 </Row>
             );
