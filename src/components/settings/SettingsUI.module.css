@@ -66,6 +66,11 @@
     cursor: pointer;
 }
 
+/* all: unset이 위의 줄 사이 선(.card > * + *)까지 지우므로 다시 */
+.card > * + .linkRow {
+    border-top: 1px solid var(--ui-hair);
+}
+
 .linkRow:hover {
     background: var(--ui-tint);
 }
