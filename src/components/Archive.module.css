@@ -23,9 +23,14 @@
 }
 
 .subTitle {
-    display: inline-flex;
+    /* 줄 단위(inline-flex)로 두면 제목 줄의 글자 기준선 아래 여백만큼 위로 떠서 옆의 채팅 수와 어긋난다 */
+    display: flex;
     align-items: center;
     gap: 10px;
+}
+/* 플랫폼 표시는 이름표 옆에 붙이는 왼쪽 여백이 있다 — 여기선 gap으로 띄운다 */
+.subTitle > [data-platform] {
+    margin-left: 0;
 }
 
 .center {

@@ -9,7 +9,7 @@ import {
 import { fetchChzzkChannel } from '@/api/chzzk-channel';
 import { ChannelAvatar } from './filter/ChannelSearch';
 import { Pager } from './filter/FilterList';
-import { LinkRow, PlatformChip, RowLabel, SectionTitle, SettingRow, SettingsCard, SubHeader, settingsClass as ui } from './settings/SettingsUI';
+import { LinkRow, Note, PlatformChip, RowLabel, SectionTitle, SettingRow, SettingsCard, SubHeader, settingsClass as ui } from './settings/SettingsUI';
 import { useConfirm } from '@/ui/useConfirm';
 import { captureChats } from '@/utils/captureChat';
 import { fetchBadgesCached } from '@/utils/badgeCache';
@@ -374,7 +374,7 @@ export default function Archive() {
         <>
             {!row ? (
                 <>
-                    <p className={s.intro}>{t('archive.intro', { days: setting.days, cap: cap.label })} {t('archive.responsibility')}</p>
+                    <p className={s.intro}>{t('archive.intro', { days: setting.days, cap: cap.label })}</p>
                     <SectionTitle>{t('archive.section_setting')}</SectionTitle>
                     <SettingsCard>
                         <SettingRow label={t('archive.enabled')}>
@@ -392,6 +392,8 @@ export default function Archive() {
                                 options={ARCHIVE_DAYS.map(d => ({ value: String(d), label: t('archive.days_option', { count: d }) }))} />
                         </SettingRow>
                     </SettingsCard>
+                    {/* 면책은 설정 카드 아래 작은 글로 (docs/design-system.md) */}
+                    <Note>{t('archive.responsibility')}</Note>
 
                     <SectionTitle actions={<IconButton icon="refresh" size="sm" label={t('archive.refresh')} disabled={loading} onClick={() => void refresh()} />}>
                         {t('archive.section_chats')}
