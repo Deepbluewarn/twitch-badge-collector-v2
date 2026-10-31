@@ -16,10 +16,10 @@ window.WebSocket = class extends Native {
     }
 } as typeof WebSocket;
 
-(window as unknown as Record<string, unknown>).__tbcRenderInto = (panel: HTMLElement, n: number, verifiedIconUrl?: string, samples = false) => {
+(window as unknown as Record<string, unknown>).__tbcRenderInto = (panel: HTMLElement, n: number, samples = false) => {
     const list = samples
         ? Object.values(TEMPLATE_SAMPLES).flat().map(s => s.chat)
         : chats.slice(-n);
-    panel.replaceChildren(...list.map(c => renderChzzkChat(c, { verifiedIconUrl })));
+    panel.replaceChildren(...list.map(c => renderChzzkChat(c)));
     return chats.length;
 };

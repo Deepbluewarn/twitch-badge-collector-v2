@@ -15,7 +15,6 @@ import {
     DEFAULT_STYLE, PRESETS, ensureStyleFont, exportStyleCode, importStyleCode, presetTemplates, saveStyle,
     styleCss, templatesToStore, useStoredStyleState, withStyle, type PartStyle, type TemplateStyle,
 } from '@/render/chzzk-style';
-import { getPlatformConfig } from '@/platform/host-selectors';
 import { PART_ANCHOR, PARTS, PartControls, partLookDefaults, partModified, partOf, type Part } from './template/StyleParts';
 import { LinkRow, Note, RowLabel, SectionTitle, SettingRow, SettingsCard, SubHeader, settingsClass as ui } from './settings/SettingsUI';
 import i18n from '@/translate/i18n';
@@ -122,14 +121,13 @@ function Preview({ templates, style, dark, chatTime, part, onPick, boxRef }: {
     const ownRef = useRef<HTMLDivElement>(null);
     const ref = boxRef ?? ownRef;
     const [hover, setHover] = useState<{ p: Part; x: number; y: number } | null>(null);
-    const verifiedIconUrl = getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined;
 
     useEffect(() => {
         const box = ref.current;
         if (!box) return;
         box.replaceChildren();
         PREVIEW_MIX.forEach(({ chat, marker }, i) => {
-            const el = renderChzzkChat(chat, { templates, verifiedIconUrl });
+            const el = renderChzzkChat(chat, { templates });
             if (marker) {
                 el.classList.add('tbc-chat--marked');
                 el.style.setProperty('--tbc-marker-color', marker);
@@ -137,7 +135,7 @@ function Preview({ templates, style, dark, chatTime, part, onPick, boxRef }: {
             if (i % 2) el.classList.add('tbc-chat--alt');
             box.append(el);
         });
-    }, [templates, verifiedIconUrl]);
+    }, [templates]);
 
     const css = useMemo(() => styleCss(style), [style]);
     return (

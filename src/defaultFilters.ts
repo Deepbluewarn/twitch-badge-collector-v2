@@ -131,8 +131,8 @@ const defaultFilter: CompositeFilterElement[] = [
                 "category": "badge",
                 "id": "VfLzvfvOu2TmG2UAA61Ys",
                 "type": "include",
-                "value": "https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png",
-                "badgeName": "역할: 인증 마크"
+                "value": "https://ssl.pstatic.net/static/nng/glive/image/icon_partner_mark.png",
+                "badgeName": "역할: 파트너 마크"
             }
         ],
         "platform": "chzzk"

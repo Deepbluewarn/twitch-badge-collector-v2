@@ -12,6 +12,7 @@ import {
     toChatInfo,
     withEncodedVariants,
 } from './chzzk-socket';
+import { VERIFIED_MARK_URL } from './chzzk-verified';
 
 // 2026-10 실측 패킷 모양을 따른 합성 fixture. profile/extras는 소켓에서 JSON 문자열로 온다.
 const B = 'https://ssl.pstatic.net/static/nng/glive';
@@ -196,10 +197,14 @@ describe('toChatInfo', () => {
         expect(stripEmojiTokens('{:a:}{:b:}', { a: '1', b: '2' })).toBe('');
     });
 
-    it('인증 마크는 URL이 주어질 때만 배지로 추가', () => {
-        const c = normalizeChzzkMessage(liveBdy({}, profile({ verifiedMark: true })))!;
-        expect(toChatInfo(c).badges).toEqual([]);
-        expect(toChatInfo(c, 'verified.png').badges).toEqual(['verified.png']);
+    it('인증 마크는 종류별 URL을 배지로 추가 — 필터의 이름표 (종류가 없으면 파트너 마크)', () => {
+        const mark = (p: Record<string, unknown>) => toChatInfo(normalizeChzzkMessage(liveBdy({}, profile(p)))!).badges;
+        expect(mark({ verifiedMark: true, verifiedMarkType: 'PARTNER' })).toEqual([VERIFIED_MARK_URL.PARTNER]);
+        expect(mark({ verifiedMark: true, verifiedMarkType: 'CHALLENGER' })).toEqual([VERIFIED_MARK_URL.CHALLENGER]);
+        expect(mark({ verifiedMark: true, verifiedMarkType: 'OFFICIAL' })).toEqual([VERIFIED_MARK_URL.OFFICIAL]);
+        expect(mark({ verifiedMark: true, verifiedMarkType: null })).toEqual([VERIFIED_MARK_URL.PARTNER]);
+        expect(mark({ verifiedMark: false, verifiedMarkType: null })).toEqual([]);
+        expect(normalizeChzzkMessage(liveBdy({}, profile({ verifiedMark: true, verifiedMarkType: 'PARTNER' })))!.verifiedMarkType).toBe('PARTNER');
     });
 
     it('unavailable을 채우지 않는다 — 모든 필드가 구조화된 원본에서 온다', () => {

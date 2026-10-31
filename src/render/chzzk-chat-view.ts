@@ -1,4 +1,5 @@
 import { CHZZK_MSG_TYPE, resolveNicknameColor, type ChzzkSocketChat, type NicknameColor } from "@/platform/chzzk-socket";
+import { verifiedMarkUrl } from "@/platform/chzzk-verified";
 import { escapeHtml } from "./template";
 import { msToTime } from "@/utils/utils-common";
 
@@ -83,7 +84,6 @@ export const DEFAULT_LABELS: ChzzkViewLabels = {
 
 export interface ChzzkViewOptions {
     labels?: Partial<ChzzkViewLabels>;
-    verifiedIconUrl?: string;
     formatTime?: (ms: number) => string;
 }
 
@@ -158,7 +158,8 @@ export function toChzzkChatView(chat: ChzzkSocketChat, opts: ChzzkViewOptions = 
         hasMessage: chat.message.trim().length > 0,
         badges: chat.badges.map(url => ({ url })),
         verified: chat.verified,
-        ...(chat.verified && opts.verifiedIconUrl ? { verifiedIconUrl: opts.verifiedIconUrl } : {}),
+        // 마크 종류(파트너, 챌린저, 공식)에 맞는 그림 — host와 같은 이미지
+        ...(chat.verified ? { verifiedIconUrl: verifiedMarkUrl(chat.verifiedMarkType) } : {}),
         time: chat.playerTime !== undefined ? msToTime(chat.playerTime) : (opts.formatTime ?? defaultFormatTime)(chat.time),
         timestamp: chat.time,
         nickColorLight: color.light,

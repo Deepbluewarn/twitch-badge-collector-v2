@@ -69,7 +69,8 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
         },
         {
             label: 'verified',
-            chat: sample({ uid: 'sample-v', nickname: '공식채널', message: '오늘도 응원합니다', verified: true, badges: [`${G}/icon/12m.png`] }),
+            // 인증된 방송인은 대부분 파트너 마크 (공식 마크는 기업, 기관 채널)
+            chat: sample({ uid: 'sample-v', nickname: '파트너방송인', message: '오늘도 응원합니다', verified: true, verifiedMarkType: 'PARTNER', badges: [`${G}/icon/12m.png`] }),
         },
     ],
     donation: [

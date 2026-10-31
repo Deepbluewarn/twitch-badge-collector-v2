@@ -187,7 +187,6 @@ export default function useChatStream(
         // 템플릿 렌더러로 그린다. 탭 신호가 한 번도 안 오면 socketActive가 false로 남아
         // 아래 HTML 경로가 그대로 동작한다 (자동 fallback).
         const socketMode = adapter.type === 'chzzk' && isSocketRenderEnabled();
-        const verifiedIconUrl = getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined;
         let socketActive = false;
         // 넘긴 채팅의 원본 — 나중에 블라인드 이벤트가 오면 상태만 바꿔 다시 그린다.
         // 오래된 것부터 버린다: 블라인드는 대개 올라온 직후에 오고, Container도 maxChats로 잘린다.
@@ -251,7 +250,7 @@ export default function useChatStream(
          */
         function renderBuilt(chat: ChzzkSocketChat): HTMLElement {
             const mode = getTemplateMode();
-            const el = renderChzzkChat(chat, { verifiedIconUrl, ...(mode.custom ? { templates: mode.templates } : {}) });
+            const el = renderChzzkChat(chat, mode.custom ? { templates: mode.templates } : {});
             const color = processedColors.get(chat.id);
             if (color) {
                 el.classList.add('tbc-chat--marked');
@@ -337,7 +336,7 @@ export default function useChatStream(
                 applyHighlight(msg.key, processedColors.get(chat.id));
                 return;
             }
-            const info = toChatInfo(chat, verifiedIconUrl);
+            const info = toChatInfo(chat);
             const result = predicate(info);
             if (!result.pass) return;
             seenKeys.add(chat.id);
@@ -394,7 +393,7 @@ export default function useChatStream(
             for (const chat of msg.chats) {
                 if (seenKeys.has(chat.id)) continue;
                 seenKeys.add(chat.id);
-                const info = toChatInfo(chat, verifiedIconUrl);
+                const info = toChatInfo(chat);
                 const result = predicate(info);
                 if (!result.pass) continue;
                 processedColors.set(chat.id, result.markerColor);
@@ -470,7 +469,6 @@ export default function useChatStream(
             ? startChzzkSocketShadow(
                 node => adapter.extract(node),
                 chat => predicate(chat),
-                verifiedIconUrl,
             )
             : undefined;
 

@@ -54,7 +54,6 @@ export interface ShadowStats {
 
 export interface SocketShadowOptions {
     predicate: (chat: ChatInfo) => { pass: boolean };
-    verifiedBadgeUrl?: string;
     onMismatch: (m: ShadowMismatch) => void;
     /** 짝을 기다리는 최대 시간. 소켓이 DOM보다 먼저 오고, DOM은 렌더 지연이 있다. */
     pairTimeoutMs?: number;
@@ -107,7 +106,7 @@ export function createSocketShadow(opts: SocketShadowOptions) {
 
     function compare(id: string, html: ChatInfo, chat: ChzzkSocketChat) {
         done.add(id);
-        const sock = toChatInfo(chat, opts.verifiedBadgeUrl);
+        const sock = toChatInfo(chat);
         const report = (field: ShadowField, h: unknown, s: unknown) => {
             stats.mismatched[field]++;
             opts.onMismatch({ id, field, html: h, socket: s, type: chat.type, status: chat.status });
@@ -229,7 +228,6 @@ export function isSocketShadowEnabled(): boolean {
 export function startChzzkSocketShadow(
     extract: (node: Node) => ChatInfo | undefined,
     predicate: (chat: ChatInfo) => { pass: boolean },
-    verifiedBadgeUrl?: string,
 ): () => void {
     const tag = '%c[TBC shadow]';
     const style = 'color:#00c896;font-weight:bold';
@@ -237,7 +235,6 @@ export function startChzzkSocketShadow(
 
     const shadow = createSocketShadow({
         predicate,
-        verifiedBadgeUrl,
         onMismatch: (m) => {
             mismatchLogs++;
             if (mismatchLogs <= DETAILED_MISMATCH_LOGS) {

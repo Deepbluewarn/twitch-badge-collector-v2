@@ -62,7 +62,6 @@ async function bootstrap() {
             return id && adapter.getPageMode() === 'live' ? { channelId: id, mode: 'live' } : null;
         }),
         () => adapter.getCurrentChannelId(),
-        () => getPlatformConfig('chzzk').constants?.verifiedBadgeImageUrl as string | undefined,
     ));
     // 이 채널에서 끄기 — 끄면 창을 걷어 수집·보관까지 멈추고 화면 조정도 원래대로, 다시 켜면 창을 새로 만든다
     // (채팅 유지가 켜져 있으면 끄기 전 채팅을 다시 불러온다).

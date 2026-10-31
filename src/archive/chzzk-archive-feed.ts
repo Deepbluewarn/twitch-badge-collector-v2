@@ -42,7 +42,6 @@ export function createChzzkArchiveFeed(
     recorder: Pick<ArchiveRecorder, 'record' | 'hide' | 'gap'>,
     getFilters: () => CompositeFilterElement[],
     getChannelId: () => string | null,
-    verifiedIconUrl?: () => string | undefined,
 ): ChzzkArchiveFeed {
     const seen = new Set<string>();
     /** 지금 소켓의 채팅 채널 — 다른 채널로 옮겨 붙은 건 끊김이 아니다 */
@@ -68,7 +67,7 @@ export function createChzzkArchiveFeed(
             if (seen.has(chat.id)) continue;
             seen.add(chat.id);
             if (seen.size > SEEN_LIMIT) seen.delete(seen.values().next().value!);
-            const info = toChatInfo(chat, verifiedIconUrl?.());
+            const info = toChatInfo(chat);
             const r = evaluateFilterGroup(info, filters, channelId);
             if (!r.pass) continue;
             recorder.record({
@@ -103,7 +102,6 @@ export function createChzzkArchiveFeed(
 export function startChzzkArchiveFeed(
     recorder: ArchiveRecorder,
     getChannelId: () => string | null,
-    verifiedIconUrl?: () => string | undefined,
 ): () => void {
     let filters: CompositeFilterElement[] = [];
     const set = (v: unknown) => {
@@ -114,7 +112,7 @@ export function startChzzkArchiveFeed(
     };
     browser.storage.local.onChanged.addListener(onStorage);
 
-    const feed = createChzzkArchiveFeed(recorder, () => filters, getChannelId, verifiedIconUrl);
+    const feed = createChzzkArchiveFeed(recorder, () => filters, getChannelId);
     let waiting: TbcSocketChatMessage[] | null = [];
     const onMessage = (e: MessageEvent) => {
         const action = e.data?.action;

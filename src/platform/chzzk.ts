@@ -4,17 +4,31 @@ import { msToTime } from "@/utils/utils-common";
 import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 import { getPlatformConfig, detectPageMode, extractChannelId } from "./host-selectors";
+import { verifiedMarkUrl, type VerifiedMarkType } from "./chzzk-verified";
 
 const cfg = () => getPlatformConfig('chzzk');
 
-function checkVerifiedBadge(chat_clone: Element): boolean {
-    // ponytail: verifiedIcon class hash 롤링에 매번 selector 갱신하지 말고
-    // aria/accessibility 라벨 '인증 마크' 텍스트로 직접 검사. chzzk가 이 라벨
-    // 바꾸면 여기 텍스트 하나 갱신. selector 하나 없애서 rev bump 부담도 감소.
+/**
+ * 인증 마크 종류. 없으면 null.
+ *
+ * class hash가 바뀔 때마다 selector를 고치지 않으려고 접근성 라벨('인증 마크')로 찾는다. host는
+ * `<i class="… mark is_partner"><span class="blind">인증 마크</span></i>`로 그리고, 종류는 hash 붙은
+ * class 이름(is_partner, is_challenger, is_official)으로만 드러난다. 이름 없는 배지도 같은 라벨을
+ * 쓰므로(`title ?? '인증 마크'`), 부모가 마크(mark·is_*)일 때만 인증으로 본다.
+ */
+function verifiedMarkTypeOf(chat_clone: Element): VerifiedMarkType | null {
     const sel = cfg().selectors;
-    if (!sel.blindText) return false;
-    return Array.from(chat_clone.querySelectorAll(sel.blindText))
-        .some(b => b.textContent === '인증 마크');
+    if (!sel.blindText) return null;
+    for (const b of chat_clone.querySelectorAll(sel.blindText)) {
+        if (b.textContent !== '인증 마크') continue;
+        const cls = b.parentElement?.getAttribute('class') ?? '';
+        if (/is_partner/.test(cls)) return 'PARTNER';
+        if (/is_challenger/.test(cls)) return 'CHALLENGER';
+        if (/is_official/.test(cls)) return 'OFFICIAL';
+        // 종류 class가 없어도 마크 요소면 인증 — 종류를 모르면 파트너 마크(나뉘기 전의 인증 마크)
+        if (/(^|[_\s-])mark([_\s-]|$)/.test(cls)) return 'PARTNER';
+    }
+    return null;
 }
 
 export class ChzzkAdapter implements PlatformAdapter {
@@ -85,9 +99,8 @@ export class ChzzkAdapter implements PlatformAdapter {
         const textArr = Array.from(textContents).map((text) => text.textContent);
         const donationTextArr = Array.from(donationTextContents).map((text) => text.textContent);
 
-        if (checkVerifiedBadge(chat_clone) && (cfg().constants?.verifiedBadgeImageUrl as string)) {
-            badgeArr.push((cfg().constants?.verifiedBadgeImageUrl as string));
-        }
+        const markType = verifiedMarkTypeOf(chat_clone);
+        if (markType) badgeArr.push(verifiedMarkUrl(markType));
 
         return {
             badges: [...badgeArr],

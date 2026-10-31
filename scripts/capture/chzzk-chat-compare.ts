@@ -19,7 +19,6 @@ import { buildSync } from 'esbuild';
 import { mkdirSync, readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import bundledManifest from '../../src/platform/bundled-selectors.prod.json' with { type: 'json' };
 import { discoverChannels } from '../canary/discover-channels.ts';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -34,8 +33,8 @@ const HOST_CARD = '[class*="_is_donation_"], [class*="_is_subscription_"]';
 
 type Theme = 'dark' | 'light' | 'cards';
 
-async function shoot(page: Page, channel: string, theme: Theme, verified: string | undefined, name: string) {
-    const box = await page.evaluate(({ theme, verified }) => {
+async function shoot(page: Page, channel: string, theme: Theme, name: string) {
+    const box = await page.evaluate(({ theme }) => {
         // 옛 규칙은 theme_dark class, 새 디자인 변수는 data-theme="light"를 본다 (기본이 다크)
         document.documentElement.classList.toggle('theme_dark', theme !== 'light');
         document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'theme_dark';
@@ -64,10 +63,10 @@ async function shoot(page: Page, channel: string, theme: Theme, verified: string
         inner.style.cssText = 'display: flex; flex-direction: column';
         panel.replaceChildren(inner);
         const n = list.children.length;
-        const total = (window as unknown as { __tbcRenderInto: (p: HTMLElement, n: number, v?: string, samples?: boolean) => number })
-            .__tbcRenderInto(inner, n, verified, theme === 'cards');
+        const total = (window as unknown as { __tbcRenderInto: (p: HTMLElement, n: number, samples?: boolean) => number })
+            .__tbcRenderInto(inner, n, theme === 'cards');
         return { x: r.left - r.width, y: r.top, width: r.width * 2, height: r.height, total };
-    }, { theme, verified });
+    }, { theme });
     const file = join(OUT_DIR, `${channel}-${name}.png`);
     await page.screenshot({ path: file, clip: box });
     console.log(`[compare] ${name} socket chats=${box.total} → ${file}`);
@@ -95,8 +94,6 @@ async function main() {
     }).outputFiles[0].text;
     const css = readFileSync(join(REPO_ROOT, 'src/render/chzzk-chat.css'), 'utf8')
         + readFileSync(join(REPO_ROOT, 'src/entrypoints/chzzk.content/style.css'), 'utf8');
-    const verified = (bundledManifest as { platforms: { chzzk: { constants?: Record<string, unknown> } } })
-        .platforms.chzzk.constants?.verifiedBadgeImageUrl as string | undefined;
 
     mkdirSync(OUT_DIR, { recursive: true });
     const browser = await chromium.launch();
@@ -116,15 +113,15 @@ async function main() {
         await page.addStyleTag({ content: css });
         if (!CARDS) {
             await page.waitForTimeout(15000);
-            for (const theme of ['dark', 'light', 'cards'] as const) await shoot(page, channel, theme, verified, theme);
+            for (const theme of ['dark', 'light', 'cards'] as const) await shoot(page, channel, theme, theme);
             break;
         }
         console.log(`[compare] ${channel}: 카드를 ${CARD_SECONDS}초까지 기다린다`);
         const until = Date.now() + CARD_SECONDS * 1000;
         while (Date.now() < until && !(await hostCardVisible(page))) await page.waitForTimeout(1000);
         if (!(await hostCardVisible(page))) continue;
-        await shoot(page, channel, 'dark', verified, 'card-dark');
-        await shoot(page, channel, 'light', verified, 'card-light');
+        await shoot(page, channel, 'dark', 'card-dark');
+        await shoot(page, channel, 'light', 'card-light');
         break;
     }
     await browser.close();

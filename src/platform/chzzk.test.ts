@@ -6,6 +6,7 @@ vi.mock('@/api/chzzk', () => ({ fetchChzzkBadgeGroups }));
 
 import { ChzzkAdapter } from './chzzk';
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
+import { VERIFIED_MARK_URL } from './chzzk-verified';
 
 // ----- pure helpers ------------------------------------------------------
 
@@ -438,29 +439,40 @@ describe('ChzzkAdapter — extract', () => {
         expect(adapter.extract(text)).toBeUndefined();
     });
 
-    it('appends verifiedBadgeImageUrl to badges when ".blind" text is "인증 마크"', () => {
+    // host: <i class="_icon_x _mark_x _is_partner_x"><span class="blind">인증 마크</span></i>
+    const withMark = (cls: string | null) => {
         const node = buildChatFixture();
-        // 인증 마크 blind label 추가 — icon container hash와 무관하게 잡혀야 함
         const blind = document.createElement('span');
         blind.className = 'blind';
         blind.textContent = '인증 마크';
-        node.appendChild(blind);
+        if (cls === null) { node.appendChild(blind); return node; }
+        const mark = document.createElement('i');
+        mark.className = cls;
+        mark.appendChild(blind);
+        node.appendChild(mark);
+        return node;
+    };
+    const markBadges = (node: HTMLElement) => adapter.extract(node)!.badges.filter(b => Object.values(VERIFIED_MARK_URL).includes(b));
 
-        const info = adapter.extract(node);
-        expect(info).toBeDefined();
-        expect(info!.badges).toContain('https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png');
+    it('인증 마크는 종류(class)별 URL을 배지로 넣는다 — 필터의 이름표', () => {
+        expect(markBadges(withMark('_icon_a1 _mark_a1 _is_partner_a1'))).toEqual([VERIFIED_MARK_URL.PARTNER]);
+        expect(markBadges(withMark('_icon_a1 _mark_a1 _is_challenger_a1'))).toEqual([VERIFIED_MARK_URL.CHALLENGER]);
+        expect(markBadges(withMark('_icon_a1 _mark_a1 _is_official_a1'))).toEqual([VERIFIED_MARK_URL.OFFICIAL]);
     });
 
-    it('does NOT append verifiedBadgeImageUrl when no "인증 마크" blind label exists', () => {
-        const node = buildChatFixture();
-        // 다른 blind 텍스트만 있을 때 오탐 없어야 함
-        const blind = document.createElement('span');
-        blind.className = 'blind';
-        blind.textContent = '구독 배지';
-        node.appendChild(blind);
+    it('종류 class가 없는 마크는 파트너 마크로 본다 (나뉘기 전의 인증 마크)', () => {
+        expect(markBadges(withMark('_icon_a1 _mark_a1'))).toEqual([VERIFIED_MARK_URL.PARTNER]);
+    });
 
-        const info = adapter.extract(node);
-        expect(info!.badges).not.toContain('https://ssl.pstatic.net/static/nng/glive/image/icon_official_mark.png');
+    it('마크가 아닌 곳의 같은 라벨(이름 없는 배지)이나 다른 라벨은 인증이 아니다', () => {
+        expect(markBadges(withMark(null))).toEqual([]);
+        expect(markBadges(withMark('_badge_a1'))).toEqual([]);
+        const node = buildChatFixture();
+        const other = document.createElement('span');
+        other.className = 'blind';
+        other.textContent = '구독 배지';
+        node.appendChild(other);
+        expect(markBadges(node)).toEqual([]);
     });
 });
 

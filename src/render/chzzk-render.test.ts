@@ -4,6 +4,7 @@ import type { ChzzkSocketChat } from '@/platform/chzzk-socket';
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
 import { donationLevel, messageToHtml, toChzzkChatView } from './chzzk-chat-view';
 import { renderChzzkChat, DEFAULT_CHZZK_TEMPLATES } from './chzzk-render';
+import { VERIFIED_MARK_URL } from '@/platform/chzzk-verified';
 
 const T = Date.UTC(2026, 9, 10, 5, 7);
 const formatTime = () => '14:07';
@@ -119,8 +120,9 @@ describe('toChzzkChatView', () => {
     });
 
     it('인증 마크 URL은 인증 사용자에게만', () => {
-        expect(toChzzkChatView(chat(), { verifiedIconUrl: 'v.png' }).verifiedIconUrl).toBeUndefined();
-        expect(toChzzkChatView(chat({ verified: true }), { verifiedIconUrl: 'v.png' }).verifiedIconUrl).toBe('v.png');
+        expect(toChzzkChatView(chat()).verifiedIconUrl).toBeUndefined();
+        expect(toChzzkChatView(chat({ verified: true, verifiedMarkType: 'PARTNER' })).verifiedIconUrl).toBe(VERIFIED_MARK_URL.PARTNER);
+        expect(toChzzkChatView(chat({ verified: true })).verifiedIconUrl).toBe(VERIFIED_MARK_URL.PARTNER);
     });
 });
 

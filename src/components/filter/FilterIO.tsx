@@ -7,6 +7,7 @@ import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import { useCallback, useRef } from "react";
 import { useAlertContext } from "@/context/Alert";
 import { Button, LabelButton } from "@/ui";
+import { migrateVerifiedMarkFilters } from "@/filter/verified-migration";
 
 export function ImportFilter({ size }: { size?: 'sm' | 'md' } = {}) {
     const {globalSetting} = useGlobalSettingContext();
@@ -44,7 +45,8 @@ export function ImportFilter({ size }: { size?: 'sm' | 'md' } = {}) {
         fileReader.onloadend = (e: ProgressEvent<FileReader>) => {
             if (!e.target) return;
 
-            modifyFilterListByPlatform(JSON.parse(e.target.result as string));
+            // 예전 백업의 "인증 마크"(종류 구분 전)는 파트너 마크로 바꿔 넣는다
+            modifyFilterListByPlatform(migrateVerifiedMarkFilters(JSON.parse(e.target.result as string)).list);
 
             if(inputRef.current) inputRef.current.value = '';
         };

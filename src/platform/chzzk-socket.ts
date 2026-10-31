@@ -1,5 +1,6 @@
 import type { ChatInfo } from "@/interfaces/chat";
 import nicknameColors from "./chzzk-nickname-colors.json";
+import { isVerifiedMarkType, verifiedMarkUrl, type VerifiedMarkType } from "./chzzk-verified";
 
 /**
  * 치지직 채팅 프로토콜 → 정규화된 채팅 객체.
@@ -58,6 +59,8 @@ export interface ChzzkSocketChat {
     /** host가 닉네임 옆에 그리는 순서 그대로의 배지 이미지 URL. 인증 마크는 별도(verified). */
     badges: string[];
     verified: boolean;
+    /** 인증 마크 종류 (profile.verifiedMarkType). 인증됐는데 종류가 없으면 비어 있다. */
+    verifiedMarkType?: VerifiedMarkType;
     userRoleCode: string;
     /** 닉네임 색 코드 (예: "CC000"). 실제 색은 host의 colorMap에 있어 여기선 코드만. */
     nicknameColorCode?: string;
@@ -152,7 +155,8 @@ export function normalizeChzzkMessage(raw: unknown): ChzzkSocketChat | null {
         message: typeof message === 'string' ? message : '',
         emojis,
         badges: deriveDisplayBadges(profile),
-        verified: profile?.verifiedMark === true,
+        verified: profile?.verifiedMark === true || isVerifiedMarkType(profile?.verifiedMarkType),
+        ...(isVerifiedMarkType(profile?.verifiedMarkType) ? { verifiedMarkType: profile.verifiedMarkType } : {}),
         userRoleCode: typeof profile?.userRoleCode === 'string' ? profile.userRoleCode : '',
         ...(profile?.streamingProperty?.nicknameColor?.colorCode
             ? { nicknameColorCode: profile.streamingProperty.nicknameColor.colorCode } : {}),
@@ -279,11 +283,11 @@ export function withEncodedVariants(urls: string[]): string[] {
  * Filter Group 평가용 ChatInfo. HTML 경로와 달리 모든 필드가 구조화된 원본에서
  * 오므로 `unavailable`은 채우지 않는다.
  *
- * @param verifiedBadgeUrl 인증 마크를 배지로 취급할 때 쓸 URL (OTA constants).
+ * 인증 마크는 종류별 URL을 배지로 넣는다 (chzzk-verified.ts — 필터의 이름표).
  */
-export function toChatInfo(chat: ChzzkSocketChat, verifiedBadgeUrl?: string): ChatInfo {
+export function toChatInfo(chat: ChzzkSocketChat): ChatInfo {
     const badges = withEncodedVariants(chat.badges);
-    if (chat.verified && verifiedBadgeUrl) badges.push(verifiedBadgeUrl);
+    if (chat.verified) badges.push(verifiedMarkUrl(chat.verifiedMarkType));
     const text = stripEmojiTokens(chat.message, chat.emojis);
     return {
         badges,

@@ -1,6 +1,7 @@
 import { MatchPattern } from 'wxt/utils/match-patterns';
 import { CompositeFilterElement } from "@/interfaces/filter";
 import defaultFilter from "@/defaultFilters";
+import { migrateVerifiedMarkFilters } from "@/filter/verified-migration";
 import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
 import { installChzzkApiOriginRule } from "@/api/chzzk-channel";
@@ -86,6 +87,12 @@ export default defineBackground(() => {
 
   // chzzk 배지 이미지 URL은 서버에서 바뀔 수 있어 install/update마다 재동기화.
   // 필터 매칭은 이미지 URL 기준이라, 실패하면 URL이 바뀐 배지의 필터는 다음 동기화까지 안 걸린다.
+  async function migrateVerifiedFilters() {
+    const filter: CompositeFilterElement[] = (await browser.storage.local.get('filter')).filter ?? [];
+    const { list, changed } = migrateVerifiedMarkFilters(filter);
+    if (changed) await browser.storage.local.set({ filter: list });
+  }
+
   async function syncChzzkBadgeImages() {
     const groups = await fetchChzzkBadgeGroups();
 
@@ -151,6 +158,14 @@ export default defineBackground(() => {
     // 네트워크 없이 되는 것부터 — 아래 fetch가 죽어도 설정/필터는 유효한 상태로 남는다.
     await ensureDefaultSettings();
     await normalizeFilterPlatform();
+    // 치지직 인증 마크가 파트너, 챌린저, 공식으로 나뉘었다. 예전 "인증 마크"(지금의 파트너) 필터를 바꾼다 (다시 돌려도 그대로)
+    await migrateVerifiedFilters().catch(e => console.warn('[tbcv2 bg] migrateVerifiedFilters failed', e));
+    // 배지 목록이 바뀌는 업데이트가 있다(인증 마크 나누기 등) — 7일 보관본을 비워 선택 화면이 새 목록을 받게
+    if (details.reason === 'update') {
+      const all = await browser.storage.local.get(null);
+      const stale = Object.keys(all).filter(k => k.startsWith('badges:chzzk:'));
+      if (stale.length) await browser.storage.local.remove(stale);
+    }
     // 템플릿 "글자 크기: 크게"는 스타일의 글자 크기로, 후원 템플릿은 금액을 맨 아래로, 배지 숨김은 스타일로 옮겼다
     if (details.reason === 'update') {
         await migrateLargeLook().catch(e => console.warn('[tbcv2 bg] migrateLargeLook failed', e));
