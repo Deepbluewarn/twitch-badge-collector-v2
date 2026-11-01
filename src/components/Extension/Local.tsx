@@ -9,6 +9,7 @@ import useFilteredChatBuffer from "@/hooks/useFilteredChatBuffer";
 import { findElement } from "@/utils/utils-common";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { SettingInterface } from "@/interfaces/setting";
+import { maxChatsOf } from "@/reducer/setting";
 import { PlatformAdapter } from "@/platform";
 import { Logger } from "@/utils/logger";
 import { captureChats } from "@/utils/captureChat";
@@ -31,8 +32,7 @@ export default function Local({
     const { checkFilter } = useFilterGroup(type, true);
     const containerRef = useRef<HTMLDivElement>(null);
     const currentTimeRef = useRef<number>(0);
-    const maxNumChats = globalSetting.maximumNumberChats
-        ?? (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown as number);
+    const maxNumChats = maxChatsOf(globalSetting.maximumNumberChats);
 
     // channelId를 React state로 관리 — SPA 채널 이동은 URL만 바꾸고 우리 트리를
     // remount 안 함. content-script가 tbc-channel-changed 발화 → 여기서 state

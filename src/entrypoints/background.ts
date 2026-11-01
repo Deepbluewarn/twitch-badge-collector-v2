@@ -1,6 +1,7 @@
 import { MatchPattern } from 'wxt/utils/match-patterns';
 import { CompositeFilterElement } from "@/interfaces/filter";
 import defaultFilter from "@/defaultFilters";
+import { DEFAULT_MAX_CHATS } from "@/reducer/setting";
 import { migrateVerifiedMarkFilters } from "@/filter/verified-migration";
 import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
@@ -41,7 +42,7 @@ export default defineBackground(() => {
       pointBoxAuto: "on",
       darkTheme: "system",
       chatTime: "off",
-      maximumNumberChats: (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
+      maximumNumberChats: DEFAULT_MAX_CHATS,
       advancedFilter: "off",
       platform: "chzzk",
       containerRatio: 30,

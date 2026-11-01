@@ -1,12 +1,25 @@
 import { SettingInterface, SettingReducerAction, SettingReducerActionTypes } from "@/interfaces/setting";
 
+/**
+ * 모아보기 창 채팅 최대 개수 기본값. 예전엔 .env(VITE_MAXNUMCHATS_DEFAULT)에서 읽었는데, .env는 git에 없어
+ * 스토어용 빌드(GitHub Actions)에선 undefined였다. 그러면 저장소에 기본값이 안 들어가 설정 칸이 비고,
+ * 모아보기 창이 채팅을 하나도 버리지 않고 끝없이 쌓았다.
+ */
+export const DEFAULT_MAX_CHATS = 100;
+
+/** 저장값을 쓸 수 있는 개수로. 없거나(옛 스토어 빌드), 숫자가 아니거나, 1보다 작으면 기본값. */
+export function maxChatsOf(v: unknown): number {
+    const n = Math.floor(Number(v));
+    return Number.isFinite(n) && n >= 1 ? n : DEFAULT_MAX_CHATS;
+}
+
 // 초기 상태 정의
 export const initialState: SettingInterface = {
     position: "up",
     pointBoxAuto: 'on',
     darkTheme: 'system',
     chatTime: 'off',
-    maximumNumberChats: (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number,
+    maximumNumberChats: DEFAULT_MAX_CHATS,
     advancedFilter: 'off',
     platform: "chzzk",
     collectedChatMarker: 'on',
@@ -49,7 +62,7 @@ function settingsReducer(state: SettingInterface = initialState, action: Setting
         case actionTypes.SET_CHAT_TIME:
             return { ...state, chatTime: action.payload || false };
         case actionTypes.SET_MAXIMUM_NUMBER_CHATS:
-            return { ...state, maximumNumberChats: action.payload || (import.meta.env.VITE_MAXNUMCHATS_DEFAULT as unknown) as number };
+            return { ...state, maximumNumberChats: maxChatsOf(action.payload) };
         case actionTypes.SET_ADVANCED_FILTER:
             return { ...state, advancedFilter: action.payload || false };
         case actionTypes.SET_PLATFORM:
