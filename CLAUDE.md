@@ -31,7 +31,11 @@ gh release download v<스토어 버전> -p '*-chrome.zip' -D /tmp/prev   # 이�
 npm run build
 node scripts/real-update-test.mjs /tmp/prev/*-chrome.zip .output/chrome-mv3 --socket off
 node scripts/real-update-test.mjs /tmp/prev/*-chrome.zip .output/chrome-mv3 --socket on
+node scripts/real-update-test.mjs /tmp/prev/*-chrome.zip .output/chrome-mv3 --socket off --persist off
+node scripts/real-update-test.mjs /tmp/prev/*-chrome.zip .output/chrome-mv3 --socket on --persist off
 ```
+
+`--persist off`는 채팅 유지 저장을 끈 사용자다. 새로고침하면 창이 비는 게 정상이고, 업데이트와 빈틈 결과는 위와 같아야 한다. 조용한 방송이면 `--url`로 채팅이 많은 방송을 고른다.
 
 각각 채팅이 쌓인 뒤 `http://localhost:8765/update`(실제 업데이트), 새로고침 후 `/gap`(빈틈 7초)을 불러 확인한다.
 - 업데이트: 모아보기 창이 하나이고, 업데이트 전 채팅이 그대로 있고, 안내 띠가 없고, 수집이 이어진다.

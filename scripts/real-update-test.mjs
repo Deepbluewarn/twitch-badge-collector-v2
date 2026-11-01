@@ -9,6 +9,7 @@
  *
  *   node scripts/real-update-test.mjs <옛 버전 zip|폴더> <새 버전 폴더> [옵션]
  *     --socket on|off   치지직 소켓 모드(설치별 숫자를 고정). 기본 off. 둘 다 시험할 것
+ *     --persist on|off  채팅 유지 저장(chatPersistence). 기본 on. 둘 다 시험할 것
  *     --filter ㅋ       재현용 키워드 필터(치지직). 기본 ㅋ, 빈 값이면 넣지 않음
  *     --url <주소>      처음 열 방송. 기본은 지금 시청자가 많은 치지직 라이브 30위쯤
  *
@@ -34,10 +35,11 @@ const args = process.argv.slice(2);
 const opt = (name, def) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args[i + 1] ?? '' : def; };
 const [oldArg, newArg] = args.filter((a, i) => !a.startsWith('--') && !args[i - 1]?.startsWith('--'));
 if (!oldArg || !newArg) {
-    console.error('usage: node scripts/real-update-test.mjs <옛 버전 zip|폴더> <새 버전 폴더> [--socket on|off] [--filter ㅋ] [--url 주소]');
+    console.error('usage: node scripts/real-update-test.mjs <옛 버전 zip|폴더> <새 버전 폴더> [--socket on|off] [--persist on|off] [--filter ㅋ] [--url 주소]');
     process.exit(2);
 }
 const SOCKET = opt('socket', 'off') === 'on';
+const PERSIST = opt('persist', 'on') === 'off' ? 'off' : 'on';
 const FILTER = opt('filter', 'ㅋ');
 const PORT = 8765, CDP_PORT = 9334;
 const UPDATE_URL = `http://localhost:${PORT}/update.xml`;
@@ -169,8 +171,8 @@ for (let i = 0; i < 30; i++) {
 }
 const setup = await ctx.newPage();
 await setup.goto(`chrome-extension://${ID}/popup.html`);
-await setup.evaluate(async ({ socket, filter }) => {
-    const set = { 'tbc-socket-rollout-bucket': socket ? 0 : 99 };
+await setup.evaluate(async ({ socket, filter, persist }) => {
+    const set = { 'tbc-socket-rollout-bucket': socket ? 0 : 99, chatPersistence: persist };
     if (filter) {
         const { filter: list = [] } = await chrome.storage.local.get('filter');
         if (!list.some(f => f.id === 'real-update-test')) list.push({ filterType: 'include', id: 'real-update-test', filterNote: '실제 업데이트 시험', platform: 'chzzk',
@@ -178,7 +180,7 @@ await setup.evaluate(async ({ socket, filter }) => {
         set.filter = list;
     }
     await chrome.storage.local.set(set);
-}, { socket: SOCKET, filter: FILTER });
+}, { socket: SOCKET, filter: FILTER, persist: PERSIST });
 await setup.close();
 
 let url = opt('url', '');
@@ -188,5 +190,5 @@ if (!url) {
     url = `https://chzzk.naver.com/live/${list[list.length - 1].channel.channelId}`;
 }
 await (await ctx.newPage()).goto(url);
-log(`준비 끝: ${older.version} 설치, 소켓 모드 ${SOCKET ? '켬' : '끔'}, ${url}`);
+log(`준비 끝: ${older.version} 설치, 소켓 모드 ${SOCKET ? '켬' : '끔'}, 채팅 유지 저장 ${PERSIST === 'on' ? '켬' : '끔'}, ${url}`);
 log(`채팅이 쌓이면 http://localhost:${PORT}/update (실제 업데이트) 또는 /gap (빈틈 시험), 상태는 /state`);
