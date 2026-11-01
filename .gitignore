@@ -40,3 +40,5 @@ canary-autofix.json
 captures/
 # socket canary가 오류 때 만드는 알림 파일 (workflow 안에서만 소비)
 canary-socket-alert.json
+# 스토어 대시보드에서 받은 통계 CSV (설치, 사용자 수), 커밋 금지
+.statics/
