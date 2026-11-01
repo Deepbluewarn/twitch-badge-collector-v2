@@ -50,13 +50,22 @@ export default function useExtensionGlobalSetting() {
 
         // 외부 변경 구독. 자기가 일으킨 변경도 같은 path로 들어오지만 prev와 비교해
         // 동일하면 같은 reference 반환 → React가 re-render 안 함.
+        // 설정 키가 아닌 변경(모아보기 저장 chatHistory:* 등)은 setState를 아예 부르지 않는다. React는 바뀐 게 없어
+        // 건너뛴 업데이트도 다음 렌더까지 대기열에 두는데, 이 컴포넌트는 거의 다시 그려지지 않아 대기열이 끝없이
+        // 길어지고 업데이트마다 변경 내용(채팅 HTML 수백 KB)을 붙잡았다. 넓은 필터로 방송 여러 개를 띄우면 몇 분 만에 GB 단위.
         const listener = (changes: Record<string, { oldValue?: unknown; newValue?: unknown }>) => {
+            const updates: Partial<Record<string, unknown>> = {};
+            let any = false;
+            for (const key of SETTING_KEYS) {
+                if (key in changes) { updates[key] = changes[key].newValue; any = true; }
+            }
+            if (!any) return;
             setGlobalSetting(prev => {
                 let next = prev;
-                for (const [key, change] of Object.entries(changes)) {
-                    if (key in prev && (prev as any)[key] !== change.newValue) {
+                for (const [key, value] of Object.entries(updates)) {
+                    if ((prev as any)[key] !== value) {
                         if (next === prev) next = { ...prev };
-                        (next as any)[key] = change.newValue;
+                        (next as any)[key] = value;
                     }
                 }
                 return next;
