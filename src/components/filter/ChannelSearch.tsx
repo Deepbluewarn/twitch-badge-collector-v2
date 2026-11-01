@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChzzkChannel, canReachChzzkApi, requestChzzkApiAccess, searchChzzkChannels } from '@/api/chzzk-channel';
-import { Button, Icon, Spinner, TextInput } from '@/ui';
+import { Button, Spinner, TextInput } from '@/ui';
+import { verifiedMarkUrl } from '@/platform/chzzk-verified';
 import s from './ChannelSearch.module.css';
 
 /**
@@ -61,7 +62,7 @@ export function ChannelSearch({ platform, onPick }: { platform: string; onPick: 
                                         <button type="button" className={s.item} onClick={() => pick(c)}>
                                             <ChannelAvatar src={c.imageUrl} size={28} />
                                             <span className={s.name}>{c.name}</span>
-                                            {c.verified && <Icon name="verified" className={s.verified} />}
+                                            {c.verified && <img src={verifiedMarkUrl(c.verified)} alt="" className={s.verified} />}
                                         </button>
                                     </li>
                                 ))}

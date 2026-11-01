@@ -4,6 +4,8 @@
 // 1) 치지직 탭이 열려 있으면 그 탭의 콘텐츠 스크립트가 부른다 — 출처가 chzzk.naver.com인 정상 요청.
 // 2) 없으면 확장에서 직접 부르되, 이 확장의 요청에서만 Origin을 지운다(background의 DNR 규칙).
 //    이쪽은 호스트 권한이 필요해 처음 검색할 때 요청한다(optional) — 업데이트만으로 확장이 꺼지지 않게.
+import { isVerifiedMarkType, type VerifiedMarkType } from '@/platform/chzzk-verified';
+
 const API = 'https://api.chzzk.naver.com';
 export const CHZZK_API_ORIGINS = [`${API}/*`];
 /** 설정 페이지 → 치지직 탭 콘텐츠 스크립트 메시지 */
@@ -14,7 +16,8 @@ export interface ChzzkChannel {
     id: string;
     name: string;
     imageUrl?: string;
-    verified: boolean;
+    /** 인증 마크 종류(파트너, 챌린저, 공식). 없으면 null. */
+    verified: VerifiedMarkType | null;
 }
 
 export function hasChzzkApiAccess(): Promise<boolean> {
@@ -61,8 +64,12 @@ export function listenChzzkApiRequests() {
     });
 }
 
-interface RawChannel { channelId: string; channelName: string; channelImageUrl?: string | null; verifiedMark?: boolean }
-const toChannel = (c: RawChannel): ChzzkChannel => ({ id: c.channelId, name: c.channelName, imageUrl: c.channelImageUrl || undefined, verified: !!c.verifiedMark });
+interface RawChannel { channelId: string; channelName: string; channelImageUrl?: string | null; verifiedMark?: boolean; verifiedMarkType?: unknown }
+// 종류를 모르면 파트너로 본다 (verifiedMarkUrl과 같게)
+const toChannel = (c: RawChannel): ChzzkChannel => ({
+    id: c.channelId, name: c.channelName, imageUrl: c.channelImageUrl || undefined,
+    verified: !c.verifiedMark ? null : isVerifiedMarkType(c.verifiedMarkType) ? c.verifiedMarkType : 'PARTNER',
+});
 
 async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
     let reply = await viaChzzkTab(path);
