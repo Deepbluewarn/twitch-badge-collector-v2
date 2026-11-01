@@ -11,7 +11,9 @@
             "missing_sub_filters": "サブフィルターがありません。",
             "empty_sub_filter_value": "サブフィルターの値が空です。"
         },
-        "no_platform_filters": "追加できるこのプラットフォームのフィルターがありません。"
+        "no_platform_filters": "追加できるこのプラットフォームのフィルターがありません。",
+        "import_invalid_file": "フィルターファイルを読み込めません。",
+        "import_skipped": "形式が正しくないフィルター{{count}}件は追加しませんでした。"
     },
     "common": {
         "filter": "フィルター",

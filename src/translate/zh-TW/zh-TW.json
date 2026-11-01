@@ -11,7 +11,9 @@
             "missing_sub_filters": "未定義子篩選器。",
             "empty_sub_filter_value": "有子篩選器的值為空。"
         },
-        "no_platform_filters": "沒有可新增的此平台篩選器。"
+        "no_platform_filters": "沒有可新增的此平台篩選器。",
+        "import_invalid_file": "無法讀取篩選器檔案。",
+        "import_skipped": "已略過 {{count}} 個格式無效的篩選器。"
     },
     "common": {
         "filter": "篩選器",

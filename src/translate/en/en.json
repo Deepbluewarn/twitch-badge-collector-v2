@@ -11,7 +11,9 @@
             "missing_sub_filters": "No sub-filters defined.",
             "empty_sub_filter_value": "A sub-filter has an empty value."
         },
-        "no_platform_filters": "No filters for this platform to add."
+        "no_platform_filters": "No filters for this platform to add.",
+        "import_invalid_file": "Couldn't read the filter file.",
+        "import_skipped": "Skipped {{count}} filters with an invalid format."
     },
     "common": {
         "filter": "Filter",

@@ -11,7 +11,9 @@
             "missing_sub_filters": "Keine Unterfilter definiert.",
             "empty_sub_filter_value": "Ein Unterfilter hat einen leeren Wert."
         },
-        "no_platform_filters": "Keine Filter dieser Plattform zum Hinzufügen."
+        "no_platform_filters": "Keine Filter dieser Plattform zum Hinzufügen.",
+        "import_invalid_file": "Die Filterdatei konnte nicht gelesen werden.",
+        "import_skipped": "{{count}} Filter mit ungültigem Format wurden übersprungen."
     },
     "common": {
         "filter": "Filter",

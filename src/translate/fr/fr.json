@@ -11,7 +11,9 @@
             "missing_sub_filters": "Aucun sous-filtre défini.",
             "empty_sub_filter_value": "Un sous-filtre a une valeur vide."
         },
-        "no_platform_filters": "Aucun filtre à ajouter pour cette plateforme."
+        "no_platform_filters": "Aucun filtre à ajouter pour cette plateforme.",
+        "import_invalid_file": "Impossible de lire le fichier de filtres.",
+        "import_skipped": "{{count}} filtres au format invalide ont été ignorés."
     },
     "common": {
         "filter": "Filtre",

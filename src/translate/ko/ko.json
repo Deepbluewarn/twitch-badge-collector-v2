@@ -11,7 +11,9 @@
             "missing_sub_filters": "하위 필터가 없습니다.",
             "empty_sub_filter_value": "하위 필터 값이 비어 있습니다."
         },
-        "no_platform_filters": "추가 가능한 플랫폼 필터가 없습니다."
+        "no_platform_filters": "추가 가능한 플랫폼 필터가 없습니다.",
+        "import_invalid_file": "필터 파일을 읽을 수 없습니다.",
+        "import_skipped": "형식이 맞지 않는 필터 {{count}}개는 넣지 않았습니다."
     },
     "common": {
         "filter": "필터",

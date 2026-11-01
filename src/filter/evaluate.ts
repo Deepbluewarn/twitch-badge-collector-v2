@@ -66,6 +66,8 @@ export function evaluateFilterGroup(
             if (filter.type === 'sleep') {
                 return filterMatchedRes;
             }
+            // 예전에 검사 없이 가져온 필터가 저장돼 있을 수 있다 — 값이 문자열이 아니면 채팅마다 던진다
+            if (typeof filter.value !== 'string') return false;
 
             if (filter.category === "badge") {
                 if (isBadgeChannelScopeMismatch(chat, filter)) {

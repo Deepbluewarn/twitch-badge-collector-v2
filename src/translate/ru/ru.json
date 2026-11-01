@@ -11,7 +11,9 @@
             "missing_sub_filters": "Нет подфильтров.",
             "empty_sub_filter_value": "У подфильтра пустое значение."
         },
-        "no_platform_filters": "Нет фильтров этой платформы для добавления."
+        "no_platform_filters": "Нет фильтров этой платформы для добавления.",
+        "import_invalid_file": "Не удалось прочитать файл фильтров.",
+        "import_skipped": "Пропущено фильтров с неверным форматом: {{count}}."
     },
     "common": {
         "filter": "Фильтр",

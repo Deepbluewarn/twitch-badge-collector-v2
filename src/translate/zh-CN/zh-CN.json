@@ -11,7 +11,9 @@
             "missing_sub_filters": "未定义子过滤器。",
             "empty_sub_filter_value": "有子过滤器的值为空。"
         },
-        "no_platform_filters": "没有可添加的该平台过滤器。"
+        "no_platform_filters": "没有可添加的该平台过滤器。",
+        "import_invalid_file": "无法读取过滤器文件。",
+        "import_skipped": "已跳过 {{count}} 个格式无效的过滤器。"
     },
     "common": {
         "filter": "过滤器",

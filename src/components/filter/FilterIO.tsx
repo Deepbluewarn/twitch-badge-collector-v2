@@ -7,33 +7,32 @@ import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import { useCallback, useRef } from "react";
 import { useAlertContext } from "@/context/Alert";
 import { Button, LabelButton } from "@/ui";
-import { migrateVerifiedMarkFilters } from "@/filter/verified-migration";
+import { parseFilterImport, replacePlatformFilters } from "@/filter/import";
 
 export function ImportFilter({ size }: { size?: 'sm' | 'md' } = {}) {
     const {globalSetting} = useGlobalSettingContext();
-    const { filterGroup, setFilterGroup, addCompositeFilters } = useFilterGroupContext();
+    const { setFilterGroup } = useFilterGroupContext();
     const { t } = useTranslation();
     const { addAlert } = useAlertContext();
     const inputRef = useRef<HTMLInputElement>(null);
 
-    /**
-     * 
-     */
-    const modifyFilterListByPlatform = useCallback((filters: CompositeFilterElement[]) => {
-        const platformFilter = filters.filter((filter) => filter.platform === globalSetting.platform);
-        const preservedFilter = filterGroup.filter((filter) => filter.platform !== globalSetting.platform);
-
-        if(platformFilter.length === 0) {
-            addAlert({
-                serverity: 'info',
-                message: t('alert.no_platform_filters'),
-            })
+    const importFilters = useCallback((text: string) => {
+        const parsed = parseFilterImport(text);
+        if (!parsed.ok) {
+            addAlert({ serverity: 'warning', message: t('alert.import_invalid_file') });
             return;
         }
-
-        setFilterGroup([]);
-        addCompositeFilters([...preservedFilter, ...platformFilter]);
-    }, [filterGroup, globalSetting.platform])
+        if (parsed.skipped > 0) {
+            addAlert({ serverity: 'warning', message: t('alert.import_skipped', { count: parsed.skipped }) });
+        }
+        const platform = globalSetting.platform;
+        if (!parsed.list.some(f => f.platform === platform)) {
+            addAlert({ serverity: 'info', message: t('alert.no_platform_filters') });
+            return;
+        }
+        // 비우고 하나씩 넣으면 중간에 멈췄을 때 지운 필터가 그대로 사라진다. 한 번에 바꾼다.
+        setFilterGroup(prev => replacePlatformFilters(prev, parsed.list, platform));
+    }, [globalSetting.platform]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const fileReader = new FileReader();
@@ -44,10 +43,7 @@ export function ImportFilter({ size }: { size?: 'sm' | 'md' } = {}) {
 
         fileReader.onloadend = (e: ProgressEvent<FileReader>) => {
             if (!e.target) return;
-
-            // 예전 백업의 "인증 마크"(종류 구분 전)는 파트너 마크로 바꿔 넣는다
-            modifyFilterListByPlatform(migrateVerifiedMarkFilters(JSON.parse(e.target.result as string)).list);
-
+            importFilters(e.target.result as string);
             if(inputRef.current) inputRef.current.value = '';
         };
     };
