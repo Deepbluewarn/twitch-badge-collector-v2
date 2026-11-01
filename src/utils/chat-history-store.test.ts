@@ -20,13 +20,14 @@ describe('chat-history-store', () => {
         expect(await keys()).toEqual([]);
     });
 
-    it('전체 4MB를 넘으면 오래된 채널부터 지운다 — 필터·설정 공간을 남기려고', async () => {
-        for (const ch of ['a', 'b', 'c', 'd', 'e']) {
+    it('한도 가까이 찬 탭이 여럿이어도 서로 지우지 않는다', async () => {
+        // 예전 전체 한도 4MB에선 900KB 다섯 개째에 가장 오래된 채널을 지웠다 — 탭 다섯 개가 2초마다 서로 지웠다
+        const chs = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+        for (const ch of chs) {
             await saveChatHistory(`chatHistory:chzzk:${ch}:live`, payload(900_000));
             await new Promise(r => setTimeout(r, 2));
         }
-        // 900KB × 4 = 3.6MB까지만, 가장 오래된 a가 빠진다
-        expect(await keys()).toEqual(['chatHistory:chzzk:b:live', 'chatHistory:chzzk:c:live', 'chatHistory:chzzk:d:live', 'chatHistory:chzzk:e:live']);
+        expect(await keys()).toEqual(chs.map(ch => `chatHistory:chzzk:${ch}:live`));
     });
 
     it('채널은 최근 20개까지', async () => {

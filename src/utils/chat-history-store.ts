@@ -6,8 +6,8 @@
  * 세션 성격은 직접 지킨다: 브라우저를 시작할 때 모두 지우고(background onStartup), 채널 수를 제한한다.
  * 저장 위치는 여전히 이 컴퓨터뿐이다.
  *
- * storage.local은 필터·설정과 같은 공간(약 10MB)을 쓴다 — 채팅이 다 차지하면 필터 저장이 실패한다.
- * 그래서 채널당 CHANNEL_MAX_BYTES, 전체 TOTAL_MAX_BYTES로 묶고 넘치면 오래된 채널부터 지운다.
+ * 채널당 CHANNEL_MAX_BYTES, 전체 TOTAL_MAX_BYTES로 묶고 넘치면 오래된 채널부터 지운다. Chrome은 unlimitedStorage라
+ * 공간 걱정은 없지만(Firefox storage.local도 10MB 한도가 없다) 디스크에 쌓이는 양은 묶어 둔다.
  */
 export const CHAT_HISTORY_PREFIX = 'chatHistory:';
 /** { [키]: { 마지막 저장 시각, 크기 } } — 채널 수·용량 제한에서 오래된 것부터 지우려고 */
@@ -15,7 +15,11 @@ const INDEX_KEY = 'chatHistoryIndex';
 const MAX_CHANNELS = 20;
 /** 채널 하나에 저장하는 최대 크기 — 넘치면 호출 측이 오래된 채팅부터 덜어 낸다 */
 export const CHANNEL_MAX_BYTES = 1_000_000;
-const TOTAL_MAX_BYTES = 4_000_000;
+/**
+ * 전체 한도. 예전 4MB는 채널 한도의 4배라, 1MB 가까이 찬 탭이 5개 넘게 열려 있으면 저장할 때마다
+ * 다른 탭 기록을 지웠다(그 탭을 새로고침하면 채팅이 사라지고 2초마다 쓰고 지우기를 되풀이). 채널 수 한도만큼 둔다.
+ */
+const TOTAL_MAX_BYTES = MAX_CHANNELS * CHANNEL_MAX_BYTES;
 type IndexEntry = { at: number; bytes: number };
 
 /** 저장될 크기(대략) — storage.local은 JSON(UTF-8)으로 센다 */
@@ -29,12 +33,16 @@ async function getIndex(): Promise<Record<string, IndexEntry>> {
     return v && typeof v === 'object' ? v as Record<string, IndexEntry> : {};
 }
 
+export class ChatHistoryTooLarge extends Error {
+    constructor(readonly bytes: number) { super('chat history too large'); }
+}
+
 /** 저장. 넘치면(quota) 호출 측이 줄여서 다시 부른다 — 그래서 실패는 그대로 던진다. */
 export async function saveChatHistory(key: string, payload: unknown): Promise<void> {
     const store = area();
     if (!store) return;
     const bytes = sizeOf(payload);
-    if (bytes > CHANNEL_MAX_BYTES) throw new Error('chat history too large');
+    if (bytes > CHANNEL_MAX_BYTES) throw new ChatHistoryTooLarge(bytes);
     await store.set({ [key]: payload });
     // 최근 저장한 채널부터 채널 수·전체 크기 안에 드는 것만 남긴다.
     const index = { ...await getIndex(), [key]: { at: Date.now(), bytes } };

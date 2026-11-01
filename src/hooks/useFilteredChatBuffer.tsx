@@ -3,7 +3,7 @@ import DOMPurify from "dompurify";
 import { PlatformAdapter } from "@/platform";
 import { convertToJSX } from "@/utils/converter";
 import { PassedChat } from "./useChatStream";
-import { hasChatHistoryStore, loadChatHistory, removeChatHistory, saveChatHistory } from "@/utils/chat-history-store";
+import { CHANNEL_MAX_BYTES, ChatHistoryTooLarge, hasChatHistoryStore, loadChatHistory, removeChatHistory, saveChatHistory } from "@/utils/chat-history-store";
 import { takeLeftoverChats } from "@/content-scripts/base/salvage";
 import { contextAlive } from "@/content-scripts/base/lifecycle";
 
@@ -67,18 +67,24 @@ const EVICTION_DROP_RATIO = 0.1;
  * 채팅 유지는 *세션* 단위 — 새로고침/탭 이동/확장 업데이트엔 살아남되 브라우저 재시작엔 깨끗이 비움.
  * 저장소와 수명 관리는 src/utils/chat-history-store.ts (storage.local + 브라우저 시작 시 삭제).
  *
- * 저장. 채널 한도(CHANNEL_MAX_BYTES)나 quota를 넘으면 오래된 쪽부터 10%씩 drop하고 재시도.
+ * 저장. 채널 한도(CHANNEL_MAX_BYTES)를 넘으면 오래된 쪽부터 덜어 내고 재시도. 오래된 쪽은 chatOrder에 따라
+ * 다르다 — 치지직(newest-top)은 끝이 오래된 것이다. 예전엔 늘 앞을 덜어 치지직에선 최신 채팅을 버렸다.
  */
-async function saveWithEviction(key: string, payload: PersistedPayload): Promise<void> {
+async function saveWithEviction(key: string, payload: PersistedPayload, order: PlatformAdapter['chatOrder']): Promise<void> {
     if (!hasChatHistoryStore()) return;
     let attempt = payload;
     while (attempt.chats.length > 0) {
         try {
             await saveChatHistory(key, attempt);
             return;
-        } catch {
-            const evictCount = Math.max(1, Math.floor(attempt.chats.length * EVICTION_DROP_RATIO));
-            attempt = { ...attempt, chats: attempt.chats.slice(evictCount) };
+        } catch (e) {
+            // 크기 초과가 아니면(확장과 끊김 등) 줄여서 다시 해도 소용없다
+            if (!(e instanceof ChatHistoryTooLarge)) return;
+            // 10%씩 덜며 매번 다시 재면 2.5MB짜리는 직렬화를 아홉 번 한다 — 잰 크기로 한 번에 덜어 낸다
+            const ratio = Math.min(1 - EVICTION_DROP_RATIO, (CHANNEL_MAX_BYTES / e.bytes) * (1 - EVICTION_DROP_RATIO));
+            const keep = Math.min(attempt.chats.length - 1, Math.floor(attempt.chats.length * ratio));
+            const n = Math.max(0, keep);
+            attempt = { ...attempt, chats: order === 'newest-top' ? attempt.chats.slice(0, n) : attempt.chats.slice(attempt.chats.length - n) };
         }
     }
 }
@@ -249,7 +255,7 @@ export default function useFilteredChatBuffer(
                 version: 1,
                 chats: latestChatsRef.current.map(({ key, time, html, nickname, text, channel }) => ({ key, time, html, nickname, text, channel })),
             };
-            void saveWithEviction(persistenceKey, payload);
+            void saveWithEviction(persistenceKey, payload, adapter.chatOrder);
         }, PERSIST_INTERVAL_MS);
     }, [savedChats, persistenceKey]);
     // key가 바뀌거나(채널 이동) 언마운트되면 예약된 저장을 취소.
@@ -351,15 +357,27 @@ export default function useFilteredChatBuffer(
 
     // 렌더용 ReactElement 매핑. SavedChat.html을 DOMPurify로 sanitize 후
     // DOM Element로 환원 → 캡쳐 클래스 부여 → convertToJSX.
+    // 채팅 하나가 들어올 때마다 전부 다시 만들면 1000개 창에서 초당 수만 번 파싱한다 — 같은 SavedChat
+    // (updateChat은 새 객체로 바꾼다)과 같은 캡쳐 상태면 지난번 결과를 그대로 쓴다.
+    const renderCacheRef = useRef(new Map<string, { chat: SavedChat; mode: boolean; selected: boolean; el: React.ReactElement }>());
     const chats = useMemo(() => {
-        return savedChats.map(c => {
+        const prevCache = renderCacheRef.current;
+        const nextCache = new Map<string, { chat: SavedChat; mode: boolean; selected: boolean; el: React.ReactElement }>();
+        const mode = !!capture?.captureMode;
+        const out = savedChats.map(c => {
+            const selected = !!capture?.selectedKeys.has(c.key);
+            const hit = prevCache.get(c.key);
+            if (hit && hit.chat === c && hit.mode === mode && hit.selected === selected) {
+                nextCache.set(c.key, hit);
+                return hit.el;
+            }
             const sanitized = DOMPurify.sanitize(c.html);
             const wrapper = document.createElement('div');
             wrapper.innerHTML = sanitized;
             const node = wrapper.firstElementChild as HTMLElement | null;
             if (node) {
-                if (capture?.captureMode) node.classList.add(CAPTURE_MODE_CLASS);
-                if (capture?.selectedKeys.has(c.key)) node.classList.add(CAPTURE_SELECTED_CLASS);
+                if (mode) node.classList.add(CAPTURE_MODE_CLASS);
+                if (selected) node.classList.add(CAPTURE_SELECTED_CLASS);
                 // 디버그: hover 시 이 chat이 수집된 채널 표시. channel = persistenceKey
                 // (`chatHistory:{type}:{channelId}:live`) — id만 뽑아 tooltip에.
                 if (c.channel) {
@@ -372,12 +390,16 @@ export default function useFilteredChatBuffer(
                 }
             }
             const content = node ? convertToJSX(node) : null;
-            return React.createElement(
+            const el = React.createElement(
                 ChatWrapper,
                 { key: c.key, time: c.time, restored: c.restored },
                 content,
             );
+            nextCache.set(c.key, { chat: c, mode, selected, el });
+            return el;
         });
+        renderCacheRef.current = nextCache;
+        return out;
     }, [savedChats, capture?.captureMode, capture?.selectedKeys]);
 
     return { chats, addChat, updateChat, clear, savedChats };
