@@ -151,15 +151,15 @@ const LIST_CROP = { ko: { full: 934, x: 235, y: 0, w: 699, h: 409, s: 1.16 }, en
 const FRAMES = lang => {
   const c = COPY[lang];
   return [
-    { out: `${lang}/screenshot-1.png`, cls: "shot hero", html: `
+    { out: `${lang}-screenshot-1-chat-1280x800.png`, cls: "shot hero", html: `
       <div class="copy">${brand(c, 64)}<p class="headline">${c.hero}</p><div class="chips">${c.chips.map(x => `<span>${x}</span>`).join("")}</div></div>
       ${panel(lang, 262, 10)}` },
-    { out: `${lang}/screenshot-2.png`, cls: "shot list", html: `
+    { out: `${lang}-screenshot-2-filters-1280x800.png`, cls: "shot list", html: `
       <div class="copy"><div class="brand">${logo(52)}Badge Collector</div><p class="headline">${c.list}</p></div>
       <div class="win">${crop(`shots/filters-${lang}.png`, LIST_CROP[lang])}</div>` },
-    { out: `${lang}/promo-small.png`, cls: "tile", html: `
+    { out: `${lang}-promo-small-440x280.png`, cls: "tile", html: `
       <div class="brand">${logo(48)}Badge Collector</div><p class="headline">${c.tile}</p>${plats(c)}` },
-    { out: `${lang}/promo-marquee.png`, cls: "marquee", html: `
+    { out: `${lang}-promo-marquee-1400x560.png`, cls: "marquee", html: `
       <div class="copy">${brand(c, 64)}<p class="headline">${c.hero}</p><div class="chips">${c.chips.map(x => `<span>${x}</span>`).join("")}</div></div>
       ${panel(lang, 238, 6)}` },
   ];

@@ -1,4 +1,4 @@
-// compose.html의 .frame[data-out]을 각각 PNG로 찍는다. 결과: out/ko/*.png, out/en/*.png
+// compose.html의 .frame[data-out]을 각각 PNG로 찍는다. 결과: out/{ko,en}-*.png
 // 실행: node docs/store-images/render.mjs (필터 목록 화면이 바뀌었으면 capture.mjs 먼저)
 import { chromium } from "../../node_modules/playwright/index.mjs";
 import { mkdirSync } from "fs";
