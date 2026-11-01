@@ -35,6 +35,14 @@ describe('createChzzkArchiveFeed', () => {
         expect(recorder.record.mock.calls[0][0]).toMatchObject({ time: 1, nickname: '시청자', text: 'ㅋㅋ', badges: ['b1'], kind: 'chat' });
     });
 
+    it('차단한 사용자의 채팅은 기록하지 않는다', () => {
+        const { recorder, feed, chats } = setup();
+        feed.handle({ action: 'tbc-socket-chat', kind: 'block-list', uids: ['bad'] });
+        chats([chat(1, { uid: 'bad', id: 'bad_1' }), chat(2)]);
+        expect(recorder.record).toHaveBeenCalledTimes(1);
+        expect(recorder.record.mock.calls[0][0].time).toBe(2);
+    });
+
     it('같은 채팅은 한 번만 — 최근 채팅·다시 받은 메시지와 겹쳐도', () => {
         const { recorder, chats } = setup();
         const c = chat(1);

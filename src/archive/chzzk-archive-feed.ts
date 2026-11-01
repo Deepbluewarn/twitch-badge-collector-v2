@@ -1,5 +1,5 @@
 import {
-    TBC_SOCKET_CHAT_ACTION, TBC_SOCKET_REPLAY_ACTION, TBC_SOCKET_REPLAY_REQUEST, type TbcSocketChatMessage,
+    TBC_BLOCK_LIST_REQUEST, TBC_SOCKET_CHAT_ACTION, TBC_SOCKET_REPLAY_ACTION, TBC_SOCKET_REPLAY_REQUEST, type TbcSocketChatMessage,
 } from '@/interfaces/chat-attributes';
 import type { CompositeFilterElement } from '@/interfaces/filter';
 import { evaluateFilterGroup } from '@/filter/evaluate';
@@ -50,6 +50,8 @@ export function createChzzkArchiveFeed(
     let lastTime = 0;
     /** 다시 붙은 뒤 첫 묶음을 기다리는 중이면 끊기기 전 마지막 시각 */
     let gapFrom: number | null = null;
+    /** 시청자가 차단한 사용자 — 치지직이 그리지 않는 채팅은 보관하지 않는다 */
+    let blocked = new Set<string>();
 
     function chats(list: ChzzkSocketChat[]) {
         if (list.length === 0) return;
@@ -66,6 +68,7 @@ export function createChzzkArchiveFeed(
         for (const chat of list) {
             if (seen.has(chat.id)) continue;
             seen.add(chat.id);
+            if (blocked.has(chat.uid)) continue;
             if (seen.size > SEEN_LIMIT) seen.delete(seen.values().next().value!);
             const info = toChatInfo(chat);
             const r = evaluateFilterGroup(info, filters, channelId);
@@ -87,6 +90,8 @@ export function createChzzkArchiveFeed(
                 cid = msg.cid;
             } else if (msg.kind === 'chats') {
                 chats(msg.chats);
+            } else if (msg.kind === 'block-list') {
+                blocked = new Set(msg.uids);
             } else if (msg.kind === 'blind') {
                 // 해제(CANCEL)는 무시한다 — 보관함은 한 번 가린 본문을 되살리지 않는다
                 if (msg.event.blindType !== 'CANCEL') recorder.hide(msg.event.id);
@@ -121,6 +126,8 @@ export function startChzzkArchiveFeed(
         else feed.handle(e.data as TbcSocketChatMessage);
     };
     window.addEventListener('message', onMessage);
+    // 차단 목록을 먼저 — 다시 받는 채팅보다 앞서 와야 차단한 사람 채팅을 거른다
+    window.postMessage({ action: TBC_BLOCK_LIST_REQUEST }, '*');
     window.postMessage({ action: TBC_SOCKET_REPLAY_REQUEST }, '*');
 
     browser.storage.local.get('filter')

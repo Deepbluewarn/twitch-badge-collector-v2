@@ -9,7 +9,7 @@ import {
 } from "@/interfaces/chat-attributes";
 import { isSocketShadowEnabled, socketIdFromHostKey, startChzzkSocketShadow } from "@/content-scripts/chzzk/socket-shadow";
 import { isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
-import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
+import { TBC_BLOCK_LIST_REQUEST, TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
 import { applyBlindEvent, toChatInfo, type ChzzkSocketChat } from "@/platform/chzzk-socket";
 import { renderChzzkChat, type ChzzkTemplates } from "@/render/chzzk-render";
 import { getPlatformConfig } from "@/platform/host-selectors";
@@ -463,6 +463,8 @@ export default function useChatStream(
         }
 
         window.addEventListener('message', handleMessage);
+        // 차단 목록은 페이지를 열 때 한 번만 오고 우리는 대개 그 뒤에 뜬다 — 기억해 둔 목록을 달라고 한다
+        if (socketMode) window.postMessage({ action: TBC_BLOCK_LIST_REQUEST }, '*');
 
         // 소켓 경로 검증용 — 화면에는 영향 없이 같은 채팅을 소켓으로도 처리해 비교 로그만 남긴다.
         const stopShadow = adapter.type === 'chzzk' && isSocketShadowEnabled()

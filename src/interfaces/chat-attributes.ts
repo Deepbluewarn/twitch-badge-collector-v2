@@ -69,6 +69,11 @@ export const TBC_SOCKET_CHAT_ACTION = 'tbc-socket-chat';
  */
 export const TBC_SOCKET_REPLAY_REQUEST = 'tbc-socket-replay-request';
 export const TBC_SOCKET_REPLAY_ACTION = 'tbc-socket-replay';
+/**
+ * 차단 목록을 다시 달라고 한다. 치지직은 차단 목록을 페이지를 열 때 한 번만 받아 오는데, 콘텐츠 스크립트는
+ * 대개 그 뒤에 떠서 놓친다. REST 탭이 마지막 목록을 기억했다가 보통 메시지(TBC_SOCKET_CHAT_ACTION)로 다시 보낸다.
+ */
+export const TBC_BLOCK_LIST_REQUEST = 'tbc-block-list-request';
 
 export type TbcSocketChatMessage =
     | { action: typeof TBC_SOCKET_CHAT_ACTION; kind: 'connected'; cid: string }

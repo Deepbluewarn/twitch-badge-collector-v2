@@ -1,6 +1,6 @@
 import { BLOCK_LIST_URL, VOD_CHATS_URL, parseBlockListResponse, parseVodChatResponse } from "@/platform/chzzk-socket";
 import { isChannelOffNow } from '../base/channel-off-flag';
-import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
+import { TBC_BLOCK_LIST_REQUEST, TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
 
 /**
  * 치지직 REST 응답 수동 탭 (MAIN world). host가 받은 응답을 읽기만 한다 — 요청을 새로
@@ -12,8 +12,21 @@ import { TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-
  */
 
 type Post = (msg: TbcSocketChatMessage) => void;
+/** 마지막으로 받은 차단 목록 — 늦게 뜬 콘텐츠 스크립트가 달라고 하면 다시 보낸다 */
+let lastBlockList: TbcSocketChatMessage | null = null;
 // 꺼진 채널에서는 아무것도 넘기지 않는다
-const defaultPost: Post = (msg) => { if (!isChannelOffNow()) window.postMessage(msg, '*'); };
+const defaultPost: Post = (msg) => {
+    if (msg.kind === 'block-list') lastBlockList = msg;
+    if (!isChannelOffNow()) window.postMessage(msg, '*');
+};
+
+/** 모아보기나 보관함이 차단 목록을 달라고 하면(TBC_BLOCK_LIST_REQUEST) 마지막 목록을 다시 보낸다. */
+export function installChzzkBlockListReplay() {
+    window.addEventListener('message', e => {
+        if (e.source !== window || e.data?.action !== TBC_BLOCK_LIST_REQUEST || isChannelOffNow()) return;
+        if (lastBlockList) window.postMessage(lastBlockList, '*');
+    });
+}
 const TAPPED = Symbol.for('tbc.chzzkRestTap');
 
 /** 엿볼 주소와, 응답 본문을 메시지로 바꾸는 방법. */
