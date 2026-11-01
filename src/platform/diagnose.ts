@@ -223,7 +223,8 @@ export async function runDiagnose(
             totalGroupCount: groups.length,
             currentPlatformGroupCount: forPlatform.length,
             firstGroupSummary: forPlatform[0]
-                ? forPlatform[0].filters.map(f => `${f.category ?? '?'}=${f.value ?? '?'}`).join(' & ')
+                // 값(닉네임, 키워드)은 제보로 나가므로 넣지 않는다 — 조건 종류만
+                ? forPlatform[0].filters.map(f => f.category ?? '?').join(' & ')
                 : null,
         };
     } catch { /* silent */ }

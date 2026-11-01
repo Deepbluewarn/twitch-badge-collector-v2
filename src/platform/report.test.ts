@@ -55,6 +55,17 @@ describe('sanitizeReport', () => {
         }
     });
 
+    it('속성 값도 비운다 (class는 남김)', () => {
+        const html = '<div class="_item_x" data-a-user="real_login" data-key="uidhash_123"><img class="_badge" alt="닉네임" src="https://p.example/profile.png"></div>';
+        const s = sanitizeReport(report({ sample: sample({ outerHTML: html }) }));
+        expect(s.sample.outerHTML).not.toContain('real_login');
+        expect(s.sample.outerHTML).not.toContain('uidhash_123');
+        expect(s.sample.outerHTML).not.toContain('닉네임');
+        expect(s.sample.outerHTML).not.toContain('profile.png');
+        expect(s.sample.outerHTML).toContain('_badge');
+        expect(s.sample.outerHTML).toContain('data-a-user');
+    });
+
     it('직렬화된 리포트 어디에도 원문이 남지 않는다', () => {
         // 실제로 Discord에 가는 건 JSON.stringify 결과다. 필드 단위로 확인하면
         // 새 필드가 추가됐을 때 놓친다 — 전체 문자열로 검사한다.

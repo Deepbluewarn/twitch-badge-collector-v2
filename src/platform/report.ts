@@ -37,9 +37,11 @@ export function isReportingAvailable(): boolean {
 
 /**
  * report.sample.outerHTML은 사용자 nickname/발화 텍스트를 담고 있음. Discord에 그대로
- * 흘려보내면 개인정보 노출. 여기서 DOM 순회하며 텍스트 노드만 모두 비움 — tag/class/
- * attribute는 유지되어 selector 분석엔 지장 없음.
+ * 흘려보내면 개인정보 노출. 여기서 DOM 순회하며 텍스트 노드를 모두 비운다.
+ * 속성도 값을 비운다 — 트위치 data-a-user(채팅 작성자 아이디), 치지직 key의 사용자 식별값, 이미지 alt/title,
+ * 프로필 사진 주소가 그대로 나갔다. selector 분석에 쓰는 class 등 SAFE_ATTRS만 값을 남기고, 나머지는 이름만 둔다.
  */
+const SAFE_ATTRS = new Set(['class', 'role', 'type', 'aria-hidden']);
 function sanitizeOuterHTML(html: string): string {
     if (typeof document === 'undefined') return html;
     const wrapper = document.createElement('div');
@@ -52,7 +54,12 @@ function stripTextNodes(node: Node) {
     const children = Array.from(node.childNodes);
     for (const c of children) {
         if (c.nodeType === Node.TEXT_NODE) c.textContent = '';
-        else stripTextNodes(c);
+        else {
+            if (c instanceof Element) {
+                for (const a of Array.from(c.attributes)) if (!SAFE_ATTRS.has(a.name)) c.setAttribute(a.name, '');
+            }
+            stripTextNodes(c);
+        }
     }
 }
 
