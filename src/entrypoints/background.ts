@@ -1,7 +1,7 @@
 import { MatchPattern } from 'wxt/utils/match-patterns';
 import { CompositeFilterElement } from "@/interfaces/filter";
 import defaultFilter from "@/defaultFilters";
-import { DEFAULT_MAX_CHATS } from "@/reducer/setting";
+import { DEFAULT_MAX_CHATS, missingMaxChats } from "@/reducer/setting";
 import { migrateVerifiedMarkFilters } from "@/filter/verified-migration";
 import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
@@ -67,6 +67,8 @@ export default defineBackground(() => {
         missing[key] = DEFAULTS[key];
       }
     }
+    // 최대 개수는 예전 스토어 빌드에서 비어 있었다 — 다른 설정이 있는 기존 사용자는 100이 아니라 넉넉하게.
+    if ('maximumNumberChats' in missing) missing.maximumNumberChats = missingMaxChats(stored);
 
     // 채울 게 없으면 write 생략 — 불필요한 onChanged broadcast 방지.
     if (Object.keys(missing).length === 0) return;

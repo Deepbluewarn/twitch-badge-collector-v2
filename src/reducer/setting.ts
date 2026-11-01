@@ -7,8 +7,24 @@ import { SettingInterface, SettingReducerAction, SettingReducerActionTypes } fro
  */
 export const DEFAULT_MAX_CHATS = 100;
 
-/** 저장값을 쓸 수 있는 개수로. 없거나(옛 스토어 빌드), 숫자가 아니거나, 1보다 작으면 기본값. */
+/**
+ * 그 시절 스토어 빌드(v2.18.x ~ v2.25.1) 사용자의 값. 사실상 무제한으로 쓰다가 갑자기 100개로 잘리면 놀라므로,
+ * 채팅 유지 저장 한도(채널당 1MB, 약 1000개)와 맞춘 넉넉한 값을 넣는다.
+ */
+export const LEGACY_MAX_CHATS = 1000;
+
+/**
+ * 최대 개수가 비어 있을 때 채울 값. 다른 설정이 이미 저장돼 있으면 그 시절 스토어 빌드 사용자라
+ * LEGACY_MAX_CHATS(다른 기본값은 코드에 적혀 있어 정상으로 들어갔다), 아무것도 없으면 새 설치라 DEFAULT_MAX_CHATS.
+ */
+export function missingMaxChats(stored: Record<string, unknown>): number {
+    const existing = Object.entries(stored).some(([k, v]) => k !== 'maximumNumberChats' && v !== undefined && v !== null);
+    return existing ? LEGACY_MAX_CHATS : DEFAULT_MAX_CHATS;
+}
+
+/** 저장값을 쓸 수 있는 개수로. 비어 있으면 그 시절 스토어 빌드 사용자 몫, 숫자가 아니거나 1보다 작으면 기본값. */
 export function maxChatsOf(v: unknown): number {
+    if (v === undefined || v === null) return LEGACY_MAX_CHATS;
     const n = Math.floor(Number(v));
     return Number.isFinite(n) && n >= 1 ? n : DEFAULT_MAX_CHATS;
 }
