@@ -17,6 +17,24 @@ import { SectionTitle, SettingRow, SettingsCard } from './settings/SettingsUI';
 const metaButtonStyle: React.CSSProperties = { height: 24, fontSize: 12, fontWeight: 700 };
 
 /**
+ * 채팅 최대 개수 칸. 바로 저장값에 묶으면 숫자를 지우는 순간 빈 값이 기본값으로 바뀌어 칸이 되돌아가므로,
+ * 입력 중엔 따로 들고 있다가 1 이상의 정수일 때만 저장한다. 칸을 떠날 때 저장값으로 되돌린다.
+ */
+function MaxChatsInput({ value, onCommit }: { value: number; onCommit: (n: number) => void }) {
+  const [draft, setDraft] = React.useState(String(value));
+  React.useEffect(() => { setDraft(String(value)); }, [value]);
+  return (
+    <TextInput type='number' size='sm' min={1} aria-label={msg('maximumNumberChats')} value={draft}
+      onChange={e => {
+        setDraft(e.target.value);
+        const n = Number(e.target.value);
+        if (e.target.value.trim() !== '' && Number.isInteger(n) && n >= 1) onCommit(n);
+      }}
+      onBlur={() => setDraft(String(value))} style={{ width: 96 }} />
+  );
+}
+
+/**
  * 색상 swatch + native picker. change 이벤트만 청취해 드래그 중 storage 폭주 방지.
  * 빈 값은 "자동" 의미 — reset 버튼으로 비울 수 있음.
  */
@@ -195,8 +213,7 @@ export function generalGroups(): GeneralGroup[] {
         {
           key: 'maximumNumberChats', label: msg('maximumNumberChats'), hint: msg('needRefresh'),
           render: (s, dispatch) => (
-            <TextInput type='number' size='sm' min={1} aria-label={msg('maximumNumberChats')} value={s.maximumNumberChats}
-              onChange={e => dispatch(setMaximumNumberChats(Number(e.target.value)))} style={{ width: 96 }} />
+            <MaxChatsInput value={s.maximumNumberChats} onCommit={n => dispatch(setMaximumNumberChats(n))} />
           ),
         },
         { key: 'chatTime', label: msg('chatTime'), render: sw(s => s.chatTime === 'on', on => setChatTime(on ? 'on' : 'off')) },
