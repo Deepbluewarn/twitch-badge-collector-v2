@@ -16,7 +16,7 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 ├─ crontab                     ops/crontab 그대로
 ├─ systemd --user
 │   ├─ badge-dashboard          ops/watch/serve.ts, :3400
-│   └─ badge-harvester          꺼져 있음 (아래 "harvester")
+│   └─ badge-harvester          배지 수집 서버, :8787 (아래 "harvester")
 ├─ ~/.config/badge-collector/  비밀 값 (리포에 없음)
 │   ├─ community-watch.env      DISCORD_COMMUNITY_WEBHOOK (모든 알림이 이 웹훅을 쓴다)
 │   └─ ops.env                  OPS_HEALTHCHECK_URL (선택, 아직 없음)
@@ -96,11 +96,15 @@ loginctl enable-linger $USER          # 로그아웃해도 사용자 서비스�
   `sudo apt-get install -y libcups2t64 libcairo2 libpango-1.0-0 libatk-bridge2.0-0`
 - [ ] **ovm이 통째로 꺼지면 아무 알림도 없다.** healthchecks.io 같은 곳에 체크(10분 주기)를 만들고 `~/.config/badge-collector/ops.env`에 `OPS_HEALTHCHECK_URL=https://hc-ping.com/...`를 넣으면 heartbeat가 신호를 보낸다.
 - [ ] **2026-11-09쯤 GitHub 카나리 정리.** ovm이 일주일 잘 돌면 `.github/workflows/canary.yml`, `canary-socket.yml`, `canary-badges.yml`, `build.yml`(옛 태그 형식, 늘 실패)을 지우고, `ops/watch/info.ts`의 GitHub 실행 목록과 현황판 "GitHub canary" 칸도 뺀다. `snapshots/`와 `scripts/canary/open-*.mjs`도 그때 정리. 워크플로 파일은 gh 토큰에 workflow 권한이 없어 SSH로 푸시한다.
-- [ ] harvester를 다시 켤지 결정 (아래).
 
 ## harvester
 
-치지직 채팅 소켓에 상시 붙어 배지를 모으는 Rust 서버(`~/development/chzzk-badge-harvester`, ovm `~/harvester`). 2026-10-25 00:57에 정상 종료되고 서비스 등록이 지워진 채로 있다. 이유는 기록이 없다. 서비스 파일 원본은 `ops/systemd/badge-harvester.service`.
+치지직 채팅 소켓에 상시 붙어 배지를 모으는 Rust 서버(`~/development/chzzk-badge-harvester`, ovm `~/harvester`). 2026-10-25 00:57에 정상 종료되고 서비스 등록이 지워진 채로 8일 동안 아무도 몰랐다(이유 기록 없음). 2026-11-02에 다시 켰다. 이제 heartbeat가 서비스 상태를 보고 멈추면 알린다. 서비스 파일 원본은 `ops/systemd/badge-harvester.service`, 설정은 ovm `~/harvester/harvester.env`(토큰이 있어 권한 600), 데이터는 `~/harvester/data/badges.json`. 마지막 기록이 메모리 432MB, 스왑 246MB라 ovm 메모리를 가끔 본다.
+
+```sh
+systemctl --user status badge-harvester
+journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 종류 수
+```
 
 배지 목록 API는 업적 배지(`/service/v1/badges/assets?badgeType=CHANNEL_ACHIEVEMENT`)와 채널별 구독 배지뿐이다. 후원, 구독 선물, 치트키, 팝업스토어 같은 배지는 그 배지를 단 사람이 채팅해야 보이므로 새 배지를 자동으로 찾으려면 harvester가 필요하다. 치지직 JS 번들에는 배지 목록이 없다(인증 마크 3개뿐, 2026-11-02 확인).
 
@@ -117,4 +121,5 @@ loginctl enable-linger $USER          # 로그아웃해도 사용자 서비스�
 |---|---|
 | 2026-10-25 | ovm `~/badge-collector-stats`에 일일 통계, 급증 알림 (리포 밖) |
 | 2026-11-01 | 현황판(:3400), 확장 실제 시험, 번들 의존과 신호 비교 (리포 밖) |
+| 2026-11-02 | harvester 다시 켬 (10-25부터 꺼져 있었음) |
 | 2026-11-02 | 코드를 리포 `ops/`로 옮김(커밋 fdcff86). 배포 감지(1분), ovm 카나리(선택자 6시간, 소켓 1시간), heartbeat 추가. 옛 폴더는 ovm `~/badge-collector-stats.old-2026-11-02`, 옛 crontab과 서비스 파일은 `~/.local/state/badge-collector/backup/` |

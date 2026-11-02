@@ -1,4 +1,4 @@
-# 원본은 리포 ops/systemd/. 2026-10-25부터 꺼져 있다(docs/monitoring.md "harvester").
+# 원본은 리포 ops/systemd/. 설치: cp ~/tbc/ops/systemd/badge-harvester.service ~/.config/systemd/user/ && systemctl --user daemon-reload && systemctl --user enable --now badge-harvester
 # 사용자 서비스. 관리: systemctl --user {status,restart,stop} badge-harvester
 # 로그: journalctl --user -u badge-harvester -f
 [Unit]
