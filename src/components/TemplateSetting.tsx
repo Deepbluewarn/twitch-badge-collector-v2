@@ -406,7 +406,8 @@ export default function TemplateSetting() {
                 <SettingRow label={t('template.use_custom')}>
                     <Switch checked={custom} onChange={on => dispatchGlobalSetting(setChzzkCustomTemplate(on ? 'on' : 'off'))} />
                 </SettingRow>
-                {loaded && styleLoaded && <>
+                {/* 꺼져 있으면 고쳐도 채팅에 안 보이니 스위치만 둔다 */}
+                {custom && loaded && styleLoaded && <>
                     <SettingRow label={t('template.presets.title')}>
                         <Select size="sm" value="" className={s.presetSelect} onChange={applyPreset} aria-label={t('template.presets.title')}
                             options={[{ value: '', label: t('template.presets.title'), disabled: true }, ...PRESETS.map(p => ({ value: p.id, label: t(`template.presets.${p.id}`) }))]} />
@@ -429,7 +430,7 @@ export default function TemplateSetting() {
             </SettingsCard>
 
             {/* 저장된 값을 읽기 전엔 기본값을 저장된 것처럼 보이지 않게 그리지 않는다 */}
-            {loaded && styleLoaded && <>
+            {custom && loaded && styleLoaded && <>
                 <SectionTitle actions={
                     <Segmented
                         size="sm"

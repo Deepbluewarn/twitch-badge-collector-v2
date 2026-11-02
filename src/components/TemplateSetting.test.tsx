@@ -16,7 +16,7 @@ vi.stubGlobal('browser', {
 });
 const { default: TemplateSetting } = await import('./TemplateSetting');
 
-function renderPage(custom: 'on' | 'off' = 'off') {
+function renderPage(custom: 'on' | 'off' = 'on') {
     const dispatch = vi.fn();
     render(
         <GlobalSettingContext.Provider value={{ globalSetting: { ...initialState, chzzkCustomTemplate: custom }, dispatchGlobalSetting: dispatch }}>
@@ -53,6 +53,14 @@ describe('TemplateSetting', () => {
         await waitFor(() => expect(editorValue()).toBe(DEFAULT_CHZZK_TEMPLATES.chat));
         expect(document.querySelectorAll('.tbc-chat').length).toBeGreaterThan(0);
         expect(document.querySelector('details.tbc-chat-cleanbot')).not.toBeNull();
+    });
+
+    it('꺼져 있으면 스위치만 보이고 모양 설정과 미리보기는 숨긴다', async () => {
+        renderPage('off');
+        expect(screen.getByRole('switch')).toBeTruthy();
+        await act(async () => {});
+        expect(screen.queryByRole('button', { name: /HTML/ })).toBeNull();
+        expect(document.querySelectorAll('.tbc-chat').length).toBe(0);
     });
 
     it('토글을 켜면 설정을 dispatch', async () => {
