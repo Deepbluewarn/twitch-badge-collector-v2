@@ -180,7 +180,7 @@ function mainChart(ga: { date: string; visits: number; installs: number; siteUse
         const x = L + i * step + (step - bw) / 2;
         const h = Math.max(d.installs > 0 ? 2 : 0, y(0) - y(d.installs));
         const today = i === ga.length - 1;
-        return `<g class="bar${today ? ' today' : ''}"><rect class="hit" x="${L + i * step}" y="${T}" width="${step}" height="${H - T - B}"/><rect x="${x}" y="${y(0) - h}" width="${bw}" height="${h}" rx="3"/><title>${d.date} 설치 ${d.installs}, 스토어 방문 ${d.visits}, 사이트 방문자 ${d.siteUsers}${today ? ' (오늘, 진행 중)' : ''}</title></g>`;
+        return `<g class="bar${today ? ' today' : ''}"><rect class="hit" x="${L + i * step}" y="${T}" width="${step}" height="${H - T - B}"/><rect x="${x}" y="${y(0) - h}" width="${bw}" height="${h}" rx="3"/><title>${d.date} 설치 ${d.installs}, 스토어 페이지 방문 ${d.visits}, badgecollector.dev 방문자 ${d.siteUsers}${today ? ' (오늘, 진행 중)' : ''}</title></g>`;
     }).join('');
     const labels = ga.map((d, i) => (i % 2 === (ga.length - 1) % 2 ? `<text class="axis" x="${L + i * step + step / 2}" y="${H - 8}" text-anchor="middle">${d.date.slice(5)}</text>` : '')).join('');
     return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 스토어 설치">${grid}${bars}${labels}</svg>`;
@@ -208,13 +208,13 @@ ${reasons.length ? `<ul class="reasons">${reasons.map((r) => `<li>${lamp(r.level
     const stats = `<div class="stats">
 ${stat('크롬 스토어 사용자', esc(chrome?.users ?? '-'), `Firefox ${esc(firefox?.users ?? '-')}`)}
 ${stat('오늘 설치', today ? String(today.installs) : '-', yesterday ? `어제 ${yesterday.installs}` : '')}
-${stat('오늘 사이트 방문자', today ? String(today.siteUsers) : '-', yesterday ? `어제 ${yesterday.siteUsers}` : '')}
+${stat('오늘 badgecollector.dev 방문자', today ? String(today.siteUsers) : '-', yesterday ? `어제 ${yesterday.siteUsers}` : '')}
 ${stat('열린 이슈', String(issues.length), `버그 ${issues.filter((i) => i.labels.includes('bug')).length}`)}
 </div>`;
 
     // 주인공 차트와 감시 작업
     const chart = ga.length ? `<section class="panel chart"><div class="panel-head"><h2>스토어 설치</h2><span class="meta">최근 ${ga.length}일, 오늘은 진행 중</span></div>${mainChart(ga)}
-<details><summary>날짜별 표</summary><table><thead><tr><th>날짜</th><th class="n">설치</th><th class="n">스토어 방문</th><th class="n">사이트 방문자</th><th class="n">페이지뷰</th></tr></thead><tbody>
+<details><summary>날짜별 표</summary><table><thead><tr><th>날짜</th><th class="n">설치</th><th class="n">스토어 페이지 방문</th><th class="n">badgecollector.dev 방문자</th><th class="n">페이지뷰</th></tr></thead><tbody>
 ${[...ga].reverse().map((d) => `<tr><td class="mono">${d.date.slice(5)}</td><td class="n">${d.installs}</td><td class="n">${d.visits}</td><td class="n">${d.siteUsers}</td><td class="n">${d.siteViews}</td></tr>`).join('')}
 </tbody></table></details></section>` : `<section class="panel chart"><h2>스토어 설치</h2><p class="meta">GA 결과 없음</p></section>`;
 
