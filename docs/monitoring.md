@@ -25,7 +25,7 @@ ovm (odroid, 192.168.1.162, ssh ovm)
     ├─ ops.log                  실행마다 한 줄
     ├─ logs/<작업>.log           그 작업의 마지막 실행 출력
     ├─ runs/<작업>.json          마지막 성공 시각 (heartbeat가 본다)
-    ├─ watch/*.json             현황판 데이터 (deploy, canary-selector, canary-socket, heartbeat, live, bundle, info, verdict)
+    ├─ watch/*.json             현황판 데이터 (deploy, canary-selector, canary-socket, heartbeat, new-badges, live, bundle, info, verdict)
     └─ canary/                  카나리 스크립트의 스냅샷과 알림 파일
 ```
 
@@ -34,6 +34,7 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 | 작업 | 주기 | 하는 일 | 알림 |
 |---|---|---|---|
 | `deploy` | 1분 | 치지직 첫 페이지 HTML이 불러오는 JS, CSS 파일 목록(해시 포함)을 본다. 처음 보는 목록이면 배포로 보고 `canary`, `socket`, `live`를 바로 띄운다 | 배포 감지 때 |
+| `badges` | 10분 (5분부터) | harvester 데이터와 업적 배지 API를 `data/chzzk-badges.json`과 비교해 목록에 없는 배지를 알린다. 넣을 그룹과 JSON 한 줄을 같이 보낸다. 흐름은 `docs/chzzk-badges.md` | 처음 보는 배지 |
 | `socket` | 매시 30분 | 인기 라이브 8개 채팅 소켓에 2분 붙어 패킷이 `src/platform/chzzk-socket.ts`의 가정과 맞는지 본다 (`scripts/canary/socket.ts`) | 처음 보는 문제, 깨진 채 6시간, 회복 |
 | `canary` | 6시간 (0, 6, 12, 18시) | 라이브 채널 여러 개를 Playwright로 열어 선택자 매칭을 확인한다 (`scripts/canary/chzzk.ts`). 깨지면 자동 수정 후보를 현황판에 띄운다 | 스냅샷과 달라졌을 때, 깨진 채 6시간, 회복 |
 | `live` | 6시간 (3, 9, 15, 21시 15분) | 최신 릴리스 zip을 Chromium에 올려 치지직(소켓 끔, 켬), 트위치에서 모아보기 창에 채팅이 들어오는지 본다. 치지직 번들을 받아 확장이 기대는 이름이 사라졌는지, 새 신호(메시지 타입, 소켓 cmd, API 경로, CSS 이름)가 생겼는지 비교한다 | 판정이 바뀔 때, 번들 변화 |
@@ -121,5 +122,6 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 |---|---|
 | 2026-10-25 | ovm `~/badge-collector-stats`에 일일 통계, 급증 알림 (리포 밖) |
 | 2026-11-01 | 현황판(:3400), 확장 실제 시험, 번들 의존과 신호 비교 (리포 밖) |
+| 2026-11-02 | 새 배지 알림(`badges`, 10분). 배지 목록 커밋 시 jsDelivr purge(`site-rebuild.yml`), 확장의 치지직 배지 캐시 7일에서 1시간으로 |
 | 2026-11-02 | harvester 다시 켬 (10-25부터 꺼져 있었음) |
 | 2026-11-02 | 코드를 리포 `ops/`로 옮김(커밋 fdcff86). 배포 감지(1분), ovm 카나리(선택자 6시간, 소켓 1시간), heartbeat 추가. 옛 폴더는 ovm `~/badge-collector-stats.old-2026-11-02`, 옛 crontab과 서비스 파일은 `~/.local/state/badge-collector/backup/` |

@@ -1,7 +1,9 @@
-name: Rebuild badgecollector.dev
+name: Publish badge list
 
-# 배지 사이트(Deepbluewarn/badgecollector-site)는 data/chzzk-badges.json을 빌드 때 받는다.
-# 이 파일이 바뀌면 Cloudflare Pages deploy hook으로 다시 빌드시킨다.
+# data/chzzk-badges.json이 바뀌면 두 곳에 바로 내보낸다.
+#  - 배지 사이트(Deepbluewarn/badgecollector-site): 빌드 때 이 파일을 받으므로 Cloudflare Pages deploy hook으로 다시 빌드
+#  - 확장: jsDelivr로 받는데 @master를 최대 12시간 캐시하므로 purge
+# 흐름 전체는 docs/chzzk-badges.md.
 on:
   push:
     branches: [master]
@@ -20,3 +22,8 @@ jobs:
         run: |
           # jsDelivr를 안 거치고 raw에서 받으므로 push 직후 빌드해도 새 파일을 본다.
           curl -fsS -X POST "$HOOK" | jq -e '.success' > /dev/null
+
+      - name: Purge jsDelivr cache (extension)
+        run: |
+          # 확장(src/api/chzzk.ts)은 매번 재검증하므로 purge 직후부터 새 목록을 받는다.
+          curl -fsS "https://purge.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/data/chzzk-badges.json" | jq -e '.paths | length > 0' > /dev/null

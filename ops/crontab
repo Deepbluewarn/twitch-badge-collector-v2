@@ -7,6 +7,8 @@ RUN=sh /home/bluewarn/tbc/ops/run.sh
 */10 * * * * $RUN pull
 # 치지직 배포 감지. 감지하면 canary, socket, live를 바로 띄운다
 * * * * * $RUN deploy
+# 목록에 없는 새 배지 알림 (pull 5분 뒤라 방금 커밋한 배지는 이미 목록에 있다)
+5-59/10 * * * * $RUN badges
 # 감시 작업 생존 확인
 */10 * * * * $RUN heartbeat
 # 소켓 카나리
