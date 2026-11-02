@@ -122,6 +122,7 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 |---|---|
 | 2026-10-25 | ovm `~/badge-collector-stats`에 일일 통계, 급증 알림 (리포 밖) |
 | 2026-11-01 | 현황판(:3400), 확장 실제 시험, 번들 의존과 신호 비교 (리포 밖) |
+| 2026-11-02 | 현황판 다시 디자인 (unslop 스킬로 점검). 판정 띠, 핵심 숫자 4개, 설치 차트 하나를 크게, 상태는 탈리 램프(정상은 꺼진 불)로 통일, 시각은 MM-DD HH:mm 하나로 |
 | 2026-11-02 | 새 배지 알림(`badges`, 10분). 배지 목록 커밋 시 jsDelivr purge(`site-rebuild.yml`), 확장의 치지직 배지 캐시 7일에서 1시간으로 |
 | 2026-11-02 | harvester 다시 켬 (10-25부터 꺼져 있었음) |
 | 2026-11-02 | 코드를 리포 `ops/`로 옮김(커밋 fdcff86). 배포 감지(1분), ovm 카나리(선택자 6시간, 소켓 1시간), heartbeat 추가. 옛 폴더는 ovm `~/badge-collector-stats.old-2026-11-02`, 옛 crontab과 서비스 파일은 `~/.local/state/badge-collector/backup/` |

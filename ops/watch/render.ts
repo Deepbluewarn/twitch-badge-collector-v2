@@ -26,7 +26,6 @@ const LIVE_STALE_MS = 13 * 3_600_000;
 
 type Level = 'ok' | 'risk' | 'broken';
 const LEVEL_LABEL: Record<Level, string> = { ok: '정상', risk: '위험', broken: '깨짐' };
-const LEVEL_ICON: Record<Level, string> = { ok: '●', risk: '▲', broken: '✕' };
 
 type Err = { error: string };
 type Info = {
@@ -53,8 +52,12 @@ type BadgeView = { badgeId: string; scope: string; imageUrl: string; firstSeen: 
 
 const isErr = (x: unknown): x is Err => !!x && typeof x === 'object' && 'error' in x;
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-const time = (ms: number | string | null | undefined) =>
-    ms == null ? '-' : new Date(ms).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+/** 모든 시각은 한국 시간 MM-DD HH:mm 하나로 */
+const time = (ms: number | string | null | undefined) => {
+    if (ms == null) return '-';
+    const iso = new Date(new Date(ms).getTime() + 9 * 3_600_000).toISOString();
+    return `${iso.slice(5, 10)} ${iso.slice(11, 16)}`;
+};
 const ago = (ms: number) => {
     const m = Math.round((Date.now() - ms) / 60_000);
     return m < 60 ? `${m}분 전` : m < 48 * 60 ? `${Math.round(m / 60)}시간 전` : `${Math.round(m / 1440)}일 전`;
@@ -105,8 +108,6 @@ function levelOf(reasons: Reason[]): Level {
     return reasons.some((r) => r.level === 'broken') ? 'broken' : reasons.length ? 'risk' : 'ok';
 }
 
-const pill = (level: Level, text = LEVEL_LABEL[level]) => `<span class="pill ${level}"><span aria-hidden="true">${LEVEL_ICON[level]}</span> ${esc(text)}</span>`;
-
 function diffLines(diff: SignalDiff): string[] {
     const lines: string[] = [];
     for (const [kind, items] of Object.entries(diff.added)) lines.push(`+ ${kind}: ${items.join(', ')}`);
@@ -150,169 +151,250 @@ function featurePrompt(bundle: BundleResult): string {
 const copyButton = (id: string, text: string) =>
     `<button class="copy" data-target="${id}">프롬프트 복사</button><textarea id="${id}" class="prompt" readonly>${esc(text)}</textarea>`;
 
-function barChart(title: string, points: { label: string; value: number }[]): string {
-    const W = 320, H = 120, PAD_B = 18, PAD_T = 14;
-    const max = Math.max(1, ...points.map((p) => p.value));
-    const step = W / Math.max(points.length, 1);
-    const bw = Math.max(4, Math.min(16, step - 4));
-    const bars = points
-        .map((p, i) => {
-            const h = Math.max(p.value > 0 ? 2 : 0, ((H - PAD_B - PAD_T) * p.value) / max);
-            const x = i * step + (step - bw) / 2;
-            const y = H - PAD_B - h;
-            const r = Math.min(4, bw / 2, h);
-            const d = h > 0
-                ? `M${x},${H - PAD_B}V${y + r}Q${x},${y} ${x + r},${y}H${x + bw - r}Q${x + bw},${y} ${x + bw},${y + r}V${H - PAD_B}Z`
-                : '';
-            return `<g class="bar"><rect x="${i * step}" y="0" width="${step}" height="${H}" fill="transparent"/><path d="${d}"/><title>${esc(p.label)}: ${p.value}</title></g>`;
-        })
-        .join('');
-    const last = points.at(-1);
-    const first = points[0];
-    return `<figure class="chart"><figcaption>${esc(title)}<span class="num">${last ? last.value : '-'}</span></figcaption>
-<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}"><line class="base" x1="0" x2="${W}" y1="${H - PAD_B}" y2="${H - PAD_B}"/>${bars}
-<text class="axis" x="0" y="${H - 4}">${esc(first?.label.slice(5) ?? '')}</text><text class="axis" x="${W}" y="${H - 4}" text-anchor="end">${esc(last?.label.slice(5) ?? '')}</text>
-<text class="axis" x="0" y="10">${max}</text></svg></figure>`;
+// 상태 표시는 탈리 램프 하나로 통일한다. 정상은 꺼진 불, 이상이 있을 때만 켜진다
+const lamp = (level: Level | 'off', title = '') => `<span class="lamp ${level}"${title ? ` title="${esc(title)}"` : ''} aria-hidden="true"></span>`;
+const statusCell = (level: Level, text = LEVEL_LABEL[level]) => `<span class="status ${level}">${lamp(level)}${esc(text)}</span>`;
+
+/** 사람이 읽을 오류. 자주 나는 것은 원인과 할 일로 바꾼다 */
+function humanError(e: string): string {
+    if (/launchPersistentContext|browser has been closed/.test(e)) return '브라우저를 띄우지 못함. ovm에 Chromium 시스템 라이브러리가 없다 (docs/monitoring.md 남은 일)';
+    return e;
+}
+
+/** 스토어마다 갱신일 표기가 달라 MM-DD로 맞춘다 */
+function day(s: string | null | undefined): string {
+    if (!s) return '-';
+    const t = Date.parse(s);
+    return Number.isNaN(t) ? s : time(t).slice(0, 5);
+}
+
+function mainChart(ga: { date: string; visits: number; installs: number; siteUsers: number }[]): string {
+    const W = 720, H = 240, L = 44, R = 8, T = 12, B = 32;
+    const max = Math.max(1, ...ga.map((d) => d.installs));
+    const top = Math.ceil(max / 20) * 20;
+    const step = (W - L - R) / ga.length;
+    const bw = Math.min(28, step * 0.62);
+    const y = (v: number) => T + (H - T - B) * (1 - v / top);
+    const grid = [0, top / 2, top].map((v) => `<line class="gl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join('');
+    const bars = ga.map((d, i) => {
+        const x = L + i * step + (step - bw) / 2;
+        const h = Math.max(d.installs > 0 ? 2 : 0, y(0) - y(d.installs));
+        const today = i === ga.length - 1;
+        return `<g class="bar${today ? ' today' : ''}"><rect class="hit" x="${L + i * step}" y="${T}" width="${step}" height="${H - T - B}"/><rect x="${x}" y="${y(0) - h}" width="${bw}" height="${h}" rx="3"/><title>${d.date} 설치 ${d.installs}, 스토어 방문 ${d.visits}, 사이트 방문자 ${d.siteUsers}${today ? ' (오늘, 진행 중)' : ''}</title></g>`;
+    }).join('');
+    const labels = ga.map((d, i) => (i % 2 === (ga.length - 1) % 2 ? `<text class="axis" x="${L + i * step + step / 2}" y="${H - 8}" text-anchor="middle">${d.date.slice(5)}</text>` : '')).join('');
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 스토어 설치">${grid}${bars}${labels}</svg>`;
 }
 
 function render(live: LiveResult | undefined, bundle: BundleResult | undefined, info: Info | undefined, extra: Extra, reasons: Reason[]): string {
     const level = levelOf(reasons);
-    const sections: string[] = [];
+    const ga = info && !isErr(info.ga) ? info.ga : [];
+    const stores = info && !isErr(info.stores) ? info.stores : undefined;
+    const github = info && !isErr(info.github) ? info.github : undefined;
+    const issues = github && !isErr(github.issues) ? github.issues : [];
+    const today = ga.at(-1);
+    const yesterday = ga.at(-2);
+    const chrome = stores && !isErr(stores.chrome) ? stores.chrome : undefined;
+    const firefox = stores && !isErr(stores.firefox) ? stores.firefox : undefined;
+
+    // 판정 띠
+    const verdict = `<section class="verdict ${level}">
+<div class="verdict-head">${lamp(level)}<h1>${LEVEL_LABEL[level]}</h1><span class="meta">${time(Date.now())} 갱신</span></div>
+${reasons.length ? `<ul class="reasons">${reasons.map((r) => `<li>${lamp(r.level)}<span>${esc(humanError(r.text))}</span></li>`).join('')}</ul>` : '<p class="calm">모든 검사 통과</p>'}
+</section>`;
+
+    // 핵심 숫자
+    const stat = (label: string, value: string, sub: string) => `<div class="stat"><div class="label">${label}</div><div class="figure">${value}</div><div class="sub">${sub}</div></div>`;
+    const stats = `<div class="stats">
+${stat('크롬 스토어 사용자', esc(chrome?.users ?? '-'), `Firefox ${esc(firefox?.users ?? '-')}`)}
+${stat('오늘 설치', today ? String(today.installs) : '-', yesterday ? `어제 ${yesterday.installs}` : '')}
+${stat('오늘 사이트 방문자', today ? String(today.siteUsers) : '-', yesterday ? `어제 ${yesterday.siteUsers}` : '')}
+${stat('열린 이슈', String(issues.length), `버그 ${issues.filter((i) => i.labels.includes('bug')).length}`)}
+</div>`;
+
+    // 주인공 차트와 감시 작업
+    const chart = ga.length ? `<section class="panel chart"><div class="panel-head"><h2>스토어 설치</h2><span class="meta">최근 ${ga.length}일, 오늘은 진행 중</span></div>${mainChart(ga)}
+<details><summary>날짜별 표</summary><table><thead><tr><th>날짜</th><th class="n">설치</th><th class="n">스토어 방문</th><th class="n">사이트 방문자</th><th class="n">페이지뷰</th></tr></thead><tbody>
+${[...ga].reverse().map((d) => `<tr><td class="mono">${d.date.slice(5)}</td><td class="n">${d.installs}</td><td class="n">${d.visits}</td><td class="n">${d.siteUsers}</td><td class="n">${d.siteViews}</td></tr>`).join('')}
+</tbody></table></details></section>` : `<section class="panel chart"><h2>스토어 설치</h2><p class="meta">GA 결과 없음</p></section>`;
+
+    const hb = extra.heartbeat;
+    const jobs = hb ? `<section class="panel"><div class="panel-head"><h2>감시 작업</h2><span class="meta">${time(hb.at)}</span></div><ul class="rows">
+${hb.jobs.map((j) => `<li>${lamp(j.stale ? 'risk' : 'off', j.stale ? '멈춤' : '정상')}<span class="name">${esc(j.label)}</span><span class="when">${j.lastOk ? ago(j.lastOk) : '아직 안 돎'}</span></li>`).join('')}
+${hb.services.map((s) => `<li>${lamp(s.state === 'active' ? 'off' : 'risk', s.state)}<span class="name">서비스 ${esc(s.name)}</span><span class="when">${s.state === 'active' ? '실행 중' : esc(s.state)}</span></li>`).join('')}
+</ul></section>` : '';
 
     // 치지직 배포
-    if (extra.deploy) {
-        const d = extra.deploy;
-        sections.push(`<section><h2>치지직 배포</h2>
-<p class="meta">${time(d.checkedAt)} 확인${d.error ? '' : ', 정상'}${d.lastModified ? `, 지금 HTML 수정 시각 ${time(d.lastModified)}` : ''}</p>${d.error ? `<div class="err">${esc(d.error)}</div>` : ''}
-${d.history.length ? `<table><thead><tr><th>감지</th><th>바뀐 파일</th></tr></thead><tbody>${d.history.slice(0, 10).map((h) => `<tr><td>${time(h.at)}</td><td>${esc([...h.changed, ...h.added.map((x) => `+${x}`), ...h.removed.map((x) => `-${x}`)].join(', '))}</td></tr>`).join('')}</tbody></table>` : '<p class="meta">감지된 배포 없음</p>'}
-<details><summary>지금 파일 ${d.files.length}</summary><pre>${esc(d.files.join('\n'))}</pre></details></section>`);
-    }
+    const d = extra.deploy;
+    const deploy = d ? `<section class="panel"><div class="panel-head"><h2>치지직 배포</h2><span class="meta">${time(d.checkedAt)} 확인</span></div>
+${d.error ? `<p class="err">${esc(d.error)}</p>` : ''}
+<p class="figure-line"><span class="label">지금 HTML</span><span class="mono">${d.lastModified ? time(d.lastModified) : '-'}</span></p>
+${d.history.length ? `<ul class="rows">${d.history.slice(0, 6).map((h) => `<li>${lamp('off')}<span class="name">${esc([...h.changed, ...h.added.map((x) => `+${x}`), ...h.removed.map((x) => `-${x}`)].join(', '))}</span><span class="when">${time(h.at)}</span></li>`).join('')}</ul>` : '<p class="meta">이 감시를 켠 뒤 배포 없음</p>'}
+<details><summary>지금 파일 ${d.files.length}</summary><pre>${esc(d.files.join('\n'))}</pre></details></section>` : '';
 
-    // ovm 카나리
-    if (extra.canaries.length) {
-        const st = (s: CanaryResult['status']) => pill(s === 'ok' ? 'ok' : s === 'broken' ? 'broken' : 'risk', s === 'warn' ? '처음 보는 값' : s === 'error' ? '실행 실패' : undefined);
-        sections.push(`<section><h2>카나리</h2><table><thead><tr><th>작업</th><th>결과</th><th>최근</th></tr></thead><tbody>
-${extra.canaries.map((c) => `<tr><td>${CANARY_LABEL[c.kind]}<div class="meta">${time(c.at)}, ${Math.round(c.durationMs / 1000)}초</div></td><td>${st(c.status)}${c.status !== 'ok' ? `<div class="meta">${ago(c.since)}부터</div>` : ''}${c.problems.length ? `<pre>${esc(c.problems.slice(0, 8).join('\n'))}</pre>` : ''}</td><td>${c.history.slice(0, 10).map((h) => `<span class="dot ${h.status === 'ok' ? 'ok' : h.status === 'broken' ? 'broken' : 'risk'}" title="${esc(`${time(h.at)} ${h.status}`)}"></span>`).join('')}</td></tr>`).join('')}
-</tbody></table>${extra.canaries.some((c) => c.autofix) ? `<details><summary>자동 수정 후보</summary><pre>${esc(JSON.stringify(extra.canaries.find((c) => c.autofix)?.autofix, null, 2))}</pre></details>` : ''}</section>`);
-    }
-
-    // 감시 작업
-    if (extra.heartbeat) {
-        const hb = extra.heartbeat;
-        sections.push(`<section><h2>감시 작업</h2><p class="meta">${time(hb.at)} 확인</p><table><thead><tr><th>작업</th><th>마지막 성공</th><th></th></tr></thead><tbody>
-${hb.jobs.map((j) => `<tr><td>${esc(j.label)}</td><td>${j.lastOk ? `${time(j.lastOk)} <span class="meta">(${ago(j.lastOk)})</span>` : '-'}${j.code ? `<div class="err">마지막 종료 코드 ${j.code}</div>` : ''}</td><td>${pill(j.stale ? 'risk' : 'ok', j.stale ? '멈춤' : '정상')}</td></tr>`).join('')}
-${hb.services.map((s) => `<tr><td>서비스 ${esc(s.name)}</td><td>${esc(s.state)}</td><td>${pill(s.state === 'active' ? 'ok' : 'risk', s.state === 'active' ? '정상' : '멈춤')}</td></tr>`).join('')}
-</tbody></table></section>`);
-    }
+    // 카나리
+    const CANARY_TEXT = { ok: '정상', warn: '처음 보는 값', broken: '깨짐', error: '실행 실패' } as const;
+    const canaryLevel = (s: CanaryResult['status']): Level | 'off' => (s === 'ok' ? 'off' : s === 'broken' ? 'broken' : 'risk');
+    const canary = extra.canaries.length ? `<section class="panel"><div class="panel-head"><h2>카나리</h2></div><ul class="rows tall">
+${extra.canaries.map((c) => `<li>${lamp(canaryLevel(c.status))}<div class="name"><div>${CANARY_LABEL[c.kind]}${c.status !== 'ok' ? ` <span class="${c.status === 'broken' ? 'err' : 'warn'}">${CANARY_TEXT[c.status]}, ${ago(c.since)}부터</span>` : ''}</div><div class="history">${[...c.history].reverse().slice(-12).map((h) => lamp(canaryLevel(h.status), `${time(h.at)} ${CANARY_TEXT[h.status]}`)).join('')}</div>${c.problems.length ? `<pre>${esc(c.problems.slice(0, 6).join('\n'))}</pre>` : ''}</div><span class="when">${ago(c.at)}</span></li>`).join('')}
+</ul>${extra.canaries.some((c) => c.autofix) ? `<details><summary>자동 수정 후보</summary><pre>${esc(JSON.stringify(extra.canaries.find((c) => c.autofix)?.autofix, null, 2))}</pre></details>` : ''}</section>` : '';
 
     // 확장 동작
-    sections.push(`<section><h2>확장 동작</h2>
-${live ? `<p class="meta">v${esc(live.version)}, ${time(live.at)} (${ago(live.at)})</p>` : '<p class="meta">결과 없음</p>'}
-<table><thead><tr><th>시험</th><th>판정</th><th class="n">방송 채팅</th><th class="n">모아보기</th><th class="n">배지 있는 줄</th></tr></thead><tbody>
-${(live?.runs ?? [])
-    .map((r) => `<tr><td>${r.url ? `<a href="${esc(r.url)}">${esc(r.name)}</a>` : esc(r.name)}</td><td>${pill(r.verdict === 'ok' ? 'ok' : r.verdict === 'broken' ? 'broken' : 'risk', r.verdict === 'unknown' ? '판정 못 함' : undefined)}${r.error ? `<div class="err">${esc(r.error)}</div>` : ''}</td><td class="n">${r.host}</td><td class="n">${r.pane}</td><td class="n">${r.paneWithBadge}</td></tr>`)
-    .join('')}
-</tbody></table></section>`);
+    const liveLevel = (v: string): Level | 'off' => (v === 'ok' ? 'off' : v === 'broken' ? 'broken' : 'risk');
+    const liveSec = `<section class="panel"><div class="panel-head"><h2>확장 실제 시험</h2><span class="meta">${live ? `v${esc(live.version)}, ${ago(live.at)}` : '결과 없음'}</span></div>
+${live?.error ? `<p class="err">${esc(humanError(live.error))}</p>` : ''}
+${live?.runs.length ? `<table><thead><tr><th>시험</th><th class="n">방송 채팅</th><th class="n">모아보기</th><th class="n">배지</th></tr></thead><tbody>
+${live.runs.map((r) => `<tr><td>${lamp(liveLevel(r.verdict))} ${r.url ? `<a href="${esc(r.url)}">${esc(r.name)}</a>` : esc(r.name)}${r.error ? `<div class="err">${esc(humanError(r.error))}</div>` : ''}</td><td class="n">${r.host}</td><td class="n">${r.pane}</td><td class="n">${r.paneWithBadge}</td></tr>`).join('')}
+</tbody></table>` : ''}</section>`;
 
-    // canary
-    if (info && !isErr(info.github)) {
-        const issues = isErr(info.github.issues) ? [] : info.github.issues;
-        sections.push(`<section><h2>GitHub canary (ovm으로 이관 중)</h2><table><thead><tr><th>작업</th><th>마지막</th><th>최근 5회</th></tr></thead><tbody>
-${info.github.runs
-    .map((r) => 'error' in r
-        ? `<tr><td>${esc(r.name)}</td><td colspan="2" class="err">${esc(r.error)}</td></tr>`
-        : `<tr><td><a href="${esc(r.url)}">${esc(r.name)}</a></td><td>${pill(r.conclusion === 'success' ? 'ok' : r.conclusion === 'failure' ? 'broken' : 'risk', r.conclusion ?? '-')} <span class="meta">${time(r.at)}</span></td><td>${r.recent.map((c) => `<span class="dot ${c === 'success' ? 'ok' : c === 'failure' ? 'broken' : 'risk'}" title="${esc(c)}"></span>`).join('')}</td></tr>`)
-    .join('')}
-</tbody></table>
-<h3>열린 이슈 ${issues.length}</h3><ul class="issues">${issues
-            .map((i) => `<li><a href="${esc(i.url)}">#${i.number} ${esc(i.title)}</a>${i.labels.map((l) => ` <span class="label">${esc(l)}</span>`).join('')}</li>`)
-            .join('')}</ul></section>`);
-    }
-
-    // 번들 의존
+    // 번들
+    let bundleSec = '';
     if (bundle) {
-        const by = (s: Dependency['status']) => bundle.dependencies.filter((d) => d.status === s);
-        const row = (d: Dependency) => `<tr><td>${esc(d.kind)}</td><td><code>${esc(d.name)}</code></td><td class="meta">${esc(d.where)}${d.detail ? `, ${esc(d.detail)}` : ''}</td></tr>`;
-        sections.push(`<section><h2>번들 의존</h2><p class="meta">${time(bundle.at)}, 확인 ${bundle.dependencies.length}개, 있음 ${by('ok').length}</p>
-${by('gone').length ? `<h3>${pill('risk', '사라짐')}</h3><table><tbody>${by('gone').map(row).join('')}</tbody></table>` : ''}
+        const by = (s: Dependency['status']) => bundle.dependencies.filter((x) => x.status === s);
+        const row = (x: Dependency) => `<tr><td>${esc(x.kind)}</td><td><code>${esc(x.name)}</code></td><td class="meta">${esc(x.where)}${x.detail ? `, ${esc(x.detail)}` : ''}</td></tr>`;
+        const hist = bundle.history;
+        const s = bundle.signals;
+        bundleSec = `<section class="panel wide"><div class="panel-head"><h2>치지직 번들</h2><span class="meta">${ago(bundle.at)} 확인</span></div>
+<div class="split">
+<div><h3>확장이 기대는 이름</h3><p class="figure-line"><span class="label">있음</span><span class="mono">${by('ok').length} / ${bundle.dependencies.length}</span></p>
+${by('gone').length ? `<p class="err">사라짐 ${by('gone').length}</p><table><tbody>${by('gone').map(row).join('')}</tbody></table>` : ''}
 ${by('absent').length ? `<details><summary>처음부터 못 찾음 ${by('absent').length}</summary><table><tbody>${by('absent').map(row).join('')}</tbody></table></details>` : ''}
 <details><summary>있음 ${by('ok').length}</summary><table><tbody>${by('ok').map(row).join('')}</tbody></table></details>
-${copyButton('prompt-risk', riskPrompt(reasons, live, bundle))}</section>`);
-
-        // 새 기능 흔적
-        const hist = bundle.history;
-        sections.push(`<section><h2>번들 변화</h2>
-<p class="meta">메시지 타입 ${Object.keys(bundle.signals.msgTypes).length}, 소켓 cmd ${Object.keys(bundle.signals.socketCmds).length}, 이벤트 타입 ${bundle.signals.eventTypes.length}, 경로 ${bundle.signals.apiPaths.length}, CSS 이름 ${bundle.signals.cssNames.length}</p>
-${hist.length ? hist.map((h) => `<div class="change"><div class="meta">${time(h.at)}</div><pre>${esc(diffLines(h.diff).join('\n'))}</pre></div>`).join('') : '<p class="meta">기록된 변화 없음</p>'}
-${hist.length ? copyButton('prompt-feature', featurePrompt(bundle)) : ''}
-<details><summary>메시지 타입, 소켓 cmd</summary><pre>${esc(Object.entries(bundle.signals.msgTypes).map(([k, v]) => `${k} ${v}`).join('\n'))}\n\n${esc(Object.entries(bundle.signals.socketCmds).map(([k, v]) => `${k} ${v}`).join('\n'))}</pre></details>
-</section>`);
+${copyButton('prompt-risk', riskPrompt(reasons, live, bundle))}</div>
+<div><h3>새 기능 흔적</h3><p class="meta mono">메시지 타입 ${Object.keys(s.msgTypes).length}, 소켓 cmd ${Object.keys(s.socketCmds).length}, 이벤트 ${s.eventTypes.length}, 경로 ${s.apiPaths.length}, CSS 이름 ${s.cssNames.length}</p>
+${hist.length ? hist.slice(0, 5).map((h) => `<div class="change"><div class="meta mono">${time(h.at)}</div><pre>${esc(diffLines(h.diff).join('\n'))}</pre></div>`).join('') + copyButton('prompt-feature', featurePrompt(bundle)) : '<p class="meta">기록된 변화 없음</p>'}
+<details><summary>메시지 타입, 소켓 cmd</summary><pre>${esc(Object.entries(s.msgTypes).map(([k, v]) => `${k} ${v}`).join('\n'))}\n\n${esc(Object.entries(s.socketCmds).map(([k, v]) => `${k} ${v}`).join('\n'))}</pre></details></div>
+</div></section>`;
     }
 
     // 배지
+    let badges = '';
     if (info && !isErr(info.badges)) {
         const b = info.badges;
-        const card = (x: BadgeView) => `<li><img src="${esc(x.imageUrl)}" alt="" loading="lazy" width="36" height="36"><div><code>${esc(x.badgeId)}</code><div class="meta">${esc(x.scope)}, ${time(x.firstSeen)} 처음, 채널 ${x.channels}, ${x.sightings.toLocaleString()}회</div></div></li>`;
-        sections.push(`<section><h2>배지</h2><p class="meta">목록 ${b.listed}, 수집된 공통 배지 ${b.common}, 오늘 새 구독 배지 ${b.subscriptionRecent}</p>
-<h3>목록에 없음 ${b.unlisted.length}</h3>${b.unlisted.length ? `<ul class="badges">${b.unlisted.map(card).join('')}</ul>` : ''}
-<h3>최근 14일 처음 보임 ${b.recent.length}</h3>${b.recent.length ? `<ul class="badges">${b.recent.map(card).join('')}</ul>` : ''}</section>`);
+        const card = (x: BadgeView) => `<li><img src="${esc(x.imageUrl)}" alt="" loading="lazy" width="32" height="32"><div><code>${esc(x.badgeId)}</code><div class="meta">${esc(x.scope)}, ${time(x.firstSeen)} 처음, 채널 ${x.channels}</div></div></li>`;
+        badges = `<section class="panel"><div class="panel-head"><h2>배지</h2></div>
+<p class="figure-line"><span class="label">목록</span><span class="mono">${b.listed}</span></p>
+<p class="figure-line"><span class="label">harvester 공통 배지</span><span class="mono">${b.common}</span></p>
+<p class="figure-line"><span class="label">오늘 새 구독 배지</span><span class="mono">${b.subscriptionRecent}</span></p>
+<p class="figure-line"><span class="label">목록에 없음</span><span class="mono${b.unlisted.length ? ' warn' : ''}">${b.unlisted.length}</span></p>
+${b.unlisted.length ? `<ul class="badges">${b.unlisted.map(card).join('')}</ul>` : ''}
+${b.recent.length ? `<details><summary>최근 14일 처음 보임 ${b.recent.length}</summary><ul class="badges">${b.recent.map(card).join('')}</ul></details>` : ''}</section>`;
     }
 
     // 스토어
-    if (info && !isErr(info.stores)) {
-        const s = info.stores;
-        const rel = isErr(s.release) ? undefined : s.release.version;
-        const store = (name: string, x: typeof s.chrome | typeof s.firefox) => isErr(x)
+    let store = '';
+    if (stores) {
+        const rel = isErr(stores.release) ? undefined : stores.release.version;
+        const row = (name: string, x: typeof stores.chrome | typeof stores.firefox) => isErr(x)
             ? `<tr><td>${name}</td><td colspan="4" class="err">${esc(x.error)}</td></tr>`
-            : `<tr><td>${name}</td><td class="n">${esc(x.users ?? '-')}</td><td class="n">${x.rating != null ? x.rating.toFixed(2) : '-'} (${x.ratingCount ?? '-'})</td><td>${esc(x.version ?? '-')}${rel && x.version && x.version !== rel ? ` ${pill('risk', `릴리스 ${rel}`)}` : ''}</td><td class="meta">${esc(x.updated ?? '-')}</td></tr>`;
-        sections.push(`<section><h2>스토어</h2><table><thead><tr><th></th><th class="n">사용자</th><th class="n">평점</th><th>버전</th><th>갱신</th></tr></thead><tbody>
-${store('Chrome', s.chrome)}${store('Firefox', s.firefox)}
-<tr><td>GitHub 릴리스</td><td></td><td></td><td>${esc(rel ?? '-')}</td><td class="meta">${isErr(s.release) ? '' : time(s.release.published)}</td></tr>
-</tbody></table></section>`);
+            : `<tr><td>${name}</td><td class="n">${esc(x.users ?? '-')}</td><td class="n">${x.rating != null ? x.rating.toFixed(2) : '-'} <span class="meta">(${x.ratingCount ?? '-'})</span></td><td class="mono${rel && x.version && x.version !== rel ? ' warn' : ''}">${esc(x.version ?? '-')}</td><td class="mono">${day(x.updated)}</td></tr>`;
+        store = `<section class="panel"><div class="panel-head"><h2>스토어</h2></div><table><thead><tr><th></th><th class="n">사용자</th><th class="n">평점</th><th>버전</th><th>갱신</th></tr></thead><tbody>
+${row('Chrome', stores.chrome)}${row('Firefox', stores.firefox)}
+<tr><td>GitHub 릴리스</td><td></td><td></td><td class="mono">${esc(rel ?? '-')}</td><td class="mono">${isErr(stores.release) ? '' : day(stores.release.published)}</td></tr>
+</tbody></table></section>`;
     }
 
-    // GA
-    if (info && !isErr(info.ga)) {
-        const ga = info.ga;
-        sections.push(`<section><h2>GA 최근 ${ga.length}일</h2><div class="charts">
-${barChart('스토어 페이지 방문', ga.map((d) => ({ label: d.date, value: d.visits })))}
-${barChart('스토어 설치', ga.map((d) => ({ label: d.date, value: d.installs })))}
-${barChart('badgecollector.dev 방문자', ga.map((d) => ({ label: d.date, value: d.siteUsers })))}
-</div><details><summary>표</summary><table><thead><tr><th>날짜</th><th class="n">방문</th><th class="n">설치</th><th class="n">사이트 방문자</th><th class="n">페이지뷰</th></tr></thead><tbody>
-${ga.map((d) => `<tr><td>${d.date}</td><td class="n">${d.visits}</td><td class="n">${d.installs}</td><td class="n">${d.siteUsers}</td><td class="n">${d.siteViews}</td></tr>`).join('')}
-</tbody></table><p class="meta">오늘은 진행 중, 최근 몇 시간은 덜 잡힘</p></details></section>`);
+    // GitHub (이관 중인 카나리와 열린 이슈)
+    let gh = '';
+    if (github) {
+        gh = `<section class="panel"><div class="panel-head"><h2>GitHub</h2><span class="meta">카나리는 11-09쯤 정리</span></div><ul class="rows">
+${github.runs.map((r) => 'error' in r
+            ? `<li>${lamp('risk')}<span class="name">${esc(r.name)}</span><span class="when err">${esc(r.error)}</span></li>`
+            : `<li>${lamp(r.conclusion === 'success' ? 'off' : r.conclusion === 'failure' ? 'broken' : 'risk', r.conclusion ?? '')}<span class="name"><a href="${esc(r.url)}">${esc(r.name)}</a></span><span class="when">${r.recent.map((c) => lamp(c === 'success' ? 'off' : c === 'failure' ? 'broken' : 'risk', c ?? '')).join('')}</span></li>`).join('')}
+</ul>
+<details><summary>열린 이슈 ${issues.length}</summary><ul class="issues">${issues.map((i) => `<li><a href="${esc(i.url)}"><span class="mono">#${i.number}</span> ${esc(i.title)}</a>${i.labels.map((l) => ` <span class="tag">${esc(l)}</span>`).join('')}</li>`).join('')}</ul></details></section>`;
     }
 
     return `<!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="refresh" content="600"><title>Badge Collector 현황</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
-:root{--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--line:#e4e3df;--series:#2a78d6;--ok:#0ca30c;--risk:#c98500;--broken:#d03b3b;color-scheme:light dark}
-@media (prefers-color-scheme:dark){:root{--page:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--line:#2e2e2c;--series:#3987e5;--risk:#fab219}}
-*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Noto Sans KR",sans-serif}
-main{max-width:1100px;margin:0 auto;padding:16px}header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:8px}
-h1{font-size:18px;margin:0}h2{font-size:15px;margin:0 0 8px}h3{font-size:13px;margin:14px 0 6px;color:var(--ink2)}
-.verdict{font-size:16px}.reasons{margin:0 0 16px;padding-left:20px;color:var(--ink2)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,500px),1fr));gap:12px}
-section{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0;overflow-x:auto}
-table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:4px 8px 4px 0;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:500;font-size:12px}
-.n{text-align:right;font-variant-numeric:tabular-nums}.meta{color:var(--muted);font-size:12px;margin:0 0 6px}.err{color:var(--broken);font-size:12px}
-a{color:inherit}code{font-size:12px}pre{white-space:pre-wrap;word-break:break-all;font-size:12px;margin:4px 0;color:var(--ink2)}
-.pill{display:inline-block;padding:0 8px;border-radius:10px;font-size:12px;border:1px solid currentColor;white-space:nowrap}.pill.ok{color:var(--ok)}.pill.risk{color:var(--risk)}.pill.broken{color:var(--broken)}
-.verdict .pill{font-size:15px;padding:2px 12px}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px}.dot.ok{background:var(--ok)}.dot.risk{background:var(--risk)}.dot.broken{background:var(--broken)}
-.label{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:0 6px}.issues{margin:0;padding-left:18px}
-.badges{list-style:none;margin:0;padding:0;display:grid;gap:6px}.badges li{display:flex;gap:8px;align-items:center}.badges img{width:36px;height:36px;object-fit:contain}
-.change{border-left:2px solid var(--line);padding-left:8px;margin-bottom:8px}
-.prompt{position:absolute;left:-9999px;width:1px;height:1px}button.copy{margin-top:10px;font:inherit;font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--page);color:var(--ink);cursor:pointer}
-.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}.chart{margin:0}.chart figcaption{font-size:12px;color:var(--ink2);display:flex;justify-content:space-between}.chart .num{color:var(--ink);font-variant-numeric:tabular-nums}
-.chart svg{width:100%;height:auto;display:block}.chart .bar path{fill:var(--series)}.chart .bar:hover path{opacity:.75}.chart .base{stroke:var(--line)}.chart .axis{fill:var(--muted);font-size:10px}
-details{margin-top:8px}summary{cursor:pointer;color:var(--ink2);font-size:13px}
+:root{color-scheme:light dark;
+--page:#f5f5f4;--card:#ffffff;--raised:#efefee;--ink:#171717;--ink2:#525252;--muted:#737373;--line:rgba(23,23,23,.08);
+--accent:#f2c200;--lamp-off:#d4d4d2;--ok:#16a34a;--risk:#c27a00;--broken:#dc2626;--shadow:0 1px 2px rgba(0,0,0,.05)}
+@media (prefers-color-scheme:dark){:root{
+--page:#141415;--card:#19191b;--raised:#232325;--ink:#ededed;--ink2:#a1a1a6;--muted:#85858b;--line:rgba(237,237,237,.08);
+--accent:#f2c200;--lamp-off:#3a3a3d;--ok:#4cc38a;--risk:#f0a020;--broken:#e5484d;--shadow:none}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/20px "Pretendard Variable",Pretendard,system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.mono,code,pre,.axis{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12px}
+td.mono{white-space:nowrap}
+a{color:inherit;text-decoration:none;border-bottom:1px solid var(--line)}a:hover{border-color:var(--ink2)}
+main{max-width:1440px;margin:0 auto;padding:24px 32px 48px}
+.top{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+.brand{font-size:16px;font-weight:600}.brand span{color:var(--muted);font-weight:400}
+.top .spacer{flex:1}
+h1{font-size:32px;line-height:1;font-weight:500;margin:0}
+h2{font-size:15px;line-height:20px;font-weight:500;margin:0}
+h3{font-size:13px;font-weight:500;color:var(--ink2);margin:0 0 8px}
+.meta{color:var(--muted);font-size:12px;line-height:16px}
+.err{color:var(--broken);font-size:13px}.warn{color:var(--risk)}
+/* 탈리 램프 */
+.lamp{display:inline-block;flex:none;width:8px;height:8px;border-radius:50%;background:var(--lamp-off);vertical-align:middle}
+.lamp.ok{background:var(--ok)}.lamp.risk{background:var(--risk)}.lamp.broken{background:var(--broken)}
+.lamp.ok,.lamp.risk,.lamp.broken{box-shadow:inset 0 -1px 0 rgba(0,0,0,.2)}
+/* 판정 띠 */
+.verdict{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow);margin-bottom:16px}
+.verdict-head{display:flex;align-items:center;gap:12px}
+.verdict-head .lamp{width:16px;height:16px}
+.verdict-head .meta{margin-left:auto}
+.verdict.risk h1{color:var(--risk)}.verdict.broken h1{color:var(--broken)}
+.reasons{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:8px}
+.reasons li{display:flex;align-items:baseline;gap:12px;color:var(--ink2);font-size:15px;line-height:22px}
+.reasons .lamp{position:relative;top:-1px}
+.calm{color:var(--ink2);margin:12px 0 0}
+/* 숫자 */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:var(--shadow)}
+.stat .label{color:var(--ink2);font-size:13px}
+.stat .figure{font-size:32px;line-height:1;font-weight:500;margin:12px 0 8px}
+.stat .sub{color:var(--muted);font-size:12px}
+/* 패널 */
+.layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:var(--shadow);min-width:0}
+.panel.wide{grid-column:span 2}
+.panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.figure-line{display:flex;justify-content:space-between;margin:0 0 8px;font-size:13px}.figure-line .label{color:var(--ink2)}
+.rows{list-style:none;margin:0;padding:0}
+.rows li{display:flex;align-items:center;gap:12px;min-height:36px;border-top:1px solid var(--line)}
+.rows li:first-child{border-top:0}
+.rows.tall li{align-items:flex-start;padding:12px 0}.rows.tall .lamp{margin-top:6px}
+.rows .name{flex:1;min-width:0}
+.rows .when{color:var(--muted);white-space:nowrap;font-size:12px}
+.history{display:flex;gap:4px;margin-top:8px}.history .lamp{width:6px;height:6px}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:8px 12px 8px 0;border-top:1px solid var(--line);vertical-align:top;font-size:13px}
+thead th{border-top:0;color:var(--muted);font-weight:400;font-size:12px;padding-top:0}
+.n{text-align:right}
+pre{white-space:pre-wrap;word-break:break-all;margin:8px 0 0;color:var(--ink2);font-size:12px;line-height:16px}
+details{margin-top:12px}summary{cursor:pointer;color:var(--ink2);font-size:13px}summary:hover{color:var(--ink)}
+.change{border-left:2px solid var(--line);padding-left:12px;margin-bottom:12px}
+.badges{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}.badges li{display:flex;gap:12px;align-items:center}.badges img{width:32px;height:32px;object-fit:contain}
+.issues{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}.issues a{border:0}.issues a:hover{color:var(--ink2)}
+.tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+/* 차트 */
+.chart svg{width:100%;height:auto;display:block}
+.chart .gl{stroke:var(--line)}.chart .axis{fill:var(--muted);font-size:11px}
+.chart .bar rect:not(.hit){fill:var(--lamp-off);transition:fill .15s cubic-bezier(.22,1,.36,1)}
+.chart .bar.today rect:not(.hit){fill:var(--accent)}
+.chart .bar:hover rect:not(.hit){fill:var(--ink2)}.chart .hit{fill:transparent}
+.prompt{position:absolute;left:-9999px;width:1px;height:1px}
+button.copy{margin-top:12px;font:inherit;font-size:12px;height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--raised);color:var(--ink);cursor:pointer;transition:background-color .15s cubic-bezier(.22,1,.36,1)}
+button.copy:hover{background:var(--line)}button.copy:active{transform:scale(.98)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+footer{margin-top:24px}
+@media (max-width:1100px){.grid{grid-template-columns:1fr 1fr}.panel.wide{grid-column:span 2}}
+@media (max-width:760px){main{padding:16px}.stats{grid-template-columns:1fr 1fr}.layout,.grid,.split{grid-template-columns:1fr}.panel.wide{grid-column:auto}h1{font-size:28px}.chart .axis{font-size:22px}}
 </style></head><body><main>
-<header><h1>Badge Collector 현황</h1><span class="verdict">${pill(level)}</span><span class="meta">${time(Date.now())} 갱신</span></header>
-${reasons.length ? `<ul class="reasons">${reasons.map((r) => `<li>${pill(r.level)} ${esc(r.text)}</li>`).join('')}</ul>` : ''}
-<div class="grid">${sections.join('\n')}</div>
-<p class="meta"><a href="https://github.com/${REPO}">${REPO}</a></p>
+<header class="top"><div class="brand">Badge Collector <span>현황</span></div><span class="spacer"></span><a class="meta" href="https://github.com/${REPO}/blob/master/docs/monitoring.md">docs/monitoring.md</a></header>
+${verdict}
+${stats}
+<div class="layout">${chart}${jobs}</div>
+<div class="grid">${deploy}${canary}${liveSec}${bundleSec}${badges}${store}${gh}</div>
+<footer class="meta">ovm 192.168.1.162, 10분마다 새로고침</footer>
 </main>
 <script>
 // http(LAN)라 navigator.clipboard가 없을 수 있다. 숨긴 textarea를 골라 execCommand로 복사한다
