@@ -204,3 +204,17 @@ describe('useFilteredChatBuffer', () => {
         });
     });
 });
+
+describe('useFilteredChatBuffer 캡처 선택', () => {
+    it('그린 채팅의 key 속성을 채팅 key로 맞춰 선택 표시가 붙는다', () => {
+        // 소켓 채팅을 치지직 원본 모양으로 그리면 원본 key(UUID가 붙은)가 clone에 남아 있다
+        const clone = document.createElement('div');
+        clone.setAttribute('data-tbc-chat-key', 'uid_1_uuid');
+        const capture = { captureMode: true, selectedKeys: new Set(['uid_1']) };
+        const { result } = renderHook(() => useFilteredChatBuffer(makeAdapter('newest-top'), 100, null, undefined, capture));
+        act(() => { result.current.addChat(passed({ clone, key: 'uid_1', time: 1 })); });
+        const props = (result.current.chats[0] as React.ReactElement<{ children: React.ReactElement<Record<string, string>> }>).props.children.props;
+        expect(props['data-tbc-chat-key']).toBe('uid_1');
+        expect(props.className).toContain('tbcv2-capture-selected');
+    });
+});

@@ -6,6 +6,7 @@ import { PassedChat } from "./useChatStream";
 import { CHANNEL_MAX_BYTES, ChatHistoryTooLarge, hasChatHistoryStore, loadChatHistory, removeChatHistory, saveChatHistory } from "@/utils/chat-history-store";
 import { takeLeftoverChats } from "@/content-scripts/base/salvage";
 import { contextAlive } from "@/content-scripts/base/lifecycle";
+import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 
 interface ChatWrapperProps {
     time: number;
@@ -376,6 +377,9 @@ export default function useFilteredChatBuffer(
             wrapper.innerHTML = sanitized;
             const node = wrapper.firstElementChild as HTMLElement | null;
             if (node) {
+                // 클릭 선택과 캡처는 이 속성으로 채팅을 찾는다. 소켓 채팅을 치지직 원본 모양으로 그리면
+                // 원본의 key(끝에 UUID가 붙는다)가 남아 c.key와 달랐다 — 선택 표시가 안 붙고 전체 선택은 캡처되지 않았다.
+                node.setAttribute(CHAT_ATTR.KEY, c.key);
                 if (mode) node.classList.add(CAPTURE_MODE_CLASS);
                 if (selected) node.classList.add(CAPTURE_SELECTED_CLASS);
                 // 디버그: hover 시 이 chat이 수집된 채널 표시. channel = persistenceKey
