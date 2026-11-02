@@ -3,5 +3,7 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "jsx": "react-jsx"
-  }
+  },
+  // ops/는 ovm에서 도는 감시 코드라 따로 검사한다 (npx tsc -p ops)
+  "exclude": [".output", "ops"]
 }

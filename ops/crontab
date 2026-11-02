@@ -1,0 +1,24 @@
+# ovm crontab 원본. 설치: crontab ~/tbc/ops/crontab  (기존 내용을 통째로 바꾼다. 이 파일에 없는 줄은 사라진다)
+# 작업 설명은 docs/monitoring.md. 진입점은 ops/run.sh, 결과는 ~/.local/state/badge-collector/
+SHELL=/bin/sh
+RUN=sh /home/bluewarn/tbc/ops/run.sh
+
+# 리포 갱신 (master를 따라간다. ops 코드를 고치면 10분 안에 반영)
+*/10 * * * * $RUN pull
+# 치지직 배포 감지. 감지하면 canary, socket, live를 바로 띄운다
+* * * * * $RUN deploy
+# 감시 작업 생존 확인
+*/10 * * * * $RUN heartbeat
+# 소켓 카나리
+30 * * * * $RUN socket
+# 선택자 카나리, 확장 실제 시험 (브라우저 작업이라 시각을 엇갈린다)
+0 */6 * * * $RUN canary
+15 3-23/6 * * * $RUN live
+# 스토어, 배지, GA 수집
+45 */3 * * * $RUN info
+# GA 통계 (Discord)
+*/30 * * * * $RUN spike
+0 10 * * * $RUN stats
+
+# 커뮤니티 언급 감시 (이 리포 밖, ~/badge-collector-community-watch)
+0 10 * * * cd $HOME/badge-collector-community-watch && PATH=$HOME/.nvm/versions/node/v24.22.0/bin:/usr/bin:/bin npx tsx community-watch.ts >> $HOME/.local/state/badge-collector/community-watch.log 2>&1

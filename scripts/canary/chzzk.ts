@@ -8,6 +8,7 @@
  *  - DISCORD_CANARY_WEBHOOK
  *  - CANARY_MODE=live|vod
  *  - CANARY_TOTAL, CANARY_PARALLEL, CANARY_BATCH_DELAY_MS
+ *  - CANARY_STATE_DIR  스냅샷과 알림 파일을 둘 곳. ovm은 리포 밖 상태 폴더를 쓴다(docs/monitoring.md). 없으면 리포 루트
  */
 import { chromium } from '@playwright/test';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
@@ -22,7 +23,8 @@ import { discoverChannels } from './discover-channels.ts';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const REPO_ROOT = join(__dirname, '..', '..');
-const SNAPSHOT_DIR = join(REPO_ROOT, 'snapshots');
+const OUT_DIR = process.env.CANARY_STATE_DIR || REPO_ROOT;
+const SNAPSHOT_DIR = join(OUT_DIR, 'snapshots');
 
 const MODE = (process.env.CANARY_MODE === 'vod' ? 'video' : 'live') as 'live' | 'video';
 const PARALLEL = Math.max(1, parseInt(process.env.CANARY_PARALLEL ?? '8', 10));
@@ -235,7 +237,8 @@ async function main() {
                 for (const c of diff.autoFixCandidates) {
                     lines.push(`  - \`${c.selectorName}\`: ${c.reason}`);
                 }
-                lines.push(`  → draft PR 자동 생성.`);
+                // ovm에는 gh가 없어 PR을 못 연다. 후보는 현황판에 나온다(docs/monitoring.md)
+                lines.push(process.env.GITHUB_ACTIONS ? `  → draft PR 자동 생성.` : `  → 후보는 현황판 카나리 칸에 있음.`);
             }
             for (const a of diff.alerts) lines.push(`- ${a}`);
         }
@@ -245,7 +248,7 @@ async function main() {
         // Discord webhook만으로는 놓친다 — rev 13 사고에서 알림은 갔지만 18시간 동안
         // 아무 조치가 없었고, 저장소엔 흔적이 남지 않아 추적도 안 됐다.
         if (diff.brokenRequired.length > 0) {
-            writeFileSync(join(REPO_ROOT, 'canary-alert.json'), JSON.stringify({
+            writeFileSync(join(OUT_DIR, 'canary-alert.json'), JSON.stringify({
                 mode: MODE,
                 title: `chzzk canary: required selector ${diff.brokenRequired.map(s => s.name).join(', ')} 깨짐`,
                 body: lines.join('\n'),
@@ -261,7 +264,7 @@ async function main() {
 
         // auto-fix 후보 있으면 workflow 소비용 파일 생성
         if (diff.autoFixCandidates.length > 0) {
-            writeFileSync(join(REPO_ROOT, 'canary-autofix.json'), JSON.stringify({
+            writeFileSync(join(OUT_DIR, 'canary-autofix.json'), JSON.stringify({
                 snapshotFile: SNAPSHOT_FILE,
                 candidates: diff.autoFixCandidates,
                 capturedAt: snapshot.capturedAt,

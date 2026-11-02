@@ -13,6 +13,7 @@
  *  - SOCKET_CANARY_CHANNELS  동시 접속 채널 수 (기본 8)
  *  - SOCKET_CANARY_SECONDS   수집 시간 (기본 120)
  *  - DISCORD_CANARY_WEBHOOK
+ *  - CANARY_STATE_DIR  알림 파일을 둘 곳. 없으면 리포 루트
  */
 import { writeFileSync } from 'fs';
 import { dirname, join } from 'path';
@@ -21,7 +22,7 @@ import { collectChat, discoverLives } from '../capture/socket-client.ts';
 import { checkSocketCapture, type ChannelCapture, type SocketCheckResult } from './socket-check.ts';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const ALERT_FILE = join(REPO_ROOT, 'canary-socket-alert.json');
+const ALERT_FILE = join(process.env.CANARY_STATE_DIR || REPO_ROOT, 'canary-socket-alert.json');
 const CHANNELS = Math.max(1, parseInt(process.env.SOCKET_CANARY_CHANNELS ?? '8', 10));
 const SECONDS = Math.max(10, parseInt(process.env.SOCKET_CANARY_SECONDS ?? '120', 10));
 

@@ -1,0 +1,19 @@
+# 원본은 리포 ops/systemd/. 2026-10-25부터 꺼져 있다(docs/monitoring.md "harvester").
+# 사용자 서비스. 관리: systemctl --user {status,restart,stop} badge-harvester
+# 로그: journalctl --user -u badge-harvester -f
+[Unit]
+Description=CHZZK badge harvester
+After=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/home/bluewarn/harvester/harvester.env
+ExecStart=/home/bluewarn/harvester/bin/badge-harvester
+Restart=on-failure
+RestartSec=10
+# SIGTERM을 받으면 저장 후 최대 5초 안에 끝난다.
+TimeoutStopSec=15
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

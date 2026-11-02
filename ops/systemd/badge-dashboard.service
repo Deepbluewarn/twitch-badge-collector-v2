@@ -1,0 +1,17 @@
+# 원본은 리포 ops/systemd/. 설치: cp ~/tbc/ops/systemd/badge-dashboard.service ~/.config/systemd/user/ && systemctl --user daemon-reload
+# 사용자 서비스. 관리: systemctl --user {status,restart,stop} badge-dashboard
+# 로그: journalctl --user -u badge-dashboard -f
+[Unit]
+Description=Badge Collector dashboard (LAN)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/bluewarn/tbc/ops
+ExecStart=/home/bluewarn/.nvm/versions/node/v24.22.0/bin/node --experimental-strip-types watch/serve.ts
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target
