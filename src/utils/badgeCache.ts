@@ -6,7 +6,8 @@
  *  - 서버 요청 최소화 + 서버 다운 시에도 동작
  *
  * 동작:
- *  - cache hit + fresh(< TTL) → 캐시 반환, 네트워크 미접속
+ *  - cache hit + fresh(< TTL) → 캐시 반환, 네트워크 미접속. TTL은 트위치 7일, 치지직 1시간
+ *    (치지직 목록은 우리 data/chzzk-badges.json이라 새 배지를 넣으면 바로 보여야 한다. ETag 재검증이라 가볍다)
  *  - cache miss 또는 stale → 네트워크 fetch → 성공 시 캐시 갱신
  *  - 네트워크 fetch 실패 → 있는 캐시(stale 포함) 그대로 반환. 캐시도 없으면 throw
  *
@@ -16,6 +17,7 @@ import { BadgeInterface } from '@/interfaces/chat';
 import { PlatformAdapter } from '@/platform';
 
 const TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7일
+const CHZZK_TTL_MS = 60 * 60 * 1000; // 1시간
 const KEY_PREFIX = 'badges:';
 
 interface CachedBadges {
@@ -62,7 +64,8 @@ export async function fetchBadgesCached(
     const cached = await loadCache(key);
 
     // fresh — 네트워크 안 침
-    if (cached && Date.now() - cached.fetchedAt < TTL_MS) {
+    const ttl = adapter.type === 'chzzk' ? CHZZK_TTL_MS : TTL_MS;
+    if (cached && Date.now() - cached.fetchedAt < ttl) {
         return cached.data;
     }
 
