@@ -351,6 +351,9 @@
         "empty": "Sin resultados",
         "error": "No se pudo buscar"
     },
+    "user_search": {
+        "button": "Buscar usuario"
+    },
     "archive": {
         "title": "Archivo de chat",
         "enabled": "Archivar chats",

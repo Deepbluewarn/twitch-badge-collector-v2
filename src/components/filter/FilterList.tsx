@@ -185,23 +185,25 @@ function FilterRow({ row, adapter, actions, selected, onToggle, test, duplicate 
     );
 }
 
-/** 조건 하나. 배지는 그림 + 이름, 이름은 @, 키워드는 따옴표. 면 색이 맞음/아님/꺼짐. 핸들러가 없으면 보기 전용. */
+/** 조건 하나. 배지는 그림 + 이름, 이름은 @ (사람으로 고른 이름은 프로필 사진), 키워드는 따옴표. 면 색이 맞음/아님/꺼짐. 핸들러가 없으면 보기 전용. */
 function AtomChip({ atom, adapter, onEdit, onRemove, mark }: {
     atom: AtomicFilterElement; adapter: PlatformAdapter; onEdit?: () => void; onRemove?: () => void;
     /** 필터 시험: 이 조건이 맞았는지 (true ✓ / false ✕ / undefined 표시 안 함) */
     mark?: boolean;
 }) {
     const { t } = useTranslation();
-    const label = atom.category === 'badge' ? (atom.badgeName || atom.value) : atom.category === 'name' ? `@${atom.value}` : `“${atom.value}”`;
+    const person = atom.category === 'name' && !!atom.userId;
+    const label = atom.category === 'badge' || person ? (atom.badgeName || atom.value) : atom.category === 'name' ? `@${atom.value}` : `“${atom.value}”`;
     const body = (
         <>
             {mark !== undefined && <span className={`${s.mark} ${mark ? s.markOk : s.markBad}`} aria-label={mark ? '✓' : '✕'}>{mark ? '✓' : '✕'}</span>}
             {atom.category === 'badge' && <img src={adapter.getBadgeImageUrl(atom.value, '2x')} alt="" />}
+            {person && <ChannelAvatar src={atom.userImage} size={18} />}
             <span className={s.chipLabel}>{label}</span>
         </>
     );
     return (
-        <span className={`${s.chip} ${atom.category === 'badge' ? s.badge : ''} ${TONE[atom.type] ?? s.ok}`}>
+        <span className={`${s.chip} ${atom.category === 'badge' || person ? s.badge : ''} ${TONE[atom.type] ?? s.ok}`} title={person ? atom.userId : undefined}>
             {onEdit
                 ? <button type="button" className={s.chipBody} onClick={onEdit}>{body}</button>
                 : <span className={s.chipBody} style={{ cursor: 'default' }}>{body}</span>}

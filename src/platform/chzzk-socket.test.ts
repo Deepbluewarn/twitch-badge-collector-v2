@@ -212,6 +212,12 @@ describe('toChatInfo', () => {
         expect(info.unavailable).toBeUndefined();
         expect(info).toMatchObject({ nickName: '시청자', loginName: '시청자', channelId: 'ch1' });
     });
+
+    it('작성자 ID를 싣는다 — 익명 후원은 싣지 않는다', () => {
+        const c = normalizeChzzkMessage(liveBdy())!;
+        expect(toChatInfo(c).userId).toBe(c.uid);
+        expect(toChatInfo({ ...c, anonymous: true }).userId).toBeUndefined();
+    });
 });
 
 describe('resolveNicknameColor — host 닉네임 컴포넌트 재현', () => {

@@ -351,6 +351,9 @@
         "empty": "検索結果なし",
         "error": "検索できません"
     },
+    "user_search": {
+        "button": "ユーザー検索"
+    },
     "archive": {
         "title": "チャット保管庫",
         "enabled": "保管する",

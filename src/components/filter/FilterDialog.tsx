@@ -4,6 +4,7 @@ import { FilterCategory, AtomicFilterElement, CompositeFilterElement, FilterType
 import { Button, Card, Dialog, Field, Select, Stack, TextArea, TextInput } from '@/ui';
 import BadgeList from './BadgeList';
 import { ChannelInput } from './ChannelInput';
+import { NicknameInput } from './NicknameInput';
 import { useGlobalSettingContext } from '../../context/GlobalSetting';
 import { defaultAtomicFilter } from '@/utils/utils-common';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
@@ -155,7 +156,8 @@ export default function FilterDialog(props: FilterDialogProps) {
                                     ...defaultAtomicFilter(filter.id, filter.category, filter.type),
                                 }
                             });
-                            handleFilterObjectChange({ category }, filterId!);
+                            // 고른 사람은 닉네임 조건에만 붙는다
+                            handleFilterObjectChange({ category, userId: undefined, userImage: undefined }, filterId!);
                         }}
                         options={[
                             { value: 'name', label: t('common.nickname') },
@@ -176,6 +178,13 @@ export default function FilterDialog(props: FilterDialogProps) {
                                             handleFilterObjectChange({ badgeName: e.target.value }, filterId!);
                                         }}
                                     />
+                                </Field>
+                            </div>
+                        ) : filterGroup.category === 'name' ? (
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <Field label={t('common.content')}>
+                                    <NicknameInput platform={globalSetting.platform} value={filterGroup}
+                                        onChange={v => handleFilterObjectChange(v, filterId!)} />
                                 </Field>
                             </div>
                         ) : (

@@ -350,6 +350,9 @@
         "empty": "검색 결과 없음",
         "error": "검색할 수 없음"
     },
+    "user_search": {
+        "button": "사용자 검색"
+    },
     "archive": {
         "title": "채팅 보관함",
         "enabled": "보관하기",

@@ -20,6 +20,10 @@ export interface AtomicFilterElement {
     badgeSetId?: string; // for Twitch
     channelLogin?: string; // 일단은 트위치 전용 (채널 배지 구분용)
     channelId?: string; // 트위치 다시보기에서는 채널 login이 없고 id만 있더라
+    /** name 조건을 사람으로 맞출 때 (치지직 userIdHash). 있으면 value(닉네임)는 표시용이고 닉네임을 바꿔도 맞는다. */
+    userId?: string;
+    /** userId로 고른 사람의 프로필 사진 주소. 목록 표시용 */
+    userImage?: string;
 }
 
 /**

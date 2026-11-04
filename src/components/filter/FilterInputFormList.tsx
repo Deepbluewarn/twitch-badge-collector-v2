@@ -6,6 +6,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Button, Card, Divider, Field, Icon, IconButton, TextInput } from '@/ui';
 import ChannelIdGuideDialog from './dialog/ChannelIdGuideDialog';
 import { ChannelInput, EMPTY_CHANNEL, type ChannelValue } from './ChannelInput';
+import { NicknameInput } from './NicknameInput';
 import {
     AtomicFilterElement,
     FilterCategory,
@@ -216,6 +217,9 @@ function AdvancedFilterInputForm(props: {
                 if (l.id === props.value.id) {
                     if (selectorType === 'category') {
                         l.category = newValue as FilterCategory;
+                        // 고른 사람은 닉네임 조건에만 붙는다
+                        delete l.userId;
+                        delete l.userImage;
                     } else if (selectorType === 'type') {
                         l.type = newValue as FilterType;
                     }
@@ -258,10 +262,18 @@ function AdvancedFilterInputForm(props: {
                         />
 
                         <Field label={t('common.value')} className={s.grow}>
-                            <TextInput
-                                defaultValue={props.value.value}
-                                onChange={inputChanged}
-                            />
+                            {props.value.category === 'name' ? (
+                                <NicknameInput
+                                    platform={globalSetting.platform}
+                                    value={props.value}
+                                    onChange={v => props.setInputList(list => list.map(l => l.id === props.value.id ? { ...l, ...v } : l))}
+                                />
+                            ) : (
+                                <TextInput
+                                    defaultValue={props.value.value}
+                                    onChange={inputChanged}
+                                />
+                            )}
                         </Field>
                     </>
                 )

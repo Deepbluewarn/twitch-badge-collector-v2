@@ -351,6 +351,9 @@
         "empty": "无搜索结果",
         "error": "无法搜索"
     },
+    "user_search": {
+        "button": "搜索用户"
+    },
     "archive": {
         "title": "聊天存档",
         "enabled": "存档聊天",

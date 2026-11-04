@@ -1,8 +1,8 @@
 /**
  * 필터 기본(simple) 모드 — 단일 atomic 필터로 composite 그룹 하나 추가.
  * advanced 모드(FilterInputFormList)와 layout 통일:
- *   - 본문: atomic 필터 입력 (카테고리/배지 + 값 + 초기화)
- *   - 액션: 조건(Toggle) → 메모 → 채널 섹션(help 포함) → 필터 추가
+ *   - 본문: atomic 필터 입력 (카테고리/배지 + 값)
+ *   - 액션: 조건(Toggle) → 메모 → 채널 섹션(help 포함) → 초기화, 필터 추가
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +20,7 @@ import { defaultAtomicFilter } from '@/utils/utils-common';
 import { getAdapter, getBadgeSrcSet } from '@/platform';
 import ChannelIdGuideDialog from './dialog/ChannelIdGuideDialog';
 import { ChannelInput, EMPTY_CHANNEL, type ChannelValue } from './ChannelInput';
+import { NicknameInput } from './NicknameInput';
 import { useAlertContext } from '@/context/Alert';
 import s from './FilterAddDialog.module.css';
 
@@ -39,6 +40,17 @@ export default function FilterInputForm(
     const filterContentValue = useRef<HTMLInputElement>(null);
     const [channel, setChannel] = useState<ChannelValue>(EMPTY_CHANNEL);
 
+    // 폼 전체(카테고리, 내용, 채널)를 비운다. 배지를 고른 뒤 닉네임이나 키워드로 돌아가는 길도 이것뿐이다.
+    const resetFilterInput = useCallback(() => {
+        props.setFilterInput(defaultAtomicFilter());
+        if (filterContentValue.current !== null) filterContentValue.current.value = '';
+        setChannel(EMPTY_CHANNEL);
+    }, []);
+
+    useEffect(() => {
+        resetFilterInput();
+    }, [globalSetting.platform]);
+
     const onFilterNoteChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFilterGroupNote(event.target.value);
     }
@@ -49,15 +61,14 @@ export default function FilterInputForm(
 
     const addFilter = useCallback(() => {
         if (typeof props.filterInput === 'undefined') return;
-        if (filterContentValue.current === null) return;
-
+        // 닉네임 칸은 filterInput에 바로 쓴다. 배지 이름과 키워드 칸만 ref로 읽는다.
         const contentValueRef = filterContentValue.current;
-        const _contentValue = contentValueRef.value;
-
         if (props.filterInput.category === 'badge') {
-            props.filterInput.badgeName = _contentValue;
-        } else {
-            props.filterInput.value = _contentValue;
+            if (contentValueRef === null) return;
+            props.filterInput.badgeName = contentValueRef.value;
+        } else if (props.filterInput.category === 'keyword') {
+            if (contentValueRef === null) return;
+            props.filterInput.value = contentValueRef.value;
         }
 
         // 기본 모드에서 atomic 필터 type은 include로 고정. 사용자가 고른 type은 composite filterType.
@@ -77,7 +88,7 @@ export default function FilterInputForm(
         if (added) {
             setFilterGroupNote('');
             props.setFilterInput(defaultAtomicFilter());
-            contentValueRef.value = '';
+            if (contentValueRef) contentValueRef.value = '';
             setChannel(EMPTY_CHANNEL);
             addAlert({ serverity: 'success', message: t('alert.filter_added') });
             props.onAddSuccess?.();
@@ -91,7 +102,6 @@ export default function FilterInputForm(
                     filterInput={props.filterInput}
                     setFilterInput={props.setFilterInput}
                     filterContentValue={filterContentValue}
-                    resetChannel={() => setChannel(EMPTY_CHANNEL)}
                 />
             </div>
 
@@ -126,8 +136,11 @@ export default function FilterInputForm(
                     <ChannelInput platform={globalSetting.platform} value={channel} onChange={setChannel} row />
                 </div>
 
-                {/* primary CTA */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {/* primary CTA, 그 왼쪽에 폼 전체 초기화 */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                    <Button onClick={resetFilterInput} variant="text">
+                        {t('common.reset')}
+                    </Button>
                     <Button onClick={addFilter} variant="primary">
                         {t('common.add_filter')}
                     </Button>
@@ -144,7 +157,6 @@ function BasicFilterInputForm(
         filterInput: AtomicFilterElement | undefined,
         setFilterInput: React.Dispatch<React.SetStateAction<AtomicFilterElement | undefined>>,
         filterContentValue: React.RefObject<HTMLInputElement | null>,
-        resetChannel: () => void,
     }
 ) {
     const { globalSetting } = useGlobalSettingContext();
@@ -158,6 +170,10 @@ function BasicFilterInputForm(
             const newL = { ...l };
             if (selectorType === 'category') {
                 newL.category = newValue as FilterCategory;
+                // 키워드 칸에 적던 글자는 이어 가고, 고른 사람은 닉네임 조건에만 붙는다
+                newL.value = props.filterContentValue.current?.value ?? newL.value;
+                delete newL.userId;
+                delete newL.userImage;
             } else if (selectorType === 'type') {
                 newL.type = newValue as FilterType;
             }
@@ -165,25 +181,12 @@ function BasicFilterInputForm(
         });
     }
 
-    const resetFilterInput = useCallback(() => {
-        props.setFilterInput(defaultAtomicFilter());
-
-        const filterContentRef = props.filterContentValue.current;
-
-        if (filterContentRef !== null) filterContentRef.value = '';
-        props.resetChannel();
-    }, []);
-
     useEffect(() => {
         if (!props.filterInput) return;
         if (props.filterInput.category === 'badge') {
             props.filterContentValue.current!.value = props.filterInput.badgeName ?? '';
         }
     }, [props.filterInput]);
-
-    useEffect(() => {
-        resetFilterInput();
-    }, [globalSetting.platform])
 
     return (
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
@@ -211,20 +214,22 @@ function BasicFilterInputForm(
                             onChange={(v) => selectorChanged(v, 'category')}
                         />
                         <Field label={t('common.value')} className={s.grow}>
-                            <TextInput
-                                defaultValue={props.filterInput?.value}
-                                ref={props.filterContentValue}
-                            />
+                            {props.filterInput?.category === 'name' ? (
+                                <NicknameInput
+                                    platform={globalSetting.platform}
+                                    value={props.filterInput}
+                                    onChange={v => props.setFilterInput(l => l ? { ...l, ...v } : l)}
+                                />
+                            ) : (
+                                <TextInput
+                                    defaultValue={props.filterInput?.value}
+                                    ref={props.filterContentValue}
+                                />
+                            )}
                         </Field>
                     </>
                 )
             }
-            <IconButton
-                icon="restart_alt"
-                onClick={resetFilterInput}
-                label={t('common.reset')}
-                style={{ flexShrink: 0 }}
-            />
         </div>
     )
 }

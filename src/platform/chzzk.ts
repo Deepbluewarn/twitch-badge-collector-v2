@@ -31,6 +31,15 @@ function verifiedMarkTypeOf(chat_clone: Element): VerifiedMarkType | null {
     return null;
 }
 
+/**
+ * host 채팅 key에서 작성자 ID(userIdHash)를 꺼낸다. 라이브는 `${uid}_${time}_${랜덤}`, 다시보기는 `${uid}_${time}`.
+ * 익명 후원(`anonymous`)이나 클라이언트 메시지(`CUSTOM_`)처럼 사람 ID가 아니면 null.
+ */
+export function userIdFromHostKey(key: string): string | null {
+    const m = /^([0-9a-f]{32})_\d+(?:_|$)/i.exec(key);
+    return m ? m[1] : null;
+}
+
 export class ChzzkAdapter implements PlatformAdapter {
     readonly type = 'chzzk' as const;
 
@@ -102,11 +111,14 @@ export class ChzzkAdapter implements PlatformAdapter {
         const markType = verifiedMarkTypeOf(chat_clone);
         if (markType) badgeArr.push(verifiedMarkUrl(markType));
 
+        const userId = userIdFromHostKey(chat_clone.getAttribute(CHAT_ATTR.KEY) ?? '');
+
         return {
             badges: [...badgeArr],
             textContents: [...textArr, ...donationTextArr],
             loginName: nameText,
             nickName: nameText,
+            ...(userId ? { userId } : {}),
             ...(unavailable.length > 0 ? { unavailable } : {}),
         } as ChatInfo;
     }

@@ -12,6 +12,7 @@
 ```
 ovm (odroid, 192.168.1.162, ssh ovm)
 ├─ ~/tbc                       이 리포 클론 (master)
+├─ ~/badgecollector-site       사이트 리포 클론. channels 작업이 커밋하고 푸시한다 (deploy key ~/.ssh/badgecollector-site-deploy, ~/.ssh/config의 Host github-site)
 │   └─ ops/run.sh <작업>        cron 진입점. 작업을 돌리고 기록을 남긴다
 ├─ crontab                     ops/crontab 그대로
 ├─ systemd --user
@@ -39,6 +40,7 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 | `canary` | 6시간 (0, 6, 12, 18시) | 라이브 채널 여러 개를 Playwright로 열어 선택자 매칭을 확인한다 (`scripts/canary/chzzk.ts`). 깨지면 자동 수정 후보를 현황판에 띄운다 | 스냅샷과 달라졌을 때, 깨진 채 6시간, 회복 |
 | `live` | 6시간 (3, 9, 15, 21시 15분) | 최신 릴리스 zip을 Chromium에 올려 치지직(소켓 끔, 켬), 트위치에서 모아보기 창에 채팅이 들어오는지 본다. 치지직 번들을 받아 확장이 기대는 이름이 사라졌는지, 새 신호(메시지 타입, 소켓 cmd, API 경로, CSS 이름)가 생겼는지 비교한다 | 판정이 바뀔 때, 번들 변화 |
 | `info` | 3시간 | 스토어(크롬 공개 페이지, AMO), GitHub 실행과 이슈, 배지 목록 비교, GA 14일 | 판정이 바뀔 때 |
+| `channels` | 매일 5시 20분 | harvester 데이터로 사이트의 스트리머별 구독 배지 페이지 데이터(`badgecollector-site`의 `src/data/channels.json`)를 다시 만들고, 바뀐 채널이 있으면 사이트 리포에 푸시한다(`ops/watch/site-channels.sh`). 2분쯤 | heartbeat가 대신 |
 | `heartbeat` | 10분 | `runs/*.json`을 보고 정해진 시간보다 오래 성공 못 한 작업, 멈춘 서비스를 찾는다 | 문제가 생기거나 바뀔 때, 12시간마다 다시 |
 | `pull` | 10분 | `git pull --ff-only`, `package-lock.json`이 바뀌었으면 `npm ci` | heartbeat가 대신 |
 | `spike` | 30분 | GA 실시간 30분 방문 20명 이상이면 알림 (6시간 쿨다운) | 급증 때 |
@@ -126,3 +128,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-02 | 새 배지 알림(`badges`, 10분). 배지 목록 커밋 시 jsDelivr purge(`site-rebuild.yml`), 확장의 치지직 배지 캐시 7일에서 1시간으로 |
 | 2026-11-02 | harvester 다시 켬 (10-25부터 꺼져 있었음) |
 | 2026-11-02 | 코드를 리포 `ops/`로 옮김(커밋 fdcff86). 배포 감지(1분), ovm 카나리(선택자 6시간, 소켓 1시간), heartbeat 추가. 옛 폴더는 ovm `~/badge-collector-stats.old-2026-11-02`, 옛 crontab과 서비스 파일은 `~/.local/state/badge-collector/backup/` |
+| 2026-11-04 | `channels` 작업(매일 5시 20분): 사이트 스트리머별 구독 배지 페이지 데이터 갱신, 사이트 리포 deploy key로 푸시 |

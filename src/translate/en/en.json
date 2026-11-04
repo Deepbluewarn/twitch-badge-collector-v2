@@ -351,6 +351,9 @@
         "empty": "No results",
         "error": "Search failed"
     },
+    "user_search": {
+        "button": "Search user"
+    },
     "archive": {
         "title": "Chat archive",
         "enabled": "Archive chats",

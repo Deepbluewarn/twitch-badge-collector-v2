@@ -351,6 +351,9 @@
         "empty": "沒有搜尋結果",
         "error": "無法搜尋"
     },
+    "user_search": {
+        "button": "搜尋使用者"
+    },
     "archive": {
         "title": "聊天存檔",
         "enabled": "存檔聊天",

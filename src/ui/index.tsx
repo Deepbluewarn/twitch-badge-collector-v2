@@ -114,7 +114,7 @@ export function Field({ label, children, className, htmlFor, style }: { label: R
 
 export const TextInput = React.forwardRef<HTMLInputElement, { size?: 'md' | 'sm'; lead?: string; trail?: React.ReactNode } & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>>(
     function TextInput({ size = 'md', lead, trail, className, ...rest }, ref) {
-        const input = <input ref={ref} className={cx(s.input, size === 'sm' && s.sm, className)} {...rest} />;
+        const input = <input ref={ref} className={cx(s.input, size === 'sm' && s.sm, !!lead && s.withLead, !!trail && s.withTrail, className)} {...rest} />;
         if (!lead && !trail) return input;
         return (
             <div className={s.inputWrap}>

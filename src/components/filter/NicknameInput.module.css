@@ -1,0 +1,86 @@
+/* 닉네임 조건 값 칸. 색은 src/ui/tokens.css 토큰. */
+
+/* 고른 사람 — 입력 칸과 같은 높이 */
+.chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 4px 0 8px;
+    border: 2px solid var(--ui-line);
+    border-radius: 8px;
+    background: var(--ui-paper);
+    color: var(--ui-ink);
+    font-family: var(--ui-font);
+    font-size: 14px;
+    font-weight: 800;
+    box-sizing: border-box;
+}
+.name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.clear {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ui-muted);
+    font-size: 18px;
+    cursor: pointer;
+}
+.clear:hover {
+    background: var(--ui-soft);
+    color: var(--ui-ink);
+}
+
+/* 검색 결과 — 대화상자(1300)보다 위 */
+.menu {
+    position: fixed;
+    z-index: 1400;
+    max-height: 232px;
+    margin: 0;
+    padding: 4px;
+    overflow-y: auto;
+    list-style: none;
+    border: 2px solid var(--ui-line);
+    border-radius: 8px;
+    background: var(--ui-paper);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    box-sizing: border-box;
+    font-family: var(--ui-font);
+}
+.item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ui-ink);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+.item:hover,
+.item:focus-visible {
+    background: var(--ui-soft);
+}
+.verified {
+    width: 16px;
+    height: 16px;
+    flex: none;
+}
+.item.active {
+    background: var(--ui-soft);
+}

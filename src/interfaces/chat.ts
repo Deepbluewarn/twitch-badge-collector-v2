@@ -16,6 +16,8 @@ export interface ChatInfo {
     textContents: string[];
     loginName: string;
     nickName: string;
+    /** 작성자 고유 ID (치지직 userIdHash). 모르면 없음 — name 조건은 닉네임으로 맞춘다. */
+    userId?: string;
     channelLogin?: string;
     channelId?: string;
     /**

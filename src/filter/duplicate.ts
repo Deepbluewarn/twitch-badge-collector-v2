@@ -8,7 +8,8 @@ import type { CompositeFilterElement } from "@/interfaces/filter";
 export const filterSignature = (f: CompositeFilterElement) => JSON.stringify([
     f.platform,
     f.filterChannelId ?? '',
-    f.filters.map(a => `${a.category}\u0001${a.type}\u0001${a.value}`).sort(),
+    // 사람으로 고른 이름 조건은 ID가 같으면 같은 조건 (저장된 닉네임은 고른 때의 이름일 뿐)
+    f.filters.map(a => `${a.category}\u0001${a.type}\u0001${a.userId ? `@${a.userId}` : a.value}`).sort(),
 ]);
 
 /** 다른 필터와 조건이 같은 필터들의 id (같은 묶음의 모든 필터) */

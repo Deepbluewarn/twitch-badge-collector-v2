@@ -9,6 +9,8 @@ RUN=sh /home/bluewarn/tbc/ops/run.sh
 * * * * * $RUN deploy
 # 목록에 없는 새 배지 알림 (pull 5분 뒤라 방금 커밋한 배지는 이미 목록에 있다)
 5-59/10 * * * * $RUN badges
+# 사이트 스트리머별 구독 배지 페이지 데이터. 바뀐 채널이 있으면 사이트 리포에 푸시
+20 5 * * * $RUN channels
 # 감시 작업 생존 확인
 */10 * * * * $RUN heartbeat
 # 소켓 카나리

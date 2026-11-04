@@ -71,6 +71,7 @@ _Avoid_: missing, empty, null 필드.
 
 **Filter Category**:
 Which chat property an atomic Filter Element checks. One of `badge`, `name`, `keyword`.
+치지직 `name`은 사람으로 고를 수 있다(`userId` = userIdHash = 그 사람의 채널 ID). 그러면 `value`는 고른 때의 닉네임(표시용)이고 판정은 ID로 하므로 닉네임을 바꿔도 맞는다. 채팅에서 ID를 못 꺼내면(`ChatInfo.userId` 없음) 닉네임으로 맞춘다.
 
 **Channel Scope**:
 An optional restriction on a composite Filter Element making it fire only when the chat originates from a specific channel (Twitch `channelLogin` / `channelId`, Chzzk `channelId`). Unscoped composites apply across all channels.

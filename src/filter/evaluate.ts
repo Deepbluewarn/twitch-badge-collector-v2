@@ -78,8 +78,11 @@ export function evaluateFilterGroup(
                     });
                 }
             } else if (filter.category === "name") {
-                filterMatchedRes = chat.loginName.toLowerCase() === filter.value.toLowerCase() ||
-                    chat.nickName.toLowerCase() === filter.value.toLowerCase();
+                // 사람으로 고른 조건은 ID로 맞춘다. 채팅에서 ID를 못 꺼냈으면 예전처럼 닉네임으로.
+                filterMatchedRes = filter.userId && chat.userId
+                    ? chat.userId === filter.userId
+                    : chat.loginName.toLowerCase() === filter.value.toLowerCase() ||
+                        chat.nickName.toLowerCase() === filter.value.toLowerCase();
             } else if (filter.category === "keyword") {
                 filterMatchedRes = chat.textContents.some(text => text !== null ? text.includes(filter.value) : false);
             }

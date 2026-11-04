@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 const { fetchChzzkBadgeGroups } = vi.hoisted(() => ({ fetchChzzkBadgeGroups: vi.fn() }));
 vi.mock('@/api/chzzk', () => ({ fetchChzzkBadgeGroups }));
 
-import { ChzzkAdapter } from './chzzk';
+import { ChzzkAdapter, userIdFromHostKey } from './chzzk';
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
 import { VERIFIED_MARK_URL } from './chzzk-verified';
 
@@ -405,6 +405,17 @@ describe('ChzzkAdapter — extract', () => {
         expect(info!.badges).toEqual([]);
     });
 
+    it('host key에서 작성자 ID를 꺼낸다', () => {
+        const uid = 'fa8920b97e70f89a423ce26531bc9c0f';
+        const node = buildChatFixture();
+        node.setAttribute(CHAT_ATTR.KEY, `${uid}_1762230000000_ab12`);
+        expect(adapter.extract(node)!.userId).toBe(uid);
+        node.setAttribute(CHAT_ATTR.KEY, 'anonymous_1762230000000_ab12');
+        expect(adapter.extract(node)!.userId).toBeUndefined();
+        node.removeAttribute(CHAT_ATTR.KEY);
+        expect(adapter.extract(node)!.userId).toBeUndefined();
+    });
+
     it('returns undefined when neither name nor text is present (채팅이 아닌 노드)', () => {
         const node = buildChatFixture({ withNickname: false, withMessage: false });
         expect(adapter.extract(node)).toBeUndefined();
@@ -506,5 +517,18 @@ describe('ChzzkAdapter — fetchBadges', () => {
         expect(fromGlobal[2].channel).toBe('후원 순위');
         // channelLogin이 들어와도 Chzzk는 무시 — 결과 동일
         expect(fromChannel).toEqual(fromGlobal);
+    });
+});
+
+describe('userIdFromHostKey', () => {
+    const uid = '4a6e11a64ce2fce5c2eecd3f6d2dddbc';
+    it('라이브 key와 다시보기 key 모두', () => {
+        expect(userIdFromHostKey(`${uid}_1762230000000_x9`)).toBe(uid);
+        expect(userIdFromHostKey(`${uid}_1762230000000`)).toBe(uid);
+    });
+    it('사람 ID가 아니면 null', () => {
+        expect(userIdFromHostKey('anonymous_1762230000000_x9')).toBeNull();
+        expect(userIdFromHostKey('CUSTOM_1762230000000')).toBeNull();
+        expect(userIdFromHostKey('')).toBeNull();
     });
 });

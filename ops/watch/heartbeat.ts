@@ -35,6 +35,7 @@ export const JOBS: { job: string; label: string; maxAgeMin: number }[] = [
     { job: 'pull', label: '리포 갱신 (10분)', maxAgeMin: 40 },
     { job: 'spike', label: '방문 급증 알림 (30분)', maxAgeMin: 90 },
     { job: 'stats', label: '일일 통계 리포트 (매일 10시)', maxAgeMin: 26 * 60 },
+    { job: 'channels', label: '구독 배지 페이지 데이터 (매일 5시 20분)', maxAgeMin: 26 * 60 },
 ];
 /** systemd 사용자 서비스. 등록돼 있지 않으면 건너뛴다 */
 const SERVICES = ['badge-dashboard', 'badge-harvester'];

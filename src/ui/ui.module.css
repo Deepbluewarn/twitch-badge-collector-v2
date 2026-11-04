@@ -351,8 +351,11 @@
     display: flex;
     align-items: center;
 }
-.inputWrap .input {
+.inputWrap .input.withLead {
     padding-left: 36px;
+}
+.inputWrap .input.withTrail {
+    padding-right: 36px;
 }
 .inputWrap .lead {
     position: absolute;

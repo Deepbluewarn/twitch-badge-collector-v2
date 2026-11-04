@@ -36,6 +36,7 @@ run() {
         live) npx tsx ops/watch/live-check.ts && npx tsx ops/watch/render.ts ;;
         info) npx tsx ops/watch/info.ts && npx tsx ops/watch/render.ts ;;
         badges) npx tsx ops/watch/new-badges.ts ;;
+        channels) sh ops/watch/site-channels.sh ;;
         heartbeat) npx tsx ops/watch/heartbeat.ts && npx tsx ops/watch/render.ts ;;
         stats) npx tsx ops/stats-report.ts ;;
         spike) npx tsx ops/spike-alert.ts ;;

@@ -351,6 +351,9 @@
         "empty": "Aucun résultat",
         "error": "Recherche impossible"
     },
+    "user_search": {
+        "button": "Rechercher un utilisateur"
+    },
     "archive": {
         "title": "Archives du chat",
         "enabled": "Archiver les chats",

@@ -62,6 +62,30 @@ describe('evaluateFilterGroup — atomic categories', () => {
         expect(evaluateFilterGroup(chat({ loginName: 'bob' }), fg).pass).toBe(false);
     });
 
+    it('name with userId matches by ID — nickname changes do not matter', () => {
+        const fg = [composite({
+            filters: [atom({ category: 'name', value: 'OldNick', userId: 'u1' })],
+        })];
+        expect(evaluateFilterGroup(chat({ nickName: 'NewNick', userId: 'u1' }), fg).pass).toBe(true);
+        // 같은 닉네임이어도 다른 사람이면 안 맞는다
+        expect(evaluateFilterGroup(chat({ nickName: 'OldNick', userId: 'u2' }), fg).pass).toBe(false);
+    });
+
+    it('name with userId falls back to nickname when the chat has no ID', () => {
+        const fg = [composite({
+            filters: [atom({ category: 'name', value: 'OldNick', userId: 'u1' })],
+        })];
+        expect(evaluateFilterGroup(chat({ nickName: 'OldNick' }), fg).pass).toBe(true);
+        expect(evaluateFilterGroup(chat({ nickName: 'Other' }), fg).pass).toBe(false);
+    });
+
+    it('name without userId ignores chat ID', () => {
+        const fg = [composite({
+            filters: [atom({ category: 'name', value: 'Alice' })],
+        })];
+        expect(evaluateFilterGroup(chat({ nickName: 'Alice', userId: 'u9' }), fg).pass).toBe(true);
+    });
+
     it('badge include matches when value or badgeSetId is in chat.badges', () => {
         const fg = [composite({
             filters: [atom({ category: 'badge', value: 'subscriber/0', badgeSetId: 'subscriber' })],

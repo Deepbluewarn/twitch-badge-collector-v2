@@ -26,4 +26,13 @@ describe('findDuplicateFilterIds', () => {
             f('d', [atom('name', 'x')], { platform: 'twitch' }),
         ]).size).toBe(0);
     });
+    it('사람으로 고른 이름 조건은 닉네임이 달라도 ID가 같으면 같은 필터', () => {
+        const who = (value: string, userId?: string) => ({ ...atom('name', value), ...(userId ? { userId } : {}) });
+        expect([...findDuplicateFilterIds([
+            f('a', [who('예전닉', 'u1')]),
+            f('b', [who('새닉', 'u1')]),
+            f('c', [who('새닉', 'u2')]),
+            f('d', [who('새닉')]),
+        ])].sort()).toEqual(['a', 'b']);
+    });
 });

@@ -294,6 +294,7 @@ export function toChatInfo(chat: ChzzkSocketChat): ChatInfo {
         textContents: text ? [text] : [],
         loginName: chat.nickname,
         nickName: chat.nickname,
+        ...(chat.anonymous ? {} : { userId: chat.uid }),
         ...(chat.channelId ? { channelId: chat.channelId } : {}),
     };
 }
