@@ -8,7 +8,7 @@
  * Chrome 업데이터가 받아서 갈아 끼운다. 스토어 대신 로컬 서버를 쓸 뿐이다.
  *
  *   node scripts/real-update-test.mjs <옛 버전 zip|폴더> <새 버전 폴더> [옵션]
- *     --socket on|off   치지직 소켓 모드(설치별 숫자를 고정). 기본 off. 둘 다 시험할 것
+ *     --socket on|off   치지직 소켓 모드(설치별 숫자와 페이지 스위치를 고정). 기본 off. 둘 다 시험할 것
  *     --persist on|off  채팅 유지 저장(chatPersistence). 기본 on. 둘 다 시험할 것
  *     --filter ㅋ       재현용 키워드 필터(치지직). 기본 ㅋ, 빈 값이면 넣지 않음
  *     --url <주소>      처음 열 방송. 기본은 지금 시청자가 많은 치지직 라이브 30위쯤
@@ -189,6 +189,12 @@ if (!url) {
     const list = lives.content.data;
     url = `https://chzzk.naver.com/live/${list[list.length - 1].channel.channelId}`;
 }
-await (await ctx.newPage()).goto(url);
+const page = await ctx.newPage();
+await page.goto(url);
+// 설치별 숫자만으론 못 끈다 — OTA socketRenderPercent가 100이면 99도 켠 쪽이다. 페이지 스위치(socket-mode.ts)로 고정하고 다시 연다.
+if (url.includes('chzzk.naver.com')) {
+    await page.evaluate(on => localStorage.setItem('tbc:socket-render', on ? '1' : '0'), SOCKET);
+    await page.reload();
+}
 log(`준비 끝: ${older.version} 설치, 소켓 모드 ${SOCKET ? '켬' : '끔'}, 채팅 유지 저장 ${PERSIST === 'on' ? '켬' : '끔'}, ${url}`);
 log(`채팅이 쌓이면 http://localhost:${PORT}/update (실제 업데이트) 또는 /gap (빈틈 시험), 상태는 /state`);
