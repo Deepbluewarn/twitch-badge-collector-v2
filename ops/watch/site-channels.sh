@@ -8,7 +8,19 @@ set -e
 SITE="$HOME/badgecollector-site"
 FILE=src/data/channels.json
 cd "$SITE"
-git pull --ff-only -q
+
+# GitHub가 잠깐 거부하는 때가 있다(2026-11-04 장애 때 SSH 인증이 띄엄띄엄 실패). 1분 간격으로 5번까지
+retry() {
+    n=0
+    until "$@"; do
+        n=$((n + 1))
+        [ "$n" -ge 5 ] && return 1
+        echo "다시 시도 ($n): $*"
+        sleep 60
+    done
+}
+
+retry git pull --ff-only -q
 
 HARVESTER_FILE="$HOME/harvester/data/badges.json" node scripts/sync-channels.mjs
 
@@ -22,5 +34,5 @@ fi
 changed=$(git diff -U0 -- "$FILE" | grep -c '^+{"channel"' || true)
 git add "$FILE"
 git -c user.name="ovm" -c user.email="ovm@badgecollector.dev" commit -q -m "구독 배지 채널 목록 갱신 (ovm, ${changed}줄)"
-git push -q origin HEAD:master
+retry git push -q origin HEAD:master
 echo "푸시함: 채널 ${changed}줄"

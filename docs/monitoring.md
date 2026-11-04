@@ -128,4 +128,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-02 | 새 배지 알림(`badges`, 10분). 배지 목록 커밋 시 jsDelivr purge(`site-rebuild.yml`), 확장의 치지직 배지 캐시 7일에서 1시간으로 |
 | 2026-11-02 | harvester 다시 켬 (10-25부터 꺼져 있었음) |
 | 2026-11-02 | 코드를 리포 `ops/`로 옮김(커밋 fdcff86). 배포 감지(1분), ovm 카나리(선택자 6시간, 소켓 1시간), heartbeat 추가. 옛 폴더는 ovm `~/badge-collector-stats.old-2026-11-02`, 옛 crontab과 서비스 파일은 `~/.local/state/badge-collector/backup/` |
-| 2026-11-04 | `channels` 작업(매일 5시 20분): 사이트 스트리머별 구독 배지 페이지 데이터 갱신, 사이트 리포 deploy key로 푸시 |
+| 2026-11-04 | `channels` 작업(매일 5시 20분): 사이트 스트리머별 구독 배지 페이지 데이터 갱신, 사이트 리포 deploy key로 푸시. GitHub가 잠깐 거부할 때를 대비해 pull, push는 1분 간격 5번까지 |
