@@ -194,16 +194,10 @@
   "chatSide": {
     "message": "채팅창 위치"
   },
-  "profileCollect": {
-    "message": "채팅 수집"
+  "profileCopyId": {
+    "message": "ID 복사"
   },
-  "profileCollectUndo": {
-    "message": "수집 해제"
-  },
-  "profileExclude": {
-    "message": "채팅 제외"
-  },
-  "profileExcludeUndo": {
-    "message": "제외 해제"
+  "profileIdCopied": {
+    "message": "복사됨"
   }
 }

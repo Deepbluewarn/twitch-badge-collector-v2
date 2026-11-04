@@ -1,13 +1,12 @@
 import { CHAT_ATTR } from '@/interfaces/chat-attributes';
-import type { CompositeFilterElement } from '@/interfaces/filter';
 import { userIdFromHostKey } from '@/platform/chzzk';
 import { getPlatformConfig } from '@/platform/host-selectors';
-import { personState, togglePerson, type Person, type PersonState } from '@/filter/person';
 import { isChannelOffNow } from '../base/channel-off-flag';
 
 /**
- * 치지직 원래 채팅에서 닉네임을 누르면 뜨는 프로필 창에 "채팅 수집", "채팅 제외"를 붙인다.
- * 누르면 그 사람(ID)의 필터를 넣고, 다시 누르면 뺀다 (src/filter/person.ts).
+ * 치지직 원래 채팅에서 닉네임을 누르면 뜨는 프로필 창에 "ID 복사"를 붙인다.
+ * 복사한 ID를 설정 페이지 닉네임 칸에 붙여 넣으면 그 사람으로 고른다 (NicknameInput).
+ * 필터를 여기서 바로 넣고 빼지는 않는다 — 배열 필터와 겹치면 창에 보일 상태가 복잡해져서, 필터 설정은 설정 페이지에서만.
  *
  * 프로필 창에는 사람 ID가 없다. 그래서 닉네임을 누르는 순간(capture) 그 채팅의 host key에서 ID를 꺼내 두고,
  * 곧 뜨는 창을 찾아 붙인다. 창은 누른 채팅 안에 그려진다(2026-11 실측). 못 찾으면 붙이지 않는다.
@@ -18,19 +17,15 @@ const MARK = 'tbcv2-profile-action';
 const POPUP = '[role="alertdialog"]';
 const ACTIONS = '[class*="_list_"]';
 const WAIT_MS = 1500;
+const COPIED_MS = 1500;
 
-const ICON: Record<'include' | 'exclude', string> = {
-    include: '<path d="M6 7.5h13a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5h-6.5l-3.5 3v-3H6A1.5 1.5 0 0 1 4.5 16V9A1.5 1.5 0 0 1 6 7.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M12.5 10v5M10 12.5h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
-    exclude: '<circle cx="12.5" cy="12.5" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M7.6 7.6l9.8 9.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>',
+const STROKE = 'stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"';
+const ICON = {
+    copy: `<rect x="9" y="9" width="10.5" height="10.5" rx="1.5" ${STROKE}/><path d="M16 9V6.5A1.5 1.5 0 0 0 14.5 5h-8A1.5 1.5 0 0 0 5 6.5v8A1.5 1.5 0 0 0 6.5 16H9" ${STROKE}/>`,
+    done: `<path d="M6.5 13l4 4 8-9" ${STROKE}/>`,
 };
-const LABEL = {
-    include: ['profileCollect', 'profileCollectUndo'],
-    exclude: ['profileExclude', 'profileExcludeUndo'],
-} as const;
 
-const readFilters = async () => ((await browser.storage.local.get('filter')).filter ?? []) as CompositeFilterElement[];
-
-function decorate(popup: Element, person: Person) {
+function decorate(popup: Element, userId: string) {
     if (popup.querySelector(`.${MARK}`)) return;
     const sel = getPlatformConfig('chzzk').selectors;
     const list = popup.querySelector(sel.profilePopupActions ?? ACTIONS);
@@ -38,33 +33,25 @@ function decorate(popup: Element, person: Person) {
     if (!list || !sample) return;
     const iconClass = sample.querySelector('svg')?.getAttribute('class') ?? '';
 
-    const buttons = (['include', 'exclude'] as const).map(kind => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = `${sample.className} ${MARK}`;
-        b.innerHTML = `<svg width="25" height="25" viewBox="0 0 25 25" fill="none" aria-hidden="true" class="${iconClass}">${ICON[kind]}</svg><span></span>`;
-        b.addEventListener('click', async () => {
-            if (b.disabled) return;
-            buttons.forEach(x => x.disabled = true);
-            try {
-                const next = togglePerson(await readFilters(), person, kind);
-                await browser.storage.local.set({ filter: next });
-                render(personState(next, person.userId));
-            } finally {
-                buttons.forEach(x => x.disabled = false);
-            }
-        });
-        list.append(b);
-        return b;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = `${sample.className} ${MARK}`;
+    b.title = userId;
+    let reset: number | undefined;
+    const show = (copied: boolean) => {
+        b.innerHTML = `<svg width="25" height="25" viewBox="0 0 25 25" fill="none" aria-hidden="true" class="${iconClass}">${copied ? ICON.done : ICON.copy}</svg><span></span>`;
+        b.querySelector('span')!.textContent = browser.i18n.getMessage(copied ? 'profileIdCopied' : 'profileCopyId');
+    };
+    b.addEventListener('click', () => {
+        navigator.clipboard.writeText(userId).then(() => {
+            show(true);
+            window.clearTimeout(reset);
+            reset = window.setTimeout(() => show(false), COPIED_MS);
+        }).catch(e => console.warn('[tbcv2] ID copy failed', e));
     });
-    const render = (state: PersonState) => buttons.forEach((b, i) => {
-        const kind = i === 0 ? 'include' : 'exclude';
-        b.querySelector('span')!.textContent = browser.i18n.getMessage(LABEL[kind][state === kind ? 1 : 0]);
-        b.setAttribute('aria-pressed', String(state === kind));
-    });
-    render(null);
+    show(false);
+    list.append(b);
     fitInView(popup);
-    readFilters().then(f => render(personState(f, person.userId))).catch(() => { /* 끊긴 뒤 — 기본 문구 그대로 */ });
 }
 
 /**
@@ -90,17 +77,12 @@ export function setupProfileActions(): () => void {
         if (!item?.parentElement?.matches(`${sel.chatRoomLive}, ${sel.chatRoomVod}`)) return;
         const userId = userIdFromHostKey(item.getAttribute(CHAT_ATTR.KEY) ?? '');
         if (!userId) return;   // 익명 후원 등
-        const nickname = item.querySelector(sel.displayName)?.textContent?.trim() ?? '';
 
         window.clearInterval(timer);
         const until = Date.now() + WAIT_MS;
         timer = window.setInterval(() => {
             const popup = item.querySelector(sel.profilePopup ?? POPUP);
-            if (popup) {
-                const img = popup.querySelector('img')?.getAttribute('src') ?? '';
-                // 사진을 안 올린 사람은 기본 그림 — 저장하지 않는다
-                decorate(popup, { userId, nickname, image: img && !img.includes('default_profile') ? img : undefined });
-            }
+            if (popup) decorate(popup, userId);
             if (popup || Date.now() > until) window.clearInterval(timer);
         }, 50);
     };

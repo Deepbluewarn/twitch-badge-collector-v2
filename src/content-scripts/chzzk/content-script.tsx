@@ -79,7 +79,7 @@ async function bootstrap() {
         }
     });
     registerDiagnoseListener(adapter, 'chzzk');
-    // 원래 채팅의 프로필 창에 "채팅 수집", "채팅 제외"
+    // 원래 채팅의 프로필 창에 "ID 복사"
     onTeardown(setupProfileActions());
 
     const SEL = getPlatformConfig('chzzk').selectors;

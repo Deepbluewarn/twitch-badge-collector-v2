@@ -197,16 +197,10 @@
   "chatSide": {
     "message": "Côté du chat"
   },
-  "profileCollect": {
-    "message": "Collecter les messages"
+  "profileCopyId": {
+    "message": "Copier l'ID"
   },
-  "profileCollectUndo": {
-    "message": "Ne plus collecter"
-  },
-  "profileExclude": {
-    "message": "Exclure les messages"
-  },
-  "profileExcludeUndo": {
-    "message": "Ne plus exclure"
+  "profileIdCopied": {
+    "message": "Copié"
   }
 }

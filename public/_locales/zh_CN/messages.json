@@ -197,16 +197,10 @@
   "chatSide": {
     "message": "聊天框位置"
   },
-  "profileCollect": {
-    "message": "收集聊天"
+  "profileCopyId": {
+    "message": "复制 ID"
   },
-  "profileCollectUndo": {
-    "message": "取消收集"
-  },
-  "profileExclude": {
-    "message": "排除聊天"
-  },
-  "profileExcludeUndo": {
-    "message": "取消排除"
+  "profileIdCopied": {
+    "message": "已复制"
   }
 }

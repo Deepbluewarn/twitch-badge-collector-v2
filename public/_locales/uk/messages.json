@@ -197,16 +197,10 @@
   "chatSide": {
     "message": "Бік чату"
   },
-  "profileCollect": {
-    "message": "Збирати чат"
+  "profileCopyId": {
+    "message": "Копіювати ID"
   },
-  "profileCollectUndo": {
-    "message": "Не збирати"
-  },
-  "profileExclude": {
-    "message": "Виключити чат"
-  },
-  "profileExcludeUndo": {
-    "message": "Не виключати"
+  "profileIdCopied": {
+    "message": "Скопійовано"
   }
 }

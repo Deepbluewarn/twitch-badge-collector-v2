@@ -197,16 +197,10 @@
   "chatSide": {
     "message": "Chat panel side"
   },
-  "profileCollect": {
-    "message": "Collect chats"
+  "profileCopyId": {
+    "message": "Copy ID"
   },
-  "profileCollectUndo": {
-    "message": "Stop collecting"
-  },
-  "profileExclude": {
-    "message": "Exclude chats"
-  },
-  "profileExcludeUndo": {
-    "message": "Stop excluding"
+  "profileIdCopied": {
+    "message": "Copied"
   }
 }
