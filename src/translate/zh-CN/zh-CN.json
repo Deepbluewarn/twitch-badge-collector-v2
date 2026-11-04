@@ -352,7 +352,7 @@
         "error": "无法搜索"
     },
     "user_search": {
-        "button": "搜索用户",
+        "allow": "允许搜索用户",
         "hint": "可搜索昵称或输入 ID"
     },
     "archive": {

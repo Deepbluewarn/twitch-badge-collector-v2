@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { ChzzkChannel, canReachChzzkApi, fetchChzzkChannel, requestChzzkApiAccess, searchChzzkChannels } from '@/api/chzzk-channel';
-import { IconButton, Spinner, TextInput } from '@/ui';
+import { Icon, Spinner, TextInput } from '@/ui';
 import { verifiedMarkUrl } from '@/platform/chzzk-verified';
 import type { AtomicFilterElement } from '@/interfaces/filter';
 import { ChannelAvatar } from './ChannelSearch';
@@ -88,19 +88,23 @@ export function NicknameInput({ platform, value, onChange }: {
 
     // 치지직에선 오른쪽 자리를 늘 둔다. 자리가 생겼다 없어지면 TextInput이 칸을 감싸는 요소를 바꿔
     // input이 새로 만들어지고, 검색이 시작되는 순간 포커스가 빠져 이어서 칠 수 없다.
-    const trail = !chzzk ? undefined : (
-        <>
-            {loading ? <Spinner />
-                : access === false && <IconButton icon="person_search" size="sm" label={t('user_search.button')} onClick={async () => {
-                    if (await requestChzzkApiAccess()) { setAccess(true); inputRef.current?.focus(); }
-                }} />}
-        </>
-    );
+    const trail = !chzzk ? undefined : <>{loading && <Spinner />}</>;
 
-    const shown = open && results.length > 0;
+    // 치지직 탭도 권한도 없으면 검색 결과 자리에 허용 버튼을 띄운다 — 칸 구석 아이콘은 아무도 못 알아챈다.
+    // 권한 요청은 사용자 동작(클릭, Enter) 안에서만 된다. 허용하면 지금 적힌 글자로 바로 찾는다.
+    const needAccess = chzzk && access === false && !!query && !userIdFromInput(query);
+    const allow = async () => {
+        if (await requestChzzkApiAccess()) setAccess(true);
+        inputRef.current?.focus();
+    };
+
+    const shown = open && (results.length > 0 || needAccess);
     const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (!shown) return;
-        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        if (needAccess && e.key === 'Enter') {
+            e.preventDefault();
+            void allow();
+        } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault();
             const step = e.key === 'ArrowDown' ? 1 : -1;
             // 끝에서 한 칸 더 가면 입력 칸(-1)으로, 거기서 다시 반대쪽 끝으로
@@ -126,20 +130,39 @@ export function NicknameInput({ platform, value, onChange }: {
                 onFocus={() => setOpen(true)}
                 onBlur={() => setOpen(false)}
                 onKeyDown={onKeyDown} />
-            {shown && <Results anchor={inputRef} results={results} active={active} onPick={pick} />}
+            {shown && (
+                <Dropdown anchor={inputRef}>
+                    {needAccess ? (
+                        <li>
+                            <button type="button" className={`${s.item} ${s.allow}`} onMouseDown={e => e.preventDefault()} onClick={allow}>
+                                <Icon name="person_search" />
+                                <span className={s.name}>{t('user_search.allow')}</span>
+                            </button>
+                        </li>
+                    ) : results.map((c, i) => (
+                        <li key={c.id} role="option" aria-selected={i === active}>
+                            {/* 누르는 순간 칸이 blur돼 목록이 닫히지 않게 mousedown 기본 동작을 막는다 */}
+                            <button type="button" tabIndex={-1} className={`${s.item} ${i === active ? s.active : ''}`}
+                                ref={el => { if (el && i === active) el.scrollIntoView({ block: 'nearest' }); }} onMouseDown={e => e.preventDefault()} onClick={() => pick(c)}>
+                                <ChannelAvatar src={c.imageUrl} size={24} />
+                                <span className={s.name}>{c.name}</span>
+                                {c.verified && <img src={verifiedMarkUrl(c.verified)} alt="" className={s.verified} />}
+                            </button>
+                        </li>
+                    ))}
+                </Dropdown>
+            )}
         </>
     );
 }
 
 /**
- * 검색 결과 — 입력 칸 바로 아래에 띄운다. 필터 추가 카드와 대화상자 본문이 넘치면 잘라내므로(overflow)
+ * 검색 결과 자리 — 입력 칸 바로 아래에 띄운다. 필터 추가 카드와 대화상자 본문이 넘치면 잘라내므로(overflow)
  * body에 붙이고 칸의 화면 위치를 따라간다.
  */
-function Results({ anchor, results, active, onPick }: {
+function Dropdown({ anchor, children }: {
     anchor: React.RefObject<HTMLInputElement | null>;
-    results: ChzzkChannel[];
-    active: number;
-    onPick: (c: ChzzkChannel) => void;
+    children: React.ReactNode;
 }) {
     const [rect, setRect] = useState<DOMRect | null>(null);
     useLayoutEffect(() => {
@@ -155,17 +178,7 @@ function Results({ anchor, results, active, onPick }: {
     if (!rect) return null;
     return createPortal(
         <ul className={s.menu} role="listbox" style={{ top: rect.bottom + 4, left: rect.left, width: rect.width }}>
-            {results.map((c, i) => (
-                <li key={c.id} role="option" aria-selected={i === active}>
-                    {/* 누르는 순간 칸이 blur돼 목록이 닫히지 않게 mousedown 기본 동작을 막는다 */}
-                    <button type="button" tabIndex={-1} className={`${s.item} ${i === active ? s.active : ''}`}
-                        ref={el => { if (el && i === active) el.scrollIntoView({ block: 'nearest' }); }} onMouseDown={e => e.preventDefault()} onClick={() => onPick(c)}>
-                        <ChannelAvatar src={c.imageUrl} size={24} />
-                        <span className={s.name}>{c.name}</span>
-                        {c.verified && <img src={verifiedMarkUrl(c.verified)} alt="" className={s.verified} />}
-                    </button>
-                </li>
-            ))}
+            {children}
         </ul>,
         document.body,
     );

@@ -352,7 +352,7 @@
         "error": "Suche fehlgeschlagen"
     },
     "user_search": {
-        "button": "Nutzer suchen",
+        "allow": "Nutzersuche erlauben",
         "hint": "Nickname suchen oder ID eingeben"
     },
     "archive": {

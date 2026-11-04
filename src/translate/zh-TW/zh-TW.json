@@ -352,7 +352,7 @@
         "error": "無法搜尋"
     },
     "user_search": {
-        "button": "搜尋使用者",
+        "allow": "允許搜尋使用者",
         "hint": "可搜尋暱稱或輸入 ID"
     },
     "archive": {
