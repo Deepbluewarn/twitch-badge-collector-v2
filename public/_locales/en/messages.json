@@ -196,5 +196,17 @@
   },
   "chatSide": {
     "message": "Chat panel side"
+  },
+  "profileCollect": {
+    "message": "Collect chats"
+  },
+  "profileCollectUndo": {
+    "message": "Stop collecting"
+  },
+  "profileExclude": {
+    "message": "Exclude chats"
+  },
+  "profileExcludeUndo": {
+    "message": "Stop excluding"
   }
 }

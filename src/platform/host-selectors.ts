@@ -38,6 +38,9 @@ export interface PlatformHostConfig {
 
         usernameContainer?: string;
         popupProfileHeader?: string;
+        /** 닉네임을 누르면 뜨는 프로필 창, 그 안의 버튼 목록. 없으면 profile-actions.ts의 기본값 */
+        profilePopup?: string;
+        profilePopupActions?: string;
 
         pointButton?: string;
         pointButtonContainer?: string;

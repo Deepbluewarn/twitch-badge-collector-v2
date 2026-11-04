@@ -196,5 +196,17 @@
   },
   "chatSide": {
     "message": "Бік чату"
+  },
+  "profileCollect": {
+    "message": "Збирати чат"
+  },
+  "profileCollectUndo": {
+    "message": "Не збирати"
+  },
+  "profileExclude": {
+    "message": "Виключити чат"
+  },
+  "profileExcludeUndo": {
+    "message": "Не виключати"
   }
 }

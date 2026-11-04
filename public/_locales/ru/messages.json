@@ -196,5 +196,17 @@
   },
   "chatSide": {
     "message": "Сторона чата"
+  },
+  "profileCollect": {
+    "message": "Собирать чат"
+  },
+  "profileCollectUndo": {
+    "message": "Не собирать"
+  },
+  "profileExclude": {
+    "message": "Исключить чат"
+  },
+  "profileExcludeUndo": {
+    "message": "Не исключать"
   }
 }

@@ -196,5 +196,17 @@
   },
   "chatSide": {
     "message": "チャット欄の位置"
+  },
+  "profileCollect": {
+    "message": "チャットを収集"
+  },
+  "profileCollectUndo": {
+    "message": "収集を解除"
+  },
+  "profileExclude": {
+    "message": "チャットを除外"
+  },
+  "profileExcludeUndo": {
+    "message": "除外を解除"
   }
 }

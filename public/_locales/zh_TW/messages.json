@@ -196,5 +196,17 @@
   },
   "chatSide": {
     "message": "聊天室位置"
+  },
+  "profileCollect": {
+    "message": "收集聊天"
+  },
+  "profileCollectUndo": {
+    "message": "取消收集"
+  },
+  "profileExclude": {
+    "message": "排除聊天"
+  },
+  "profileExcludeUndo": {
+    "message": "取消排除"
   }
 }

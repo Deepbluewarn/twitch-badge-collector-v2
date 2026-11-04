@@ -18,6 +18,7 @@ import { isChannelOffNow } from "../base/channel-off-flag";
 import { onTeardown, startInstance } from "../base/lifecycle";
 import { createArchiveRecorder } from "@/archive/archive-recorder";
 import { startChzzkArchiveFeed } from "@/archive/chzzk-archive-feed";
+import { setupProfileActions } from "./profile-actions";
 
 async function bootstrap() {
     // 업데이트 전 버전의 스크립트를 물러나게 하고 남은 창을 치운 뒤, 연결이 끊기는지 지켜본다.
@@ -78,6 +79,8 @@ async function bootstrap() {
         }
     });
     registerDiagnoseListener(adapter, 'chzzk');
+    // 원래 채팅의 프로필 창에 "채팅 수집", "채팅 제외"
+    onTeardown(setupProfileActions());
 
     const SEL = getPlatformConfig('chzzk').selectors;
 

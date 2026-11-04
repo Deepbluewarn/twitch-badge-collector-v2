@@ -196,5 +196,17 @@
   },
   "chatSide": {
     "message": "Chat-Seite"
+  },
+  "profileCollect": {
+    "message": "Chats sammeln"
+  },
+  "profileCollectUndo": {
+    "message": "Nicht mehr sammeln"
+  },
+  "profileExclude": {
+    "message": "Chats ausschließen"
+  },
+  "profileExcludeUndo": {
+    "message": "Nicht mehr ausschließen"
   }
 }
