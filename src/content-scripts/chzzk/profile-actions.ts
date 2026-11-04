@@ -10,6 +10,7 @@ import { isChannelOffNow } from '../base/channel-off-flag';
  *
  * 프로필 창에는 사람 ID가 없다. 그래서 닉네임을 누르는 순간(capture) 그 채팅의 host key에서 ID를 꺼내 두고,
  * 곧 뜨는 창을 찾아 붙인다. 창은 누른 채팅 안에 그려진다(2026-11 실측). 못 찾으면 붙이지 않는다.
+ * 창이 들어오는 순간 MutationObserver로 붙인다 — 콜백이 화면을 그리기 전에 돌아서, 버튼이 늦게 붙거나 창이 튀어 보이지 않는다.
  * 버튼 모양은 창에 원래 있는 버튼의 class를 빌려 쓴다 — hash가 바뀌어도 따라간다.
  * 선택자는 OTA로 바꿀 수 있고(profilePopup, profilePopupActions), 없으면 아래 기본값.
  */
@@ -25,12 +26,13 @@ const ICON = {
     done: `<path d="M6.5 13l4 4 8-9" ${STROKE}/>`,
 };
 
-function decorate(popup: Element, userId: string) {
-    if (popup.querySelector(`.${MARK}`)) return;
+/** 붙였거나 이미 붙어 있으면 true. 창 안의 버튼 목록이 아직 없으면 false — 다음 변화 때 다시. */
+function decorate(popup: Element, userId: string): boolean {
+    if (popup.querySelector(`.${MARK}`)) return true;
     const sel = getPlatformConfig('chzzk').selectors;
     const list = popup.querySelector(sel.profilePopupActions ?? ACTIONS);
     const sample = list?.querySelector('button');
-    if (!list || !sample) return;
+    if (!list || !sample) return false;
     const iconClass = sample.querySelector('svg')?.getAttribute('class') ?? '';
 
     const b = document.createElement('button');
@@ -52,6 +54,7 @@ function decorate(popup: Element, userId: string) {
     show(false);
     list.append(b);
     fitInView(popup);
+    return true;
 }
 
 /**
@@ -67,7 +70,13 @@ function fitInView(popup: Element) {
 }
 
 export function setupProfileActions(): () => void {
-    let timer: number | undefined;
+    let watching: { observer: MutationObserver; timer: number } | undefined;
+    const stop = () => {
+        if (!watching) return;
+        watching.observer.disconnect();
+        window.clearTimeout(watching.timer);
+        watching = undefined;
+    };
 
     const onClick = (e: MouseEvent) => {
         if (isChannelOffNow()) return;
@@ -78,19 +87,21 @@ export function setupProfileActions(): () => void {
         const userId = userIdFromHostKey(item.getAttribute(CHAT_ATTR.KEY) ?? '');
         if (!userId) return;   // 익명 후원 등
 
-        window.clearInterval(timer);
-        const until = Date.now() + WAIT_MS;
-        timer = window.setInterval(() => {
+        stop();
+        const tryDecorate = () => {
             const popup = item.querySelector(sel.profilePopup ?? POPUP);
-            if (popup) decorate(popup, userId);
-            if (popup || Date.now() > until) window.clearInterval(timer);
-        }, 50);
+            if (popup && decorate(popup, userId)) stop();
+        };
+        const observer = new MutationObserver(tryDecorate);
+        observer.observe(item, { childList: true, subtree: true });
+        watching = { observer, timer: window.setTimeout(stop, WAIT_MS) };
+        tryDecorate();   // 이미 열려 있던 창 (같은 닉네임을 다시 누른 경우 등)
     };
 
     document.addEventListener('click', onClick, true);
     return () => {
         document.removeEventListener('click', onClick, true);
-        window.clearInterval(timer);
+        stop();
         document.querySelectorAll(`.${MARK}`).forEach(b => b.remove());
     };
 }
