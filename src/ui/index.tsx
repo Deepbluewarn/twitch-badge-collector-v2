@@ -103,10 +103,12 @@ export function Switch({ checked, onChange, label, disabled, className }: {
 }
 
 // ── 입력 ───────────────────────────
-export function Field({ label, children, className, htmlFor, style }: { label: React.ReactNode; children: React.ReactNode; className?: string; htmlFor?: string; style?: React.CSSProperties }) {
+/** hint: 이름표 오른쪽에 붙는 짧은 한 줄 (넘치면 말줄임) */
+export function Field({ label, hint, children, className, htmlFor, style }: { label: React.ReactNode; hint?: React.ReactNode; children: React.ReactNode; className?: string; htmlFor?: string; style?: React.CSSProperties }) {
+    const labelEl = <label className={s.fieldLabel} htmlFor={htmlFor}>{label}</label>;
     return (
         <div className={cx(s.field, className)} style={style}>
-            <label className={s.fieldLabel} htmlFor={htmlFor}>{label}</label>
+            {hint ? <div className={s.fieldHead}>{labelEl}<span className={s.fieldHint}>{hint}</span></div> : labelEl}
             {children}
         </div>
     );

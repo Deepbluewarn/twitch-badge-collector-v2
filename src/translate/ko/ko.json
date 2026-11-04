@@ -351,7 +351,8 @@
         "error": "검색할 수 없음"
     },
     "user_search": {
-        "button": "사용자 검색"
+        "button": "사용자 검색",
+        "hint": "닉네임 검색 또는 ID 입력이 가능합니다"
     },
     "archive": {
         "title": "채팅 보관함",

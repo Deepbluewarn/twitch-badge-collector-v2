@@ -352,7 +352,8 @@
         "error": "検索できません"
     },
     "user_search": {
-        "button": "ユーザー検索"
+        "button": "ユーザー検索",
+        "hint": "ニックネーム検索またはID入力ができます"
     },
     "archive": {
         "title": "チャット保管庫",

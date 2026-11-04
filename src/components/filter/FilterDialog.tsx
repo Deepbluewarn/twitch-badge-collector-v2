@@ -182,7 +182,8 @@ export default function FilterDialog(props: FilterDialogProps) {
                             </div>
                         ) : filterGroup.category === 'name' ? (
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <Field label={t('common.content')}>
+                                <Field label={t('common.content')}
+                                    hint={globalSetting.platform === 'chzzk' ? t('user_search.hint') : undefined}>
                                     <NicknameInput platform={globalSetting.platform} value={filterGroup}
                                         onChange={v => handleFilterObjectChange(v, filterId!)} />
                                 </Field>

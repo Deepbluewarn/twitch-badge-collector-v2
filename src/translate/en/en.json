@@ -352,7 +352,8 @@
         "error": "Search failed"
     },
     "user_search": {
-        "button": "Search user"
+        "button": "Search user",
+        "hint": "Search a nickname or enter an ID"
     },
     "archive": {
         "title": "Chat archive",

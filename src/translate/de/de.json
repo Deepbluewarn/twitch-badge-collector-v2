@@ -352,7 +352,8 @@
         "error": "Suche fehlgeschlagen"
     },
     "user_search": {
-        "button": "Nutzer suchen"
+        "button": "Nutzer suchen",
+        "hint": "Nickname suchen oder ID eingeben"
     },
     "archive": {
         "title": "Chat-Archiv",

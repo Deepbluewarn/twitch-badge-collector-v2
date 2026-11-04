@@ -261,7 +261,8 @@ function AdvancedFilterInputForm(props: {
                             nameFilterAvail={props.nameFilterAvail}
                         />
 
-                        <Field label={t('common.value')} className={s.grow}>
+                        <Field label={t('common.value')} className={s.grow}
+                            hint={globalSetting.platform === 'chzzk' && props.value.category === 'name' ? t('user_search.hint') : undefined}>
                             {props.value.category === 'name' ? (
                                 <NicknameInput
                                     platform={globalSetting.platform}

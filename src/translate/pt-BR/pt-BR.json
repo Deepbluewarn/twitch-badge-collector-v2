@@ -352,7 +352,8 @@
         "error": "Não foi possível buscar"
     },
     "user_search": {
-        "button": "Buscar usuário"
+        "button": "Buscar usuário",
+        "hint": "Busque um apelido ou insira um ID"
     },
     "archive": {
         "title": "Arquivo do chat",

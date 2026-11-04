@@ -213,7 +213,8 @@ function BasicFilterInputForm(
                             value={props.filterInput?.category ?? 'name'}
                             onChange={(v) => selectorChanged(v, 'category')}
                         />
-                        <Field label={t('common.value')} className={s.grow}>
+                        <Field label={t('common.value')} className={s.grow}
+                            hint={globalSetting.platform === 'chzzk' && props.filterInput?.category === 'name' ? t('user_search.hint') : undefined}>
                             {props.filterInput?.category === 'name' ? (
                                 <NicknameInput
                                     platform={globalSetting.platform}
