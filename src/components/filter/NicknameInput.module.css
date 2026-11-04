@@ -84,13 +84,3 @@
 .item.active {
     background: var(--ui-soft);
 }
-/* 권한 허용 — 결과 대신 한 줄. 아이콘은 Material Icons 글꼴 */
-.allow {
-    color: var(--ui-ink);
-}
-.allow > :first-child {
-    flex: none;
-    width: 24px;
-    font-size: 20px;
-    text-align: center;
-}

@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { ChzzkChannel, canReachChzzkApi, fetchChzzkChannel, requestChzzkApiAccess, searchChzzkChannels } from '@/api/chzzk-channel';
-import { Icon, Spinner, TextInput } from '@/ui';
+import { Button, Spinner, TextInput } from '@/ui';
 import { verifiedMarkUrl } from '@/platform/chzzk-verified';
 import type { AtomicFilterElement } from '@/interfaces/filter';
 import { ChannelAvatar } from './ChannelSearch';
@@ -134,10 +134,10 @@ export function NicknameInput({ platform, value, onChange }: {
                 <Dropdown anchor={inputRef}>
                     {needAccess ? (
                         <li>
-                            <button type="button" className={`${s.item} ${s.allow}`} onMouseDown={e => e.preventDefault()} onClick={allow}>
-                                <Icon name="person_search" />
-                                <span className={s.name}>{t('user_search.allow')}</span>
-                            </button>
+                            {/* 결과 줄과 같은 모양이면 결과로 읽힌다 — 누를 버튼으로 보이게 주 버튼 */}
+                            <Button variant="primary" size="sm" icon="lock_open" block onMouseDown={e => e.preventDefault()} onClick={allow}>
+                                {t('user_search.allow')}
+                            </Button>
                         </li>
                     ) : results.map((c, i) => (
                         <li key={c.id} role="option" aria-selected={i === active}>

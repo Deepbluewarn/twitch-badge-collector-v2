@@ -352,7 +352,7 @@
         "error": "Search failed"
     },
     "user_search": {
-        "allow": "Allow user search",
+        "allow": "Allow access and search",
         "hint": "Search a nickname or enter an ID"
     },
     "archive": {

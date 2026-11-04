@@ -352,7 +352,7 @@
         "error": "No se pudo buscar"
     },
     "user_search": {
-        "allow": "Permitir búsqueda de usuarios",
+        "allow": "Permitir acceso y buscar",
         "hint": "Busca un apodo o introduce un ID"
     },
     "archive": {

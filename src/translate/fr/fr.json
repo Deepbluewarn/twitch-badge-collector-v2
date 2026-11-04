@@ -352,7 +352,7 @@
         "error": "Recherche impossible"
     },
     "user_search": {
-        "allow": "Autoriser la recherche d'utilisateurs",
+        "allow": "Autoriser l'accès et rechercher",
         "hint": "Recherchez un pseudo ou saisissez un ID"
     },
     "archive": {
