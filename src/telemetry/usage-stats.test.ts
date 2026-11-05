@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fakeBrowser } from '@webext-core/fake-browser';
 
 vi.stubGlobal('browser', fakeBrowser);
-const { recordUsage, flushUsage, clearUsage, pendingUsage, isoWeek, localDay } = await import('./usage-stats');
+const { recordUsage, flushUsage, clearUsage, pendingUsage, markUsage, isoWeek, localDay } = await import('./usage-stats');
 
 const at = (s: string) => new Date(`${s}T12:00:00`);
 
@@ -65,8 +65,28 @@ describe('usage-stats', () => {
         await recordUsage(['chzzk'], fakeFetch().fn, at('2026-11-04'));
         await flushUsage(fakeFetch(503).fn, at('2026-11-05'));
         expect(await pendingUsage()).toHaveLength(1);
-        await flushUsage(fakeFetch(400).fn, at('2026-11-05'));
+        await flushUsage(fakeFetch(400).fn, new Date('2026-11-05T19:00:00'));
         expect(await pendingUsage()).toHaveLength(0);
+    });
+
+    it('못 보냈으면 6시간 동안 다시 보내지 않는다 (서비스 워커가 깰 때마다 보내지 않게)', async () => {
+        await recordUsage(['chzzk'], fakeFetch().fn, at('2026-11-04'));
+        await flushUsage(fakeFetch(503).fn, at('2026-11-05'));
+        const soon = fakeFetch();
+        await flushUsage(soon.fn, new Date('2026-11-05T17:00:00'));
+        await recordUsage(['twitch'], soon.fn, new Date('2026-11-05T17:30:00'));
+        expect(soon.fn).not.toHaveBeenCalled();
+        const later = fakeFetch();
+        await flushUsage(later.fn, new Date('2026-11-05T18:01:00'));
+        expect(later.bodies[0].records.map(r => r.date)).toEqual(['2026-11-04']);
+        // 다음 날 기록은 평소대로 간다
+        await recordUsage(['chzzk'], later.fn, at('2026-11-06'));
+        expect(later.bodies).toHaveLength(2);
+    });
+
+    it('markUsage는 확장 연결이 끊겨 sendMessage가 던져도 조용하다', () => {
+        vi.spyOn(fakeBrowser.runtime, 'sendMessage').mockImplementation(() => { throw new Error('Extension context invalidated.'); });
+        expect(() => markUsage('capture')).not.toThrow();
     });
 
     it('7일 넘게 못 보낸 기록은 버린다', async () => {
