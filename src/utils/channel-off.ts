@@ -1,3 +1,5 @@
+import { markUsage } from '@/telemetry/usage-mark';
+
 /**
  * 채널별로 확장 끄기 — 팝업의 "이 채널에서 사용" 스위치. 꺼진 채널에선 모아보기 창·원본 채팅 수집 표시·
  * 화면 조정(채팅창 좌우)·포인트 자동 받기를 하지 않는다. 라이브 페이지의 채널 ID 기준.
@@ -27,6 +29,7 @@ export async function getOffChannels(): Promise<OffChannels> {
 }
 
 export async function setChannelOff(platform: Platform, id: string, off: boolean, name?: string, image?: string) {
+    markUsage('channelToggle');
     const map = { ...await getOffChannels() };
     const key = channelKey(platform, id);
     if (off) map[key] = { name, image, at: Date.now() };

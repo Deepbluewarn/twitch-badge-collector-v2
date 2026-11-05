@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { markUsage } from '@/telemetry/usage-stats';
+import { markUsage } from '@/telemetry/usage-mark';
 import { Button, Icon, IconButton, Select, Spinner, Switch, TextInput } from '@/ui';
 import {
     ARCHIVE_DAYS, ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, clearArchive, csvHead, csvRow, deleteArchiveChannel, eachArchivedChat,
@@ -266,7 +266,10 @@ export default function Archive() {
     }, [selected, tick]);
 
     useEffect(() => {
-        const timer = setTimeout(() => { setSearch(query.trim().toLowerCase()); setPage(0); }, SEARCH_DELAY);
+        const timer = setTimeout(() => {
+            if (query.trim()) markUsage('archiveSearch');
+            setSearch(query.trim().toLowerCase()); setPage(0);
+        }, SEARCH_DELAY);
         return () => clearTimeout(timer);
     }, [query]);
 
@@ -343,6 +346,7 @@ export default function Archive() {
     // 내보내기도 한 줄씩 읽어 쓴다 — 채널 전체를 한꺼번에 메모리에 올리지 않는다
     const exportAs = async (kind: 'txt' | 'csv') => {
         if (!row) return;
+        markUsage('archiveExport');
         const base = `${nameOf(row)}-${new Date().toISOString().slice(0, 10)}`.replace(/[\\/:*?"<>|]/g, '_');
         const notice = t('archive.disclaimer');
         const hidden = t('archive.hidden');

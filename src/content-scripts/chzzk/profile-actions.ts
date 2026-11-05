@@ -2,6 +2,7 @@ import { CHAT_ATTR } from '@/interfaces/chat-attributes';
 import { userIdFromHostKey } from '@/platform/chzzk';
 import { getPlatformConfig } from '@/platform/host-selectors';
 import { isChannelOffNow } from '../base/channel-off-flag';
+import { markUsage } from '@/telemetry/usage-mark';
 
 /**
  * 치지직 원래 채팅에서 닉네임을 누르면 뜨는 프로필 창에 "ID 복사"를 붙인다.
@@ -45,6 +46,7 @@ function decorate(popup: Element, userId: string): boolean {
         b.querySelector('span')!.textContent = browser.i18n.getMessage(copied ? 'profileIdCopied' : 'profileCopyId');
     };
     b.addEventListener('click', () => {
+        markUsage('copyId');
         navigator.clipboard.writeText(userId).then(() => {
             show(true);
             window.clearTimeout(reset);

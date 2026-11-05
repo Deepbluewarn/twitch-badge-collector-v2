@@ -26,7 +26,7 @@ import i18n from '@/translate/i18n';
 import { useTranslation } from 'react-i18next';
 import TranslationNotice from '@/components/TranslationNotice';
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
-import { markUsage } from "@/telemetry/usage-stats";
+import { markUsage } from "@/telemetry/usage-mark";
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();

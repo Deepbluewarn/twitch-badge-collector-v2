@@ -10,7 +10,8 @@ import { CHANNEL_OFF_BADGE_MESSAGE } from "@/utils/channel-off";
 import { clearAllChatHistory } from "@/utils/chat-history-store";
 import { migrateBadgeLook, migrateLargeLook, migrateLegacyDonation } from "@/render/chzzk-style";
 import { ARCHIVE_HIDE_MESSAGE, ARCHIVE_PUT_MESSAGE, hideArchivedChats, loadArchiveSetting, purgeArchive, putArchivedChats, sanitizeArchivedChat } from "@/archive/chat-archive";
-import { ANONYMOUS_STATS_KEY, USAGE_MARK_MESSAGE, clearUsage, flushUsage, isUsageFlag, recordUsage, statsEnabled } from "@/telemetry/usage-stats";
+import { ANONYMOUS_STATS_KEY, clearUsage, flushUsage, recordUsage, statsEnabled } from "@/telemetry/usage-stats";
+import { USAGE_MARK_MESSAGE, isUsageFlag } from "@/telemetry/usage-mark";
 
 export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id });
@@ -288,7 +289,7 @@ export default defineBackground(() => {
         .catch(e => { console.warn('[tbcv2 bg] archive hide failed', e); sendResponse({ ok: false }); });
       return true;
     }
-    if (msg?.type === USAGE_MARK_MESSAGE && Array.isArray(msg.flags) && _sender.id === browser.runtime.id && import.meta.env.BROWSER !== 'firefox') {
+    if (import.meta.env.BROWSER !== 'firefox' && msg?.type === USAGE_MARK_MESSAGE && Array.isArray(msg.flags) && _sender.id === browser.runtime.id) {
       recordUsage(msg.flags.filter(isUsageFlag)).catch(e => console.warn('[tbcv2 bg] usage mark failed', e));
       return false;
     }

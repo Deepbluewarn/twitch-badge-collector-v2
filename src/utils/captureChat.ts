@@ -1,5 +1,5 @@
 import { toBlob } from 'html-to-image';
-import { markUsage } from '@/telemetry/usage-stats';
+import { markUsage } from '@/telemetry/usage-mark';
 // snapdom은 USE_SNAPDOM=true 시 동적 import — 번들 격리.
 
 // PoC 토글. true면 SnapDOM, false면 기존 html-to-image.

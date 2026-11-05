@@ -7,7 +7,7 @@ import { SettingInterface } from "@/interfaces/setting";
 import { atomicFiltersEqual } from "@/utils/utils-common";
 import { evaluateFilterGroup } from "@/filter/evaluate";
 import { validateFilterList } from "@/filter/validate";
-import { markUsage } from "@/telemetry/usage-stats";
+import { markUsage } from "@/telemetry/usage-mark";
 
 /**
  * 사용자의 Filter Group 상태를 관리한다.

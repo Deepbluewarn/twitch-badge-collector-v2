@@ -1,3 +1,4 @@
+import { markUsage } from '@/telemetry/usage-mark';
 import { SettingInterface } from "@/interfaces/setting";
 import { PlatformAdapter } from "@/platform";
 import { applyRatio } from "./layout";
@@ -106,6 +107,7 @@ export class Handle {
             // storage.local.set은 Promise를 reject하지 정적 throw를 하지 않는다.
             // try/catch만 두면 quota 초과 등 실제 실패가 unhandled rejection으로
             // 새어나가 조용히 묻힌다 — .catch로 받아야 로그에 남는다.
+            markUsage('resize');
             try {
                 browser.storage.local.set({ containerRatio: this.ratio })
                     .catch((e) => console.warn('[tbcv2] endDrag storage write rejected', e));

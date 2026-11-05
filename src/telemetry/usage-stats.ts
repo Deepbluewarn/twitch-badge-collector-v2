@@ -1,56 +1,48 @@
 /**
  * 익명 사용 통계 (docs/adr/0001-anonymous-usage-stats.md). Chrome, Edge만. Firefox 빌드에선 부르는 쪽이 통째로 건너뛴다.
  *
- * 확장을 쓴 날마다 기록을 하나 만들고, 그날 한 일을 0/1로 표시한다. 날짜가 바뀐 뒤 처음 표시할 때나 브라우저를 켤 때
- * 지난 날들을 outbox로 옮겨 badgecollector.dev/api/ping으로 한 번에 보낸다. 보낸 건 지우고, 못 보낸 건 7일까지 다시 보낸다.
- * 설치 ID는 없다. 주간, 월간 사용자는 그 주, 그 달의 첫 기록에 붙는 firstWeek, firstMonth로 센다.
+ * 기록은 두 가지다.
+ * - 하루 기록(day): 확장을 쓴 날마다 하나. 그날 한 일(usage-mark.ts)을 0/1로 적는다.
+ * - 주간 기록(week): 그 주에 처음 쓴 날 하나. 그때 설정을 기본값에서 바꿨는지(setting-snapshot.ts)를 0/1로 적는다.
+ *   설정은 날마다 거의 같아서 매일 보내면 그 묶음이 사람을 잇는 단서가 된다. 그래서 주에 한 번만, 하루 기록과 따로 보낸다.
+ *
+ * 날짜가 바뀐 뒤 처음 표시할 때나 브라우저를 켤 때 지난 기록을 badgecollector.dev/api/ping으로 한 번에 보낸다.
+ * 보낸 건 지우고, 못 보낸 건 7일까지 다시 보낸다. 설치 ID는 없다. 주간, 월간 사용자는 firstWeek, firstMonth로 센다.
  *
  * 저장소에 쓰는 건 백그라운드 한 곳뿐이다(탭 여럿이 동시에 표시해도 엉키지 않게). 다른 곳은 markUsage로 메시지만 보낸다.
  */
-
-import defaultFilter from '@/defaultFilters';
-import type { CompositeFilterElement, FilterCategory } from '@/interfaces/filter';
+import { USAGE_FLAGS, localDay, type UsageFlag } from './usage-mark';
+import { SETTING_SOURCE_KEYS, langCode, settingFlags, type SettingFlag } from './setting-snapshot';
 
 export const ANONYMOUS_STATS_KEY = 'anonymousStats';
-export const USAGE_MARK_MESSAGE = 'tbc-usage-mark';
 export const PING_URL = 'https://badgecollector.dev/api/ping';
 
-// 사이트 리포 functions/api/ping.ts와 같은 목록, 같은 순서. 뒤에만 덧붙인다.
-export const USAGE_FLAGS = [
-    'twitch',
-    'chzzk',
-    'collected',
-    'filterEdit',
-    'advancedFilter',
-    'floating',
-    'template',
-    'archiveOpen',
-    'capture',
-    'settingOpen',
-    'filterBadge',
-    'filterName',
-    'filterKeyword',
-] as const;
-export type UsageFlag = typeof USAGE_FLAGS[number];
-
-export type UsageRecord = {
+type Browser = 'chrome' | 'edge';
+export type DayRecord = {
+    kind: 'day';
     date: string;
     v: string;
-    b: 'chrome' | 'edge';
+    b: Browser;
     firstWeek: 0 | 1;
     firstMonth: 0 | 1;
 } & Record<UsageFlag, 0 | 1>;
+export type WeekRecord = {
+    kind: 'week';
+    date: string;
+    week: string;
+    v: string;
+    b: Browser;
+    lang: string;
+} & Record<SettingFlag, 0 | 1>;
+export type UsageRecord = DayRecord | WeekRecord;
 
 const TODAY_KEY = 'usageStats:today';
 const OUTBOX_KEY = 'usageStats:outbox';
 const MARKS_KEY = 'usageStats:marks';
 const RETRY_KEY = 'usageStats:retryAt';
-// 설치할 때 들어가는 기본 필터. 이걸 세면 배지, 닉네임 필터는 거의 모두 1이 된다.
-// 값은 배지 이미지 동기화로 바뀌어도 id는 그대로다.
-const DEFAULT_FILTER_IDS = new Set(defaultFilter.flatMap(c => c.filters.map(f => f.id)));
-const FILTER_FLAG: Record<FilterCategory, UsageFlag> = { badge: 'filterBadge', name: 'filterName', keyword: 'filterKeyword' };
-
 const KEEP_DAYS = 7;
+// 하루 기록 8일치(오늘 빼고 7일 전까지) + 주간 기록 2개
+const MAX_BATCH = 10;
 const DAY = 86_400_000;
 // 못 보냈으면 이만큼 쉰다. 서비스 워커는 하루에도 수십 번 깨는데, 깰 때마다 다시 보내면 서버가 죽었을 때
 // 사용자 수만큼 요청이 쏟아져 같은 계정의 사이트 API 한도(하루 10만)를 먹는다.
@@ -59,12 +51,6 @@ const RETRY_MS = 6 * 3_600_000;
 interface Marks { week?: string; month?: string }
 
 export const statsEnabled = (v: unknown) => v !== 'off';
-
-/** 사용자 컴퓨터 기준 날짜 YYYY-MM-DD */
-export function localDay(d: Date): string {
-    const p = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
 
 /** ISO 주 (월요일 시작) — 2026-W45 */
 export function isoWeek(d: Date): string {
@@ -76,23 +62,36 @@ export function isoWeek(d: Date): string {
     return `${year}-W${String(week).padStart(2, '0')}`;
 }
 
-function browserName(): UsageRecord['b'] {
+function browserName(): Browser {
     return /\bEdg\//.test(navigator.userAgent) ? 'edge' : 'chrome';
 }
 
-function newRecord(now: Date, marks: Marks): { record: UsageRecord; marks: Marks } {
-    const week = isoWeek(now);
-    const month = localDay(now).slice(0, 7);
-    const record = {
+function newDay(now: Date, marks: Marks): DayRecord {
+    return {
+        kind: 'day',
         date: localDay(now),
         v: browser.runtime.getManifest().version,
         b: browserName(),
-        firstWeek: marks.week === week ? 0 : 1,
-        firstMonth: marks.month === month ? 0 : 1,
+        firstWeek: marks.week === isoWeek(now) ? 0 : 1,
+        firstMonth: marks.month === localDay(now).slice(0, 7) ? 0 : 1,
         ...Object.fromEntries(USAGE_FLAGS.map(f => [f, 0])),
-    } as UsageRecord;
-    return { record, marks: { week, month } };
+    } as DayRecord;
 }
+
+async function newWeek(now: Date): Promise<WeekRecord> {
+    const s = await browser.storage.local.get(SETTING_SOURCE_KEYS);
+    return {
+        kind: 'week',
+        date: localDay(now),
+        week: isoWeek(now),
+        v: browser.runtime.getManifest().version,
+        b: browserName(),
+        lang: langCode(browser.i18n.getUILanguage()),
+        ...settingFlags(s),
+    };
+}
+
+const keyOf = (r: UsageRecord) => `${r.kind ?? 'day'}:${r.date}`;
 
 // 7일보다 오래된 기록은 버린다 — 늦게 들어와 이미 낸 통계를 바꾸지 않게. 서버도 8일까지만 받는다.
 function fresh(outbox: UsageRecord[], now: Date): UsageRecord[] {
@@ -105,7 +104,7 @@ async function load() {
     return {
         enabled: statsEnabled(res[ANONYMOUS_STATS_KEY]),
         retryAt: (res[RETRY_KEY] as number | undefined) ?? 0,
-        today: (res[TODAY_KEY] as UsageRecord | undefined) ?? null,
+        today: (res[TODAY_KEY] as DayRecord | undefined) ?? null,
         outbox: (res[OUTBOX_KEY] as UsageRecord[] | undefined) ?? [],
         marks: (res[MARKS_KEY] as Marks | undefined) ?? {},
     };
@@ -134,7 +133,7 @@ async function send(fetchImpl: typeof fetch, now: Date): Promise<void> {
     const records = fresh(outbox, now);
     if (records.length !== outbox.length) await browser.storage.local.set({ [OUTBOX_KEY]: records });
     if (records.length === 0 || now.getTime() < retryAt) return;
-    const batch = records.slice(0, KEEP_DAYS);
+    const batch = records.slice(0, MAX_BATCH);
     let status: number;
     try {
         // text/plain이라 preflight 없이 간다
@@ -154,40 +153,25 @@ async function send(fetchImpl: typeof fetch, now: Date): Promise<void> {
         return;
     }
     if (retryAt) await browser.storage.local.remove(RETRY_KEY);
-    const sent = new Set(batch.map(r => r.date));
+    const sent = new Set(batch.map(keyOf));
     const { outbox: latest } = await load();
-    await browser.storage.local.set({ [OUTBOX_KEY]: latest.filter(r => !sent.has(r.date)) });
+    await browser.storage.local.set({ [OUTBOX_KEY]: latest.filter(r => !sent.has(keyOf(r))) });
 }
 
 /** 백그라운드 — 표시 메시지 처리 */
 export function recordUsage(flags: UsageFlag[], fetchImpl: typeof fetch = fetch, now = new Date()): Promise<void> {
     return serial(async () => {
         const rolled = await rollOver(now);
-        const { enabled, today, marks } = await load();
+        const { enabled, today, outbox, marks } = await load();
         if (!enabled) return;
         let record = today;
         if (!record) {
-            const made = newRecord(now, marks);
-            record = made.record;
-            await browser.storage.local.set({ [MARKS_KEY]: made.marks });
+            record = newDay(now, marks);
+            await browser.storage.local.set({ [MARKS_KEY]: { week: isoWeek(now), month: localDay(now).slice(0, 7) } });
+            // 그 주에 처음 쓴 날 — 설정 기록은 이때 한 번 만들어 바로 보낼 목록에 넣는다
+            if (record.firstWeek) await browser.storage.local.set({ [OUTBOX_KEY]: [...outbox, await newWeek(now)] });
         }
         for (const f of flags) record[f] = 1;
-        // 설정으로 정해지는 것은 방송 화면을 띄운 날 그 설정이었는지로 본다
-        if (flags.includes('twitch') || flags.includes('chzzk')) {
-            const s = await browser.storage.local.get(['advancedFilter', 'displayMode', 'chzzkCustomTemplate', 'filter']);
-            if (s.advancedFilter === 'on') record.advancedFilter = 1;
-            if (s.displayMode === 'floating') record.floating = 1;
-            if (flags.includes('chzzk') && s.chzzkCustomTemplate === 'on') record.template = 1;
-            // 필터 종류는 그 플랫폼에 직접 만든 조건이 하나라도 있는지만 본다 (개수, 비율은 사람마다 거의 달라 보내지 않는다)
-            const groups = Array.isArray(s.filter) ? s.filter as CompositeFilterElement[] : [];
-            for (const g of groups) {
-                if (!flags.includes(g.platform as UsageFlag) || !Array.isArray(g.filters)) continue;
-                for (const f of g.filters) {
-                    const flag = FILTER_FLAG[f?.category];
-                    if (flag && !DEFAULT_FILTER_IDS.has(f.id)) record[flag] = 1;
-                }
-            }
-        }
         await browser.storage.local.set({ [TODAY_KEY]: record });
         if (rolled) await send(fetchImpl, now);
     });
@@ -206,30 +190,8 @@ export function clearUsage(): Promise<void> {
     return serial(() => browser.storage.local.remove([TODAY_KEY, OUTBOX_KEY, MARKS_KEY, RETRY_KEY]));
 }
 
-/** 설정 화면의 [보기] — 보낼 기록 그대로 (못 보낸 지난 날 + 오늘) */
+/** 설정 화면의 [보기] — 보낼 기록 그대로 (못 보낸 기록 + 오늘) */
 export async function pendingUsage(): Promise<UsageRecord[]> {
     const { today, outbox } = await load();
     return today ? [...outbox, today] : outbox;
-}
-
-export function isUsageFlag(x: unknown): x is UsageFlag {
-    return typeof x === 'string' && (USAGE_FLAGS as readonly string[]).includes(x);
-}
-
-const sentThisPage = new Set<string>();
-
-/**
- * 콘텐츠 스크립트, 설정 페이지 — 그날 한 일을 백그라운드에 알린다. 같은 페이지에서 같은 날 같은 표시는 한 번만 보낸다.
- * 꺼져 있는지는 백그라운드가 본다. 채팅 처리 한가운데서도 불리므로 무슨 일이 있어도 던지지 않는다
- * (업데이트로 연결이 끊긴 옛 스크립트에선 sendMessage가 "Extension context invalidated"를 바로 던진다).
- */
-export function markUsage(flag: UsageFlag): void {
-    if (import.meta.env.BROWSER === 'firefox') return;
-    try {
-        const key = `${localDay(new Date())}:${flag}`;
-        if (sentThisPage.has(key)) return;
-        sentThisPage.add(key);
-        if (!browser.runtime?.id) return;
-        browser.runtime.sendMessage({ type: USAGE_MARK_MESSAGE, flags: [flag] }).catch(() => { /* 백그라운드 깨는 중 */ });
-    } catch { /* 통계는 없어도 된다 */ }
 }

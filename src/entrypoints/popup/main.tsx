@@ -4,6 +4,7 @@ import SocialFooter from "@/components/SocialFooter";
 import TranslationNotice from "@/components/TranslationNotice";
 import { GlobalSettingContext } from "@/context/GlobalSetting";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
+import { markUsage } from "@/telemetry/usage-mark";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
@@ -300,6 +301,7 @@ function Popup() {
   const hostReady = !!host && !host.off;
 
   const onRatioResetButtonClicked = () => {
+    markUsage('ratioReset');
     browser.storage.local.set({containerRatio: 30});
   }
 
@@ -396,7 +398,7 @@ function Popup() {
           <span>{browser.i18n.getMessage('clearCollectedChatsConfirm' as any)}</span>
           <Stack dir='row' gap={6} justify='end'>
             <Button size='sm' onClick={() => setConfirmClear(false)}>{browser.i18n.getMessage('cancel' as any)}</Button>
-            <Button size='sm' variant='primary' icon='delete_sweep' onClick={() => sendToActiveContent('tbc-clear-chats')}>
+            <Button size='sm' variant='primary' icon='delete_sweep' onClick={() => { markUsage('clearChats'); sendToActiveContent('tbc-clear-chats'); }}>
               {browser.i18n.getMessage('clearCollectedChatsDo' as any)}
             </Button>
           </Stack>
@@ -443,6 +445,8 @@ const ContextRouter = () => {
     </GlobalSettingContext.Provider>
   )
 }
+
+markUsage('popupOpen');
 
 ReactDOM.createRoot(document.getElementById("root") as Element).render(
   <React.StrictMode>

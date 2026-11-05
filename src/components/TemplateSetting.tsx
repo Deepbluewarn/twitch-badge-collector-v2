@@ -10,6 +10,7 @@ import { renderChzzkChat } from '@/render/chzzk-render';
 import { DEFAULT_CHZZK_TEMPLATES, DEFAULT_LOOK, buildTemplates, detectLook, type ChzzkTemplates, type TemplateLook } from '@/render/chzzk-templates';
 import type { ChzzkChatKind } from '@/render/chzzk-chat-view';
 import { TEMPLATE_KINDS, saveTemplates, useStoredTemplatesState, validateTemplate, type TemplateValidation } from '@/render/template-store';
+import { markUsage } from '@/telemetry/usage-mark';
 import { TEMPLATE_FIELDS, TEMPLATE_SAMPLES } from '@/render/template-samples';
 import {
     DEFAULT_STYLE, PRESETS, ensureStyleFont, exportStyleCode, importStyleCode, presetTemplates, saveStyle,
@@ -257,7 +258,7 @@ export default function TemplateSetting() {
         setStyleState(prev => {
             const next = typeof change === 'function' ? change(prev) : change;
             clearTimeout(saveTimer.current);
-            saveTimer.current = setTimeout(() => saveStyle(next), STYLE_SAVE_DELAY);
+            saveTimer.current = setTimeout(() => { markUsage('templateEdit'); saveStyle(next); }, STYLE_SAVE_DELAY);
             return next;
         });
     }, []);
@@ -267,6 +268,7 @@ export default function TemplateSetting() {
     const replaceTemplates = async (next: ChzzkTemplates, ask = true) => {
         if (ask && !detectLook(drafts) && !await confirm({ title: t('template.confirm_overwrite'), confirmLabel: t('template.overwrite'), cancelLabel: t('common.cancel') })) return false;
         setDrafts(next);
+        markUsage('templateEdit');
         await saveTemplates(templatesToStore(next));
         return true;
     };
@@ -305,6 +307,7 @@ export default function TemplateSetting() {
 
     const onSave = async () => {
         // 기본값과 같은 종류는 저장하지 않는다 — 나중에 기본 템플릿이 바뀌면 그대로 따라가게.
+        markUsage('templateEdit');
         await saveTemplates(templatesToStore(drafts));
         setSavedAt(Date.now());
     };
