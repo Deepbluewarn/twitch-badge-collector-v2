@@ -10,6 +10,8 @@ on:
     - cron: '30 */6 * * *'
   workflow_dispatch: {}
   push:
+    # master만. 태그 푸시엔 돌지 않게
+    branches: [master]
     paths:
       - 'src/platform/chzzk-socket.ts'
       - 'scripts/canary/socket*.ts'

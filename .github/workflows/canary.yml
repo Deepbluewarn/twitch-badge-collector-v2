@@ -9,7 +9,8 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch: {}  # 수동 실행
   push:
-    # bundled-selectors.prod.json 변경 시 즉시 검증
+    # bundled-selectors.prod.json 변경 시 즉시 검증. master만 — 태그 푸시엔 브랜치가 없어 스냅샷 커밋이 실패한다(v2.27.0)
+    branches: [master]
     paths:
       - 'src/platform/bundled-selectors.prod.json'
       - 'scripts/canary/**'
