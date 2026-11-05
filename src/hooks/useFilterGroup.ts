@@ -7,6 +7,7 @@ import { SettingInterface } from "@/interfaces/setting";
 import { atomicFiltersEqual } from "@/utils/utils-common";
 import { evaluateFilterGroup } from "@/filter/evaluate";
 import { validateFilterList } from "@/filter/validate";
+import { markUsage } from "@/telemetry/usage-stats";
 
 /**
  * 사용자의 Filter Group 상태를 관리한다.
@@ -28,6 +29,8 @@ export default function useFilterGroup(
     const [filterGroup, setFilterGroup] = React.useState<CompositeFilterElement[]>([]);
     const filterGroupRef = useRef<CompositeFilterElement[]>([]);
     const isFilterInitialized = useRef(false);
+    // 불러온 값 그대로 다시 쓰는 건 수정이 아니다 — 사용 통계의 filterEdit은 내용이 바뀔 때만
+    const savedJson = useRef<string | null>(null);
     const { addAlert } = useAlertContext();
     const { t } = useTranslation();
 
@@ -39,6 +42,7 @@ export default function useFilterGroup(
         browser.storage.local.get("filter").then((res) => {
             // 신규 설치/데이터 없음 시 res.filter undefined → 이후 .filter() 호출에서 crash.
             setFilterGroup(res.filter ?? []);
+            savedJson.current = JSON.stringify(res.filter ?? []);
             isFilterInitialized.current = true;
         });
 
@@ -59,6 +63,9 @@ export default function useFilterGroup(
         filterGroupRef.current = filterGroup.filter(af => af.platform === platform);
         if (!isFilterInitialized.current || extStorageReadOnly) return;
         browser.storage.local.set({ filter: filterGroup });
+        const json = JSON.stringify(filterGroup);
+        if (json !== savedJson.current) markUsage('filterEdit');
+        savedJson.current = json;
     }, [filterGroup, platform, extStorageReadOnly]);
 
     const addCompositeFilters = (newFilters: CompositeFilterElement[]) => {

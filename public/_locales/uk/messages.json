@@ -202,5 +202,17 @@
   },
   "profileIdCopied": {
     "message": "Скопійовано"
+  },
+  "anonymousStats": {
+    "message": "Анонімна статистика використання"
+  },
+  "anonymousStatsView": {
+    "message": "Показати"
+  },
+  "anonymousStatsEmpty": {
+    "message": "Поки нічого надсилати"
+  },
+  "privacyPolicy": {
+    "message": "Політика конфіденційності"
   }
 }

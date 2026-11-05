@@ -202,5 +202,17 @@
   },
   "profileIdCopied": {
     "message": "Скопировано"
+  },
+  "anonymousStats": {
+    "message": "Анонимная статистика использования"
+  },
+  "anonymousStatsView": {
+    "message": "Показать"
+  },
+  "anonymousStatsEmpty": {
+    "message": "Пока нечего отправлять"
+  },
+  "privacyPolicy": {
+    "message": "Политика конфиденциальности"
   }
 }

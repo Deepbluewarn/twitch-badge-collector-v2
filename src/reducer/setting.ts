@@ -45,6 +45,7 @@ export const initialState: SettingInterface = {
     floatingBgColor: '',
     chzzkChatSide: 'right',
     chzzkCustomTemplate: 'off',
+    anonymousStats: 'on',
 }
 
 // 액션 타입 정의
@@ -63,6 +64,7 @@ const actionTypes: SettingReducerActionTypes = {
     SET_FLOATING_BG_COLOR: "SET_FLOATING_BG_COLOR",
     SET_CHZZK_CHAT_SIDE: "SET_CHZZK_CHAT_SIDE",
     SET_CHZZK_CUSTOM_TEMPLATE: "SET_CHZZK_CUSTOM_TEMPLATE",
+    SET_ANONYMOUS_STATS: "SET_ANONYMOUS_STATS",
     SET_MULTIPLE: "SET_MULTIPLE"
 };
 
@@ -99,6 +101,9 @@ function settingsReducer(state: SettingInterface = initialState, action: Setting
         case actionTypes.SET_CHZZK_CUSTOM_TEMPLATE:
             // 'on'만 명시적으로 받는다. 오타/undefined는 원본 우선(off)으로.
             return { ...state, chzzkCustomTemplate: action.payload === 'on' ? 'on' : 'off' };
+        case actionTypes.SET_ANONYMOUS_STATS:
+            // 'off'만 명시적으로 받는다. 끈 사람만 안 보낸다.
+            return { ...state, anonymousStats: action.payload === 'off' ? 'off' : 'on' };
         case actionTypes.SET_MULTIPLE: // 새로운 액션 타입 처리
             return { ...state, ...action.payload };
         default:
@@ -121,6 +126,7 @@ const setDisplayMode = (displayMode: SettingInterface['displayMode']) => ({ type
 const setFloatingBgColor = (floatingBgColor: SettingInterface['floatingBgColor']) => ({ type: actionTypes.SET_FLOATING_BG_COLOR, payload: floatingBgColor });
 const setChzzkChatSide = (chzzkChatSide: SettingInterface['chzzkChatSide']) => ({ type: actionTypes.SET_CHZZK_CHAT_SIDE, payload: chzzkChatSide });
 const setChzzkCustomTemplate = (v: SettingInterface['chzzkCustomTemplate']) => ({ type: actionTypes.SET_CHZZK_CUSTOM_TEMPLATE, payload: v });
+const setAnonymousStats = (v: SettingInterface['anonymousStats']) => ({ type: actionTypes.SET_ANONYMOUS_STATS, payload: v });
 const setMultipleSettings = (settings: SettingInterface) => ({ type: actionTypes.SET_MULTIPLE, payload: settings });
 
 export {
@@ -139,5 +145,6 @@ export {
     setFloatingBgColor,
     setChzzkChatSide,
     setChzzkCustomTemplate,
+    setAnonymousStats,
     setMultipleSettings,
 };

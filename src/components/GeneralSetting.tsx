@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 import { useGlobalSettingContext } from '@/context/GlobalSetting';
-import { setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide } from '@/reducer/setting';
+import { setAnonymousStats, setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide } from '@/reducer/setting';
 import { SettingInterface } from '@/interfaces/setting';
 import { useTranslation } from 'react-i18next';
-import { Button, Segmented, Stack, Switch, Tag, TextInput } from '@/ui';
+import { Button, Dialog, IconButton, LinkButton, Segmented, Stack, Switch, Tag, TextInput } from '@/ui';
+import { pendingUsage, type UsageRecord } from '@/telemetry/usage-stats';
 import { CHANNEL_OFF_KEY, getOffChannels, parseChannelKey, setChannelOff, type OffChannels } from '@/utils/channel-off';
 import { ChannelAvatar } from './filter/ChannelSearch';
 import { SectionTitle, SettingRow, SettingsCard } from './settings/SettingsUI';
@@ -120,6 +121,33 @@ export function OffChannelList() {
   );
 }
 
+const PRIVACY_URL = 'https://badgecollector.dev/extension/privacy/';
+
+/** 익명 사용 통계 스위치 + 보낼 기록 그대로 보기 (src/telemetry) */
+function AnonymousStatsControl({ on, onChange }: { on: boolean; onChange: (on: boolean) => void }) {
+  const [records, setRecords] = React.useState<UsageRecord[] | null>(null);
+  return (
+    <Stack dir='row' align='center' gap={8}>
+      <Button size='sm' variant='text' style={metaButtonStyle} onClick={() => pendingUsage().then(setRecords)}>
+        {msg('anonymousStatsView')}
+      </Button>
+      <Switch checked={on} onChange={onChange} />
+      <Dialog
+        open={records !== null}
+        onClose={() => setRecords(null)}
+        width='md'
+        title={msg('anonymousStats')}
+        headerExtra={<IconButton icon='close' label={msg('close')} size='sm' onClick={() => setRecords(null)} />}
+        actions={<LinkButton size='sm' href={PRIVACY_URL} target='_blank' rel='noreferrer'>{msg('privacyPolicy')}</LinkButton>}
+      >
+        {records && records.length > 0
+          ? <pre style={{ margin: 0, maxHeight: 360, overflow: 'auto', padding: 12, borderRadius: 10, background: 'var(--ui-tint)', fontSize: 12 }}>{JSON.stringify(records, null, 2)}</pre>
+          : msg('anonymousStatsEmpty')}
+      </Dialog>
+    </Stack>
+  );
+}
+
 /** 꺼진 채널이 하나라도 있는지 — 없으면 묶음째 숨긴다 */
 function useHasOffChannels() {
   const [has, setHas] = React.useState(false);
@@ -150,7 +178,7 @@ export interface GeneralItem {
   render: (s: SettingInterface, dispatch: Dispatch) => React.ReactNode;
 }
 
-export interface GeneralGroup { id: 'look' | 'layout' | 'chat'; items: GeneralItem[] }
+export interface GeneralGroup { id: 'look' | 'layout' | 'chat' | 'stats'; items: GeneralItem[] }
 
 function sw(get: (s: SettingInterface) => boolean, set: (on: boolean) => Parameters<Dispatch>[0]): GeneralItem['render'] {
   return (s, dispatch) => <Switch checked={get(s)} onChange={on => dispatch(set(on))} />;
@@ -222,6 +250,17 @@ export function generalGroups(): GeneralGroup[] {
         { key: 'chatPersistence', label: msg('chatPersistence'), render: sw(s => onOff(s.chatPersistence), on => setChatPersistence(on ? 'on' : 'off')) },
       ],
     },
+    // Firefox 빌드는 통계를 보내지 않는다
+    ...(import.meta.env.BROWSER === 'firefox' ? [] : [{
+      id: 'stats' as const, items: [
+        {
+          key: 'anonymousStats', label: msg('anonymousStats'),
+          render: (s: SettingInterface, dispatch: Dispatch) => (
+            <AnonymousStatsControl on={onOff(s.anonymousStats)} onChange={on => dispatch(setAnonymousStats(on ? 'on' : 'off'))} />
+          ),
+        },
+      ],
+    }]),
   ];
 }
 

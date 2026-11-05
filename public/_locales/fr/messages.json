@@ -202,5 +202,17 @@
   },
   "profileIdCopied": {
     "message": "Copié"
+  },
+  "anonymousStats": {
+    "message": "Statistiques d'utilisation anonymes"
+  },
+  "anonymousStatsView": {
+    "message": "Voir"
+  },
+  "anonymousStatsEmpty": {
+    "message": "Rien à envoyer pour l'instant"
+  },
+  "privacyPolicy": {
+    "message": "Politique de confidentialité"
   }
 }

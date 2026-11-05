@@ -1,4 +1,5 @@
 import { toBlob } from 'html-to-image';
+import { markUsage } from '@/telemetry/usage-stats';
 // snapdom은 USE_SNAPDOM=true 시 동적 import — 번들 격리.
 
 // PoC 토글. true면 SnapDOM, false면 기존 html-to-image.
@@ -254,6 +255,7 @@ interface CaptureOptions {
 export async function captureChats(opts: CaptureOptions): Promise<void> {
     const { container, selectedKeys, keyAttr, filename } = opts;
     if (selectedKeys.size === 0) return;
+    markUsage('capture');
 
     // 선택된 chat을 host DOM 순서대로 정렬해서 chunk로 분할.
     const allChats = Array.from(container.querySelectorAll<HTMLElement>(`[${keyAttr}]`));

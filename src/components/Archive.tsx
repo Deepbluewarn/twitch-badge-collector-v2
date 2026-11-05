@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { markUsage } from '@/telemetry/usage-stats';
 import { Button, Icon, IconButton, Select, Spinner, Switch, TextInput } from '@/ui';
 import {
     ARCHIVE_DAYS, ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, clearArchive, csvHead, csvRow, deleteArchiveChannel, eachArchivedChat,
@@ -178,6 +179,7 @@ const SEARCH_DELAY = 250;
 
 export default function Archive() {
     const { t } = useTranslation();
+    useEffect(() => { markUsage('archiveOpen'); }, []);
     const [setting, setSetting] = useArchiveSetting();
     const [rows, setRows] = useState<ChannelRow[] | null>(null);
     const [selected, setSelected] = useState<string | null>(null);

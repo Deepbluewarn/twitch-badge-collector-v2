@@ -199,5 +199,17 @@
   },
   "profileIdCopied": {
     "message": "복사됨"
+  },
+  "anonymousStats": {
+    "message": "익명 사용 통계"
+  },
+  "anonymousStatsView": {
+    "message": "보기"
+  },
+  "anonymousStatsEmpty": {
+    "message": "보낼 기록이 없습니다"
+  },
+  "privacyPolicy": {
+    "message": "개인정보 처리방침"
   }
 }

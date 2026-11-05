@@ -202,5 +202,17 @@
   },
   "profileIdCopied": {
     "message": "已複製"
+  },
+  "anonymousStats": {
+    "message": "匿名使用統計"
+  },
+  "anonymousStatsView": {
+    "message": "查看"
+  },
+  "anonymousStatsEmpty": {
+    "message": "尚無要傳送的紀錄"
+  },
+  "privacyPolicy": {
+    "message": "隱私權政策"
   }
 }

@@ -24,6 +24,8 @@ export interface SettingInterface {
      * 템플릿 본문은 storage.local의 별도 키(src/render/template-store.ts).
      */
     chzzkCustomTemplate: 'on' | 'off';
+    /** 익명 사용 통계(src/telemetry). default 'on'. Firefox 빌드에선 쓰지 않는다. */
+    anonymousStats: 'on' | 'off';
 }
 
 export interface SettingReducerActionTypes {
@@ -41,6 +43,7 @@ export interface SettingReducerActionTypes {
     SET_FLOATING_BG_COLOR: "SET_FLOATING_BG_COLOR";
     SET_CHZZK_CHAT_SIDE: "SET_CHZZK_CHAT_SIDE";
     SET_CHZZK_CUSTOM_TEMPLATE: "SET_CHZZK_CUSTOM_TEMPLATE";
+    SET_ANONYMOUS_STATS: "SET_ANONYMOUS_STATS";
     SET_MULTIPLE: "SET_MULTIPLE";
 }
 

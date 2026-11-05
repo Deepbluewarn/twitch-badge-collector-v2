@@ -402,6 +402,7 @@
     "general": {
         "group_look": "Anzeige",
         "group_layout": "Anordnung",
-        "group_chat": "Gesammelter Chat"
+        "group_chat": "Gesammelter Chat",
+        "group_stats": "Datenschutz"
     }
 }

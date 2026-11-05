@@ -402,6 +402,7 @@
     "general": {
         "group_look": "Affichage",
         "group_layout": "Disposition",
-        "group_chat": "Chat collecté"
+        "group_chat": "Chat collecté",
+        "group_stats": "Confidentialité"
     }
 }

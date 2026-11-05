@@ -14,6 +14,7 @@ import { PlatformAdapter } from "@/platform";
 import { Logger } from "@/utils/logger";
 import { captureChats } from "@/utils/captureChat";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
+import { markUsage } from "@/telemetry/usage-stats";
 
 import "./Local.css";
 
@@ -130,7 +131,9 @@ export default function Local({
         archiveRef.current = recorder;
         return () => { void recorder.flush(); recorder.stop(); archiveRef.current = null; };
     }, [adapter, type]);
+    useEffect(() => { markUsage(type); }, [type]);
     const onChatPassed = useCallback((chat: Parameters<typeof addChat>[0]) => {
+        markUsage('collected');
         // 트위치는 채팅 시각을 넘기지 않는다(0) — 받은 시각으로 남긴다
         if (chat.archive) archiveRef.current?.record({ key: chat.key, time: chat.time || Date.now(), nickname: chat.nickname, text: chat.text, ...chat.archive });
         guardedAddChat(chat);

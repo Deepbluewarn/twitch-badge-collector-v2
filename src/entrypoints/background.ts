@@ -10,6 +10,7 @@ import { CHANNEL_OFF_BADGE_MESSAGE } from "@/utils/channel-off";
 import { clearAllChatHistory } from "@/utils/chat-history-store";
 import { migrateBadgeLook, migrateLargeLook, migrateLegacyDonation } from "@/render/chzzk-style";
 import { ARCHIVE_HIDE_MESSAGE, ARCHIVE_PUT_MESSAGE, hideArchivedChats, loadArchiveSetting, purgeArchive, putArchivedChats, sanitizeArchivedChat } from "@/archive/chat-archive";
+import { ANONYMOUS_STATS_KEY, USAGE_MARK_MESSAGE, clearUsage, flushUsage, isUsageFlag, recordUsage, statsEnabled } from "@/telemetry/usage-stats";
 
 export default defineBackground(() => {
   console.log('Hello background!', { id: browser.runtime.id });
@@ -24,6 +25,15 @@ export default defineBackground(() => {
   fetchIfStale();
 
   installChzzkApiOriginRule().catch(e => console.warn('[tbcv2 bg] chzzk api rule failed', e));
+
+  // 익명 사용 통계 (src/telemetry) — Chrome, Edge만. 브라우저를 켤 때와 서비스 워커가 깰 때 지난 날 기록을 보낸다.
+  if (import.meta.env.BROWSER !== 'firefox') {
+    browser.runtime.onStartup.addListener(() => { flushUsage().catch(e => console.warn('[tbcv2 bg] usage flush failed', e)); });
+    flushUsage().catch(e => console.warn('[tbcv2 bg] usage flush failed', e));
+    browser.storage.local.onChanged.addListener(changes => {
+      if (ANONYMOUS_STATS_KEY in changes && !statsEnabled(changes[ANONYMOUS_STATS_KEY].newValue)) clearUsage();
+    });
+  }
 
 
   // 설정 기본값 채우기 — 없는 key만 write. 몇 번 호출해도 안전(idempotent).
@@ -53,6 +63,7 @@ export default defineBackground(() => {
       floatingBgColor: '',
       chzzkChatSide: "right",
       chzzkCustomTemplate: "off",
+      anonymousStats: "on",
     };
 
     const keys = Object.keys(DEFAULTS);
@@ -276,6 +287,10 @@ export default defineBackground(() => {
         .then(() => sendResponse({ ok: true }))
         .catch(e => { console.warn('[tbcv2 bg] archive hide failed', e); sendResponse({ ok: false }); });
       return true;
+    }
+    if (msg?.type === USAGE_MARK_MESSAGE && Array.isArray(msg.flags) && _sender.id === browser.runtime.id && import.meta.env.BROWSER !== 'firefox') {
+      recordUsage(msg.flags.filter(isUsageFlag)).catch(e => console.warn('[tbcv2 bg] usage mark failed', e));
+      return false;
     }
     if (msg?.type === 'tbc-force-ota-fetch') {
       // content script가 selector 매칭 실패 감지 시 즉시 OTA fetch 요청.

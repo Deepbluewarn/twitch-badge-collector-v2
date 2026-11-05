@@ -402,6 +402,7 @@
     "general": {
         "group_look": "画面",
         "group_layout": "布局",
-        "group_chat": "收集的聊天"
+        "group_chat": "收集的聊天",
+        "group_stats": "隐私"
     }
 }

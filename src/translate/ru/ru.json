@@ -402,6 +402,7 @@
     "general": {
         "group_look": "Экран",
         "group_layout": "Расположение",
-        "group_chat": "Собранный чат"
+        "group_chat": "Собранный чат",
+        "group_stats": "Конфиденциальность"
     }
 }

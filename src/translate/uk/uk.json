@@ -402,6 +402,7 @@
     "general": {
         "group_look": "Екран",
         "group_layout": "Розташування",
-        "group_chat": "Зібраний чат"
+        "group_chat": "Зібраний чат",
+        "group_stats": "Конфіденційність"
     }
 }

@@ -26,6 +26,7 @@ import i18n from '@/translate/i18n';
 import { useTranslation } from 'react-i18next';
 import TranslationNotice from '@/components/TranslationNotice';
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
+import { markUsage } from "@/telemetry/usage-stats";
 
 function App() {
   const { globalSetting, dispatchGlobalSetting } = useExtensionGlobalSetting();
@@ -93,6 +94,8 @@ function Router() {
     </FilterGroupContext.Provider>
   );
 }
+
+markUsage('settingOpen');
 
 ReactDOM.createRoot(document.getElementById("root") as Element).render(
   <React.StrictMode>

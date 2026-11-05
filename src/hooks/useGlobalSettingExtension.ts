@@ -17,6 +17,7 @@ const SETTING_KEYS = [
     "floatingBgColor",
     "chzzkChatSide",
     "chzzkCustomTemplate",
+    "anonymousStats",
 ] as const;
 
 /**

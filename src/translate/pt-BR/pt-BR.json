@@ -402,6 +402,7 @@
     "general": {
         "group_look": "Tela",
         "group_layout": "Disposição",
-        "group_chat": "Chat coletado"
+        "group_chat": "Chat coletado",
+        "group_stats": "Privacidade"
     }
 }

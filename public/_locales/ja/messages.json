@@ -202,5 +202,17 @@
   },
   "profileIdCopied": {
     "message": "コピーしました"
+  },
+  "anonymousStats": {
+    "message": "匿名の利用統計"
+  },
+  "anonymousStatsView": {
+    "message": "表示"
+  },
+  "anonymousStatsEmpty": {
+    "message": "送信する記録はまだありません"
+  },
+  "privacyPolicy": {
+    "message": "プライバシーポリシー"
   }
 }

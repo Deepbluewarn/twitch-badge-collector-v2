@@ -402,6 +402,7 @@
     "general": {
         "group_look": "画面",
         "group_layout": "配置",
-        "group_chat": "収集チャット"
+        "group_chat": "収集チャット",
+        "group_stats": "プライバシー"
     }
 }
