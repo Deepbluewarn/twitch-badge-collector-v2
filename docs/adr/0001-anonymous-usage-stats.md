@@ -15,7 +15,8 @@ Purple Nickel 경고가 오면 팝업에 동의를 넣어 다시 올린다. 수�
 
 ## 범위
 
-- 보내는 것: 확장 버전, 브라우저(chrome, edge), 그날 한 일 참/거짓(twitch, chzzk, collected, filterEdit, advancedFilter, floating, template, archiveOpen, capture, settingOpen), 주간과 월간 첫 기록 표시.
+- 보내는 것: 확장 버전, 브라우저(chrome, edge), 그날 한 일 참/거짓(twitch, chzzk, collected, filterEdit, advancedFilter, floating, template, archiveOpen, capture, settingOpen), 직접 만든 필터의 종류별 유무(filterBadge, filterName, filterKeyword, 설치 때 들어가는 기본 필터는 빼고 센다), 주간과 월간 첫 기록 표시.
+- 개수와 비율은 보내지 않는다. 필터 개수 같은 숫자는 사람마다 거의 달라서 설치 ID 없이도 날짜별 기록을 한 사람으로 이을 수 있다.
 - 보내지 않는 것: 설치 ID, IP, URL, 채널명, 닉네임, 필터 내용, 오류 신호.
 - Firefox는 빌드에서 수집 코드를 뺀다. AMO는 설치 때 선택지를 보여 줘야 하고, 사용자가 적어 얻을 게 없다.
 - 판단 기준: 기능별 사용자가 4주 평균으로 실사용자의 5% 미만이면 접을지 검토할 목록에 올린다. 기준에 쓰이지 않는 항목은 늘리지 않는다.

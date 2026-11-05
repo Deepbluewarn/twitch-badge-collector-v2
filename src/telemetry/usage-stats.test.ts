@@ -39,6 +39,19 @@ describe('usage-stats', () => {
         expect((await pendingUsage())[0]).toMatchObject({ template: 1 });
     });
 
+    it('필터 종류는 그 플랫폼에 직접 만든 조건이 있을 때만 1이고, 기본 필터는 세지 않는다', async () => {
+        const { default: defaults } = await import('@/defaultFilters');
+        const mine = (platform: string, category: string) => ({
+            filterType: 'include', id: `g-${platform}-${category}`, filterNote: '', platform,
+            filters: [{ category, id: `a-${platform}-${category}`, type: 'include', value: 'x' }],
+        });
+        await fakeBrowser.storage.local.set({ filter: [...defaults, mine('chzzk', 'keyword'), mine('twitch', 'name')] });
+        await recordUsage(['chzzk'], fakeFetch().fn, at('2026-11-05'));
+        expect((await pendingUsage())[0]).toMatchObject({ filterBadge: 0, filterName: 0, filterKeyword: 1 });
+        await recordUsage(['twitch'], fakeFetch().fn, at('2026-11-05'));
+        expect((await pendingUsage())[0]).toMatchObject({ filterBadge: 0, filterName: 1, filterKeyword: 1 });
+    });
+
     it('날짜가 바뀐 뒤 처음 표시할 때 어제 기록을 보낸다', async () => {
         const f = fakeFetch();
         await recordUsage(['chzzk'], f.fn, at('2026-11-04'));

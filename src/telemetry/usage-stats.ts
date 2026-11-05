@@ -8,6 +8,9 @@
  * 저장소에 쓰는 건 백그라운드 한 곳뿐이다(탭 여럿이 동시에 표시해도 엉키지 않게). 다른 곳은 markUsage로 메시지만 보낸다.
  */
 
+import defaultFilter from '@/defaultFilters';
+import type { CompositeFilterElement, FilterCategory } from '@/interfaces/filter';
+
 export const ANONYMOUS_STATS_KEY = 'anonymousStats';
 export const USAGE_MARK_MESSAGE = 'tbc-usage-mark';
 export const PING_URL = 'https://badgecollector.dev/api/ping';
@@ -24,6 +27,9 @@ export const USAGE_FLAGS = [
     'archiveOpen',
     'capture',
     'settingOpen',
+    'filterBadge',
+    'filterName',
+    'filterKeyword',
 ] as const;
 export type UsageFlag = typeof USAGE_FLAGS[number];
 
@@ -39,6 +45,11 @@ const TODAY_KEY = 'usageStats:today';
 const OUTBOX_KEY = 'usageStats:outbox';
 const MARKS_KEY = 'usageStats:marks';
 const RETRY_KEY = 'usageStats:retryAt';
+// 설치할 때 들어가는 기본 필터. 이걸 세면 배지, 닉네임 필터는 거의 모두 1이 된다.
+// 값은 배지 이미지 동기화로 바뀌어도 id는 그대로다.
+const DEFAULT_FILTER_IDS = new Set(defaultFilter.flatMap(c => c.filters.map(f => f.id)));
+const FILTER_FLAG: Record<FilterCategory, UsageFlag> = { badge: 'filterBadge', name: 'filterName', keyword: 'filterKeyword' };
+
 const KEEP_DAYS = 7;
 const DAY = 86_400_000;
 // 못 보냈으면 이만큼 쉰다. 서비스 워커는 하루에도 수십 번 깨는데, 깰 때마다 다시 보내면 서버가 죽었을 때
@@ -163,10 +174,19 @@ export function recordUsage(flags: UsageFlag[], fetchImpl: typeof fetch = fetch,
         for (const f of flags) record[f] = 1;
         // 설정으로 정해지는 것은 방송 화면을 띄운 날 그 설정이었는지로 본다
         if (flags.includes('twitch') || flags.includes('chzzk')) {
-            const s = await browser.storage.local.get(['advancedFilter', 'displayMode', 'chzzkCustomTemplate']);
+            const s = await browser.storage.local.get(['advancedFilter', 'displayMode', 'chzzkCustomTemplate', 'filter']);
             if (s.advancedFilter === 'on') record.advancedFilter = 1;
             if (s.displayMode === 'floating') record.floating = 1;
             if (flags.includes('chzzk') && s.chzzkCustomTemplate === 'on') record.template = 1;
+            // 필터 종류는 그 플랫폼에 직접 만든 조건이 하나라도 있는지만 본다 (개수, 비율은 사람마다 거의 달라 보내지 않는다)
+            const groups = Array.isArray(s.filter) ? s.filter as CompositeFilterElement[] : [];
+            for (const g of groups) {
+                if (!flags.includes(g.platform as UsageFlag) || !Array.isArray(g.filters)) continue;
+                for (const f of g.filters) {
+                    const flag = FILTER_FLAG[f?.category];
+                    if (flag && !DEFAULT_FILTER_IDS.has(f.id)) record[flag] = 1;
+                }
+            }
         }
         await browser.storage.local.set({ [TODAY_KEY]: record });
         if (rolled) await send(fetchImpl, now);
