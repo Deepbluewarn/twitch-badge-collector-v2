@@ -1,5 +1,5 @@
 /**
- * 하루 통계 리포트 — 어제(한국 날짜) 스토어 상세 페이지 방문과 유입 경로, badgecollector.dev 방문을
+ * 하루 통계 리포트 — 어제(한국 날짜) 스토어 상세 페이지 방문과 유입 경로, badgecollector.dev 방문, 확장 익명 사용 통계를
  * Discord(community-watch 웹훅)로 보낸다. ovm crontab에서 매일 10시에 돈다.
  *
  * 스토어 대시보드의 주간 사용자·설치·제거 수는 API가 없어서 넣지 않는다.
@@ -12,6 +12,7 @@
  *  --date=YYYY-MM-DD  어제 대신 이 날(한국 날짜)
  */
 import { SITE, STORE, dateHourToKst, kstDate, report, sendDiscord } from './common.ts';
+import { usageLines } from './usage-report.ts';
 
 const DAY = 86_400_000;
 const AVG_DAYS = 7;
@@ -79,6 +80,13 @@ async function main(): Promise<void> {
     // /.env, /config/mail.php 같은 취약점 스캐너 요청은 뺀다
     const pageViews = new Map(pages.filter(({ dims: [path] }) => !SCANNER.test(path)).map(({ dims: [path], mets: [n] }) => [path, n]));
     if (pageViews.size) lines.push(`많이 본 페이지: ${top(pageViews, 5).map(([p, n]) => `${p} ${n}`).join(', ')}`);
+
+    // 확장 익명 사용 통계. 못 읽어도 위 리포트는 보낸다
+    try {
+        lines.push('', ...(await usageLines(yesterday)));
+    } catch (err) {
+        lines.push('', `확장 사용 통계를 못 읽음: ${err instanceof Error ? err.message : err}`);
+    }
 
     await sendDiscord(lines);
 }

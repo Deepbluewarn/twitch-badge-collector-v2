@@ -7,12 +7,13 @@
  * env:
  *  - ~/.config/badge-collector/stats-report.env  GOOGLE_APPLICATION_CREDENTIALS (없으면 ~/.config/analytics-mcp/adc.json)
  *  - ~/.config/badge-collector/community-watch.env  DISCORD_COMMUNITY_WEBHOOK 을 같이 쓴다. 없으면 콘솔 출력만
+ *  - ~/.config/badge-collector/cloudflare.env  CF_ACCOUNT_ID, CF_ANALYTICS_TOKEN (usage-report.ts)
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 
-for (const name of ['community-watch.env', 'stats-report.env']) {
+for (const name of ['community-watch.env', 'stats-report.env', 'cloudflare.env']) {
     const file = join(homedir(), '.config/badge-collector', name);
     if (existsSync(file)) process.loadEnvFile(file);
 }

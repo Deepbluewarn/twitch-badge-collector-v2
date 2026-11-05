@@ -7,36 +7,9 @@ import type { CompositeFilterElement, FilterCategory } from '@/interfaces/filter
 import { DEFAULT_MAX_CHATS } from '@/reducer/setting';
 import { ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, sanitizeArchiveSetting } from '@/archive/chat-archive';
 import { CHANNEL_OFF_KEY } from '@/utils/channel-off';
+import { SETTING_FLAGS, type SettingFlag } from './flags';
 
-// 사이트 리포 functions/api/ping.ts의 WEEK_FLAGS와 같은 목록, 같은 순서. 뒤에만 덧붙인다.
-export const SETTING_FLAGS = [
-    'advancedFilter',
-    'floating',
-    'template',
-    'filterBadge',
-    'filterName',
-    'filterKeyword',
-    'filterExclude',
-    'filterSleep',
-    'filterChannel',
-    'filterPerson',
-    'filterMarker',
-    'filterNote',
-    'archiveOn',
-    'archiveDays',
-    'channelOff',
-    'positionDown',
-    'chatTime',
-    'maxChats',
-    'theme',
-    'markerOff',
-    'jumpBottomOff',
-    'persistOff',
-    'floatingBg',
-    'chatSideLeft',
-    'pointBoxOff',
-] as const;
-export type SettingFlag = typeof SETTING_FLAGS[number];
+export { SETTING_FLAGS, type SettingFlag };
 
 export const SETTING_SOURCE_KEYS = [
     'advancedFilter', 'displayMode', 'chzzkCustomTemplate', 'filter', ARCHIVE_SETTING_KEY, CHANNEL_OFF_KEY,

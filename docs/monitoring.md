@@ -20,6 +20,7 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 │   └─ badge-harvester          배지 수집 서버, :8787 (아래 "harvester")
 ├─ ~/.config/badge-collector/  비밀 값 (리포에 없음)
 │   ├─ community-watch.env      DISCORD_COMMUNITY_WEBHOOK (모든 알림이 이 웹훅을 쓴다)
+│   ├─ cloudflare.env           CF_ACCOUNT_ID, CF_ANALYTICS_TOKEN (Account Analytics 읽기, 확장 익명 통계 조회)
 │   └─ ops.env                  OPS_HEALTHCHECK_URL (선택, 아직 없음)
 ├─ ~/.config/analytics-mcp/adc.json   GA 인증 (사용자 refresh token)
 └─ ~/.local/state/badge-collector/    결과
@@ -44,7 +45,7 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 | `heartbeat` | 10분 | `runs/*.json`을 보고 정해진 시간보다 오래 성공 못 한 작업, 멈춘 서비스를 찾는다 | 문제가 생기거나 바뀔 때, 12시간마다 다시 |
 | `pull` | 10분 | `git pull --ff-only`, `package-lock.json`이 바뀌었으면 `npm ci` | heartbeat가 대신 |
 | `spike` | 30분 | GA 실시간 30분 방문 20명 이상이면 알림 (6시간 쿨다운) | 급증 때 |
-| `stats` | 매일 10시 | 어제 스토어 페이지 방문, 유입 경로, 사이트 방문 | 매일 |
+| `stats` | 매일 10시 | 어제 스토어 페이지 방문, 유입 경로, 사이트 방문, 확장 익명 사용 통계(사용자 수, 기능별 비율, 월요일엔 지난주 설정과 언어) | 매일 |
 
 같은 작업은 겹쳐 돌지 않는다. 브라우저를 쓰는 `canary`와 `live`는 서로 끝나기를 기다린다(메모리 7GB).
 
@@ -129,3 +130,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-02 | harvester 다시 켬 (10-25부터 꺼져 있었음) |
 | 2026-11-02 | 코드를 리포 `ops/`로 옮김(커밋 fdcff86). 배포 감지(1분), ovm 카나리(선택자 6시간, 소켓 1시간), heartbeat 추가. 옛 폴더는 ovm `~/badge-collector-stats.old-2026-11-02`, 옛 crontab과 서비스 파일은 `~/.local/state/badge-collector/backup/` |
 | 2026-11-04 | `channels` 작업(매일 5시 20분): 사이트 스트리머별 구독 배지 페이지 데이터 갱신, 사이트 리포 deploy key로 푸시. GitHub가 잠깐 거부할 때를 대비해 pull, push는 1분 간격 5번까지 |
+| 2026-11-05 | `stats`에 확장 익명 사용 통계(`ops/usage-report.ts`). Cloudflare Analytics Engine `tbc_usage`를 SQL API로 읽고 GitHub 릴리스 버전 기록만 센다. 4주 평균 5% 미만 기능, 설정을 따로 적는다 (ADR 0001) |
