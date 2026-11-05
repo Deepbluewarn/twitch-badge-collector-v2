@@ -4,7 +4,7 @@
  */
 import defaultFilter from '@/defaultFilters';
 import type { CompositeFilterElement, FilterCategory } from '@/interfaces/filter';
-import { DEFAULT_MAX_CHATS } from '@/reducer/setting';
+import { DEFAULT_MAX_CHATS, LEGACY_MAX_CHATS } from '@/reducer/setting';
 import { ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, sanitizeArchiveSetting } from '@/archive/chat-archive';
 import { CHANNEL_OFF_KEY } from '@/utils/channel-off';
 import { SETTING_FLAGS, type SettingFlag } from './flags';
@@ -68,8 +68,11 @@ export function settingFlags(s: Record<string, unknown>): Record<SettingFlag, 0 
 
     on('positionDown', s.position === 'down');
     on('chatTime', s.chatTime === 'on');
-    on('maxChats', s.maximumNumberChats !== undefined && s.maximumNumberChats !== DEFAULT_MAX_CHATS);
-    on('theme', s.darkTheme !== undefined && s.darkTheme !== 'system');
+    // 1000은 업데이트 때 옛 사용자에게 채워 넣은 값이라 바꾼 것으로 보지 않는다 (reducer/setting.ts missingMaxChats)
+    const max = s.maximumNumberChats;
+    on('maxChats', max !== undefined && max !== null && max !== DEFAULT_MAX_CHATS && max !== LEGACY_MAX_CHATS);
+    // 옛 값 'off'(밝게)는 그 시절 기본값, 'on'(어둡게)은 고른 것
+    on('theme', s.darkTheme === 'dark' || s.darkTheme === 'light' || s.darkTheme === 'on');
     on('markerOff', s.collectedChatMarker === 'off');
     on('jumpBottomOff', s.jumpToBottomButton === 'off');
     on('persistOff', s.chatPersistence === 'off');

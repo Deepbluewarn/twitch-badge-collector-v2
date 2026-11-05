@@ -128,7 +128,7 @@ function AnonymousStatsControl({ on, onChange }: { on: boolean; onChange: (on: b
   const [records, setRecords] = React.useState<UsageRecord[] | null>(null);
   return (
     <Stack dir='row' align='center' gap={8}>
-      <Button size='sm' variant='text' style={metaButtonStyle} onClick={() => pendingUsage().then(setRecords)}>
+      <Button size='sm' variant='text' style={metaButtonStyle} onClick={() => pendingUsage().then(setRecords, () => setRecords([]))}>
         {msg('anonymousStatsView')}
       </Button>
       <Switch checked={on} onChange={onChange} />

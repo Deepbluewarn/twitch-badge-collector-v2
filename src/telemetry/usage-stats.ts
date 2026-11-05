@@ -93,10 +93,14 @@ async function newWeek(now: Date): Promise<WeekRecord> {
 
 const keyOf = (r: UsageRecord) => `${r.kind ?? 'day'}:${r.date}`;
 
-// 7일보다 오래된 기록은 버린다 — 늦게 들어와 이미 낸 통계를 바꾸지 않게. 서버도 8일까지만 받는다.
+// 7일보다 오래된 기록은 버린다 — 늦게 들어와 이미 낸 통계를 바꾸지 않게. 서버는 시간대 차이까지 9일을 받는다.
+// 오늘보다 뒤 날짜(시계를 앞당겼다 되돌린 경우)도 버린다. 같은 기록이 두 번 들어 있으면(롤오버 중 서비스 워커가 죽음) 하나만 둔다.
 function fresh(outbox: UsageRecord[], now: Date): UsageRecord[] {
     const oldest = localDay(new Date(now.getTime() - KEEP_DAYS * DAY));
-    return outbox.filter(r => r.date >= oldest);
+    const today = localDay(now);
+    const byKey = new Map<string, UsageRecord>();
+    for (const r of outbox) if (r && r.date >= oldest && r.date <= today) byKey.set(keyOf(r), r);
+    return [...byKey.values()];
 }
 
 async function load() {
@@ -132,7 +136,8 @@ async function send(fetchImpl: typeof fetch, now: Date): Promise<void> {
     if (!enabled) return;
     const records = fresh(outbox, now);
     if (records.length !== outbox.length) await browser.storage.local.set({ [OUTBOX_KEY]: records });
-    if (records.length === 0 || now.getTime() < retryAt) return;
+    // 시계가 미래로 틀렸을 때 잡힌 쉬는 시각은 무시한다 (시계를 고친 뒤 며칠씩 안 보내지 않게)
+    if (records.length === 0 || (now.getTime() < retryAt && retryAt - now.getTime() <= RETRY_MS)) return;
     const batch = records.slice(0, MAX_BATCH);
     let status: number;
     try {
@@ -164,15 +169,21 @@ export function recordUsage(flags: UsageFlag[], fetchImpl: typeof fetch = fetch,
         const rolled = await rollOver(now);
         const { enabled, today, outbox, marks } = await load();
         if (!enabled) return;
-        let record = today;
-        if (!record) {
-            record = newDay(now, marks);
+        if (today) {
+            // 이미 1인 표시만 왔으면 쓰지 않는다 (열린 탭마다 storage.onChanged가 퍼지지 않게)
+            if (flags.some(f => today[f] !== 1)) {
+                for (const f of flags) today[f] = 1;
+                await browser.storage.local.set({ [TODAY_KEY]: today });
+            }
+        } else {
+            const record = newDay(now, marks);
+            for (const f of flags) record[f] = 1;
+            // 그 주에 처음 쓴 날 — 설정 기록은 이때 한 번 만들어 바로 보낼 목록에 넣는다.
+            // 기록을 먼저 쓰고 주, 달 표시는 맨 뒤에 — 중간에 실패해도 그 주의 첫 기록이 빠지지 않게
+            const week = record.firstWeek ? await newWeek(now) : null;
+            await browser.storage.local.set({ [TODAY_KEY]: record, ...(week ? { [OUTBOX_KEY]: [...outbox, week] } : {}) });
             await browser.storage.local.set({ [MARKS_KEY]: { week: isoWeek(now), month: localDay(now).slice(0, 7) } });
-            // 그 주에 처음 쓴 날 — 설정 기록은 이때 한 번 만들어 바로 보낼 목록에 넣는다
-            if (record.firstWeek) await browser.storage.local.set({ [OUTBOX_KEY]: [...outbox, await newWeek(now)] });
         }
-        for (const f of flags) record[f] = 1;
-        await browser.storage.local.set({ [TODAY_KEY]: record });
         if (rolled) await send(fetchImpl, now);
     });
 }

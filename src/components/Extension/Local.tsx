@@ -133,11 +133,14 @@ export default function Local({
     }, [adapter, type]);
     useEffect(() => { markUsage(type); if (videoSelector) markUsage('vod'); }, [type, videoSelector]);
     const onChatPassed = useCallback((chat: Parameters<typeof addChat>[0]) => {
+        // 자정을 넘겨 보는 동안에도 새 날 기록에 플랫폼이 남게 여기서도 표시한다 (페이지마다 하루 한 번만 보낸다)
         markUsage('collected');
+        markUsage(type);
+        if (videoSelector) markUsage('vod');
         // 트위치는 채팅 시각을 넘기지 않는다(0) — 받은 시각으로 남긴다
         if (chat.archive) archiveRef.current?.record({ key: chat.key, time: chat.time || Date.now(), nickname: chat.nickname, text: chat.text, ...chat.archive });
         guardedAddChat(chat);
-    }, [guardedAddChat]);
+    }, [guardedAddChat, type, videoSelector]);
     const onChatUpdated = useCallback((update: Parameters<typeof updateChat>[0]) => {
         // 나중에 블라인드되면 본문이 빈다 — 보관해 둔 본문도 지운다
         if (!update.text) archiveRef.current?.hide(update.key);

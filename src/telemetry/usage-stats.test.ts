@@ -103,6 +103,22 @@ describe('usage-stats', () => {
         expect((await pendingUsage()).map(r => r.kind)).toEqual(['day']);
     });
 
+    it('오늘보다 뒤 날짜와 겹친 기록은 보내기 전에 걸러진다', async () => {
+        const day = (date: string) => ({ kind: 'day', date, v: '2.27.0', b: 'chrome', firstWeek: 0, firstMonth: 0 });
+        await fakeBrowser.storage.local.set({ 'usageStats:outbox': [day('2026-11-04'), day('2026-11-04'), day('2026-11-20')] });
+        const f = fakeFetch();
+        await flushUsage(f.fn, at('2026-11-05'));
+        expect(f.sent().map(r => r.date)).toEqual(['2026-11-04']);
+    });
+
+    it('시계가 미래로 틀렸을 때 잡힌 쉬는 시각은 무시한다', async () => {
+        await recordUsage(['chzzk'], fakeFetch().fn, at('2026-11-04'));
+        await fakeBrowser.storage.local.set({ 'usageStats:retryAt': at('2026-12-01').getTime() });
+        const f = fakeFetch();
+        await flushUsage(f.fn, at('2026-11-05'));
+        expect(f.fn).toHaveBeenCalledTimes(1);
+    });
+
     it('markUsage는 확장 연결이 끊겨 sendMessage가 던져도 조용하다', () => {
         vi.spyOn(fakeBrowser.runtime, 'sendMessage').mockImplementation(() => { throw new Error('Extension context invalidated.'); });
         expect(() => markUsage('capture')).not.toThrow();
@@ -187,6 +203,11 @@ describe('setting-snapshot', () => {
             floating: 1, positionDown: 1, maxChats: 1, theme: 1, markerOff: 1, archiveOn: 1, archiveDays: 1,
             channelOff: 1, chatSideLeft: 1, chatTime: 0, persistOff: 0,
         });
+    });
+
+    it('업데이트 때 채워 넣은 옛 값은 바꾼 것으로 보지 않는다', () => {
+        expect(settingFlags({ maximumNumberChats: 1000, darkTheme: 'off' })).toMatchObject({ maxChats: 0, theme: 0 });
+        expect(settingFlags({ maximumNumberChats: 300, darkTheme: 'on' })).toMatchObject({ maxChats: 1, theme: 1 });
     });
 
     it('언어는 번역이 있거나 큰 언어만, 나머지는 other', () => {

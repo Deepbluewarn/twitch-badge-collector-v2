@@ -32,7 +32,7 @@ export default defineBackground(() => {
     browser.runtime.onStartup.addListener(() => { flushUsage().catch(e => console.warn('[tbcv2 bg] usage flush failed', e)); });
     flushUsage().catch(e => console.warn('[tbcv2 bg] usage flush failed', e));
     browser.storage.local.onChanged.addListener(changes => {
-      if (ANONYMOUS_STATS_KEY in changes && !statsEnabled(changes[ANONYMOUS_STATS_KEY].newValue)) clearUsage();
+      if (ANONYMOUS_STATS_KEY in changes && !statsEnabled(changes[ANONYMOUS_STATS_KEY].newValue)) clearUsage().catch(e => console.warn('[tbcv2 bg] usage clear failed', e));
     });
   }
 
