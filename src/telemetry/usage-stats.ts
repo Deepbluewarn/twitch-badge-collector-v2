@@ -63,7 +63,7 @@ export function isoWeek(d: Date): string {
 }
 
 function browserName(): Browser {
-    return /\bEdg\//.test(navigator.userAgent) ? 'edge' : 'chrome';
+    return /\bEdg\//.test(globalThis.navigator?.userAgent ?? '') ? 'edge' : 'chrome';
 }
 
 function newDay(now: Date, marks: Marks): DayRecord {
