@@ -32,6 +32,7 @@ export const JOBS: { job: string; label: string; maxAgeMin: number }[] = [
     { job: 'canary', label: '선택자 카나리 (6시간)', maxAgeMin: 420 },
     { job: 'live', label: '확장 실제 시험 (6시간)', maxAgeMin: 420 },
     { job: 'info', label: '스토어, 배지, GA 수집 (3시간)', maxAgeMin: 240 },
+    { job: 'usage', label: '확장 사용 통계 (3시간)', maxAgeMin: 240 },
     { job: 'pull', label: '리포 갱신 (10분)', maxAgeMin: 40 },
     { job: 'spike', label: '방문 급증 알림 (30분)', maxAgeMin: 90 },
     { job: 'stats', label: '일일 통계 리포트 (매일 10시)', maxAgeMin: 26 * 60 },

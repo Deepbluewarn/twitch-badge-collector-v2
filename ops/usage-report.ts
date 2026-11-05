@@ -1,12 +1,11 @@
 /**
- * 확장 익명 사용 통계 (docs/adr/0001-anonymous-usage-stats.md) — stats-report.ts가 하루 리포트 끝에 붙인다.
+ * 확장 익명 사용 통계 (docs/adr/0001-anonymous-usage-stats.md).
+ * - fetchUsage: 현황판(ops/watch/usage.ts → render.ts)이 그릴 숫자를 모은다
+ * - usageLine: 하루 리포트(stats-report.ts)의 사용자 수 한 줄
  *
  * badgecollector.dev/api/ping이 Cloudflare Analytics Engine(tbc_usage)에 쓴 것을 SQL API로 읽는다.
  * 열 배치는 사이트 리포 functions/api/ping.ts 머리 주석. 개수는 SUM(_sample_interval)로 센다.
  * 실제 릴리스된 버전(GitHub 릴리스)의 기록만 센다. 개발 빌드, 시험 기록(0.0.0), 가짜 핑을 거른다.
- *
- * - 매일: 어제 사용자(일, 이번 주, 이번 달), 어제 기능별 사용 비율, 4주 평균 5% 미만 기능
- * - 월요일: 지난주 설정 기록(기본값에서 바꾼 비율), 4주 평균 5% 미만 설정, 언어
  *
  * env: ~/.config/badge-collector/cloudflare.env  CF_ACCOUNT_ID, CF_ANALYTICS_TOKEN (Account Analytics 읽기)
  */
@@ -76,22 +75,27 @@ function isoWeek(date: string): string {
     return `${year}-W${String(Math.ceil(((t.getTime() - Date.UTC(year, 0, 1)) / DAY + 1) / 7)).padStart(2, '0')}`;
 }
 
-function pct(part: number, whole: number): string {
-    const p = whole > 0 ? (part / whole) * 100 : 0;
-    return `${p < 10 ? p.toFixed(1) : Math.round(p)}%`;
+export interface Ratio { key: string; label: string; now: number; avg: number }
+export interface UsageSummary {
+    at: number;
+    /** 기준일(어제, 한국 날짜) */
+    yesterday: string;
+    /** 최근 28일, 오래된 날부터. 기록이 없는 날은 0 */
+    daily: { date: string; users: number; chrome: number; edge: number }[];
+    week: number;
+    month: number;
+    /** 4주 창에 기록이 있는 날 수. MIN_DAYS보다 적으면 5% 미만 판정을 하지 않는다 */
+    days: number;
+    /** now = 어제 비율, avg = 4주 평균 비율 */
+    features: Ratio[];
+    /** 지난 완결된 주의 설정 기록. now = 그 주 비율, avg = 최근 4주 평균 */
+    settings: null | { week: string; users: number; weeks: number; items: Ratio[]; langs: { lang: string; ratio: number }[] };
+    review: number;
+    minDays: number;
+    minWeeks: number;
 }
 
-/** 라벨과 합계를 비율 높은 순으로. under를 주면 그 비율 아래만(0 포함), 안 주면 0은 뺀다 */
-function rank(labels: string[], counts: number[], whole: number, under?: number): string {
-    return labels
-        .map((label, i) => ({ label, n: counts[i] }))
-        .filter(({ n }) => (under === undefined ? n > 0 : whole > 0 && n / whole < under))
-        .sort((a, b) => b.n - a.n)
-        .map(({ label, n }) => `${label} ${pct(n, whole)}`)
-        .join(', ');
-}
-
-export async function usageLines(yesterday: string): Promise<string[]> {
+export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
     const released = await releasedVersions();
     const [dayRows, weekRows] = await Promise.all([
         sql(`SELECT blob2 AS date, blob3 AS v, blob4 AS b, SUM(_sample_interval) AS n, ${sums(ROW_DOUBLES)} FROM tbc_usage
@@ -101,75 +105,73 @@ export async function usageLines(yesterday: string): Promise<string[]> {
     ]);
 
     // ── 하루 기록 ── double1 firstWeek, double2 firstMonth, double3.. USAGE_FLAGS
-    const days = dayRows.filter((r) => released.has(String(r.v)));
-    const weekStart = (() => {
-        const d = new Date(`${yesterday}T00:00:00Z`).getUTCDay() || 7;
-        return shiftDay(yesterday, 1 - d);
-    })();
+    const dow = (date: string) => new Date(`${date}T00:00:00Z`).getUTCDay();
+    const weekStart = shiftDay(yesterday, 1 - (dow(yesterday) || 7));
     const windowStart = shiftDay(yesterday, 1 - WINDOW_DAYS);
-    let dau = 0, wau = 0, mau = 0;
-    const browsers = new Map<string, number>();
+    const daily = Array.from({ length: WINDOW_DAYS }, (_, i) => ({ date: shiftDay(windowStart, i), users: 0, chrome: 0, edge: 0 }));
+    const byDate = new Map(daily.map((d) => [d.date, d]));
+    let week = 0, month = 0, n28 = 0;
     const flagsY = USAGE_FLAGS.map(() => 0);
     const flags28 = USAGE_FLAGS.map(() => 0);
-    let n28 = 0;
-    const dates28 = new Set<string>();
-    for (const r of days) {
+    for (const r of dayRows) {
+        if (!released.has(String(r.v))) continue;
         const date = String(r.date), n = num(r.n), d = doubles(r);
-        if (date >= weekStart && date <= yesterday) wau += d[0];
-        if (date.slice(0, 7) === yesterday.slice(0, 7) && date <= yesterday) mau += d[1];
-        if (date === yesterday) {
-            dau += n;
-            browsers.set(String(r.b), (browsers.get(String(r.b)) ?? 0) + n);
-            USAGE_FLAGS.forEach((_, i) => { flagsY[i] += d[i + 2]; });
-        }
-        if (date >= windowStart && date <= yesterday) {
-            n28 += n;
-            dates28.add(date);
-            USAGE_FLAGS.forEach((_, i) => { flags28[i] += d[i + 2]; });
-        }
+        if (date > yesterday) continue;
+        if (date >= weekStart) week += d[0];
+        if (date.slice(0, 7) === yesterday.slice(0, 7)) month += d[1];
+        const slot = byDate.get(date);
+        if (!slot) continue;
+        slot.users += n;
+        if (r.b === 'edge') slot.edge += n; else slot.chrome += n;
+        n28 += n;
+        USAGE_FLAGS.forEach((_, i) => { flags28[i] += d[i + 2]; if (date === yesterday) flagsY[i] += d[i + 2]; });
     }
+    const dau = byDate.get(yesterday)?.users ?? 0;
+    const features = USAGE_FLAGS.map((key, i) => ({
+        key, label: USAGE_LABEL[key], now: dau ? flagsY[i] / dau : 0, avg: n28 ? flags28[i] / n28 : 0,
+    }));
 
-    if (days.length === 0) return ['**확장 사용**: 아직 기록 없음'];
-    const usageLabels = USAGE_FLAGS.map((f) => USAGE_LABEL[f]);
-    const lines = [
-        '**확장 사용** (늦게 오는 기록이 있어 며칠 동안 늘 수 있음)',
-        `사용자 어제 ${dau} (${[...browsers].map(([b, n]) => `${b === 'edge' ? 'Edge' : 'Chrome'} ${n}`).join(', ') || '없음'}), 이번 주 ${wau}, 이번 달 ${mau}`,
-    ];
-    if (dau > 0) lines.push(`어제 기능: ${rank(usageLabels, flagsY, dau)}`);
-    const lowUsage = rank(usageLabels, flags28, n28, REVIEW);
-    if (lowUsage && dates28.size >= MIN_DAYS) lines.push(`4주 평균 5% 미만 (${dates28.size}일치): ${lowUsage}`);
-
-    // ── 주간 설정 기록 ── 월요일 리포트(어제가 일요일)에만. week 행에 앞 20개, week2 행에 나머지
-    if (new Date(`${yesterday}T00:00:00Z`).getUTCDay() !== 0) return lines;
-    const thisWeek = isoWeek(yesterday);
-    const recentWeeks = new Set([0, 7, 14, 21].map((back) => isoWeek(shiftDay(yesterday, -back))));
+    // ── 주간 설정 기록 ── 지난 완결된 주(오늘이 속한 주의 바로 앞 주). week 행에 앞 20개, week2 행에 나머지
+    const today = shiftDay(yesterday, 1);
+    const lastSunday = shiftDay(today, -(dow(today) || 7));
+    const lastWeek = isoWeek(lastSunday);
+    const recentWeeks = new Set([0, 7, 14, 21].map((back) => isoWeek(shiftDay(lastSunday, -back))));
     const weeks = weekRows.filter((r) => released.has(String(r.v)));
     const tally = (pick: (week: string) => boolean) => {
         const counts = SETTING_FLAGS.map(() => 0);
         const base = { week: 0, week2: 0 };
         const langs = new Map<string, number>();
+        const seen = new Set<string>();
         for (const r of weeks) {
             if (!pick(String(r.week))) continue;
+            seen.add(String(r.week));
             const row = String(r.row) as 'week' | 'week2', n = num(r.n), d = doubles(r);
             base[row] += n;
             const offset = row === 'week' ? 0 : ROW_DOUBLES;
             d.forEach((x, i) => { if (offset + i < counts.length) counts[offset + i] += x; });
             if (row === 'week') langs.set(String(r.lang), (langs.get(String(r.lang)) ?? 0) + n);
         }
-        // week2 칸은 week2 행 수로 나눠야 하지만, 표본 추출 전엔 둘이 같다. 비율은 각자 분모로 낸다
-        const ratio = counts.map((c, i) => (i < ROW_DOUBLES ? c / (base.week || 1) : c / (base.week2 || 1)));
-        const weekCount = new Set(weeks.filter((r) => pick(String(r.week))).map((r) => String(r.week))).size;
-        return { users: base.week, ratio, langs, weekCount };
+        // 표본 추출 전엔 week와 week2 행 수가 같다. 그래도 칸마다 자기 행 수로 나눈다
+        const ratio = counts.map((c, i) => c / ((i < ROW_DOUBLES ? base.week : base.week2) || 1));
+        return { users: base.week, ratio, langs, weeks: seen.size };
     };
-    const now = tally((w) => w === thisWeek);
+    const last = tally((w) => w === lastWeek);
     const recent = tally((w) => recentWeeks.has(w));
-    if (now.users === 0) return lines;
-    const settingLabels = SETTING_FLAGS.map((f) => SETTING_LABEL[f]);
-    const asCounts = (ratio: number[]) => ratio.map((r) => r * 1000);
-    lines.push(`**설정 ${thisWeek}** (그 주 사용자 ${now.users}, 기본값에서 바꾼 비율)`);
-    lines.push(rank(settingLabels, asCounts(now.ratio), 1000) || '바꾼 사람 없음');
-    const lowSetting = rank(settingLabels, asCounts(recent.ratio), 1000, REVIEW);
-    if (lowSetting && recent.weekCount >= MIN_WEEKS) lines.push(`4주 평균 5% 미만 (${recent.weekCount}주치): ${lowSetting}`);
-    lines.push(`언어: ${rank([...now.langs.keys()], [...now.langs.values()], now.users)}`);
-    return lines;
+    const settings = last.users === 0 ? null : {
+        week: lastWeek,
+        users: last.users,
+        weeks: recent.weeks,
+        items: SETTING_FLAGS.map((key, i) => ({ key, label: SETTING_LABEL[key], now: last.ratio[i], avg: recent.ratio[i] })),
+        langs: [...last.langs].sort((a, b) => b[1] - a[1]).map(([lang, n]) => ({ lang, ratio: n / last.users })),
+    };
+
+    const days = daily.filter((d) => d.users > 0).length;
+    return { at: Date.now(), yesterday, daily, week, month, days, features, settings, review: REVIEW, minDays: MIN_DAYS, minWeeks: MIN_WEEKS };
+}
+
+/** 하루 리포트에 붙는 한 줄. 자세한 건 현황판 */
+export function usageLine(u: UsageSummary): string {
+    const y = u.daily.at(-1);
+    if (!u.daily.some((d) => d.users > 0)) return '확장 사용자: 아직 기록 없음';
+    return `확장 사용자 어제 ${y?.users ?? 0} (Chrome ${y?.chrome ?? 0}, Edge ${y?.edge ?? 0}), 이번 주 ${u.week}, 이번 달 ${u.month}`;
 }

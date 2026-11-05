@@ -20,6 +20,8 @@ RUN=sh /home/bluewarn/tbc/ops/run.sh
 15 3-23/6 * * * $RUN live
 # 스토어, 배지, GA 수집
 45 */3 * * * $RUN info
+# 확장 익명 사용 통계 (현황판)
+50 */3 * * * $RUN usage
 # GA 통계 (Discord)
 */30 * * * * $RUN spike
 0 10 * * * $RUN stats

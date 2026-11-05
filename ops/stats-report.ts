@@ -12,7 +12,7 @@
  *  --date=YYYY-MM-DD  어제 대신 이 날(한국 날짜)
  */
 import { SITE, STORE, dateHourToKst, kstDate, report, sendDiscord } from './common.ts';
-import { usageLines } from './usage-report.ts';
+import { fetchUsage, usageLine } from './usage-report.ts';
 
 const DAY = 86_400_000;
 const AVG_DAYS = 7;
@@ -81,11 +81,11 @@ async function main(): Promise<void> {
     const pageViews = new Map(pages.filter(({ dims: [path] }) => !SCANNER.test(path)).map(({ dims: [path], mets: [n] }) => [path, n]));
     if (pageViews.size) lines.push(`많이 본 페이지: ${top(pageViews, 5).map(([p, n]) => `${p} ${n}`).join(', ')}`);
 
-    // 확장 익명 사용 통계. 못 읽어도 위 리포트는 보낸다
+    // 확장 익명 사용 통계는 한 줄만. 기능, 설정 비율과 추이는 현황판에서 본다. 못 읽어도 위 리포트는 보낸다
     try {
-        lines.push('', ...(await usageLines(yesterday)));
+        lines.push(usageLine(await fetchUsage(yesterday)));
     } catch (err) {
-        lines.push('', `확장 사용 통계를 못 읽음: ${err instanceof Error ? err.message : err}`);
+        lines.push(`확장 사용 통계를 못 읽음: ${err instanceof Error ? err.message : err}`);
     }
 
     await sendDiscord(lines);

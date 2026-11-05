@@ -18,6 +18,7 @@ import type { BundleResult, LiveResult } from './live-check.ts';
 import type { CanaryResult } from './canary.ts';
 import type { DeployState } from './deploy.ts';
 import type { Heartbeat } from './heartbeat.ts';
+import type { Ratio, UsageSummary } from '../usage-report.ts';
 import { REPO, readJson, writeJson } from './state.ts';
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '../public/index.html');
@@ -72,6 +73,7 @@ interface Extra {
     deploy?: DeployState;
     canaries: CanaryResult[];
     heartbeat?: Heartbeat;
+    usage?: UsageSummary | Err;
 }
 const CANARY_LABEL = { selector: '선택자 카나리', socket: '소켓 카나리' } as const;
 
@@ -184,6 +186,57 @@ function mainChart(ga: { date: string; visits: number; installs: number; siteUse
     }).join('');
     const labels = ga.map((d, i) => (i % 2 === (ga.length - 1) % 2 ? `<text class="axis" x="${L + i * step + step / 2}" y="${H - 8}" text-anchor="middle">${d.date.slice(5)}</text>` : '')).join('');
     return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 스토어 설치">${grid}${bars}${labels}</svg>`;
+}
+
+const pct = (r: number) => { const p = r * 100; return `${p < 10 ? p.toFixed(1) : Math.round(p)}%`; };
+
+function usageChart(daily: UsageSummary['daily']): string {
+    const W = 480, H = 200, L = 44, R = 20, T = 12, B = 28;
+    const max = Math.max(1, ...daily.map((d) => d.users));
+    const top = Math.ceil(max / 10) * 10;
+    const step = (W - L - R) / daily.length;
+    const bw = Math.min(14, step * 0.62);
+    const y = (v: number) => T + (H - T - B) * (1 - v / top);
+    const grid = [0, top / 2, top].map((v) => `<line class="gl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join('');
+    const bars = daily.map((d, i) => {
+        const x = L + i * step + (step - bw) / 2;
+        const h = Math.max(d.users > 0 ? 2 : 0, y(0) - y(d.users));
+        const last = i === daily.length - 1;
+        return `<g class="bar${last ? ' today' : ''}"><rect class="hit" x="${L + i * step}" y="${T}" width="${step}" height="${H - T - B}"/><rect x="${x}" y="${y(0) - h}" width="${bw}" height="${h}" rx="2"/><title>${d.date} 사용자 ${d.users} (Chrome ${d.chrome}, Edge ${d.edge})</title></g>`;
+    }).join('');
+    const labels = daily.map((d, i) => ((daily.length - 1 - i) % 7 === 0 ? `<text class="axis" x="${L + i * step + step / 2}" y="${H - 8}" text-anchor="middle">${d.date.slice(5)}</text>` : '')).join('');
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 확장 사용자">${grid}${bars}${labels}</svg>`;
+}
+
+/** 기능, 설정 비율 표. 4주 평균이 기준 아래면 램프를 켠다(모인 기간이 짧으면 켜지 않는다) */
+function ratioTable(items: Ratio[], nowLabel: string, judged: boolean, review: number): string {
+    const rows = [...items].sort((a, b) => b.avg - a.avg || b.now - a.now).map((r) => {
+        const low = judged && r.avg < review;
+        return `<tr><td>${lamp(low ? 'risk' : 'off', low ? `4주 평균 ${pct(review)} 미만` : '')} ${esc(r.label)}</td><td class="n">${pct(r.now)}</td><td class="n${low ? ' warn' : ''}">${pct(r.avg)}</td></tr>`;
+    }).join('');
+    return `<table><thead><tr><th></th><th class="n">${nowLabel}</th><th class="n">4주 평균</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function usagePanels(u: UsageSummary | Err | undefined): string {
+    if (!u) return '';
+    if (isErr(u)) return `<section class="panel"><div class="panel-head"><h2>확장 사용</h2></div><p class="err">${esc(u.error)}</p></section>`;
+    const y = u.daily.at(-1);
+    const empty = !u.daily.some((d) => d.users > 0);
+    const users = `<section class="panel chart usage-chart"><div class="panel-head"><h2>확장 사용자</h2><span class="meta">${esc(u.yesterday.slice(5))}까지, ${ago(u.at)} 갱신</span></div>
+<p class="figure-line"><span class="label">어제</span><span class="mono">${y?.users ?? 0} <span class="meta">(Chrome ${y?.chrome ?? 0}, Edge ${y?.edge ?? 0})</span></span></p>
+<p class="figure-line"><span class="label">이번 주</span><span class="mono">${u.week}</span></p>
+<p class="figure-line"><span class="label">이번 달</span><span class="mono">${u.month}</span></p>
+${empty ? '<p class="meta">아직 기록 없음</p>' : usageChart(u.daily)}
+<p class="meta">늦게 오는 기록이 있어 최근 며칠은 더 늘 수 있음. 실제 릴리스 버전만 셈</p></section>`;
+    const judgedDays = u.days >= u.minDays;
+    const features = `<section class="panel"><div class="panel-head"><h2>기능 사용</h2><span class="meta">쓴 사람 비율, ${u.days}일치</span></div>
+${empty ? '<p class="meta">아직 기록 없음</p>' : ratioTable(u.features, '어제', judgedDays, u.review)}
+${!empty && !judgedDays ? `<p class="meta">${u.minDays}일치가 모이면 4주 평균 ${pct(u.review)} 미만을 표시</p>` : ''}</section>`;
+    const st = u.settings;
+    const settings = `<section class="panel"><div class="panel-head"><h2>설정</h2><span class="meta">${st ? `${esc(st.week)}, 사용자 ${st.users}, 기본값에서 바꾼 비율` : '지난주 기록 없음'}</span></div>
+${st ? ratioTable(st.items, '지난주', st.weeks >= u.minWeeks, u.review) : ''}
+${st ? `<p class="figure-line" style="margin-top:12px"><span class="label">언어</span><span class="mono">${st.langs.slice(0, 6).map((l) => `${esc(l.lang)} ${pct(l.ratio)}`).join(', ')}</span></p>` : ''}</section>`;
+    return `<div class="grid usage">${users}${features}${settings}</div>`;
 }
 
 function render(live: LiveResult | undefined, bundle: BundleResult | undefined, info: Info | undefined, extra: Extra, reasons: Reason[]): string {
@@ -381,6 +434,8 @@ details{margin-top:12px}summary{cursor:pointer;color:var(--ink2);font-size:13px}
 .chart .bar rect:not(.hit){fill:var(--lamp-off);transition:fill .15s cubic-bezier(.22,1,.36,1)}
 .chart .bar.today rect:not(.hit){fill:var(--accent)}
 .chart .bar:hover rect:not(.hit){fill:var(--ink2)}.chart .hit{fill:transparent}
+.grid.usage{margin-bottom:16px}
+@media (max-width:760px){.usage-chart .axis{font-size:15px}}
 .prompt{position:absolute;left:-9999px;width:1px;height:1px}
 button.copy{margin-top:12px;font:inherit;font-size:12px;height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--raised);color:var(--ink);cursor:pointer;transition:background-color .15s cubic-bezier(.22,1,.36,1)}
 button.copy:hover{background:var(--line)}button.copy:active{transform:scale(.98)}
@@ -393,6 +448,7 @@ footer{margin-top:24px}
 ${verdict}
 ${stats}
 <div class="layout">${chart}${jobs}</div>
+${usagePanels(extra.usage)}
 <div class="grid">${deploy}${canary}${liveSec}${bundleSec}${badges}${store}${gh}</div>
 <footer class="meta">ovm 192.168.1.162, 10분마다 새로고침</footer>
 </main>
@@ -414,6 +470,7 @@ async function main(): Promise<void> {
         deploy: readJson<DeployState>('deploy'),
         canaries: (['selector', 'socket'] as const).map((k) => readJson<CanaryResult>(`canary-${k}`)).filter((c): c is CanaryResult => !!c),
         heartbeat: readJson<Heartbeat>('heartbeat'),
+        usage: readJson<UsageSummary | Err>('usage'),
     };
     const reasons = judge(live, bundle, info, extra);
     const level = levelOf(reasons);

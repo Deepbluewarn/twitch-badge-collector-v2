@@ -39,6 +39,7 @@ run() {
         channels) sh ops/watch/site-channels.sh ;;
         heartbeat) npx tsx ops/watch/heartbeat.ts && npx tsx ops/watch/render.ts ;;
         stats) npx tsx ops/stats-report.ts ;;
+        usage) npx tsx ops/watch/usage.ts && npx tsx ops/watch/render.ts ;;
         spike) npx tsx ops/spike-alert.ts ;;
         *) echo "unknown job: $job" >&2; return 2 ;;
     esac
