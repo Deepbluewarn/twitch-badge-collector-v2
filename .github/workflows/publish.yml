@@ -180,7 +180,9 @@ jobs:
     name: Publish to Microsoft Edge Add-ons
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || inputs.publish_edge
+    # 저장소 변수 SKIP_EDGE_ON_RELEASE=true면 릴리스 때 Edge를 건너뛴다(Edge 심사가 걸려 있거나 신고를 먼저 해야 할 때).
+    # 나중에 수동 실행(publish_edge만 체크, version 지정)으로 낸다.
+    if: (github.event_name == 'release' && vars.SKIP_EDGE_ON_RELEASE != 'true') || (github.event_name == 'workflow_dispatch' && inputs.publish_edge)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
