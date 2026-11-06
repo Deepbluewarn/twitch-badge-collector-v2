@@ -224,7 +224,7 @@ const withDesc = (html: string, text: string) => html.replace(/(<div class="pane
 const big = (label: string, value: string, sub: string) => `<div class="big"><div class="label">${label}</div><div class="figure">${value}</div><div class="sub">${sub}</div></div>`;
 
 function usageTab(u: UsageSummary | Err | undefined, storeUsers: number | null): string {
-    if (!u) return '<p class="meta">아직 통계를 읽지 않음 (usage 작업, 3시간마다)</p>';
+    if (!u) return '<p class="meta">아직 통계를 읽지 않음 (usage 작업, 5분마다)</p>';
     if (isErr(u)) return `<section class="panel"><div class="panel-head"><h2>확장 사용</h2></div><p class="err">${esc(u.error)}</p></section>`;
     const guide = `<section class="panel guide"><h2>이 탭의 숫자</h2><ul>
 <li><b>무엇을</b>: Chrome, Edge 확장이 쓴 날마다 그날 어떤 기능을 썼는지, 주에 한 번 설정을 기본값에서 바꿨는지를 0과 1로만 보낸다. 몇 번 썼는지, 채널, 닉네임, 설정값은 없다.</li>

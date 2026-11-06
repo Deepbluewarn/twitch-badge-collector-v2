@@ -1,5 +1,5 @@
 /**
- * 확장 익명 사용 통계를 모아 현황판에 넘긴다 (ops/usage-report.ts). 3시간마다.
+ * 확장 익명 사용 통계를 모아 현황판에 넘긴다 (ops/usage-report.ts). 5분마다.
  * 기록은 늦게 오므로 어제 숫자도 며칠 동안 바뀐다.
  */
 import { kstDate } from '../common.ts';

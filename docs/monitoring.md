@@ -41,7 +41,7 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 | `canary` | 6시간 (0, 6, 12, 18시) | 라이브 채널 여러 개를 Playwright로 열어 선택자 매칭을 확인한다 (`scripts/canary/chzzk.ts`). 깨지면 자동 수정 후보를 현황판에 띄운다 | 스냅샷과 달라졌을 때, 깨진 채 6시간, 회복 |
 | `live` | 6시간 (3, 9, 15, 21시 15분) | 최신 릴리스 zip을 Chromium에 올려 치지직(소켓 끔, 켬), 트위치에서 모아보기 창에 채팅이 들어오는지 본다. 치지직 번들을 받아 확장이 기대는 이름이 사라졌는지, 새 신호(메시지 타입, 소켓 cmd, API 경로, CSS 이름)가 생겼는지 비교한다 | 판정이 바뀔 때, 번들 변화 |
 | `info` | 3시간 | 스토어(크롬 공개 페이지, AMO), GitHub 실행과 이슈, 배지 목록 비교, GA 14일 | 판정이 바뀔 때 |
-| `usage` | 3시간 | 확장 익명 사용 통계(Analytics Engine `tbc_usage`): 28일 사용자, 기능별 비율, 지난주 설정과 언어. 4주 평균 5% 미만은 램프 (`ops/usage-report.ts`) | 없음 (현황판) |
+| `usage` | 5분 | 확장 익명 사용 통계(Analytics Engine `tbc_usage`): 28일 사용자, 기능별 비율, 지난주 설정과 언어. 4주 평균 5% 미만은 램프 (`ops/usage-report.ts`) | 없음 (현황판) |
 | `channels` | 매일 5시 20분 | harvester 데이터로 사이트의 스트리머별 구독 배지 페이지 데이터(`badgecollector-site`의 `src/data/channels.json`)를 다시 만들고, 바뀐 채널이 있으면 사이트 리포에 푸시한다(`ops/watch/site-channels.sh`). 2분쯤 | heartbeat가 대신 |
 | `heartbeat` | 10분 | `runs/*.json`을 보고 정해진 시간보다 오래 성공 못 한 작업, 멈춘 서비스를 찾는다 | 문제가 생기거나 바뀔 때, 12시간마다 다시 |
 | `pull` | 10분 | `git pull --ff-only`, `package-lock.json`이 바뀌었으면 `npm ci` | heartbeat가 대신 |
@@ -134,3 +134,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-05 | `stats`에 확장 익명 사용 통계(`ops/usage-report.ts`). Cloudflare Analytics Engine `tbc_usage`를 SQL API로 읽고 GitHub 릴리스 버전 기록만 센다. 4주 평균 5% 미만 기능, 설정을 따로 적는다 (ADR 0001) |
 | 2026-11-05 | 확장 사용 통계를 현황판으로(`usage` 작업, 3시간). Discord 하루 리포트엔 사용자 수 한 줄만 남김. 사용자가 Discord에서 이력 보기가 불편하다고 함 |
 | 2026-11-06 | 현황판을 탭으로 다시 짬: 위 고정 띠(판정, Chrome 스토어 사용자, 오늘, 어제, 7일 평균 설치), 탭 확장 상태 / 확장 사용 / 스토어와 유입 / badgecollector.dev / 운영. 칸마다 무엇을 보는지 한 줄, 익명 통계 기능과 설정은 줄마다 설명. 이번 주, 이번 달 사용자는 바로 오는 주간 기록으로도 센다 |
+| 2026-11-06 | `usage` 작업 3시간에서 5분으로(배포 직후 퍼지는 걸 보려고). Cloudflare 조회 하루 약 600번(한도 1만), 사이트 API 한도와는 무관. GitHub 릴리스 목록은 1시간 캐시 |

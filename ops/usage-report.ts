@@ -9,6 +9,9 @@
  *
  * env: ~/.config/badge-collector/cloudflare.env  CF_ACCOUNT_ID, CF_ANALYTICS_TOKEN (Account Analytics 읽기)
  */
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { homedir } from 'os';
+import { dirname, join } from 'path';
 import { SETTING_FLAGS, USAGE_FLAGS, type SettingFlag, type UsageFlag } from '../src/telemetry/flags.ts';
 
 const DAY = 86_400_000;
@@ -84,13 +87,28 @@ async function sql(query: string): Promise<SqlRow[]> {
     return ((await res.json()) as { data: SqlRow[] }).data;
 }
 
+// 릴리스 목록은 1시간 캐시 (usage 작업이 5분마다 돌아 GitHub 비로그인 한도 시간당 60번에 닿지 않게).
+// 못 받으면 오래된 캐시라도 쓴다.
+const RELEASES_CACHE = join(homedir(), '.cache/badge-collector/releases.json');
+const RELEASES_TTL = 3_600_000;
+
 async function releasedVersions(): Promise<Set<string>> {
-    const res = await fetch('https://api.github.com/repos/Deepbluewarn/twitch-badge-collector-v2/releases?per_page=100', {
-        headers: { 'User-Agent': 'badge-collector-ops', Accept: 'application/vnd.github+json' },
-    });
-    if (!res.ok) throw new Error(`github releases: ${res.status}`);
-    const list = (await res.json()) as { tag_name: string; draft: boolean }[];
-    return new Set(list.filter((r) => !r.draft).map((r) => r.tag_name.replace(/^v/, '')));
+    const cached = existsSync(RELEASES_CACHE) ? (JSON.parse(readFileSync(RELEASES_CACHE, 'utf8')) as { at: number; versions: string[] }) : null;
+    if (cached && Date.now() - cached.at < RELEASES_TTL) return new Set(cached.versions);
+    try {
+        const res = await fetch('https://api.github.com/repos/Deepbluewarn/twitch-badge-collector-v2/releases?per_page=100', {
+            headers: { 'User-Agent': 'badge-collector-ops', Accept: 'application/vnd.github+json' },
+        });
+        if (!res.ok) throw new Error(`github releases: ${res.status}`);
+        const list = (await res.json()) as { tag_name: string; draft: boolean }[];
+        const versions = list.filter((r) => !r.draft).map((r) => r.tag_name.replace(/^v/, ''));
+        mkdirSync(dirname(RELEASES_CACHE), { recursive: true });
+        writeFileSync(RELEASES_CACHE, JSON.stringify({ at: Date.now(), versions }));
+        return new Set(versions);
+    } catch (err) {
+        if (cached) return new Set(cached.versions);
+        throw err;
+    }
 }
 
 const sums = (n: number) => Array.from({ length: n }, (_, i) => `SUM(_sample_interval * double${i + 1}) AS d${i + 1}`).join(', ');
