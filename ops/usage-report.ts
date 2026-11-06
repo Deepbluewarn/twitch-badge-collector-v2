@@ -144,7 +144,7 @@ export interface UsageSummary {
     /** 지난 완결된 주의 설정 기록. now = 그 주 비율, avg = 최근 4주 평균 */
     /** partial = 지난주 기록이 없어 진행 중인 이번 주를 보여 준다 (배포 첫 주) */
     /** users = 그 주 주간 기록 수(= 그 주에 쓴 사람), chrome = 그중 Chrome. 스토어 사용자와 견줄 때 쓴다 */
-    settings: null | { week: string; range: string; partial: boolean; users: number; chrome: number; weeks: number; items: Ratio[]; langs: { lang: string; ratio: number }[] };
+    settings: null | { week: string; range: string; partial: boolean; users: number; chrome: number; weeks: number; items: Ratio[]; langs: { lang: string; ratio: number; n: number }[] };
     review: number;
     minDays: number;
     minWeeks: number;
@@ -230,7 +230,7 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
         weeks: recent.weeks,
         items: SETTING_FLAGS.map((key, i) => ({ key, label: SETTING_TEXT[key][0], desc: SETTING_TEXT[key][1], now: last.ratio[i], avg: recent.ratio[i],
             nowN: Math.round(last.counts[i]), avgN: Math.round(recent.counts[i] / (recent.weeks || 1)) })),
-        langs: [...last.langs].sort((a, b) => b[1] - a[1]).map(([lang, n]) => ({ lang, ratio: n / last.users })),
+        langs: [...last.langs].sort((a, b) => b[1] - a[1]).map(([lang, n]) => ({ lang, ratio: n / last.users, n: Math.round(n) })),
     };
 
     // 이번 주 사용자는 주간 기록 수로 센다 — 설치마다 그 주 처음 쓴 날 바로 오므로, 다음 날 오는 하루 기록의 firstWeek보다 빠르다

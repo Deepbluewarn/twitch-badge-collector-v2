@@ -274,7 +274,7 @@ ${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)
     const settings = `<section class="panel wide"><div class="panel-head"><h2>설정</h2><span class="meta">${st ? `${esc(st.range)}${st.partial ? ' (진행 중)' : ''}, 사용자 ${st.users}명` : '기록 없음'}</span></div>
 ${desc(`그 주에 확장을 쓴 사람 중 해당하는 사람의 비율과 추정 인원. 4주 칸은 주 평균. 인원은 Cloudflare 표본 배율을 반영한 추정치라 몇 명 차이는 날 수 있다. 주에 한 번, 그 주에 처음 쓴 날의 설정 상태를 본다. ${st?.partial ? '배포 첫 주라 진행 중인 이번 주를 보여 준다.' : '끝난 지난주 기준.'}`)}
 ${st ? `<div class="groups">${groups}</div>
-<p class="figure-line" style="margin-top:16px"><span class="label">브라우저 언어</span><span class="mono">${st.langs.slice(0, 6).map((l) => `${esc(l.lang)} ${pct(l.ratio)}`).join(', ')}</span></p>` : ''}</section>`;
+<p class="figure-line" style="margin-top:16px"><span class="label">브라우저 언어</span><span class="mono">${st.langs.slice(0, 8).map((l) => `${esc(l.lang)} ${pct(l.ratio)} (${l.n}명)`).join(', ')}</span></p>` : ''}</section>`;
 
     // 기능은 두 단으로 — 아래로 길어지지 않게
     const half = Math.ceil(u.features.length / 2);
