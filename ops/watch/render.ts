@@ -409,7 +409,7 @@ ${barChart(ga.map((d) => ({ date: d.date, value: d.siteUsers, title: `${d.date} 
 
     return `<!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="600"><title>Badge Collector 현황</title>
+<meta http-equiv="refresh" content="300"><title>Badge Collector 현황</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
 :root{color-scheme:light dark;
@@ -555,7 +555,7 @@ ${desc('badgecollector.dev 사이트와 배지 수집. 확장과는 따로 돈�
 ${desc('ovm 감시 작업이 제때 도는지와 GitHub 쪽 기록.')}
 <div class="grid two">${withDesc(jobs, 'ovm crontab 작업이 정해진 간격 안에 성공했는지. 멈춤이면 ovm의 ~/.local/state/badge-collector/logs 확인.')}${withDesc(gh, 'GitHub Actions 카나리 실행과 열린 이슈. 카나리는 ovm으로 옮겨 11-09쯤 정리한다.')}</div>
 </section>
-<footer class="meta">ovm 192.168.1.162, 10분마다 새로고침</footer>
+<footer class="meta">ovm 192.168.1.162, 5분마다 새로고침</footer>
 </main>
 <script>
 // 탭: 주소의 #이름으로 고른다(새로고침해도 같은 탭)
