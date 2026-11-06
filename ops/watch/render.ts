@@ -191,8 +191,8 @@ function mainChart(ga: { date: string; visits: number; installs: number; siteUse
 const pct = (r: number) => { const p = r * 100; return `${p < 10 ? p.toFixed(1) : Math.round(p)}%`; };
 
 /** 날짜별 막대. 마지막 막대는 강조 */
-function barChart(rows: { date: string; value: number; title: string }[], label: string): string {
-    const W = 480, H = 200, L = 44, R = 20, T = 12, B = 28;
+function barChart(rows: { date: string; value: number; title: string }[], label: string, W = 480, H = 200): string {
+    const L = 44, R = 20, T = 12, B = 28;
     const max = Math.max(1, ...rows.map((d) => d.value));
     const top = Math.ceil(max / 10) * 10;
     const step = (W - L - R) / Math.max(1, rows.length);
@@ -210,12 +210,12 @@ function barChart(rows: { date: string; value: number; title: string }[], label:
 }
 
 /** 기능, 설정 비율 표. 4주 평균이 기준 아래면 램프를 켠다(모인 기간이 짧으면 켜지 않는다) */
-function ratioTable(items: Ratio[], nowLabel: string, judged: boolean, review: number): string {
+function ratioTable(items: Ratio[], nowLabel: string, judged: boolean, review: number, avgLabel = '4주 평균'): string {
     const rows = [...items].sort((a, b) => b.avg - a.avg || b.now - a.now).map((r) => {
         const low = judged && r.avg < review;
         return `<tr><td><div class="item">${lamp(low ? 'risk' : 'off', low ? `4주 평균 ${pct(review)} 미만` : '')}<div><div>${esc(r.label)}</div><div class="meta">${esc(r.desc)}</div></div></div></td><td class="n">${pct(r.now)}</td><td class="n${low ? ' warn' : ''}">${pct(r.avg)}</td></tr>`;
     }).join('');
-    return `<table><thead><tr><th></th><th class="n">${nowLabel}</th><th class="n">4주 평균</th></tr></thead><tbody>${rows}</tbody></table>`;
+    return `<table><thead><tr><th></th><th class="n">${nowLabel}</th><th class="n">${avgLabel}</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 const desc = (text: string) => `<p class="desc">${text}</p>`;
@@ -245,18 +245,42 @@ ${big('이번 주', String(u.week), '월요일부터 한 번이라도 쓴 사람
 ${big('이번 달', String(u.month), '1일부터 한 번이라도 쓴 사람')}
 ${big('실제로 쓰는 비율', active, st ? `${esc(st.week)}${st.partial ? ' 진행 중' : ''} Chrome 사용자 ${st.chrome} ÷ 스토어 사용자 ${storeUsers ?? '-'}(어림값)` : '설정 기록이 오면 계산')}
 </div>
-${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)</p>' : barChart(u.daily.map((d) => ({ date: d.date, value: d.users, title: `${d.date} 사용자 ${d.users} (Chrome ${d.chrome}, Edge ${d.edge})` })), '날짜별 확장 사용자')}</section>`;
+${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)</p>' : (() => {
+        const rows = u.daily.map((d) => ({ date: d.date, value: d.users, title: `${d.date} 사용자 ${d.users} (Chrome ${d.chrome}, Edge ${d.edge})` }));
+        // 넓은 화면은 넓은 비율, 휴대폰은 좁은 비율로 따로 그린다 (하나를 줄이면 글자와 막대가 너무 작아진다)
+        return `<div class="only-wide">${barChart(rows, '날짜별 확장 사용자', 1100, 220)}</div><div class="only-narrow">${barChart(rows, '날짜별 확장 사용자')}</div>`;
+    })()}</section>`;
 
     const judgedDays = u.days >= u.minDays;
-    const features = `<section class="panel"><div class="panel-head"><h2>기능</h2><span class="meta">${u.days}일치</span></div>
-${desc('어제 사용자 중 그 기능을 한 번이라도 쓴 사람의 비율. 4주 평균은 최근 28일 동안의 같은 비율.')}
-${empty ? '<p class="meta">아직 하루 기록 없음</p>' : ratioTable(u.features, '어제', judgedDays, u.review)}</section>`;
+    const features = () => `<section class="panel wide"><div class="panel-head"><h2>기능</h2><span class="meta">${u.days}일치</span></div>
+${desc('어제 사용자 중 그 기능을 한 번이라도 쓴 사람의 비율. 4주 평균은 최근 28일 동안의 같은 비율. 몇 번 썼는지는 세지 않는다.')}
+${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)</p>' : featureCols}</section>`;
 
-    const settings = `<section class="panel"><div class="panel-head"><h2>설정</h2><span class="meta">${st ? `${esc(st.week)}${st.partial ? ' 진행 중' : ''}, 사용자 ${st.users}` : '기록 없음'}</span></div>
-${desc(`그 주에 확장을 쓴 사람 중 이 설정을 기본값에서 바꿔 둔 사람의 비율. ${st?.partial ? '배포 첫 주라 진행 중인 이번 주를 보여 준다.' : '끝난 지난주 기준.'}`)}
-${st ? ratioTable(st.items, st.partial ? '이번 주' : '지난주', st.weeks >= u.minWeeks, u.review) : ''}
-${st ? `<p class="figure-line" style="margin-top:12px"><span class="label">브라우저 언어</span><span class="mono">${st.langs.slice(0, 6).map((l) => `${esc(l.lang)} ${pct(l.ratio)}`).join(', ')}</span></p>` : ''}</section>`;
-    return `${guide}<div class="grid two">${users}${features}${settings}</div>`;
+    // 설정은 기본값이 무엇이냐에 따라 읽는 법이 달라 네 묶음으로 나눈다
+    const GROUPS: { title: string; keys: string[]; text: string; judged: boolean; label: string }[] = [
+        { title: '켜서 쓰는 기능', keys: ['advancedFilter', 'floating', 'template', 'chatTime', 'archiveOn', 'channelOff'], judged: true, label: '켠 비율',
+          text: '기본이 꺼진 기능을 지금 켜 두고 있는 사람. 이 숫자가 곧 그 기능을 쓰는 사람의 비율이다. 낮으면 모르거나 필요 없다는 뜻이라 접을지 판단하는 주 대상.' },
+        { title: '직접 만든 필터', keys: ['filterBadge', 'filterName', 'filterKeyword', 'filterExclude', 'filterSleep', 'filterChannel', 'filterPerson', 'filterMarker', 'filterNote'], judged: true, label: '있는 비율',
+          text: '설치 때 들어가는 기본 필터 말고, 그런 필터를 직접 하나 이상 만든 사람. 그 종류의 필터를 쓰는 사람의 비율이다.' },
+        { title: '꺼 둔 기본 기능', keys: ['markerOff', 'persistOff', 'jumpBottomOff', 'pointBoxOff'], judged: false, label: '끈 비율',
+          text: '기본으로 켜진 기능을 꺼 둔 사람. 쓰는 사람은 100%에서 뺀 값이다. 낮을수록 기본값이 잘 맞는다는 뜻이라 접을 대상이 아니다.' },
+        { title: '값을 바꾼 설정', keys: ['maxChats', 'theme', 'positionDown', 'chatSideLeft', 'archiveDays', 'floatingBg'], judged: false, label: '바꾼 비율',
+          text: '기본과 다른 값을 쓰는 사람. 높으면 기본값을 바꿀지 고민할 후보다. 언제 바꿨는지는 모른다(최대 개수는 예전 빌드 시절 값이 많다).' },
+    ];
+    const groups = st ? GROUPS.map((g) => {
+        const items = g.keys.map((k) => st.items.find((i) => i.key === k)).filter((i): i is Ratio => !!i);
+        return `<div class="group"><h3>${g.title}</h3>${desc(g.text)}${ratioTable(items, g.label, g.judged && st.weeks >= u.minWeeks, u.review, '4주')}</div>`;
+    }).join('') : '';
+    const settings = `<section class="panel wide"><div class="panel-head"><h2>설정</h2><span class="meta">${st ? `${esc(st.week)}${st.partial ? ' 진행 중' : ''}, 사용자 ${st.users}` : '기록 없음'}</span></div>
+${desc(`그 주에 확장을 쓴 사람 중 해당하는 사람의 비율. 주에 한 번, 그 주에 처음 쓴 날의 설정 상태를 본다. ${st?.partial ? '배포 첫 주라 진행 중인 이번 주를 보여 준다.' : '끝난 지난주 기준.'}`)}
+${st ? `<div class="groups">${groups}</div>
+<p class="figure-line" style="margin-top:16px"><span class="label">브라우저 언어</span><span class="mono">${st.langs.slice(0, 6).map((l) => `${esc(l.lang)} ${pct(l.ratio)}`).join(', ')}</span></p>` : ''}</section>`;
+
+    // 기능은 두 단으로 — 아래로 길어지지 않게
+    const half = Math.ceil(u.features.length / 2);
+    const sorted = [...u.features].sort((a, b) => b.avg - a.avg || b.now - a.now);
+    const featureCols = `<div class="cols2">${ratioTable(sorted.slice(0, half), '어제', judgedDays, u.review)}${ratioTable(sorted.slice(half), '어제', judgedDays, u.review)}</div>`;
+    return `${guide}<div class="grid two">${users}${settings}${features()}</div>`;
 }
 
 function render(live: LiveResult | undefined, bundle: BundleResult | undefined, info: Info | undefined, extra: Extra, reasons: Reason[]): string {
@@ -479,6 +503,13 @@ a.verdict .lamp{width:14px;height:14px}
 .big .figure{font-size:28px;line-height:1;font-weight:500;margin:10px 0 6px}.big .sub{color:var(--muted);font-size:12px;line-height:16px}
 .item{display:flex;gap:10px;align-items:flex-start}.item .lamp{margin-top:6px}
 .reasons-panel{margin-bottom:16px}
+.groups{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+.group h3{font-size:14px;color:var(--ink);margin:0 0 6px}.group .desc{margin:0 0 8px;font-size:12px;line-height:18px;min-height:54px}
+.group td,.cols2 td{padding:7px 8px 7px 0}.group .item .meta,.cols2 .item .meta{font-size:11px;line-height:15px}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.only-narrow{display:none}
+@media (max-width:1100px){.groups{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){.groups,.cols2{grid-template-columns:1fr}.group .desc{min-height:0}.only-wide{display:none}.only-narrow{display:block}}
 @media (max-width:1100px){.strip{grid-template-columns:repeat(3,minmax(0,1fr))}.strip .verdict{grid-column:span 3}}
 @media (max-width:760px){.strip{grid-template-columns:1fr 1fr}.strip .verdict{grid-column:span 2}.bigs{grid-template-columns:1fr 1fr}.grid.two{grid-template-columns:1fr}.grid.two .panel.wide{grid-column:auto}}
 @media (max-width:760px){.usage-chart .axis{font-size:15px}}
