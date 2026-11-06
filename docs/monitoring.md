@@ -133,3 +133,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-04 | `channels` 작업(매일 5시 20분): 사이트 스트리머별 구독 배지 페이지 데이터 갱신, 사이트 리포 deploy key로 푸시. GitHub가 잠깐 거부할 때를 대비해 pull, push는 1분 간격 5번까지 |
 | 2026-11-05 | `stats`에 확장 익명 사용 통계(`ops/usage-report.ts`). Cloudflare Analytics Engine `tbc_usage`를 SQL API로 읽고 GitHub 릴리스 버전 기록만 센다. 4주 평균 5% 미만 기능, 설정을 따로 적는다 (ADR 0001) |
 | 2026-11-05 | 확장 사용 통계를 현황판으로(`usage` 작업, 3시간). Discord 하루 리포트엔 사용자 수 한 줄만 남김. 사용자가 Discord에서 이력 보기가 불편하다고 함 |
+| 2026-11-06 | 현황판을 탭으로 다시 짬: 위 고정 띠(판정, Chrome 스토어 사용자, 오늘, 어제, 7일 평균 설치), 탭 확장 상태 / 확장 사용 / 스토어와 유입 / badgecollector.dev / 운영. 칸마다 무엇을 보는지 한 줄, 익명 통계 기능과 설정은 줄마다 설명. 이번 주, 이번 달 사용자는 바로 오는 주간 기록으로도 센다 |
