@@ -89,7 +89,8 @@ export interface UsageSummary {
     /** now = 어제 비율, avg = 4주 평균 비율 */
     features: Ratio[];
     /** 지난 완결된 주의 설정 기록. now = 그 주 비율, avg = 최근 4주 평균 */
-    settings: null | { week: string; users: number; weeks: number; items: Ratio[]; langs: { lang: string; ratio: number }[] };
+    /** partial = 지난주 기록이 없어 진행 중인 이번 주를 보여 준다 (배포 첫 주) */
+    settings: null | { week: string; partial: boolean; users: number; weeks: number; items: Ratio[]; langs: { lang: string; ratio: number }[] };
     review: number;
     minDays: number;
     minWeeks: number;
@@ -155,10 +156,15 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
         const ratio = counts.map((c, i) => c / ((i < ROW_DOUBLES ? base.week : base.week2) || 1));
         return { users: base.week, ratio, langs, weeks: seen.size };
     };
-    const last = tally((w) => w === lastWeek);
-    const recent = tally((w) => recentWeeks.has(w));
+    // 지난주 기록이 없으면(배포 첫 주) 진행 중인 이번 주를 보여 준다
+    const thisWeek = isoWeek(today);
+    const partial = tally((w) => w === lastWeek).users === 0;
+    const shownWeek = partial ? thisWeek : lastWeek;
+    const last = tally((w) => w === shownWeek);
+    const recent = tally((w) => recentWeeks.has(w) || (partial && w === thisWeek));
     const settings = last.users === 0 ? null : {
-        week: lastWeek,
+        week: shownWeek,
+        partial,
         users: last.users,
         weeks: recent.weeks,
         items: SETTING_FLAGS.map((key, i) => ({ key, label: SETTING_LABEL[key], now: last.ratio[i], avg: recent.ratio[i] })),

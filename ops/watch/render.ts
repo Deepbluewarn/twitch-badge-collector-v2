@@ -233,8 +233,8 @@ ${empty ? '<p class="meta">아직 기록 없음</p>' : usageChart(u.daily)}
 ${empty ? '<p class="meta">아직 기록 없음</p>' : ratioTable(u.features, '어제', judgedDays, u.review)}
 ${!empty && !judgedDays ? `<p class="meta">${u.minDays}일치가 모이면 4주 평균 ${pct(u.review)} 미만을 표시</p>` : ''}</section>`;
     const st = u.settings;
-    const settings = `<section class="panel"><div class="panel-head"><h2>설정</h2><span class="meta">${st ? `${esc(st.week)}, 사용자 ${st.users}, 기본값에서 바꾼 비율` : '지난주 기록 없음'}</span></div>
-${st ? ratioTable(st.items, '지난주', st.weeks >= u.minWeeks, u.review) : ''}
+    const settings = `<section class="panel"><div class="panel-head"><h2>설정</h2><span class="meta">${st ? `${esc(st.week)}${st.partial ? ' 진행 중' : ''}, 사용자 ${st.users}, 기본값에서 바꾼 비율` : '기록 없음'}</span></div>
+${st ? ratioTable(st.items, st.partial ? '이번 주' : '지난주', st.weeks >= u.minWeeks, u.review) : ''}
 ${st ? `<p class="figure-line" style="margin-top:12px"><span class="label">언어</span><span class="mono">${st.langs.slice(0, 6).map((l) => `${esc(l.lang)} ${pct(l.ratio)}`).join(', ')}</span></p>` : ''}</section>`;
     return `<div class="grid usage">${users}${features}${settings}</div>`;
 }
