@@ -213,7 +213,7 @@ function barChart(rows: { date: string; value: number; title: string }[], label:
 function ratioTable(items: Ratio[], nowLabel: string, judged: boolean, review: number, avgLabel = '4주 평균'): string {
     const rows = [...items].sort((a, b) => b.avg - a.avg || b.now - a.now).map((r) => {
         const low = judged && r.avg < review;
-        return `<tr><td><div class="item">${lamp(low ? 'risk' : 'off', low ? `4주 평균 ${pct(review)} 미만` : '')}<div><div>${esc(r.label)}</div><div class="meta">${esc(r.desc)}</div></div></div></td><td class="n">${pct(r.now)}</td><td class="n${low ? ' warn' : ''}">${pct(r.avg)}</td></tr>`;
+        return `<tr><td><div class="item">${lamp(low ? 'risk' : 'off', low ? `4주 평균 ${pct(review)} 미만` : '')}<div><div>${esc(r.label)}</div><div class="meta">${esc(r.desc)}</div></div></div></td><td class="n">${pct(r.now)}<div class="meta">${r.nowN}명</div></td><td class="n${low ? ' warn' : ''}">${pct(r.avg)}<div class="meta">${r.avgN}명</div></td></tr>`;
     }).join('');
     return `<table><thead><tr><th></th><th class="n">${nowLabel}</th><th class="n">${avgLabel}</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
@@ -243,7 +243,7 @@ ${desc('통계를 켠 Chrome, Edge 사용자 중 그날 방송 화면(모아보�
 ${big(`어제 (${esc(u.yesterday.slice(5))})`, String(y?.users ?? 0), `Chrome ${y?.chrome ?? 0}, Edge ${y?.edge ?? 0}`)}
 ${big('이번 주', String(u.week), '월요일부터 한 번이라도 쓴 사람')}
 ${big('이번 달', String(u.month), '1일부터 한 번이라도 쓴 사람')}
-${big('실제로 쓰는 비율', active, st ? `${esc(st.week)}${st.partial ? ' 진행 중' : ''} Chrome 사용자 ${st.chrome} ÷ 스토어 사용자 ${storeUsers ?? '-'}(어림값)` : '설정 기록이 오면 계산')}
+${big('실제로 쓰는 비율', active, st ? `${esc(st.range)}${st.partial ? '(진행 중)' : ''} Chrome 사용자 ${st.chrome} ÷ 스토어 사용자 ${storeUsers ?? '-'}(어림값)` : '설정 기록이 오면 계산')}
 </div>
 ${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)</p>' : (() => {
         const rows = u.daily.map((d) => ({ date: d.date, value: d.users, title: `${d.date} 사용자 ${d.users} (Chrome ${d.chrome}, Edge ${d.edge})` }));
@@ -253,7 +253,7 @@ ${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)
 
     const judgedDays = u.days >= u.minDays;
     const features = () => `<section class="panel wide"><div class="panel-head"><h2>기능</h2><span class="meta">${u.days}일치</span></div>
-${desc('어제 사용자 중 그 기능을 한 번이라도 쓴 사람의 비율. 4주 평균은 최근 28일 동안의 같은 비율. 몇 번 썼는지는 세지 않는다.')}
+${desc('어제 사용자 중 그 기능을 한 번이라도 쓴 사람의 비율과 추정 인원. 4주 칸은 최근 28일의 비율과 하루 평균 인원. 몇 번 썼는지는 세지 않는다.')}
 ${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)</p>' : featureCols}</section>`;
 
     // 설정은 기본값이 무엇이냐에 따라 읽는 법이 달라 네 묶음으로 나눈다
@@ -271,8 +271,8 @@ ${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)
         const items = g.keys.map((k) => st.items.find((i) => i.key === k)).filter((i): i is Ratio => !!i);
         return `<div class="group"><h3>${g.title}</h3>${desc(g.text)}${ratioTable(items, g.label, g.judged && st.weeks >= u.minWeeks, u.review, '4주')}</div>`;
     }).join('') : '';
-    const settings = `<section class="panel wide"><div class="panel-head"><h2>설정</h2><span class="meta">${st ? `${esc(st.week)}${st.partial ? ' 진행 중' : ''}, 사용자 ${st.users}` : '기록 없음'}</span></div>
-${desc(`그 주에 확장을 쓴 사람 중 해당하는 사람의 비율. 주에 한 번, 그 주에 처음 쓴 날의 설정 상태를 본다. ${st?.partial ? '배포 첫 주라 진행 중인 이번 주를 보여 준다.' : '끝난 지난주 기준.'}`)}
+    const settings = `<section class="panel wide"><div class="panel-head"><h2>설정</h2><span class="meta">${st ? `${esc(st.range)}${st.partial ? ' (진행 중)' : ''}, 사용자 ${st.users}명` : '기록 없음'}</span></div>
+${desc(`그 주에 확장을 쓴 사람 중 해당하는 사람의 비율과 추정 인원. 4주 칸은 주 평균. 인원은 Cloudflare 표본 배율을 반영한 추정치라 몇 명 차이는 날 수 있다. 주에 한 번, 그 주에 처음 쓴 날의 설정 상태를 본다. ${st?.partial ? '배포 첫 주라 진행 중인 이번 주를 보여 준다.' : '끝난 지난주 기준.'}`)}
 ${st ? `<div class="groups">${groups}</div>
 <p class="figure-line" style="margin-top:16px"><span class="label">브라우저 언어</span><span class="mono">${st.langs.slice(0, 6).map((l) => `${esc(l.lang)} ${pct(l.ratio)}`).join(', ')}</span></p>` : ''}</section>`;
 
@@ -470,7 +470,7 @@ h3{font-size:13px;font-weight:500;color:var(--ink2);margin:0 0 8px}
 table{border-collapse:collapse;width:100%}
 th,td{text-align:left;padding:8px 12px 8px 0;border-top:1px solid var(--line);vertical-align:top;font-size:13px}
 thead th{white-space:nowrap;border-top:0;color:var(--muted);font-weight:400;font-size:12px;padding-top:0}
-.n{text-align:right}
+.n{text-align:right;white-space:nowrap}
 pre{white-space:pre-wrap;word-break:break-all;margin:8px 0 0;color:var(--ink2);font-size:12px;line-height:16px}
 details{margin-top:12px}summary{cursor:pointer;color:var(--ink2);font-size:13px}summary:hover{color:var(--ink)}
 .change{border-left:2px solid var(--line);padding-left:12px;margin-bottom:12px}

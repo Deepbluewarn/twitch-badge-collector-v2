@@ -109,7 +109,8 @@ function isoWeek(date: string): string {
     return `${year}-W${String(Math.ceil(((t.getTime() - Date.UTC(year, 0, 1)) / DAY + 1) / 7)).padStart(2, '0')}`;
 }
 
-export interface Ratio { key: string; label: string; desc: string; now: number; avg: number }
+/** now, avg는 비율. nowN, avgN은 추정 인원(표본 배율 반영). 기능의 avgN은 하루 평균, 설정의 avgN은 주 평균 */
+export interface Ratio { key: string; label: string; desc: string; now: number; avg: number; nowN: number; avgN: number }
 export interface UsageSummary {
     at: number;
     /** 기준일(어제, 한국 날짜) */
@@ -125,7 +126,7 @@ export interface UsageSummary {
     /** 지난 완결된 주의 설정 기록. now = 그 주 비율, avg = 최근 4주 평균 */
     /** partial = 지난주 기록이 없어 진행 중인 이번 주를 보여 준다 (배포 첫 주) */
     /** users = 그 주 주간 기록 수(= 그 주에 쓴 사람), chrome = 그중 Chrome. 스토어 사용자와 견줄 때 쓴다 */
-    settings: null | { week: string; partial: boolean; users: number; chrome: number; weeks: number; items: Ratio[]; langs: { lang: string; ratio: number }[] };
+    settings: null | { week: string; range: string; partial: boolean; users: number; chrome: number; weeks: number; items: Ratio[]; langs: { lang: string; ratio: number }[] };
     review: number;
     minDays: number;
     minWeeks: number;
@@ -163,8 +164,10 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
         USAGE_FLAGS.forEach((_, i) => { flags28[i] += d[i + 2]; if (date === yesterday) flagsY[i] += d[i + 2]; });
     }
     const dau = byDate.get(yesterday)?.users ?? 0;
+    const dataDays = daily.filter((d) => d.users > 0).length || 1;
     const features = USAGE_FLAGS.map((key, i) => ({
         key, label: USAGE_TEXT[key][0], desc: USAGE_TEXT[key][1], now: dau ? flagsY[i] / dau : 0, avg: n28 ? flags28[i] / n28 : 0,
+        nowN: Math.round(flagsY[i]), avgN: Math.round(flags28[i] / dataDays),
     }));
 
     // ── 주간 설정 기록 ── 지난 완결된 주(오늘이 속한 주의 바로 앞 주). week 행에 앞 20개, week2 행에 나머지
@@ -191,7 +194,7 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
         }
         // 표본 추출 전엔 week와 week2 행 수가 같다. 그래도 칸마다 자기 행 수로 나눈다
         const ratio = counts.map((c, i) => c / ((i < ROW_DOUBLES ? base.week : base.week2) || 1));
-        return { users: base.week, chrome, ratio, langs, weeks: seen.size };
+        return { users: base.week, chrome, ratio, counts, langs, weeks: seen.size };
     };
     // 지난주 기록이 없으면(배포 첫 주) 진행 중인 이번 주를 보여 준다
     const thisWeek = isoWeek(today);
@@ -201,11 +204,14 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
     const recent = tally((w) => recentWeeks.has(w) || (partial && w === thisWeek));
     const settings = last.users === 0 ? null : {
         week: shownWeek,
+        // 사람이 읽는 날짜 범위 (월요일 ~ 일요일)
+        range: (() => { const sun = partial ? shiftDay(today, 7 - (dow(today) || 7)) : lastSunday; return `${shiftDay(sun, -6).slice(5)} ~ ${sun.slice(5)}`; })(),
         partial,
         users: last.users,
         chrome: last.chrome,
         weeks: recent.weeks,
-        items: SETTING_FLAGS.map((key, i) => ({ key, label: SETTING_TEXT[key][0], desc: SETTING_TEXT[key][1], now: last.ratio[i], avg: recent.ratio[i] })),
+        items: SETTING_FLAGS.map((key, i) => ({ key, label: SETTING_TEXT[key][0], desc: SETTING_TEXT[key][1], now: last.ratio[i], avg: recent.ratio[i],
+            nowN: Math.round(last.counts[i]), avgN: Math.round(recent.counts[i] / (recent.weeks || 1)) })),
         langs: [...last.langs].sort((a, b) => b[1] - a[1]).map(([lang, n]) => ({ lang, ratio: n / last.users })),
     };
 
