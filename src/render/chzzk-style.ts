@@ -626,13 +626,14 @@ export async function migrateLargeLook(): Promise<void> {
 }
 
 /**
- * 예전 후원 템플릿(금액이 이름 줄 끝)으로 고른 모양을 지금 템플릿으로 바꾼다. 직접 고친 템플릿은
- * 건드리지 않는다. migrateLargeLook 뒤에 부른다 — 크게 모양은 거기서 이미 새 템플릿이 된다.
+ * 예전 기본 템플릿(후원 금액이 이름 줄 끝, 선물 받은 사람 알림에 보낸 사람 없음)으로 고른 모양을 지금
+ * 템플릿으로 바꾼다. 직접 고친 템플릿은 건드리지 않는다. migrateLargeLook 뒤에 부른다 — 크게 모양은
+ * 거기서 이미 새 템플릿이 된다.
  */
 /**
  * 배지 없는 템플릿(예전 "배지 숨김")을 배지 있는 템플릿 + 스타일의 배지 숨김으로 옮긴다. 그래야 나중에
  * 표시로 바꿨을 때 이미 그려진 채팅에도 배지가 돌아온다. 직접 고친 템플릿은 건드리지 않는다.
- * migrateLegacyDonation 뒤에 부른다.
+ * migrateLegacyTemplates 뒤에 부른다.
  */
 export async function migrateBadgeLook(): Promise<void> {
     const res = await browser.storage.local.get([TEMPLATE_STORAGE_KEY, STYLE_STORAGE_KEY]);
@@ -644,7 +645,7 @@ export async function migrateBadgeLook(): Promise<void> {
     });
 }
 
-export async function migrateLegacyDonation(): Promise<void> {
+export async function migrateLegacyTemplates(): Promise<void> {
     const res = await browser.storage.local.get(TEMPLATE_STORAGE_KEY);
     const stored = sanitizeStoredTemplates(res[TEMPLATE_STORAGE_KEY]);
     const upgraded = upgradeLegacyLook({ ...DEFAULT_CHZZK_TEMPLATES, ...stored });

@@ -66,7 +66,7 @@ VOD REST: `GET api.chzzk.naver.com/service/v1/videos/{videoNo}/chats?playerMessa
 | 11 | 11 | |
 | 30 | 10 | 임시 제한 알림. `extras.visibleRoles`에 해당하는 역할(매니저 등)에게만 표시 → **수집 제외** |
 | 12 | (2026-10-11 별도 확인 11건) | 구독권 선물 — 아래 참고 |
-| 13, 15 | 0 | **미확인** (수집에 없음) |
+| 13, 15 | 0 | **미확인** (수집에 없음). 2026-11-07부터 소켓 카나리가 잡히면 모양을 모은다 |
 
 ## msgStatusType (번들 enum `Oy`: NORMAL / BLIND / CBOTBLIND)
 
@@ -109,6 +109,7 @@ VOD REST: `GET api.chzzk.naver.com/service/v1/videos/{videoNo}/chats?playerMessa
 **type 12 구독권 선물** (2026-10-11, 15채널 8분, 필드 모양만 확인 — 값은 기록하지 않음): 두 갈래로 온다.
 - 채널 선물 `giftType: SUBSCRIPTION_GIFT` (1건): 보낸 사람 profile 있음. `quantity`, `completedQuantity`, `partialRefundedQuantity`, `giftTierName`, `giftTierNo`, `senderTierNo`, `selectionType`, `giftId`, `userIdHash`.
 - 받은 사람 알림 `giftType: SUBSCRIPTION_GIFT_RECEIVER` (10건): 받는 사람마다 한 건씩. 보낸 사람은 익명(`uid: anonymous`, profile null). `receiverNickname`, `receiverUserIdHash`, `receiverVerifiedMark`, `giftTierName`, `giftTierNo`, `selectionType`, `giftId`.
+- 받는 사람을 직접 고른 선물(`selectionType: MANUAL`)을 익명이 아닌 사람이 보내면 받은 사람 알림에 보낸 사람 profile이 실려 온다(2026-11-07, 화면과 번들로 확인). host는 받은 사람 알림의 profile이 null일 때만 익명으로 그린다. 템플릿은 `anonymous`가 아니면 "보낸 사람님이 / 받는 사람님에게"로 그린다. 이때 `uid`가 무엇인지는 아직 못 봤다(소켓 카나리 `gift:sender`가 모은다).
 - 본문(`msg`)은 비어 있다. host가 extras로 "○○님에게 [등급 이름] 구독권을 선물하였습니다." 같은 문구를 만든다. `giftTierName`은 채널의 구독 등급 이름이다(보낸 사람 이름이 아님).
 - 렌더러: 메시지 종류 `gift`, 템플릿 값 `gift.{toChannel,quantity,tierName,receiverNickname}`. 키워드 판정은 시청자 메시지 기준이라 host 문구는 쓰지 않는다(구독과 같은 원칙).
 

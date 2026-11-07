@@ -187,6 +187,17 @@ describe('renderChzzkChat', () => {
         expect(receiver.textContent).toContain('님에게 무웅이 구독권 선물');
     });
 
+    it('선물 템플릿: 받는 사람을 고른 선물은 받은 사람 알림에 보낸 사람이 실려 와 같이 그린다', () => {
+        const el = renderChzzkChat(chat({
+            type: 12, message: '',
+            extras: { giftType: 'SUBSCRIPTION_GIFT_RECEIVER', selectionType: 'MANUAL', receiverNickname: '닷줄', giftTierName: '나나양 좋아' },
+        }));
+        expect(el.querySelector('.tbc-chat-event-head .tbc-chat-nick')!.textContent).toBe('시청자');
+        expect(el.querySelector('.tbc-chat-event-head')!.textContent).toContain('님이');
+        expect(el.querySelector('.tbc-chat-text .tbc-chat-gift-receiver')!.textContent).toBe('닷줄');
+        expect(el.querySelector('.tbc-chat-text')!.textContent).toBe('닷줄님에게 나나양 좋아 구독권 선물');
+    });
+
     it('클린봇 채팅은 루트에 표시 클래스', () => {
         const el = renderChzzkChat(chat({ status: 'CBOTBLIND' }));
         expect(el.classList.contains('tbc-chat--cleanbot')).toBe(true);

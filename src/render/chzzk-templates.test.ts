@@ -35,18 +35,18 @@ describe('detectLook', () => {
     });
 });
 
-describe('예전 후원 템플릿', () => {
-    it('예전 후원 템플릿으로 만든 모양도 같은 모양으로 알아본다', () => {
-        for (const look of ALL) expect(detectLook(buildTemplates(look, true))).toEqual(look);
+describe.each(['gift', 'donation'] as const)('예전 기본 템플릿 (%s)', (legacy) => {
+    it('예전 템플릿으로 만든 모양도 같은 모양으로 알아본다', () => {
+        for (const look of ALL) expect(detectLook(buildTemplates(look, legacy))).toEqual(look);
     });
 
     it('지금 템플릿으로 바꾼다', () => {
         const look = { ...DEFAULT_LOOK, badges: false };
-        expect(upgradeLegacyLook(buildTemplates(look, true))).toEqual(buildTemplates(look));
+        expect(upgradeLegacyLook(buildTemplates(look, legacy))).toEqual(buildTemplates(look));
     });
 
     it('지금 모양이나 직접 고친 템플릿은 그대로 둔다', () => {
         expect(upgradeLegacyLook(DEFAULT_CHZZK_TEMPLATES)).toBeNull();
-        expect(upgradeLegacyLook({ ...buildTemplates(DEFAULT_LOOK, true), chat: '<b>{{nickname}}</b>' })).toBeNull();
+        expect(upgradeLegacyLook({ ...buildTemplates(DEFAULT_LOOK, legacy), chat: '<b>{{nickname}}</b>' })).toBeNull();
     });
 });

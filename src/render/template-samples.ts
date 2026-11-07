@@ -103,6 +103,13 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
             }),
         },
         {
+            label: 'gift_manual',
+            chat: sample({
+                uid: 'sample-i', type: 12, nickname: '통큰시청자', message: '', badges: [`${G}/icon/12m.png`],
+                extras: { giftType: 'SUBSCRIPTION_GIFT_RECEIVER', selectionType: 'MANUAL', receiverNickname: '운좋은시청자', giftTierName: '팬', giftTierNo: 1 },
+            }),
+        },
+        {
             label: 'gift_receiver',
             chat: sample({
                 uid: 'anonymous', type: 12, anonymous: true, nickname: '', message: '',

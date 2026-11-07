@@ -86,27 +86,39 @@ ${indent(h)}
 }
 
 /**
- * 모양에 맞는 네 종류 템플릿. 편집기에 그대로 보이므로 읽기 좋게 줄을 나눠 둔다 — 줄바꿈
- * 공백은 렌더 때 지워진다(stripNewlineWhitespace).
+ * 선물 카드. 채널 선물은 보낸 사람 줄. 받은 사람 알림은 받는 사람을 직접 고른 선물이면 보낸 사람이
+ * 실려 와 host처럼 "보낸 사람님이 / 받는 사람님에게", 무작위 선물이면 익명이라 받는 사람을 주어로.
  */
-export function buildTemplates(look: TemplateLook, legacy = false): ChzzkTemplates {
-    const h = head(look.badges);
-    const out: ChzzkTemplates = {
-        chat: chat(h, look.layout),
-        donation: legacy ? legacyDonation(h) : donation(h),
-        subscription: `<div class="tbc-chat-event-head">
-${indent(h)}
-    <strong class="tbc-chat-amount">{{subscription.month}}개월 구독</strong>
-    {{#subscription.tierName}}
-        <span class="tbc-chat-tier">{{subscription.tierName}}</span>
-    {{/subscription.tierName}}
-</div>
-{{#hasMessage}}
-    <div class="tbc-chat-text">{{{messageHtml}}}</div>
-{{/hasMessage}}
-`,
-        // 채널 선물은 보낸 사람 줄, 받은 사람 알림은 보낸 사람이 익명이라 받는 사람을 주어로.
-        gift: `{{#gift.toChannel}}
+function gift(h: string) {
+    return `{{#gift.toChannel}}
+    <div class="tbc-chat-event-head">
+${indent(indent(h))}
+        <strong class="tbc-chat-amount">{{gift.tierName}} 구독권 {{gift.quantity}}개 선물</strong>
+    </div>
+{{/gift.toChannel}}
+{{^gift.toChannel}}
+    {{^anonymous}}
+        <div class="tbc-chat-event-head">
+${indent(indent(indent(h)))}
+            <span class="tbc-chat-gift-sender">님이</span>
+        </div>
+        <div class="tbc-chat-text">
+            <strong class="tbc-chat-gift-receiver">{{gift.receiverNickname}}</strong>님에게 {{gift.tierName}} 구독권 선물
+        </div>
+    {{/anonymous}}
+    {{#anonymous}}
+        <div class="tbc-chat-event-head">
+            <span class="tbcv2-chat-time">{{time}}</span>
+            <strong class="tbc-chat-gift-receiver">{{gift.receiverNickname}}</strong>님에게 {{gift.tierName}} 구독권 선물
+        </div>
+    {{/anonymous}}
+{{/gift.toChannel}}
+`;
+}
+
+/** 2026-11-07 전의 선물 템플릿 (받은 사람 알림에 보낸 사람이 없다). 저장된 모양을 알아보고 옮기는 데만 쓴다. */
+function legacyGift(h: string) {
+    return `{{#gift.toChannel}}
     <div class="tbc-chat-event-head">
 ${indent(indent(h))}
         <strong class="tbc-chat-amount">{{gift.tierName}} 구독권 {{gift.quantity}}개 선물</strong>
@@ -118,7 +130,39 @@ ${indent(indent(h))}
         <strong class="tbc-chat-gift-receiver">{{gift.receiverNickname}}</strong>님에게 {{gift.tierName}} 구독권 선물
     </div>
 {{/gift.toChannel}}
+`;
+}
+
+/**
+ * 예전 기본 템플릿. 저장된 모양을 알아보고 옮기는 데만 쓴다.
+ *  - 'gift': 2026-11-07 전. 선물만 예전 것.
+ *  - 'donation': 2026-10-28 전. 후원과 선물 모두 예전 것.
+ */
+export type LegacyTemplates = 'gift' | 'donation';
+const LEGACY: LegacyTemplates[] = ['gift', 'donation'];
+
+/**
+ * 모양에 맞는 네 종류 템플릿. 편집기에 그대로 보이므로 읽기 좋게 줄을 나눠 둔다 — 줄바꿈
+ * 공백은 렌더 때 지워진다(stripNewlineWhitespace).
+ */
+export function buildTemplates(look: TemplateLook, legacy?: LegacyTemplates): ChzzkTemplates {
+    const h = head(look.badges);
+    const out: ChzzkTemplates = {
+        chat: chat(h, look.layout),
+        donation: legacy === 'donation' ? legacyDonation(h) : donation(h),
+        subscription: `<div class="tbc-chat-event-head">
+${indent(h)}
+    <strong class="tbc-chat-amount">{{subscription.month}}개월 구독</strong>
+    {{#subscription.tierName}}
+        <span class="tbc-chat-tier">{{subscription.tierName}}</span>
+    {{/subscription.tierName}}
+</div>
+{{#hasMessage}}
+    <div class="tbc-chat-text">{{{messageHtml}}}</div>
+{{/hasMessage}}
 `,
+        gift: legacy ? legacyGift(h) : gift(h),
+
     };
     if (look.size === 'large') {
         for (const k of Object.keys(out) as ChzzkChatKind[]) {
@@ -139,17 +183,23 @@ const sameAs = (built: ChzzkTemplates, templates: ChzzkTemplates) =>
 
 /**
  * 템플릿 네 개가 어떤 모양 선택과 정확히 같으면 그 모양. 직접 고쳤으면 null.
- * 예전 후원 템플릿으로 만든 모양도 같은 모양으로 본다 — 다시 고르면 새 템플릿으로 바뀐다.
+ * 예전 기본 템플릿으로 만든 모양도 같은 모양으로 본다 — 다시 고르면 새 템플릿으로 바뀐다.
  */
 export function detectLook(templates: ChzzkTemplates): TemplateLook | null {
-    return ALL_LOOKS.find(look => sameAs(buildTemplates(look), templates))
-        ?? ALL_LOOKS.find(look => sameAs(buildTemplates(look, true), templates))
-        ?? null;
+    return ALL_LOOKS.find(look => sameAs(buildTemplates(look), templates)) ?? findLegacyLook(templates);
 }
 
-/** 예전 후원 템플릿으로 만든 모양이면 지금 템플릿으로 다시 만든 것, 아니면 null. */
+function findLegacyLook(templates: ChzzkTemplates): TemplateLook | null {
+    for (const legacy of LEGACY) {
+        const look = ALL_LOOKS.find(look => sameAs(buildTemplates(look, legacy), templates));
+        if (look) return look;
+    }
+    return null;
+}
+
+/** 예전 기본 템플릿으로 만든 모양이면 지금 템플릿으로 다시 만든 것, 아니면 null. */
 export function upgradeLegacyLook(templates: ChzzkTemplates): ChzzkTemplates | null {
     if (ALL_LOOKS.some(look => sameAs(buildTemplates(look), templates))) return null;
-    const look = ALL_LOOKS.find(look => sameAs(buildTemplates(look, true), templates));
+    const look = findLegacyLook(templates);
     return look ? buildTemplates(look) : null;
 }

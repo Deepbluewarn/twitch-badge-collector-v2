@@ -3,7 +3,7 @@ import { fakeBrowser } from '@webext-core/fake-browser';
 import { buildTemplates, DEFAULT_LOOK } from './chzzk-templates';
 
 vi.stubGlobal('browser', fakeBrowser);
-const { DEFAULT_STYLE, PART_KEYS, PRESETS, sanitizeStyle, styleCss, exportStyleCode, importStyleCode, migrateBadgeLook, migrateLargeLook, migrateLegacyDonation, presetTemplates, templatesToStore, withStyle } = await import('./chzzk-style');
+const { DEFAULT_STYLE, PART_KEYS, PRESETS, sanitizeStyle, styleCss, exportStyleCode, importStyleCode, migrateBadgeLook, migrateLargeLook, migrateLegacyTemplates, presetTemplates, templatesToStore, withStyle } = await import('./chzzk-style');
 
 describe('sanitizeStyle', () => {
     it('모르는 값은 기본값', () => {
@@ -162,15 +162,15 @@ describe('migrateLargeLook', () => {
 describe('업데이트 때 옮기기 (background 순서)', () => {
     beforeEach(() => fakeBrowser.reset());
 
-    // buildTemplates(look, true)는 v2.24.1이 저장하던 템플릿과 글자까지 같다 (2026-10-31 열두 모양 대조)
-    const migrate = async () => { await migrateLargeLook(); await migrateLegacyDonation(); await migrateBadgeLook(); };
+    // buildTemplates(look, 'donation')는 v2.24.1이 저장하던 템플릿과 글자까지 같다 (2026-10-31 열두 모양 대조)
+    const migrate = async () => { await migrateLargeLook(); await migrateLegacyTemplates(); await migrateBadgeLook(); };
 
     it.each([
         { layout: 'inline', badges: false, size: 'normal' },
         { layout: 'stacked', badges: true, size: 'large' },
         { layout: 'bubble', badges: false, size: 'large' },
     ] as const)('예전 모양 $layout/$badges/$size는 새 후원 템플릿의 보통 모양, 배지 없는 모양은 스타일의 배지 숨김이 된다', async (look) => {
-        await fakeBrowser.storage.local.set({ chzzkTemplates: templatesToStore(buildTemplates(look, true)) });
+        await fakeBrowser.storage.local.set({ chzzkTemplates: templatesToStore(buildTemplates(look, 'donation')) });
         await migrate();
         const r = await fakeBrowser.storage.local.get(['chzzkTemplates', 'chzzkTemplateStyle']);
         expect(r.chzzkTemplates).toEqual(templatesToStore(buildTemplates({ ...look, badges: true, size: 'normal' })));
@@ -178,7 +178,7 @@ describe('업데이트 때 옮기기 (background 순서)', () => {
     });
 
     it('직접 고친 템플릿과 저장된 게 없는 경우는 그대로', async () => {
-        const own = { ...templatesToStore(buildTemplates({ layout: 'inline', badges: false, size: 'normal' }, true)), chat: '<b>{{nickname}}</b>' };
+        const own = { ...templatesToStore(buildTemplates({ layout: 'inline', badges: false, size: 'normal' }, 'donation')), chat: '<b>{{nickname}}</b>' };
         await fakeBrowser.storage.local.set({ chzzkTemplates: own });
         await migrate();
         expect((await fakeBrowser.storage.local.get('chzzkTemplates')).chzzkTemplates).toEqual(own);

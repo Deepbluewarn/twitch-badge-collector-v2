@@ -130,7 +130,8 @@
     font-size: 0.9286em;
     line-height: 1.385;
 }
-.tbc-chat-amount {
+.tbc-chat-amount,
+.tbc-chat-gift-sender {
     margin-left: 2px;
 }
 /* host 카드는 머리글(후원은 닉네임만)과 구독 본문을 치지직 웹폰트로 쓴다. @font-face는 치지직 페이지에 있어

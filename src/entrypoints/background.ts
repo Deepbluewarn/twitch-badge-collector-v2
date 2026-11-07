@@ -8,7 +8,7 @@ import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
 import { installChzzkApiOriginRule } from "@/api/chzzk-channel";
 import { CHANNEL_OFF_BADGE_MESSAGE } from "@/utils/channel-off";
 import { clearAllChatHistory } from "@/utils/chat-history-store";
-import { migrateBadgeLook, migrateLargeLook, migrateLegacyDonation } from "@/render/chzzk-style";
+import { migrateBadgeLook, migrateLargeLook, migrateLegacyTemplates } from "@/render/chzzk-style";
 import { ARCHIVE_HIDE_MESSAGE, ARCHIVE_PUT_MESSAGE, hideArchivedChats, loadArchiveSetting, purgeArchive, putArchivedChats, sanitizeArchivedChat } from "@/archive/chat-archive";
 import { ANONYMOUS_STATS_KEY, clearUsage, flushUsage, recordUsage, statsEnabled } from "@/telemetry/usage-stats";
 import { USAGE_MARK_MESSAGE, isUsageFlag } from "@/telemetry/usage-mark";
@@ -181,10 +181,10 @@ export default defineBackground(() => {
       const stale = Object.keys(all).filter(k => k.startsWith('badges:chzzk:'));
       if (stale.length) await browser.storage.local.remove(stale);
     }
-    // 템플릿 "글자 크기: 크게"는 스타일의 글자 크기로, 후원 템플릿은 금액을 맨 아래로, 배지 숨김은 스타일로 옮겼다
+    // 템플릿 "글자 크기: 크게"는 스타일의 글자 크기로, 예전 후원과 선물 템플릿은 지금 것으로, 배지 숨김은 스타일로 옮겼다
     if (details.reason === 'update') {
         await migrateLargeLook().catch(e => console.warn('[tbcv2 bg] migrateLargeLook failed', e));
-        await migrateLegacyDonation().catch(e => console.warn('[tbcv2 bg] migrateLegacyDonation failed', e));
+        await migrateLegacyTemplates().catch(e => console.warn('[tbcv2 bg] migrateLegacyTemplates failed', e));
         await migrateBadgeLook().catch(e => console.warn('[tbcv2 bg] migrateBadgeLook failed', e));
     }
 
