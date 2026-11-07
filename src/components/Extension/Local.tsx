@@ -15,6 +15,7 @@ import { Logger } from "@/utils/logger";
 import { captureChats } from "@/utils/captureChat";
 import { CHAT_ATTR } from "@/interfaces/chat-attributes";
 import { markUsage } from "@/telemetry/usage-mark";
+import { featureGuideUrl, hasFeatureGuide } from "@/utils/site-link";
 
 import "./Local.css";
 
@@ -475,6 +476,13 @@ export default function Local({
                     <div ref={sentinelRef} aria-hidden="true" style={{ height: 1, flexShrink: 0 }} />
                 )}
             </div>
+
+            {/* 비었을 때만 가운데에 흐린 기능 안내 링크. 채팅이 하나라도 수집되면 사라진다 */}
+            {savedChats.length === 0 && !captureMode && hasFeatureGuide() && (
+                <a className="tbcv2-empty-guide" href={featureGuideUrl('empty-pane')} target="_blank" rel="noreferrer">
+                    {browser.i18n.getMessage('featureGuide' as any)}
+                </a>
+            )}
 
             {/* "맨 아래로" FAB — 위로 스크롤한 상태 + hover일 때만 표시.
                 hover 없이 항상 떠 있던 게 거슬린다는 피드백. 스크롤 자체가 hover 동반이므로

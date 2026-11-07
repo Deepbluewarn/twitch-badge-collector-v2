@@ -8,11 +8,11 @@ import { markUsage } from "@/telemetry/usage-mark";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
-import { Button, Dialog, Stack, Switch, Tag } from "@/ui";
+import { Button, Dialog, LinkButton, Stack, Switch, Tag } from "@/ui";
 import { CHANNEL_INFO_MESSAGE, setChannelOff, type ChannelInfo } from "@/utils/channel-off";
 import { fetchChzzkChannel } from "@/api/chzzk-channel";
 import { ChannelAvatar } from "@/components/filter/ChannelSearch";
-import { siteUrl } from "@/utils/site-link";
+import { featureGuideUrl, hasFeatureGuide, siteUrl } from "@/utils/site-link";
 import "./popup.css";
 
 /** 진단 줄의 작은 글자 버튼 — 좁은 팝업 하단 한 줄에 들어가게. */
@@ -423,10 +423,18 @@ function Popup() {
         </Button>
       } />
 
-      {/* 푸터: socials only */}
-      <div style={{ marginTop: 4, borderTop: '1px solid var(--ui-hair)', paddingTop: 8 }}>
-        <SocialFooter showExtensionInfo={false} />
-      </div>
+      {/* 푸터: 기능 안내(한국어 브라우저만, 페이지가 한국어뿐. 누른 수는 사이트 GA의 utm_content로) + socials */}
+      <Stack dir='row' align='center' justify='space-between' style={{ marginTop: 4, borderTop: '1px solid var(--ui-hair)', paddingTop: 8 }}>
+        {hasFeatureGuide() && (
+          <LinkButton variant='text' size='sm' icon='menu_book' href={featureGuideUrl('popup')} target='_blank' rel='noreferrer'
+            style={{ color: 'var(--ui-muted)' }}>
+            {browser.i18n.getMessage('featureGuide' as any)}
+          </LinkButton>
+        )}
+        <div style={{ flex: hasFeatureGuide() ? undefined : 1 }}>
+          <SocialFooter showExtensionInfo={false} />
+        </div>
+      </Stack>
     </Stack>
   );
 }

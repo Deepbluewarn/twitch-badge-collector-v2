@@ -5,6 +5,23 @@
     height: 100%;
 }
 
+/* 수집 창이 비었을 때 가운데 링크. 호스트 글자색을 따라 흐리게 */
+.tbcv2-empty-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 13px;
+    color: inherit;
+    opacity: 0.45;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.tbcv2-empty-guide:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
 /* 맨 아래로 — 위로 스크롤한 상태 + 컨테이너 hover일 때만 (색은 컨테이너 배경에 맞춰 inline) */
 .tbcv2-jump {
     position: absolute;

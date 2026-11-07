@@ -11,6 +11,9 @@
   "generalSetting": {
     "message": "General Settings"
   },
+  "featureGuide": {
+    "message": "Feature guide"
+  },
   "reset_chat_ratio": {
     "message": "Reset Chat Layout"
   },

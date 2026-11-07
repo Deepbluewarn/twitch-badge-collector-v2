@@ -11,6 +11,9 @@
   "generalSetting": {
     "message": "일반 설정"
   },
+  "featureGuide": {
+    "message": "기능 안내"
+  },
   "reset_chat_ratio": {
     "message": "채팅창 비율 초기화"
   },
