@@ -9,6 +9,7 @@
  *    회복하면 알린다. (rev 13 사고: 알림 한 번이 묻혀 18시간 동안 아무도 못 봤다)
  *  - 소켓: 매시간 돌아서 스크립트 알림을 그대로 쓰면 같은 경고가 매번 온다. 스크립트 알림은 끄고,
  *    처음 보는 문제일 때, 깨진 채로 6시간이 지났을 때, 회복했을 때만 여기서 알린다.
+ *    드문 메시지(상점 구매, 파티 등 템플릿이 없는 것)가 처음 잡히면 상태와 따로 알린다. 모양은 $CANARY_STATE_DIR/socket-rare.json.
  *
  * 카나리가 문제를 찾아도 이 스크립트는 0으로 끝난다(결과는 상태에 남긴다). 스크립트를 못 돌렸을 때만 1.
  *
@@ -98,6 +99,7 @@ async function main(): Promise<void> {
     const autofixPath = join(OUT_DIR, 'canary-autofix.json');
     const autofix = kind === 'selector' && existsSync(autofixPath) ? JSON.parse(readFileSync(autofixPath, 'utf8')) : undefined;
     const warnings = [...output.matchAll(/\[socket-canary\] WARN (.+)/g)].map((m) => m[1]);
+    const rareNew = [...output.matchAll(/\[socket-canary\] RARE-NEW (.+)/g)].map((m) => m[1]);
 
     let status: CanaryStatus;
     let problems: string[];
@@ -151,6 +153,10 @@ async function main(): Promise<void> {
         // 상태가 바뀐 첫 알림은 스크립트가 보냈다
         result.notifiedAt = now;
         result.notifiedKey = key;
+    }
+
+    if (rareNew.length) {
+        await sendDiscord([`**${spec.label}: 처음 잡힌 드문 메시지** ${rareNew.join(', ')}`, `모양: ovm ${join(OUT_DIR, 'socket-rare.json')}`]);
     }
 
     writeJson(`canary-${kind}`, result);

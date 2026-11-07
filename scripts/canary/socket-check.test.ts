@@ -128,4 +128,25 @@ describe('checkSocketCapture', () => {
         const r = checkSocketCapture([channel([chatPacket(...many, item({ profile: profile({ nickname: undefined }) }))])]);
         expect(r.errors).toEqual([]);
     });
+
+    it('드문 메시지는 종류별로 건수와 모양을 모은다. 글자 값은 길이만', () => {
+        const r = checkSocketCapture([channel([
+            chatPacket(
+                item(),
+                item({ msgTypeCode: 15, msg: '', extras: JSON.stringify({ productName: '머그컵', quantity: 1, orderAmount: 5000 }) }),
+                item({ msgTypeCode: 15, msg: '', extras: JSON.stringify({ productName: '티셔츠', quantity: 1, orderAmount: 5000 }) }),
+                item({ msgTypeCode: 10, extras: JSON.stringify({ donationType: 'CHAT', payAmount: 1000 }) }),
+                item({ msgTypeCode: 10, extras: JSON.stringify({ donationType: 'VIDEO', payAmount: 1000 }) }),
+                item({ msgTypeCode: 12, msg: '', extras: JSON.stringify({ giftType: 'SUBSCRIPTION_GIFT_RECEIVER', receiverNickname: '닷줄' }) }),
+                item({ uid: 'anonymous', msgTypeCode: 12, msg: '', profile: null, extras: JSON.stringify({ giftType: 'SUBSCRIPTION_GIFT_RECEIVER', receiverNickname: '닷줄' }) }),
+            ),
+        ])]);
+        expect(Object.keys(r.rare).sort()).toEqual(['donation:VIDEO', 'gift:sender', 'shop']);
+        expect(r.rare.shop.count).toBe(2);
+        expect(r.rare.shop.shapes).toEqual([{
+            uid: 'user', message: 'empty', profile: expect.arrayContaining(['nickname']),
+            extras: { orderAmount: '5000', productName: 'string(3)', quantity: '1' },
+        }]);
+        expect(r.rare['gift:sender'].shapes[0].extras).toEqual({ giftType: '"SUBSCRIPTION_GIFT_RECEIVER"', receiverNickname: 'string(2)' });
+    });
 });

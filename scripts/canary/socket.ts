@@ -13,16 +13,22 @@
  *  - SOCKET_CANARY_CHANNELS  동시 접속 채널 수 (기본 8)
  *  - SOCKET_CANARY_SECONDS   수집 시간 (기본 120)
  *  - DISCORD_CANARY_WEBHOOK
- *  - CANARY_STATE_DIR  알림 파일을 둘 곳. 없으면 리포 루트
+ *  - CANARY_STATE_DIR  알림 파일과 드문 메시지 모음(socket-rare.json)을 둘 곳. 없으면 리포 루트
+ *
+ * 드문 메시지(socket-check.ts rareKind)는 실행마다 socket-rare.json에 모은다. 처음 잡힌 종류는
+ * `[socket-canary] RARE-NEW <종류>`로 찍고, ovm(ops/watch/canary.ts)이 이 줄을 보고 Discord로 알린다.
  */
-import { writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { collectChat, discoverLives } from '../capture/socket-client.ts';
-import { checkSocketCapture, type ChannelCapture, type SocketCheckResult } from './socket-check.ts';
+import { checkSocketCapture, type ChannelCapture, type RareShape, type SocketCheckResult } from './socket-check.ts';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ALERT_FILE = join(process.env.CANARY_STATE_DIR || REPO_ROOT, 'canary-socket-alert.json');
+const RARE_FILE = join(process.env.CANARY_STATE_DIR || REPO_ROOT, 'socket-rare.json');
+/** 종류마다 남기는 모양 수 */
+const RARE_SAMPLES = 10;
 const CHANNELS = Math.max(1, parseInt(process.env.SOCKET_CANARY_CHANNELS ?? '8', 10));
 const SECONDS = Math.max(10, parseInt(process.env.SOCKET_CANARY_SECONDS ?? '120', 10));
 
@@ -43,6 +49,31 @@ async function notifyDiscord(content: string) {
 function summary(r: SocketCheckResult) {
     const s = r.stats;
     return `채널 ${s.connected}/${s.channels} 접속 · 패킷 ${s.packets} · 채팅 ${s.chats} (배지 있음 ${s.withBadges}) · 메시지 종류 ${JSON.stringify(s.byMsgType)}`;
+}
+
+interface RareEntry {
+    count: number;
+    firstAt: string;
+    lastAt: string;
+    samples: RareShape[];
+}
+
+/** 이번 실행의 드문 메시지를 모음 파일에 더하고, 처음 잡힌 종류를 돌려준다. */
+function saveRare(rare: SocketCheckResult['rare']): string[] {
+    const all: Record<string, RareEntry> = existsSync(RARE_FILE) ? JSON.parse(readFileSync(RARE_FILE, 'utf8')) : {};
+    const now = new Date().toISOString();
+    const fresh: string[] = [];
+    for (const [kind, { count, shapes }] of Object.entries(rare)) {
+        const e = all[kind] ?? (fresh.push(kind), { count: 0, firstAt: now, lastAt: now, samples: [] });
+        e.count += count;
+        e.lastAt = now;
+        for (const s of shapes) {
+            if (e.samples.length < RARE_SAMPLES && !e.samples.some(x => JSON.stringify(x) === JSON.stringify(s))) e.samples.push(s);
+        }
+        all[kind] = e;
+    }
+    if (Object.keys(rare).length) writeFileSync(RARE_FILE, JSON.stringify(all, null, 2));
+    return fresh;
 }
 
 function writeAlert(title: string, lines: string[]) {
@@ -83,6 +114,12 @@ async function main() {
     console.log(`[socket-canary] ${summary(r)}`);
     r.errors.forEach(e => console.error(`[socket-canary] ERROR ${e}`));
     r.warnings.forEach(w => console.warn(`[socket-canary] WARN ${w}`));
+    if (Object.keys(r.rare).length) console.log(`[socket-canary] 드문 메시지 ${JSON.stringify(Object.fromEntries(Object.entries(r.rare).map(([k, v]) => [k, v.count])))}`);
+    try {
+        saveRare(r.rare).forEach(k => console.log(`[socket-canary] RARE-NEW ${k}`));
+    } catch (err) {
+        console.error(`[socket-canary] socket-rare.json 저장 실패: ${(err as Error).message}`);
+    }
 
     if (r.errors.length) {
         const lines = ['## 오류', ...r.errors.map(e => `- ${e}`)];

@@ -30,6 +30,50 @@ export const UNKNOWN_SAMPLE_CHARS = 300;
 /** 배지가 하나도 안 나오는 걸 "깨짐"으로 보려면 이만큼은 채팅이 있어야 한다. */
 export const MIN_CHATS_FOR_BADGE_CHECK = 200;
 
+/** 드문 메시지 모양에서 값을 그대로 남기는 extras 키. 나머지 글자 값은 길이만 남긴다(닉네임, 상품명 등). */
+const ENUM_KEYS = /(^type|Type|Code|[sS]tatus)$/;
+
+/** 드문 메시지의 모양. 값은 기록하지 않는다 — 숫자, 참거짓, 종류 값만. */
+export interface RareShape {
+    uid: 'anonymous' | 'user';
+    message: 'empty' | 'text';
+    /** profile 키 목록. profile이 없으면 null. */
+    profile: string[] | null;
+    extras: Record<string, string>;
+}
+
+/**
+ * 렌더러에 템플릿이 없거나 실제로 본 적이 없는 메시지 종류(2026-11-07). 잡히면 모양을 모아 템플릿을 만들 근거로 쓴다.
+ *  - party:<extras.type>  type 13 파티 알림
+ *  - shop                 type 15 상점 구매
+ *  - donation:<종류>       CHAT, MISSION 말고 다른 후원 (PARTY, MISSION_PARTICIPATION, VIDEO 등)
+ *  - gift:sender          보낸 사람 profile이 실린 받은 사람 알림 (받는 사람을 고른 선물)
+ */
+export function rareKind(type: number, extras: Json | null, hasProfile: boolean): string | null {
+    if (type === 13) return `party:${extras?.type ?? '?'}`;
+    if (type === 15) return 'shop';
+    if (type === 10 && extras?.donationType !== 'CHAT' && extras?.donationType !== 'MISSION') return `donation:${extras?.donationType ?? '?'}`;
+    if (type === 12 && extras?.giftType === 'SUBSCRIPTION_GIFT_RECEIVER' && hasProfile) return 'gift:sender';
+    return null;
+}
+
+function describeValue(key: string, v: unknown): string {
+    if (v === null) return 'null';
+    if (Array.isArray(v)) return `array(${v.length})`;
+    if (typeof v === 'string') return ENUM_KEYS.test(key) ? `"${v.slice(0, 40)}"` : `string(${v.length})`;
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    return typeof v;
+}
+
+export function rareShape(it: Json, profile: Json | null, extras: Json | null): RareShape {
+    return {
+        uid: (it.uid ?? it.userId) === 'anonymous' ? 'anonymous' : 'user',
+        message: typeof (it.msg ?? it.content) === 'string' && (it.msg ?? it.content).trim() ? 'text' : 'empty',
+        profile: profile ? Object.keys(profile).sort() : null,
+        extras: Object.fromEntries(Object.keys(extras ?? {}).sort().map(k => [k, describeValue(k, extras![k])])),
+    };
+}
+
 export interface ChannelCapture {
     channel: string;
     raws: string[];
@@ -47,6 +91,8 @@ export interface SocketCheckResult {
         byCmd: Record<string, number>;
         byMsgType: Record<string, number>;
     };
+    /** 드문 메시지 종류(rareKind)별 건수와 모양. 같은 모양은 한 번만. */
+    rare: Record<string, { count: number; shapes: RareShape[] }>;
 }
 
 type Json = Record<string, any>;
@@ -76,6 +122,7 @@ export function checkSocketCapture(captures: ChannelCapture[]): SocketCheckResul
     const unknownTypes = new Set<string>();
     const unknownStatuses = new Set<string>();
     const unknownBlindTypes = new Set<string>();
+    const rare: SocketCheckResult['rare'] = {};
 
     let packets = 0, badJson = 0, connected = 0;
     let items = 0, parseFailed = 0, chats = 0, withBadges = 0;
@@ -114,13 +161,21 @@ export function checkSocketCapture(captures: ChannelCapture[]): SocketCheckResul
                 const ex = parseJson(it.extras);
                 if (!ex.ok) extrasBroken++;
 
+                const pr = parseJson(it.profile);
+                const kind = rareKind(chat.type, ex.value, !!pr.value);
+                if (kind) {
+                    const shape = rareShape(it, pr.value, ex.value);
+                    const r = (rare[kind] ??= { count: 0, shapes: [] });
+                    r.count++;
+                    if (!r.shapes.some(s => JSON.stringify(s) === JSON.stringify(shape))) r.shapes.push(shape);
+                }
+
                 if (chat.type === 10) {
                     donations++;
                     if (typeof ex.value?.payAmount !== 'number') donationAmountBroken++;
                 }
 
                 // 프로필 없는 건 익명 후원 등 정상 케이스 — 프로필이 있을 때만 필드를 본다.
-                const pr = parseJson(it.profile);
                 if (!pr.ok) { profileBroken++; continue; }
                 if (!pr.value || chat.anonymous) continue;
                 profiles++;
@@ -162,5 +217,6 @@ export function checkSocketCapture(captures: ChannelCapture[]): SocketCheckResul
         errors,
         warnings,
         stats: { channels: captures.length, connected, packets, chats, withBadges, byCmd, byMsgType },
+        rare,
     };
 }
