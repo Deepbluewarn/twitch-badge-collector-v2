@@ -103,6 +103,7 @@ VOD REST: `GET api.chzzk.naver.com/service/v1/videos/{videoNo}/chats?playerMessa
 본문의 이모지는 `{:이름:}` 토큰으로 온다.
 
 **type 10 후원**: `payAmount`, `payType`(CURRENCY), `donationType`(CHAT 108 / MISSION 1), `isAnonymous`, `continuousDonationDays`, `weeklyRankList[]`, `donationUserWeeklyRank`, `emojis`. 미션 후원이면 추가로 `missionText`, `missionDonationType`, `durationTime`, `totalPayAmount`, `success`, `status`가 붙는다.
+미션 참여 후원(`donationType: MISSION_PARTICIPATION`, 진행 중인 미션에 치즈를 보탬, 2026-11-07 소켓 카나리 첫 수집): `missionDonationType: PARTICIPATION`, `missionText`, `missionDonationId`, `relatedMissionDonationId`, `participationCount`, `totalPayAmount`, `status: APPROVED`. 본문은 미션 이름이다. host는 일반 후원 카드가 아니라 "○○님이 / 미션 이름 미션에 / 금액 추가했습니다."(금액이 없으면 "상금을 추가했습니다.")를 단계 색 없는 기본 카드로 그린다. 템플릿 값 `donation.participation`.
 
 **type 11 구독**: `month`, `tierNo`, `tierName`(채널별 이름), `nickname`.
 

@@ -198,6 +198,24 @@ describe('renderChzzkChat', () => {
         expect(el.querySelector('.tbc-chat-text')!.textContent).toBe('닷줄님에게 나나양 좋아 구독권 선물');
     });
 
+    it('미션 참여 후원: 단계 색 없는 카드에 "님이 / 미션 이름 미션에 / 금액 추가했습니다."', () => {
+        const el = renderChzzkChat(chat({
+            type: 10, uid: 'anonymous', anonymous: true, nickname: '', message: '노래 한 곡',
+            extras: { donationType: 'MISSION_PARTICIPATION', payAmount: 10000, missionText: '노래 한 곡', isAnonymous: true },
+        }));
+        expect(el.className).toBe('tbc-chat tbc-chat--donation tbc-chat--participation');
+        expect(el.querySelector('.tbc-chat-event-head')!.textContent).toContain('익명의 후원자님이');
+        const rows = el.querySelectorAll('.tbc-chat-row');
+        expect(rows[0].querySelector('.tbc-chat-mission-name')!.textContent).toBe('노래 한 곡');
+        expect(rows[0].textContent).toBe('노래 한 곡미션에');
+        expect(rows[1].textContent).toBe('10,000추가했습니다.');
+        // 미션 이름이 미션 줄과 본문으로 두 번 나오지 않는다
+        expect(el.querySelector('.tbc-chat-mission')).toBeNull();
+
+        const noAmount = renderChzzkChat(chat({ type: 10, message: '노래', extras: { donationType: 'MISSION_PARTICIPATION', payAmount: 0 } }));
+        expect(noAmount.querySelectorAll('.tbc-chat-row')[1].textContent).toBe('상금을 추가했습니다.');
+    });
+
     it('클린봇 채팅은 루트에 표시 클래스', () => {
         const el = renderChzzkChat(chat({ status: 'CBOTBLIND' }));
         expect(el.classList.contains('tbc-chat--cleanbot')).toBe(true);

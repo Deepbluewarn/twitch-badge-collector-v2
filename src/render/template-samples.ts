@@ -93,6 +93,13 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
                 extras: { payAmount: 5000, donationType: 'MISSION', missionText: '노래 한 곡 불러주세요' },
             }),
         },
+        {
+            label: 'donation_participation',
+            chat: sample({
+                uid: 'anonymous', type: 10, anonymous: true, nickname: '', message: '노래 한 곡 불러주세요',
+                extras: { payAmount: 10000, donationType: 'MISSION_PARTICIPATION', missionText: '노래 한 곡 불러주세요', isAnonymous: true },
+            }),
+        },
     ],
     gift: [
         {
@@ -150,6 +157,7 @@ export const TEMPLATE_FIELDS: { name: string; kinds?: ChzzkChatKind[] }[] = [
     { name: 'donation.level', kinds: ['donation'] },
     { name: 'donation.amount', kinds: ['donation'] },
     { name: 'donation.mission', kinds: ['donation'] },
+    { name: 'donation.participation', kinds: ['donation'] },
     { name: 'donation.missionText', kinds: ['donation'] },
     { name: 'subscription.month', kinds: ['subscription'] },
     { name: 'subscription.tierName', kinds: ['subscription'] },

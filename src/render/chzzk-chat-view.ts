@@ -53,8 +53,9 @@ export interface ChzzkChatView {
     /**
      * amountText는 "1,000치즈", amountNumber는 단위 없이 "1,000" (기본 템플릿은 치즈 아이콘 옆에 쓴다).
      * level은 금액 단계 0~4 (donationLevel) — 금액이 없으면 없다. 금액별 모양은 HTML에서 이걸로.
+     * participation은 진행 중인 미션에 치즈를 보탠 후원(MISSION_PARTICIPATION). 미션 이름이 본문으로 온다.
      */
-    donation?: { amount: number; amountText: string; amountNumber: string; level?: number; mission: boolean; missionText?: string };
+    donation?: { amount: number; amountText: string; amountNumber: string; level?: number; mission: boolean; participation: boolean; missionText?: string };
     subscription?: { month: number; tierName: string };
     /**
      * 구독권 선물 (type 12). 실측(2026-10-11)상 두 갈래로 온다:
@@ -179,6 +180,7 @@ export function toChzzkChatView(chat: ChzzkSocketChat, opts: ChzzkViewOptions = 
                 amountNumber: amount.toLocaleString('ko-KR'),
                 ...(level !== null ? { level } : {}),
                 mission: x.donationType === 'MISSION',
+                participation: x.donationType === 'MISSION_PARTICIPATION',
                 ...(typeof x.missionText === 'string' ? { missionText: x.missionText } : {}),
             },
         } : {}),

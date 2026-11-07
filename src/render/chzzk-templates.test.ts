@@ -35,7 +35,7 @@ describe('detectLook', () => {
     });
 });
 
-describe.each(['gift', 'donation'] as const)('예전 기본 템플릿 (%s)', (legacy) => {
+describe.each(['v2.27', 'v2.24'] as const)('예전 기본 템플릿 (%s)', (legacy) => {
     it('예전 템플릿으로 만든 모양도 같은 모양으로 알아본다', () => {
         for (const look of ALL) expect(detectLook(buildTemplates(look, legacy))).toEqual(look);
     });

@@ -130,9 +130,18 @@
     font-size: 0.9286em;
     line-height: 1.385;
 }
-.tbc-chat-amount,
-.tbc-chat-gift-sender {
+.tbc-chat-amount {
     margin-left: 2px;
+}
+/* "님이", "미션에" — host는 앞에 줄바꿈 없는 공백 하나 */
+.tbc-chat-particle {
+    flex: none;
+    margin-left: 0.28em;
+}
+/* 닉네임, 인증 마크 뒤엔 이미 8px이 있어 공백 하나만큼만 남긴다 */
+.tbc-chat-nick + .tbc-chat-particle,
+.tbc-chat-verified + .tbc-chat-particle {
+    margin-left: -4px;
 }
 /* host 카드는 머리글(후원은 닉네임만)과 구독 본문을 치지직 웹폰트로 쓴다. @font-face는 치지직 페이지에 있어
    모아보기에선 그대로 잡히고, 설정 페이지 미리보기에선 뒤의 대체 글꼴로 보인다.
@@ -189,12 +198,48 @@
     background: rgba(0, 0, 0, 0.15);
     font-weight: 900;
 }
+/* 미션 참여: 단계 색 없는 기본 카드, 미션 이름은 강조색으로 한 줄, 금액은 치즈 아이콘과 굵게 */
+.tbc-chat.tbc-chat--participation {
+    --tbc-card-bg: #f0f1f2;
+    --tbc-card-color: #0e0f10;
+}
+.theme_dark .tbc-chat.tbc-chat--participation {
+    --tbc-card-bg: #202224;
+    --tbc-card-color: #fff;
+}
+.tbc-chat-row {
+    display: flex;
+    align-items: center;
+}
+.tbc-chat-row + .tbc-chat-row {
+    margin-top: 4px;
+}
+.tbc-chat-mission-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-style: normal;
+    color: var(--tbc-card-em);
+}
+.tbc-chat-money {
+    display: flex;
+    align-items: center;
+    column-gap: 2px;
+    margin-right: 4px;
+    font-weight: 900;
+}
+.tbc-chat-money::before,
 .tbc-chat-cheese::before {
     content: "";
     flex: none;
     width: 18px;
     height: 18px;
     background: url("https://ssl.pstatic.net/static/nng/glive/image/icon_cheese.png") center / cover no-repeat;
+}
+.tbc-chat-money::before {
+    width: 16px;
+    height: 16px;
 }
 
 /* 구독: 오른쪽 위 메달, 개월 수는 강조색, 본문은 안쪽 상자 */

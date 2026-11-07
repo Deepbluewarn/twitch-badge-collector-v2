@@ -52,7 +52,7 @@ function usageOf(name: string): string {
     if (name === 'nickStyle') return 'style="{{nickStyle}}"';
     if (name === 'nickEffect') return 'class="tbc-chat-nick--{{nickEffect}}"';
     if (name === 'badges') return '{{#badges}}<img src="{{url}}">{{/badges}}';
-    if (['hasMessage', 'cleanbot', 'blinded', 'anonymous', 'donation.mission', 'verifiedIconUrl', 'gift.toChannel'].includes(name)) {
+    if (['hasMessage', 'cleanbot', 'blinded', 'anonymous', 'donation.mission', 'donation.participation', 'verifiedIconUrl', 'gift.toChannel'].includes(name)) {
         return `{{#${name}}}…{{/${name}}}`;
     }
     return `{{${name}}}`;
@@ -85,7 +85,7 @@ const SYNTAX_HELP: { code: string; key: string }[] = [
 /** 쓸 수 있는 값 — 묶음과 짧은 이름(긴 설명은 마우스를 올리면). 편집 중인 종류의 묶음이 맨 위로 */
 const FIELD_GROUPS: { id: string; kind?: ChzzkChatKind; names: string[] }[] = [
     { id: 'basic', names: ['nickname', 'messageHtml', 'time', 'badges'] },
-    { id: 'donation', kind: 'donation', names: ['donation.amountText', 'donation.missionText', 'donation.mission', 'donation.amount'] },
+    { id: 'donation', kind: 'donation', names: ['donation.amountText', 'donation.missionText', 'donation.mission', 'donation.participation', 'donation.amount'] },
     { id: 'subscription', kind: 'subscription', names: ['subscription.month', 'subscription.tierName'] },
     { id: 'gift', kind: 'gift', names: ['gift.quantity', 'gift.tierName', 'gift.receiverNickname', 'gift.toChannel'] },
     { id: 'condition', names: ['hasMessage', 'cleanbot', 'blinded', 'anonymous', 'verifiedIconUrl'] },

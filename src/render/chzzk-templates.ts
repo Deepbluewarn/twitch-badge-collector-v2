@@ -51,8 +51,37 @@ ${indent(h)}
 `;
 }
 
-/** 후원 카드 — host처럼 이름 줄, 본문, 맨 아래 금액 순서. 금액이 없는 후원은 금액 줄을 뺀다. */
+/**
+ * 후원 카드. 미션 참여(진행 중인 미션에 치즈를 보탬)는 host처럼 "○○님이 / 미션 이름 미션에 / 금액 추가했습니다."
+ * 미션 이름은 본문으로 온다. 나머지 후원은 plainDonation.
+ */
 function donation(h: string) {
+    return `{{#donation.participation}}
+    <div class="tbc-chat-event-head">
+${indent(indent(h))}
+        <span class="tbc-chat-particle">님이</span>
+    </div>
+    <div class="tbc-chat-text tbc-chat-row">
+        <em class="tbc-chat-mission-name">{{{messageHtml}}}</em>
+        <span class="tbc-chat-particle">미션에</span>
+    </div>
+    <div class="tbc-chat-text tbc-chat-row">
+        {{#donation.amount}}
+            <strong class="tbc-chat-money">{{donation.amountNumber}}</strong>추가했습니다.
+        {{/donation.amount}}
+        {{^donation.amount}}
+            상금을 추가했습니다.
+        {{/donation.amount}}
+    </div>
+{{/donation.participation}}
+{{^donation.participation}}
+${indent(plainDonation(h).trimEnd())}
+{{/donation.participation}}
+`;
+}
+
+/** 후원 카드 — host처럼 이름 줄, 본문, 맨 아래 금액 순서. 금액이 없는 후원은 금액 줄을 뺀다. 2026-11-07 전엔 이것만 썼다. */
+function plainDonation(h: string) {
     return `<div class="tbc-chat-event-head">
 ${indent(h)}
 </div>
@@ -100,7 +129,7 @@ ${indent(indent(h))}
     {{^anonymous}}
         <div class="tbc-chat-event-head">
 ${indent(indent(indent(h)))}
-            <span class="tbc-chat-gift-sender">님이</span>
+            <span class="tbc-chat-particle">님이</span>
         </div>
         <div class="tbc-chat-text">
             <strong class="tbc-chat-gift-receiver">{{gift.receiverNickname}}</strong>님에게 {{gift.tierName}} 구독권 선물
@@ -134,12 +163,12 @@ ${indent(indent(h))}
 }
 
 /**
- * 예전 기본 템플릿. 저장된 모양을 알아보고 옮기는 데만 쓴다.
- *  - 'gift': 2026-11-07 전. 선물만 예전 것.
- *  - 'donation': 2026-10-28 전. 후원과 선물 모두 예전 것.
+ * 예전 버전의 기본 템플릿. 저장된 모양을 알아보고 옮기는 데만 쓴다.
+ *  - 'v2.27': v2.25.0 ~ v2.27.0. 후원에 미션 참여 갈래가 없고, 선물 받은 사람 알림에 보낸 사람이 없다.
+ *  - 'v2.24': v2.24.1까지. 위에 더해 후원 금액이 이름 줄 끝.
  */
-export type LegacyTemplates = 'gift' | 'donation';
-const LEGACY: LegacyTemplates[] = ['gift', 'donation'];
+export type LegacyTemplates = 'v2.27' | 'v2.24';
+const LEGACY: LegacyTemplates[] = ['v2.27', 'v2.24'];
 
 /**
  * 모양에 맞는 네 종류 템플릿. 편집기에 그대로 보이므로 읽기 좋게 줄을 나눠 둔다 — 줄바꿈
@@ -149,7 +178,7 @@ export function buildTemplates(look: TemplateLook, legacy?: LegacyTemplates): Ch
     const h = head(look.badges);
     const out: ChzzkTemplates = {
         chat: chat(h, look.layout),
-        donation: legacy === 'donation' ? legacyDonation(h) : donation(h),
+        donation: legacy === 'v2.24' ? legacyDonation(h) : legacy === 'v2.27' ? plainDonation(h) : donation(h),
         subscription: `<div class="tbc-chat-event-head">
 ${indent(h)}
     <strong class="tbc-chat-amount">{{subscription.month}}개월 구독</strong>
@@ -162,7 +191,6 @@ ${indent(h)}
 {{/hasMessage}}
 `,
         gift: legacy ? legacyGift(h) : gift(h),
-
     };
     if (look.size === 'large') {
         for (const k of Object.keys(out) as ChzzkChatKind[]) {

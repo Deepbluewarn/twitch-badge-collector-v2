@@ -74,8 +74,9 @@ export function renderChzzkChat(chat: ChzzkSocketChat, opts: RenderOptions = {})
     const root = document.createElement('div');
     root.className = `tbc-chat tbc-chat--${view.kind}`;
     if (view.cleanbot) root.classList.add('tbc-chat--cleanbot');
-    // 후원 카드 색은 금액 단계로 — 템플릿이 무엇이든 붙도록 루트에 단다.
-    if (view.donation?.level !== undefined) root.classList.add(`tbc-chat--level${view.donation.level}`);
+    // 후원 카드 색은 금액 단계로 — 템플릿이 무엇이든 붙도록 루트에 단다. 미션 참여는 host처럼 단계 색 없이 기본 카드.
+    if (view.donation?.participation) root.classList.add('tbc-chat--participation');
+    else if (view.donation?.level !== undefined) root.classList.add(`tbc-chat--level${view.donation.level}`);
     // 칭호가 있는 사람(스트리머·매니저 등)의 일반 채팅은 host가 본문을 칭호 색으로 칠한다.
     // 템플릿에 넣지 않고 루트 변수로 — 사용자 템플릿에도 같이 먹는다. 색 모양만 통과.
     if (view.kind === 'chat' && chat.titleColor && /^#[0-9a-fA-F]{3,8}$/.test(chat.titleColor)) {
