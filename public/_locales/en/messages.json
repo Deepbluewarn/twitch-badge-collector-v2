@@ -11,6 +11,9 @@
   "generalSetting": {
     "message": "General Settings"
   },
+  "noCollectedChats": {
+    "message": "No collected chats"
+  },
   "featureGuide": {
     "message": "Feature guide"
   },

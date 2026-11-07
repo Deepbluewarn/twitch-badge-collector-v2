@@ -11,6 +11,9 @@
   "generalSetting": {
     "message": "일반 설정"
   },
+  "noCollectedChats": {
+    "message": "수집된 채팅 없음"
+  },
   "featureGuide": {
     "message": "기능 안내"
   },

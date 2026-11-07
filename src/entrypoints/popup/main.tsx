@@ -423,11 +423,11 @@ function Popup() {
         </Button>
       } />
 
-      {/* 푸터: 기능 안내(한국어 브라우저만, 페이지가 한국어뿐. 누른 수는 사이트 GA의 utm_content로) + socials */}
+      {/* 푸터: 기능 안내(한국어 브라우저만, 페이지가 한국어뿐) + socials */}
       <Stack dir='row' align='center' justify='space-between' style={{ marginTop: 4, borderTop: '1px solid var(--ui-hair)', paddingTop: 8 }}>
         {hasFeatureGuide() && (
-          <LinkButton variant='text' size='sm' icon='menu_book' href={featureGuideUrl('popup')} target='_blank' rel='noreferrer'
-            style={{ color: 'var(--ui-muted)' }}>
+          <LinkButton variant='text' size='sm' icon='menu_book' href={featureGuideUrl('popup_guide')} target='_blank' rel='noreferrer'
+            onClick={() => markUsage('guideOpen')} style={{ color: 'var(--ui-muted)' }}>
             {browser.i18n.getMessage('featureGuide' as any)}
           </LinkButton>
         )}

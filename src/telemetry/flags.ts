@@ -4,7 +4,7 @@
  */
 
 // 하루 기록의 항목(그날 했는지). 사이트 리포 functions/api/ping.ts의 DAY_FLAGS와 같은 목록, 같은 순서. 뒤에만 덧붙인다.
-// firstWeek, firstMonth와 합쳐 Analytics Engine 한 행의 숫자 칸(20개)에 맞춘다. 넘기면 서버가 다음 행으로 나눈다.
+// firstWeek, firstMonth와 합쳐 Analytics Engine 한 행의 숫자 칸(20개)을 넘는 몫(guideOpen부터)은 서버가 day2 행으로 나눈다.
 export const USAGE_FLAGS = [
     'twitch',
     'chzzk',
@@ -24,6 +24,7 @@ export const USAGE_FLAGS = [
     'jumpBottom',
     'copyId',
     'channelToggle',
+    'guideOpen',
 ] as const;
 export type UsageFlag = typeof USAGE_FLAGS[number];
 

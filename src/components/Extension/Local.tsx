@@ -477,11 +477,14 @@ export default function Local({
                 )}
             </div>
 
-            {/* 비었을 때만 가운데에 흐린 기능 안내 링크. 채팅이 하나라도 수집되면 사라진다 */}
+            {/* 비었을 때만 가운데에 흐리게: 고장이 아니라 수집된 채팅이 없다는 것 + 기능 안내 링크. 채팅이 하나라도 수집되면 사라진다 */}
             {savedChats.length === 0 && !captureMode && hasFeatureGuide() && (
-                <a className="tbcv2-empty-guide" href={featureGuideUrl('empty-pane')} target="_blank" rel="noreferrer">
-                    {browser.i18n.getMessage('featureGuide' as any)}
-                </a>
+                <div className="tbcv2-empty">
+                    <span>{browser.i18n.getMessage('noCollectedChats' as any)}</span>
+                    <a href={featureGuideUrl('empty_pane')} target="_blank" rel="noreferrer" onClick={() => markUsage('guideOpen')}>
+                        {browser.i18n.getMessage('featureGuide' as any)}
+                    </a>
+                </div>
             )}
 
             {/* "맨 아래로" FAB — 위로 스크롤한 상태 + hover일 때만 표시.

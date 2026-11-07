@@ -44,6 +44,7 @@ const USAGE_TEXT: Record<UsageFlag, [string, string]> = {
     jumpBottom: ['맨 아래로', '모아보기의 맨 아래로 버튼을 눌렀다'],
     copyId: ['ID 복사', '치지직 프로필 창의 ID 복사를 눌렀다'],
     channelToggle: ['채널 끄기', '팝업이나 설정에서 채널별 사용을 끄거나 켰다'],
+    guideOpen: ['기능 안내', '팝업이나 빈 수집 창의 기능 안내 링크를 눌렀다'],
 };
 const SETTING_TEXT: Record<SettingFlag, [string, string]> = {
     advancedFilter: ['고급 필터', '고급 필터 모드를 켜 두었다'],
@@ -152,14 +153,16 @@ export interface UsageSummary {
 
 export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
     const released = await releasedVersions();
-    const [dayRows, weekRows] = await Promise.all([
+    const [dayRows, weekRows, day2Rows] = await Promise.all([
         sql(`SELECT blob2 AS date, blob3 AS v, blob4 AS b, SUM(_sample_interval) AS n, ${sums(ROW_DOUBLES)} FROM tbc_usage
              WHERE blob1 = 'day' AND timestamp > NOW() - INTERVAL '${QUERY_DAYS}' DAY GROUP BY date, v, b`),
         sql(`SELECT blob1 AS row, blob5 AS week, blob2 AS date, blob3 AS v, blob4 AS b, blob6 AS lang, SUM(_sample_interval) AS n, ${sums(ROW_DOUBLES)} FROM tbc_usage
              WHERE (blob1 = 'week' OR blob1 = 'week2') AND timestamp > NOW() - INTERVAL '${QUERY_DAYS}' DAY GROUP BY row, week, date, v, b, lang`),
+        sql(`SELECT blob2 AS date, blob3 AS v, SUM(_sample_interval) AS n, ${sums(ROW_DOUBLES)} FROM tbc_usage
+             WHERE blob1 = 'day2' AND timestamp > NOW() - INTERVAL '${QUERY_DAYS}' DAY GROUP BY date, v`),
     ]);
 
-    // ── 하루 기록 ── double1 firstWeek, double2 firstMonth, double3.. USAGE_FLAGS
+    // ── 하루 기록 ── double1 firstWeek, double2 firstMonth, double3.. USAGE_FLAGS (20칸을 넘는 몫은 day2 행의 double1..)
     const dow = (date: string) => new Date(`${date}T00:00:00Z`).getUTCDay();
     const weekStart = shiftDay(yesterday, 1 - (dow(yesterday) || 7));
     const windowStart = shiftDay(yesterday, 1 - WINDOW_DAYS);
@@ -179,14 +182,28 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
         slot.users += n;
         if (r.b === 'edge') slot.edge += n; else slot.chrome += n;
         n28 += n;
-        USAGE_FLAGS.forEach((_, i) => { flags28[i] += d[i + 2]; if (date === yesterday) flagsY[i] += d[i + 2]; });
+        USAGE_FLAGS.forEach((_, i) => { if (i + 2 < ROW_DOUBLES) { flags28[i] += d[i + 2]; if (date === yesterday) flagsY[i] += d[i + 2]; } });
+    }
+    // day 행에 못 들어간 몫(guideOpen부터)은 day2 행에. 그 항목을 보내는 버전만 day2 행을 만들므로 비율의 분모도 day2 행 수로
+    const FIRST2 = ROW_DOUBLES - 2;
+    let day2Y = 0, day2_28 = 0;
+    for (const r of day2Rows) {
+        if (!released.has(String(r.v))) continue;
+        const date = String(r.date), n = num(r.n), d = doubles(r);
+        if (date > yesterday || !byDate.has(date)) continue;
+        day2_28 += n;
+        if (date === yesterday) day2Y += n;
+        d.forEach((x, i) => { const k = FIRST2 + i; if (k < USAGE_FLAGS.length) { flags28[k] += x; if (date === yesterday) flagsY[k] += x; } });
     }
     const dau = byDate.get(yesterday)?.users ?? 0;
     const dataDays = daily.filter((d) => d.users > 0).length || 1;
-    const features = USAGE_FLAGS.map((key, i) => ({
-        key, label: USAGE_TEXT[key][0], desc: USAGE_TEXT[key][1], now: dau ? flagsY[i] / dau : 0, avg: n28 ? flags28[i] / n28 : 0,
-        nowN: Math.round(flagsY[i]), avgN: Math.round(flags28[i] / dataDays),
-    }));
+    const features = USAGE_FLAGS.map((key, i) => {
+        const [baseY, base28] = i < FIRST2 ? [dau, n28] : [day2Y, day2_28];
+        return {
+            key, label: USAGE_TEXT[key][0], desc: USAGE_TEXT[key][1], now: baseY ? flagsY[i] / baseY : 0, avg: base28 ? flags28[i] / base28 : 0,
+            nowN: Math.round(flagsY[i]), avgN: Math.round(flags28[i] / dataDays),
+        };
+    });
 
     // ── 주간 설정 기록 ── 지난 완결된 주(오늘이 속한 주의 바로 앞 주). week 행에 앞 20개, week2 행에 나머지
     const today = shiftDay(yesterday, 1);
