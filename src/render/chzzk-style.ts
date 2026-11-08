@@ -317,7 +317,9 @@ export function styleCss(input: TemplateStyle): string {
 
     // 배지
     const badge = st.badge.size as number;
-    rule(SEL.badge.box, [`width: ${badge}px`, `height: ${badge}px`, `vertical-align: ${-Math.round((badge - 10) / 2)}px`, ...boxDecls('badge')]);
+    // 크기는 배지만. 인증 마크는 host처럼 글자 크기를 따른다(chzzk-chat.css)
+    rule('.tbc-chat-badge', [`width: ${badge}px`, `height: ${badge}px`, `vertical-align: ${-Math.round((badge - 10) / 2)}px`]);
+    rule(SEL.badge.box, boxDecls('badge'));
     if (st.badge.hide) rule('.tbc-chat-badge', ['display: none']);
     if (st.badge.firstOnly) rule('.tbc-chat-badge ~ .tbc-chat-badge', ['display: none']);
     if (!st.badge.verified) rule('.tbc-chat-verified', ['display: none']);

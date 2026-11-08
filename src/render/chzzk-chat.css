@@ -20,8 +20,7 @@
     /* 설정 페이지엔 치지직 변수가 없다 — 주변 글자색으로. */
     color: var(--sem-color-content-neutral-cool-stronger, inherit);
 }
-.tbc-chat-badge,
-.tbc-chat-verified {
+.tbc-chat-badge {
     width: 18px;
     height: 18px;
     margin-right: 4px;
@@ -42,8 +41,12 @@
     color: var(--tbc-nick-dark);
 }
 .tbc-chat-verified {
-    /* 닉네임 뒤 여백(8px)을 당겨 닉네임에 붙이고, 본문과는 닉네임처럼 8px */
-    margin-left: -8px;
+    /* host는 인증 마크를 글자 크기로 그린다(글자 19px 미만이면 글자 크기 그대로). 배지 크기와 따로 간다 */
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.15em;
+    /* host는 이름 글자 뒤 4px에 마크를 둔다. 닉네임 뒤 여백(8px)을 4px로 당기고, 본문과는 닉네임처럼 8px */
+    margin-left: -4px;
     margin-right: 8px;
 }
 
@@ -314,8 +317,7 @@
     font-size: 18px;
     line-height: 26px;
 }
-.tbc-chat-large .tbc-chat-badge,
-.tbc-chat-large .tbc-chat-verified {
+.tbc-chat-large .tbc-chat-badge {
     width: 22px;
     height: 22px;
     vertical-align: -5px;
