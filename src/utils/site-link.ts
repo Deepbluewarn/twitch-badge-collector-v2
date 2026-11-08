@@ -8,6 +8,6 @@ export function siteUrl(path: string, spot: string) {
     return url.href;
 }
 
-// 기능 안내 페이지(badgecollector.dev/extension/guide/). 한국어로만 있어서 한국어 브라우저에만 링크를 둔다.
+// 사용 설명서 페이지(badgecollector.dev/extension/guide/). 한국어로만 있어서 한국어 브라우저에만 링크를 둔다.
 export const hasFeatureGuide = () => browser.i18n.getUILanguage().toLowerCase().startsWith('ko');
 export const featureGuideUrl = (spot: string) => siteUrl('/extension/guide/', spot);

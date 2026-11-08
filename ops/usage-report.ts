@@ -44,7 +44,7 @@ const USAGE_TEXT: Record<UsageFlag, [string, string]> = {
     jumpBottom: ['맨 아래로', '모아보기의 맨 아래로 버튼을 눌렀다'],
     copyId: ['ID 복사', '치지직 프로필 창의 ID 복사를 눌렀다'],
     channelToggle: ['채널 끄기', '팝업이나 설정에서 채널별 사용을 끄거나 켰다'],
-    guideOpen: ['기능 안내', '팝업이나 빈 수집 창의 기능 안내 링크를 눌렀다'],
+    guideOpen: ['사용 설명서', '팝업이나 빈 수집 창의 사용 설명서 링크를 눌렀다'],
 };
 const SETTING_TEXT: Record<SettingFlag, [string, string]> = {
     advancedFilter: ['고급 필터', '고급 필터 모드를 켜 두었다'],

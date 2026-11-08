@@ -477,7 +477,7 @@ export default function Local({
                 )}
             </div>
 
-            {/* 비었을 때만 가운데에 흐리게: 고장이 아니라 수집된 채팅이 없다는 것 + 기능 안내 링크. 채팅이 하나라도 수집되면 사라진다 */}
+            {/* 비었을 때만 가운데에 흐리게: 고장이 아니라 수집된 채팅이 없다는 것 + 사용 설명서 링크. 채팅이 하나라도 수집되면 사라진다 */}
             {savedChats.length === 0 && !captureMode && hasFeatureGuide() && (
                 <div className="tbcv2-empty">
                     <span>{browser.i18n.getMessage('noCollectedChats' as any)}</span>

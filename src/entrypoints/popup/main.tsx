@@ -423,7 +423,7 @@ function Popup() {
         </Button>
       } />
 
-      {/* 푸터: 기능 안내(한국어 브라우저만, 페이지가 한국어뿐) + socials */}
+      {/* 푸터: 사용 설명서(한국어 브라우저만, 페이지가 한국어뿐) + socials */}
       <Stack dir='row' align='center' justify='space-between' style={{ marginTop: 4, borderTop: '1px solid var(--ui-hair)', paddingTop: 8 }}>
         {hasFeatureGuide() && (
           <LinkButton variant='text' size='sm' icon='menu_book' href={featureGuideUrl('popup_guide')} target='_blank' rel='noreferrer'
