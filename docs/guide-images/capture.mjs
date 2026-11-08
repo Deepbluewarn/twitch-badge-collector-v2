@@ -227,6 +227,8 @@ async function anonymize(p) {
     const hide = () => {
       // 후원 순위(시청자 닉네임), 입력창 안내. 채팅창 위 순위 띠는 이름표 없이 메달만 있어서 class로
       for (const el of document.querySelectorAll('aside [class*="ranking" i]')) if (!el.closest('[class*="ranking" i] [class*="ranking" i]')) el.style.display = "none";
+      // 채팅 목록 위에 겹쳐 띄우는 고정 영역(미션 카드, 고정 메시지)
+      for (const el of document.querySelectorAll('aside [class*="_fixed_"]')) if (getComputedStyle(el).position === "absolute") el.style.display = "none";
       for (const el of document.querySelectorAll("aside *")) {
         if (el.childElementCount === 0 && /파워 랭킹|후원 랭킹/.test(el.textContent)) {
           let box = el; while (box.parentElement && box.parentElement.tagName !== "ASIDE" && box.parentElement.childElementCount < 3) box = box.parentElement;
@@ -266,6 +268,11 @@ async function live() {
       const input = [...a.querySelectorAll("textarea, [contenteditable], [class*='input']")].map(e => e.getBoundingClientRect().top).filter(t => t > 300)[0] ?? r.bottom;
       return { x: r.x, y: r.y, width: r.width, height: Math.min(r.height, input - r.y - 8) };
     });
+    // 6-1. 기본 수집 창: 채팅창이 위아래로 나뉜 모습
+    await anonymize(tab);
+    await tab.waitForTimeout(300);
+    await tab.screenshot({ path: join(OUT, "pane.png"), clip: await chatBox() });
+    console.log("saved pane");
     // 7. 캡처: 팝업의 "채팅 캡쳐 시작"과 같은 메시지를 보내고 채팅 세 줄을 고른다
     const sw = ctx.serviceWorkers()[0];
     await sw.evaluate(async () => {
@@ -326,6 +333,22 @@ try {
   await p.setViewportSize({ width: 1280, height: 1000 });
   await page("filter");
   await shotRange(p, "channel", "모든 필터", null, { minWidth: 800, card: true, pad: 16, padY: 3 });
+  // 2-1. 수집 표시 색: 첫 필터의 색 칸을 눌러 고르는 창을 연다
+  await p.getByRole("button", { name: "수집 표시 색" }).first().click();
+  await p.waitForTimeout(500);
+  {
+    const r = await p.evaluate(() => {
+      const panel = document.querySelector('[role="dialog"][aria-label="수집 표시 색"]').getBoundingClientRect();
+      let row = document.querySelector('button[aria-label="수집 표시 색"]');
+      while (row.parentElement && row.getBoundingClientRect().width < 700) row = row.parentElement;
+      const a = row.getBoundingClientRect(), pad = 16;
+      const x = Math.min(a.x, panel.x) - pad, y = Math.min(a.y, panel.y) - pad;
+      return { x, y, width: Math.max(a.right, panel.right) + pad - x, height: Math.max(a.bottom, panel.bottom) + pad - y };
+    });
+    await p.screenshot({ path: join(OUT, "marker.png"), clip: r });
+    console.log("saved marker");
+  }
+  await p.keyboard.press("Escape");
   // 3. 사람으로 고르기: 새 필터 추가에서 닉네임 검색
   await p.setViewportSize({ width: 1040, height: 1000 });
   await page("filter");
@@ -335,6 +358,12 @@ try {
   await p.keyboard.type("단골");
   await p.waitForTimeout(1200);
   await shotRange(p, "person", "카테고리", null, { minWidth: 400, card: true, pad: 16 });
+  // 3-1. 배지 필터: 새 필터 추가의 배지 선택 칸
+  await page("filter");
+  await p.getByRole("button", { name: "새 필터 추가" }).click();
+  await p.waitForTimeout(2000);
+  await p.mouse.move(0, 0);
+  await shotRange(p, "badge", "배지 선택", "무한한 잠재력의 3등", { minWidth: 300, toWidth: 130, pad: 16, padY: 4 });
   // 4. 채팅 모양: 템플릿을 켜고 모양 코드로 예시 셋. 메시지 강조, 닉네임 강조(같은 배경과 테두리를 본문과 닉네임에), 닉네임은 파란 상자, 본문은 빨간 상자
   await page("template");
   await p.getByRole("switch").first().click();
