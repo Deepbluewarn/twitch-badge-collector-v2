@@ -105,6 +105,7 @@ const PREVIEW_MIX: { chat: (typeof S.chat)[number]['chat']; marker?: string }[] 
     { chat: S.chat[4].chat },
     { chat: S.gift[0].chat },
     { chat: S.donation[2].chat },
+    { chat: S.donation[3].chat },
     { chat: S.chat[5].chat },
 ];
 

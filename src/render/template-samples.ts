@@ -96,8 +96,10 @@ export const TEMPLATE_SAMPLES: Record<ChzzkChatKind, { label: string; chat: Chzz
         {
             label: 'donation_participation',
             chat: sample({
-                uid: 'anonymous', type: 10, anonymous: true, nickname: '', message: '노래 한 곡 불러주세요',
-                extras: { payAmount: 10000, donationType: 'MISSION_PARTICIPATION', missionText: '노래 한 곡 불러주세요', isAnonymous: true },
+                // 익명 모양은 donation_anonymous에서 보이므로 미션 참여는 닉네임과 배지가 붙는 실명으로
+                uid: 'sample-p', type: 10, nickname: '미션응원단', message: '노래 한 곡 불러주세요',
+                badges: [`${G}/badge/fan_03.png`],
+                extras: { payAmount: 10000, donationType: 'MISSION_PARTICIPATION', missionText: '노래 한 곡 불러주세요', isAnonymous: false },
             }),
         },
     ],
