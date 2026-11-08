@@ -12,6 +12,7 @@
  *     --persist on|off  채팅 유지 저장(chatPersistence). 기본 on. 둘 다 시험할 것
  *     --filter ㅋ       재현용 키워드 필터(치지직). 기본 ㅋ, 빈 값이면 넣지 않음
  *     --url <주소>      처음 열 방송. 기본은 지금 시청자가 많은 치지직 라이브 30위쯤
+ *     --port <번호>     시험 서버 포트. 기본 8765 (VS Code 등이 이미 쓰고 있으면 바꾼다)
  *
  *   예) npm run zip 이전 버전 zip → node scripts/real-update-test.mjs .output/...-2.24.0-chrome.zip .output/chrome-mv3
  *
@@ -41,7 +42,7 @@ if (!oldArg || !newArg) {
 const SOCKET = opt('socket', 'off') === 'on';
 const PERSIST = opt('persist', 'on') === 'off' ? 'off' : 'on';
 const FILTER = opt('filter', 'ㅋ');
-const PORT = 8765, CDP_PORT = 9334;
+const PORT = Number(opt('port', '8765')), CDP_PORT = 9334;
 const UPDATE_URL = `http://localhost:${PORT}/update.xml`;
 const CHROME = chromium.executablePath();
 if (!existsSync(CHROME)) { console.error(`Chromium 없음: ${CHROME} — npx playwright install chromium`); process.exit(1); }
@@ -130,7 +131,7 @@ async function record(ms, action) {
     return result;
 }
 
-createServer(async (req, res) => {
+const server = createServer(async (req, res) => {
     const send = (code, body, type = 'application/json; charset=utf-8') => { res.writeHead(code, { 'Content-Type': type }); res.end(body); };
     try {
         const path = req.url.split('?')[0];
@@ -152,7 +153,11 @@ createServer(async (req, res) => {
         if (path === '/state') return send(200, JSON.stringify(await state(), null, 2));
         send(404, 'not found');
     } catch (e) { send(500, String(e?.stack ?? e)); }
-}).listen(PORT, '127.0.0.1');
+});
+// 포트가 막혀 있으면 브라우저를 띄우기 전에 끝낸다(띄운 뒤에 죽으면 시험 브라우저가 남는다).
+await new Promise((ok, fail) => server.once('error', fail).listen(PORT, '127.0.0.1', ok)).catch(e => {
+    console.error(`포트 ${PORT}를 쓸 수 없음(${e.code}) — --port로 다른 번호를 준다`); process.exit(1);
+});
 
 const proc = spawn(CHROME, [`--user-data-dir=${profile}`, `--remote-debugging-port=${CDP_PORT}`, '--no-first-run', '--no-default-browser-check',
     '--window-size=1500,950', 'chrome://extensions'], { stdio: 'ignore' });
