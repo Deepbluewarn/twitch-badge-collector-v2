@@ -239,7 +239,7 @@ export function generalGroups(): GeneralGroup[] {
     {
       id: 'chat', items: [
         {
-          key: 'maximumNumberChats', label: msg('maximumNumberChats'), hint: msg('needRefresh'),
+          key: 'maximumNumberChats', label: msg('maximumNumberChats'),
           render: (s, dispatch) => (
             <MaxChatsInput value={s.maximumNumberChats} onCommit={n => dispatch(setMaximumNumberChats(n))} />
           ),
