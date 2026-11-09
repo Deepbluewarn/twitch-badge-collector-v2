@@ -23,6 +23,13 @@ const REVIEW = 0.05; // 이 아래면 접을지 검토할 목록 (ADR)
 // 기록은 7일까지 늦게 온다. 쓰인 시각으로 거르므로 4주 + 늦게 온 것까지
 const QUERY_DAYS = WINDOW_DAYS + 12;
 const ROW_DOUBLES = 20;
+// day2 행 항목(guideOpen)을 처음 보낸 버전
+const DAY2_SINCE = '2.28.0';
+const olderThan = (v: string, base: string) => {
+    const a = v.split('.').map(Number), b = base.split('.').map(Number);
+    for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i];
+    return false;
+};
 
 // 현황판에 보이는 이름과 한 줄 설명. 표시 위치는 확장 리포 docs/releases/v2.27.0.md "표시 위치"
 const USAGE_TEXT: Record<UsageFlag, [string, string]> = {
@@ -44,7 +51,7 @@ const USAGE_TEXT: Record<UsageFlag, [string, string]> = {
     jumpBottom: ['맨 아래로', '모아보기의 맨 아래로 버튼을 눌렀다'],
     copyId: ['ID 복사', '치지직 프로필 창의 ID 복사를 눌렀다'],
     channelToggle: ['채널 끄기', '팝업이나 설정에서 채널별 사용을 끄거나 켰다'],
-    guideOpen: ['사용 설명서', '팝업이나 빈 수집 창의 사용 설명서 링크를 눌렀다'],
+    guideOpen: ['사용 설명서', '팝업의 사용 설명서 링크를 눌렀다 (v2.28.0은 빈 수집 창 링크도 포함)'],
 };
 const SETTING_TEXT: Record<SettingFlag, [string, string]> = {
     advancedFilter: ['고급 필터', '고급 필터 모드를 켜 두었다'],
@@ -184,11 +191,13 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
         n28 += n;
         USAGE_FLAGS.forEach((_, i) => { if (i + 2 < ROW_DOUBLES) { flags28[i] += d[i + 2]; if (date === yesterday) flagsY[i] += d[i + 2]; } });
     }
-    // day 행에 못 들어간 몫(guideOpen부터)은 day2 행에. 그 항목을 보내는 버전만 day2 행을 만들므로 비율의 분모도 day2 행 수로
+    // day 행에 못 들어간 몫(guideOpen부터)은 day2 행에. 그 항목을 보내는 버전만 day2 행을 만들므로 비율의 분모도 day2 행 수로.
+    // 그 항목이 생기기 전 버전에서 만든 하루 기록은 업데이트 뒤 표시된 항목만 키가 생겨(값은 늘 1) day2 행이 눌린 사람에게만 생긴다.
+    // 그런 행은 분모를 깎고 비율을 부풀리므로(11-08 v2.27.0 기록 guideOpen 100%) 뺀다.
     const FIRST2 = ROW_DOUBLES - 2;
     let day2Y = 0, day2_28 = 0;
     for (const r of day2Rows) {
-        if (!released.has(String(r.v))) continue;
+        if (!released.has(String(r.v)) || olderThan(String(r.v), DAY2_SINCE)) continue;
         const date = String(r.date), n = num(r.n), d = doubles(r);
         if (date > yesterday || !byDate.has(date)) continue;
         day2_28 += n;
