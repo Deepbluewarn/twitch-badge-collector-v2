@@ -13,6 +13,7 @@
  *     --filter ㅋ       재현용 키워드 필터(치지직). 기본 ㅋ, 빈 값이면 넣지 않음
  *     --url <주소>      처음 열 방송. 기본은 지금 시청자가 많은 치지직 라이브 30위쯤
  *     --port <번호>     시험 서버 포트. 기본 8765 (VS Code 등이 이미 쓰고 있으면 바꾼다)
+ *     --headless        화면 없이 띄운다 (SSH로만 접속해 X, Wayland가 없을 때)
  *
  *   예) npm run zip 이전 버전 zip → node scripts/real-update-test.mjs .output/...-2.24.0-chrome.zip .output/chrome-mv3
  *
@@ -43,6 +44,7 @@ const SOCKET = opt('socket', 'off') === 'on';
 const PERSIST = opt('persist', 'on') === 'off' ? 'off' : 'on';
 const FILTER = opt('filter', 'ㅋ');
 const PORT = Number(opt('port', '8765')), CDP_PORT = 9334;
+const HEADLESS = args.includes('--headless');
 const UPDATE_URL = `http://localhost:${PORT}/update.xml`;
 const CHROME = chromium.executablePath();
 if (!existsSync(CHROME)) { console.error(`Chromium 없음: ${CHROME} — npx playwright install chromium`); process.exit(1); }
@@ -160,7 +162,7 @@ await new Promise((ok, fail) => server.once('error', fail).listen(PORT, '127.0.0
 });
 
 const proc = spawn(CHROME, [`--user-data-dir=${profile}`, `--remote-debugging-port=${CDP_PORT}`, '--no-first-run', '--no-default-browser-check',
-    '--window-size=1500,950', 'chrome://extensions'], { stdio: 'ignore' });
+    '--window-size=1500,950', ...(HEADLESS ? ['--headless=new'] : []), 'chrome://extensions'], { stdio: 'ignore' });
 process.on('SIGINT', () => { proc.kill(); process.exit(0); });
 for (let i = 0; i < 50 && !browser; i++) {
     await new Promise(r => setTimeout(r, 300));
