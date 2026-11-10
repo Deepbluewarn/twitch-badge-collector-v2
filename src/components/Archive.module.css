@@ -81,6 +81,11 @@
     vertical-align: -3px;
 }
 
+.emoji {
+    height: 28px;
+    vertical-align: middle;
+}
+
 .nick {
     margin-right: 6px;
     font-weight: 800;

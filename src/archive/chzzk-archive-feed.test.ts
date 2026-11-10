@@ -35,6 +35,13 @@ describe('createChzzkArchiveFeed', () => {
         expect(recorder.record.mock.calls[0][0]).toMatchObject({ time: 1, nickname: '시청자', text: 'ㅋㅋ', badges: ['b1'], kind: 'chat' });
     });
 
+    it('이모티콘은 토큰째, 쓰인 이모티콘 주소와 함께 기록한다', () => {
+        const { recorder, chats } = setup();
+        chats([chat(1, { message: 'ㅋ{:d_1:}', emojis: { d_1: 'https://e/1.png', d_2: 'https://e/2.png' } })]);
+        expect(recorder.record.mock.calls[0][0]).toMatchObject({ text: 'ㅋ{:d_1:}', emojis: { d_1: 'https://e/1.png' } });
+        expect(recorder.record.mock.calls[0][0].emojis).not.toHaveProperty('d_2');
+    });
+
     it('차단한 사용자의 채팅은 기록하지 않는다', () => {
         const { recorder, feed, chats } = setup();
         feed.handle({ action: 'tbc-socket-chat', kind: 'block-list', uids: ['bad'] });

@@ -18,7 +18,7 @@ function ok(res: unknown) {
 }
 
 /** 기록할 채팅 하나 — key는 같은 채널 안에서 채팅마다 하나(같은 채팅이 다시 오면 같은 값) */
-export type ArchiveEntry = Pick<ArchivedChat, 'time' | 'nickname' | 'text' | 'badges' | 'kind' | 'amount' | 'marker' | 'hidden'> & { key: string };
+export type ArchiveEntry = Pick<ArchivedChat, 'time' | 'nickname' | 'text' | 'emojis' | 'badges' | 'kind' | 'amount' | 'marker' | 'hidden'> & { key: string };
 
 export interface ArchiveRecorder {
     record(entry: ArchiveEntry): void;
@@ -86,9 +86,10 @@ export function createArchiveRecorder(
             const id = `${channel}|${entry.key}`;
             idByKey.set(entry.key, id);
             if (idByKey.size > QUEUE_LIMIT) idByKey.delete(idByKey.keys().next().value!);
-            const { time, nickname, text, badges, kind, amount, marker, hidden } = entry;
+            const { time, nickname, text, emojis, badges, kind, amount, marker, hidden } = entry;
             push({
-                id, channel, time, savedAt: Date.now(), nickname, text: hidden ? '' : text, badges, kind,
+                id, channel, time, savedAt: Date.now(), nickname, text: hidden ? '' : text,
+                ...(emojis && !hidden ? { emojis } : {}), badges, kind,
                 ...(amount ? { amount } : {}), ...(marker ? { marker } : {}), ...(hidden ? { hidden } : {}),
             });
         },
@@ -103,7 +104,7 @@ export function createArchiveRecorder(
             const id = idByKey.get(key);
             if (!id) return;
             // 아직 보내지 않았으면 큐에서 바로 가린다
-            for (const c of puts) if (c.id === id) { c.text = ''; c.hidden = true; }
+            for (const c of puts) if (c.id === id) { c.text = ''; delete c.emojis; c.hidden = true; }
             hides.push(id);
         },
         flush,

@@ -25,8 +25,10 @@ export interface ArchivedChat {
     /** 보관한 시각(ms epoch) — 기간 만료 기준 */
     savedAt: number;
     nickname: string;
-    /** 본문(이모티콘은 이름 그대로). 블라인드·클린봇 채팅은 빈 값 */
+    /** 본문(이모티콘은 `{:이름:}` 토큰 그대로). 블라인드·클린봇 채팅은 빈 값 */
     text: string;
+    /** 본문에 쓰인 이모티콘 토큰 이름 → 이미지 주소 (치지직). 가려진 채팅엔 없다 */
+    emojis?: Record<string, string>;
     badges: string[];
     kind: ArchiveKind;
     /** 후원 금액(치즈) */
@@ -146,7 +148,7 @@ export async function putArchivedChats(chats: ArchivedChat[]): Promise<void> {
         const prev = store.get(chat.id);
         prev.onsuccess = () => {
             const old = prev.result as ArchivedChat | undefined;
-            store.put(old?.hidden ? { ...chat, text: '', hidden: true } : chat);
+            store.put(old?.hidden ? { ...chat, text: '', emojis: undefined, hidden: true } : chat);
         };
         last.set(chat.channel, Math.max(last.get(chat.channel) ?? 0, chat.savedAt));
     }
@@ -167,7 +169,7 @@ export async function hideArchivedChats(ids: string[]): Promise<void> {
         const req = store.get(id);
         req.onsuccess = () => {
             const chat = req.result as ArchivedChat | undefined;
-            if (chat) store.put({ ...chat, text: '', hidden: true });
+            if (chat) store.put({ ...chat, text: '', emojis: undefined, hidden: true });
         };
     }
     await done(tx);
@@ -319,6 +321,32 @@ export async function eachArchivedChat(channel: string, fn: (c: ArchivedChat) =>
     });
 }
 
+// ── 본문 ─────────────────────────
+
+const EMOJI_TOKEN = /\{:([^:{}]+):\}/g;
+
+/** 본문에 실제로 쓰인 이모티콘만 — 채팅마다 채널 이모티콘 전부를 저장하지 않게 */
+export function usedEmojis(text: string, emojis: Record<string, string>): Record<string, string> | undefined {
+    const out: Record<string, string> = {};
+    for (const [, name] of text.matchAll(EMOJI_TOKEN)) if (emojis[name]) out[name] = emojis[name];
+    return Object.keys(out).length ? out : undefined;
+}
+
+/** 화면에 그릴 조각 — 이모티콘 토큰은 이미지 주소로, 주소를 모르는 토큰은 글자 그대로 */
+export function archiveTextParts(text: string, emojis: Record<string, string> = {}): ({ text: string } | { emoji: string; url: string })[] {
+    const parts: ({ text: string } | { emoji: string; url: string })[] = [];
+    let last = 0;
+    for (const m of text.matchAll(EMOJI_TOKEN)) {
+        const url = emojis[m[1]];
+        if (!url) continue;
+        if (m.index > last) parts.push({ text: text.slice(last, m.index) });
+        parts.push({ emoji: m[1], url });
+        last = m.index + m[0].length;
+    }
+    if (last < text.length) parts.push({ text: text.slice(last) });
+    return parts;
+}
+
 // ── 내보내기 ─────────────────────────
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -363,6 +391,16 @@ export function toText(chats: ArchivedChat[], mode: ArchiveMode, notice: string,
 
 const KINDS: ArchiveKind[] = ['chat', 'donation', 'subscription', 'gift', 'gap'];
 const str = (v: unknown, max: number) => typeof v === 'string' ? v.slice(0, max) : '';
+const isHttps = (v: unknown): v is string => typeof v === 'string' && v.startsWith('https://');
+
+function sanitizeEmojis(v: unknown): Record<string, string> | undefined {
+    if (!v || typeof v !== 'object') return undefined;
+    const out: Record<string, string> = {};
+    for (const [name, url] of Object.entries(v).slice(0, 30)) {
+        if (name.length <= 100 && isHttps(url) && url.length <= 500) out[name] = url;
+    }
+    return Object.keys(out).length ? out : undefined;
+}
 
 /** 콘텐츠 스크립트가 보낸 값 — 모양이 틀리면 null. 길이는 잘라 둔다. */
 export function sanitizeArchivedChat(v: unknown): ArchivedChat | null {
@@ -378,7 +416,8 @@ export function sanitizeArchivedChat(v: unknown): ArchivedChat | null {
         id: c.id, channel: c.channel, time: c.time, savedAt: c.savedAt,
         nickname: str(c.nickname, 100),
         text: hidden ? '' : str(c.text, 2000),
-        badges: Array.isArray(c.badges) ? c.badges.filter((b): b is string => typeof b === 'string' && b.startsWith('https://')).slice(0, 20).map(b => b.slice(0, 500)) : [],
+        ...(!hidden && sanitizeEmojis(c.emojis) ? { emojis: sanitizeEmojis(c.emojis) } : {}),
+        badges: Array.isArray(c.badges) ? c.badges.filter(isHttps).slice(0, 20).map(b => b.slice(0, 500)) : [],
         kind,
         ...(typeof c.amount === 'number' && c.amount > 0 ? { amount: c.amount } : {}),
         ...(typeof c.marker === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.marker) ? { marker: c.marker } : {}),

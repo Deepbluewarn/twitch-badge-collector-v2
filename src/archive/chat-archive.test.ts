@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
     clearArchive, closeArchiveDb, countArchivedChats, deleteArchiveChannel, eachArchivedChat, queryArchivedChats, getArchivedChats, hideArchivedChats, listArchiveChannels,
-    purgeArchive, putArchivedChats, sanitizeArchivedChat, toCsv, toText, formatArchiveTime, type ArchivedChat,
+    purgeArchive, putArchivedChats, sanitizeArchivedChat, archiveTextParts, toCsv, toText, formatArchiveTime, type ArchivedChat,
 } from './chat-archive';
 
 const CH = 'chzzk:abc:live';
@@ -86,6 +86,23 @@ describe('sanitizeArchivedChat', () => {
         expect(sanitizeArchivedChat({ ...chat(1), kind: 'gap' })).toBeNull();
         expect(sanitizeArchivedChat({ ...chat(5), kind: 'gap', until: 1 })).toBeNull();
         expect(sanitizeArchivedChat({ ...chat(1), until: 5 })).not.toHaveProperty('until');
+    });
+
+    it('이모티콘은 https 주소만 남기고, 가려진 채팅엔 두지 않는다', () => {
+        expect(sanitizeArchivedChat({ ...chat(1), emojis: { a: 'https://e/a.png', b: 'javascript:x', c: 1 } }))
+            .toMatchObject({ emojis: { a: 'https://e/a.png' } });
+        expect(sanitizeArchivedChat({ ...chat(1), emojis: { b: 'http://e/b.png' } })).not.toHaveProperty('emojis');
+        expect(sanitizeArchivedChat({ ...chat(1), hidden: true, emojis: { a: 'https://e/a.png' } })).not.toHaveProperty('emojis');
+    });
+});
+
+describe('archiveTextParts', () => {
+    it('주소를 아는 토큰만 이미지로, 나머지는 글자 그대로', () => {
+        expect(archiveTextParts('앗{:a:} {:b:}끝', { a: 'https://e/a.png' })).toEqual([
+            { text: '앗' }, { emoji: 'a', url: 'https://e/a.png' }, { text: ' {:b:}끝' },
+        ]);
+        expect(archiveTextParts('{:a:}', { a: 'https://e/a.png' })).toEqual([{ emoji: 'a', url: 'https://e/a.png' }]);
+        expect(archiveTextParts('그냥 글자')).toEqual([{ text: '그냥 글자' }]);
     });
 });
 

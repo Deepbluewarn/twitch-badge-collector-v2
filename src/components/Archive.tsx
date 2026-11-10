@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { markUsage } from '@/telemetry/usage-mark';
 import { Button, Icon, IconButton, Select, Spinner, Switch, TextInput } from '@/ui';
 import {
-    ARCHIVE_DAYS, ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, clearArchive, csvHead, csvRow, deleteArchiveChannel, eachArchivedChat,
+    ARCHIVE_DAYS, ARCHIVE_SETTING_KEY, archiveTextParts, DEFAULT_ARCHIVE_SETTING, clearArchive, csvHead, csvRow, deleteArchiveChannel, eachArchivedChat,
     archiveCap, CHAT_DISK_BYTES, expiresSoon, formatArchiveTime, listArchiveChannels, loadArchiveSetting, queryArchivedChats, sanitizeArchiveSetting, saveArchiveSetting,
     textHead, textRow, type ArchiveChannel, type ArchiveSetting, type ArchivedChat,
 } from '@/archive/chat-archive';
@@ -159,7 +159,9 @@ function ChatRow({ chat, mode, hiddenLabel, selected, onClick, expiring }: {
             {chat.badges.filter(isBadgeUrl).slice(0, 3).map(b => <img key={b} className={s.badge} src={b} alt="" loading="lazy" />)}
             <span className={s.nick}>{chat.nickname}</span>
             {chat.amount ? <span className={s.amount}>{chat.amount.toLocaleString()}</span> : null}
-            <span className={chat.hidden ? s.hidden : undefined}>{chat.hidden ? hiddenLabel : chat.text}</span>
+            <span className={chat.hidden ? s.hidden : undefined}>{chat.hidden ? hiddenLabel : archiveTextParts(chat.text, chat.emojis).map((p, i) => 'url' in p
+                ? <img key={i} className={s.emoji} src={p.url} alt={`{:${p.emoji}:}`} title={p.emoji} loading="lazy" />
+                : <React.Fragment key={i}>{p.text}</React.Fragment>)}</span>
         </li>
     );
 }

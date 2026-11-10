@@ -6,6 +6,7 @@ import { evaluateFilterGroup } from '@/filter/evaluate';
 import { toChatInfo, type ChzzkSocketChat } from '@/platform/chzzk-socket';
 import { kindOf } from '@/render/chzzk-chat-view';
 import type { ArchiveEntry, ArchiveRecorder } from './archive-recorder';
+import { usedEmojis } from './chat-archive';
 
 /**
  * 치지직 라이브 보관함 입구 — 소켓 탭(ws-tap.ts)이 넘긴 채팅을 직접 받아 필터에 걸린 것만 기록한다.
@@ -73,9 +74,12 @@ export function createChzzkArchiveFeed(
             const info = toChatInfo(chat);
             const r = evaluateFilterGroup(info, filters, channelId);
             if (!r.pass) continue;
+            // 필터는 이모티콘을 뺀 글자로 보지만, 보관은 토큰째 — 이모티콘만 보낸 채팅도 비지 않게
+            const normal = chat.status === 'NORMAL';
+            const text = normal ? chat.message.trim() : '';
             recorder.record({
-                key: chat.id, time: chat.time, nickname: info.nickName,
-                text: chat.status === 'NORMAL' ? info.textContents.join(' ').trim() : '',
+                key: chat.id, time: chat.time, nickname: info.nickName, text,
+                ...(normal ? { emojis: usedEmojis(text, chat.emojis) } : {}),
                 marker: r.markerColor ?? DEFAULT_MARKER,
                 ...archiveFieldsOf(chat),
             });
