@@ -262,7 +262,7 @@ ${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)
           text: '기본이 꺼진 기능을 지금 켜 두고 있는 사람. 이 숫자가 곧 그 기능을 쓰는 사람의 비율이다. 낮으면 모르거나 필요 없다는 뜻이라 접을지 판단하는 주 대상.' },
         { title: '직접 만든 필터', keys: ['filterBadge', 'filterName', 'filterKeyword', 'filterExclude', 'filterSleep', 'filterChannel', 'filterPerson', 'filterMarker', 'filterNote'], judged: true, label: '있는 비율',
           text: '설치 때 들어가는 기본 필터 말고, 그런 필터를 직접 하나 이상 만든 사람. 그 종류의 필터를 쓰는 사람의 비율이다.' },
-        { title: '꺼 둔 기본 기능', keys: ['markerOff', 'persistOff', 'jumpBottomOff', 'pointBoxOff'], judged: false, label: '끈 비율',
+        { title: '꺼 둔 기본 기능', keys: ['markerOff', 'persistOff', 'jumpBottomOff', 'pointBoxOff', 'copyIdOff'], judged: false, label: '끈 비율',
           text: '기본으로 켜진 기능을 꺼 둔 사람. 쓰는 사람은 100%에서 뺀 값이다. 낮을수록 기본값이 잘 맞는다는 뜻이라 접을 대상이 아니다.' },
         { title: '값을 바꾼 설정', keys: ['maxChats', 'theme', 'positionDown', 'chatSideLeft', 'archiveDays', 'floatingBg'], judged: false, label: '바꾼 비율',
           text: '기본과 다른 값을 쓰는 사람. 높으면 기본값을 바꿀지 고민할 후보다. 언제 바꿨는지는 모른다(최대 개수는 예전 빌드 시절 값이 많다).' },

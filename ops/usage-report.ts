@@ -25,6 +25,8 @@ const QUERY_DAYS = WINDOW_DAYS + 12;
 const ROW_DOUBLES = 20;
 // day2 행 항목(guideOpen)을 처음 보낸 버전
 const DAY2_SINCE = '2.28.0';
+// 주간 기록에 나중에 덧붙인 항목과 그 항목을 처음 보낸 버전. 옛 버전 기록엔 그 칸이 없어 0으로 읽히므로 비율의 분모에서 뺀다
+const SETTING_SINCE: Partial<Record<SettingFlag, string>> = { copyIdOff: '2.29.0' };
 const olderThan = (v: string, base: string) => {
     const a = v.split('.').map(Number), b = base.split('.').map(Number);
     for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i];
@@ -79,6 +81,7 @@ const SETTING_TEXT: Record<SettingFlag, [string, string]> = {
     floatingBg: ['팝오버 배경색', '팝오버 창의 배경색을 정해 두었다'],
     chatSideLeft: ['채팅 왼쪽', '치지직 채팅창을 왼쪽에 둔다'],
     pointBoxOff: ['포인트 자동 끔', '치지직 채널 포인트 자동 받기를 껐다'],
+    copyIdOff: ['ID 복사 끔', '치지직 프로필 창의 ID 복사 버튼을 껐다'],
 };
 
 type SqlRow = Record<string, string | number>;
@@ -222,23 +225,27 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
     const weeks = weekRows.filter((r) => released.has(String(r.v)));
     const tally = (pick: (week: string) => boolean) => {
         const counts = SETTING_FLAGS.map(() => 0);
-        const base = { week: 0, week2: 0 };
-        let chrome = 0;
+        const bases = SETTING_FLAGS.map(() => 0);
+        let users = 0, chrome = 0;
         const langs = new Map<string, number>();
         const seen = new Set<string>();
         for (const r of weeks) {
             if (!pick(String(r.week))) continue;
             seen.add(String(r.week));
             const row = String(r.row) as 'week' | 'week2', n = num(r.n), d = doubles(r);
-            base[row] += n;
-            if (row === 'week' && r.b !== 'edge') chrome += n;
+            if (row === 'week') { users += n; if (r.b !== 'edge') chrome += n; }
             const offset = row === 'week' ? 0 : ROW_DOUBLES;
-            d.forEach((x, i) => { if (offset + i < counts.length) counts[offset + i] += x; });
+            d.forEach((x, i) => {
+                const k = offset + i, since = SETTING_SINCE[SETTING_FLAGS[k]];
+                if (k >= counts.length || (since && olderThan(String(r.v), since))) return;
+                counts[k] += x;
+                bases[k] += n;
+            });
             if (row === 'week') langs.set(String(r.lang), (langs.get(String(r.lang)) ?? 0) + n);
         }
-        // 표본 추출 전엔 week와 week2 행 수가 같다. 그래도 칸마다 자기 행 수로 나눈다
-        const ratio = counts.map((c, i) => c / ((i < ROW_DOUBLES ? base.week : base.week2) || 1));
-        return { users: base.week, chrome, ratio, counts, langs, weeks: seen.size };
+        // 칸마다 그 칸을 보낸 행 수로 나눈다 (week와 week2 행 수는 표본 추출 전엔 같고, 나중에 덧붙인 항목은 보내는 버전만 센다)
+        const ratio = counts.map((c, i) => c / (bases[i] || 1));
+        return { users, chrome, ratio, counts, langs, weeks: seen.size };
     };
     // 지난주 기록이 없으면(배포 첫 주) 진행 중인 이번 주를 보여 준다
     const thisWeek = isoWeek(today);

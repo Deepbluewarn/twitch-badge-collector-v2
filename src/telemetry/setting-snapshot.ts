@@ -14,7 +14,7 @@ export { SETTING_FLAGS, type SettingFlag };
 export const SETTING_SOURCE_KEYS = [
     'advancedFilter', 'displayMode', 'chzzkCustomTemplate', 'filter', ARCHIVE_SETTING_KEY, CHANNEL_OFF_KEY,
     'position', 'chatTime', 'maximumNumberChats', 'darkTheme', 'collectedChatMarker', 'jumpToBottomButton',
-    'chatPersistence', 'floatingBgColor', 'chzzkChatSide', 'pointBoxAuto',
+    'chatPersistence', 'floatingBgColor', 'chzzkChatSide', 'pointBoxAuto', 'chzzkProfileCopyId',
 ];
 
 // 설치할 때 들어가는 기본 필터는 세지 않는다. 세면 배지, 닉네임, 제외 필터가 거의 모두 1이 된다.
@@ -79,5 +79,6 @@ export function settingFlags(s: Record<string, unknown>): Record<SettingFlag, 0 
     on('floatingBg', s.floatingBgColor);
     on('chatSideLeft', s.chzzkChatSide === 'left');
     on('pointBoxOff', s.pointBoxAuto === 'off');
+    on('copyIdOff', s.chzzkProfileCopyId === 'off');
     return out;
 }

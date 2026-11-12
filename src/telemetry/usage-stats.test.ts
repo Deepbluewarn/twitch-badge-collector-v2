@@ -176,6 +176,7 @@ describe('setting-snapshot', () => {
             advancedFilter: 'off', displayMode: 'inline', chzzkCustomTemplate: 'off', filter: defaultFilter,
             position: 'up', chatTime: 'off', maximumNumberChats: undefined, darkTheme: 'system', collectedChatMarker: 'on',
             jumpToBottomButton: 'on', chatPersistence: 'on', floatingBgColor: '', chzzkChatSide: 'right', pointBoxAuto: 'on',
+            chzzkProfileCopyId: 'on',
         };
         expect(Object.values(settingFlags(s)).every(v => v === 0)).toBe(true);
     });
@@ -198,10 +199,11 @@ describe('setting-snapshot', () => {
         const f = settingFlags({
             displayMode: 'floating', position: 'down', maximumNumberChats: 500, darkTheme: 'dark', collectedChatMarker: 'off',
             chatArchive: { enabled: true, days: 90 }, disabledChannels: { 'chzzk:abc': { at: 1 } }, chzzkChatSide: 'left',
+            chzzkProfileCopyId: 'off',
         });
         expect(f).toMatchObject({
             floating: 1, positionDown: 1, maxChats: 1, theme: 1, markerOff: 1, archiveOn: 1, archiveDays: 1,
-            channelOff: 1, chatSideLeft: 1, chatTime: 0, persistOff: 0,
+            channelOff: 1, chatSideLeft: 1, copyIdOff: 1, chatTime: 0, persistOff: 0,
         });
     });
 

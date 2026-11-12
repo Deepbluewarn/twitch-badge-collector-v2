@@ -55,5 +55,6 @@ export const SETTING_FLAGS = [
     'floatingBg',
     'chatSideLeft',
     'pointBoxOff',
+    'copyIdOff',
 ] as const;
 export type SettingFlag = typeof SETTING_FLAGS[number];
