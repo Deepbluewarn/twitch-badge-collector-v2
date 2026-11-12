@@ -203,6 +203,9 @@
   "profileIdCopied": {
     "message": "Скопировано"
   },
+  "chzzkProfileCopyId": {
+    "message": "Кнопка «Копировать ID» в окне профиля"
+  },
   "anonymousStats": {
     "message": "Анонимная статистика использования"
   },

@@ -203,6 +203,9 @@
   "profileIdCopied": {
     "message": "コピーしました"
   },
+  "chzzkProfileCopyId": {
+    "message": "プロフィール画面にIDコピーボタン"
+  },
   "anonymousStats": {
     "message": "匿名の利用統計"
   },

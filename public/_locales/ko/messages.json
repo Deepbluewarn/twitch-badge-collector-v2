@@ -203,6 +203,9 @@
   "profileIdCopied": {
     "message": "복사됨"
   },
+  "chzzkProfileCopyId": {
+    "message": "프로필 창에 ID 복사 버튼"
+  },
   "anonymousStats": {
     "message": "익명 사용 통계"
   },

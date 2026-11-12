@@ -44,6 +44,7 @@ export const initialState: SettingInterface = {
     displayMode: 'inline',
     floatingBgColor: '',
     chzzkChatSide: 'right',
+    chzzkProfileCopyId: 'on',
     chzzkCustomTemplate: 'off',
     anonymousStats: 'on',
 }
@@ -63,6 +64,7 @@ const actionTypes: SettingReducerActionTypes = {
     SET_DISPLAY_MODE: "SET_DISPLAY_MODE",
     SET_FLOATING_BG_COLOR: "SET_FLOATING_BG_COLOR",
     SET_CHZZK_CHAT_SIDE: "SET_CHZZK_CHAT_SIDE",
+    SET_CHZZK_PROFILE_COPY_ID: "SET_CHZZK_PROFILE_COPY_ID",
     SET_CHZZK_CUSTOM_TEMPLATE: "SET_CHZZK_CUSTOM_TEMPLATE",
     SET_ANONYMOUS_STATS: "SET_ANONYMOUS_STATS",
     SET_MULTIPLE: "SET_MULTIPLE"
@@ -98,6 +100,9 @@ function settingsReducer(state: SettingInterface = initialState, action: Setting
         case actionTypes.SET_CHZZK_CHAT_SIDE:
             // 'left'만 명시적으로 받는다. 오타/undefined는 치지직 기본 배치로.
             return { ...state, chzzkChatSide: action.payload === 'left' ? 'left' : 'right' };
+        case actionTypes.SET_CHZZK_PROFILE_COPY_ID:
+            // 'off'만 명시적으로 받는다. 끈 사람만 버튼을 안 붙인다.
+            return { ...state, chzzkProfileCopyId: action.payload === 'off' ? 'off' : 'on' };
         case actionTypes.SET_CHZZK_CUSTOM_TEMPLATE:
             // 'on'만 명시적으로 받는다. 오타/undefined는 원본 우선(off)으로.
             return { ...state, chzzkCustomTemplate: action.payload === 'on' ? 'on' : 'off' };
@@ -125,6 +130,7 @@ const setChatPersistence = (chatPersistence: SettingInterface['chatPersistence']
 const setDisplayMode = (displayMode: SettingInterface['displayMode']) => ({ type: actionTypes.SET_DISPLAY_MODE, payload: displayMode });
 const setFloatingBgColor = (floatingBgColor: SettingInterface['floatingBgColor']) => ({ type: actionTypes.SET_FLOATING_BG_COLOR, payload: floatingBgColor });
 const setChzzkChatSide = (chzzkChatSide: SettingInterface['chzzkChatSide']) => ({ type: actionTypes.SET_CHZZK_CHAT_SIDE, payload: chzzkChatSide });
+const setChzzkProfileCopyId = (v: SettingInterface['chzzkProfileCopyId']) => ({ type: actionTypes.SET_CHZZK_PROFILE_COPY_ID, payload: v });
 const setChzzkCustomTemplate = (v: SettingInterface['chzzkCustomTemplate']) => ({ type: actionTypes.SET_CHZZK_CUSTOM_TEMPLATE, payload: v });
 const setAnonymousStats = (v: SettingInterface['anonymousStats']) => ({ type: actionTypes.SET_ANONYMOUS_STATS, payload: v });
 const setMultipleSettings = (settings: SettingInterface) => ({ type: actionTypes.SET_MULTIPLE, payload: settings });
@@ -144,6 +150,7 @@ export {
     setDisplayMode,
     setFloatingBgColor,
     setChzzkChatSide,
+    setChzzkProfileCopyId,
     setChzzkCustomTemplate,
     setAnonymousStats,
     setMultipleSettings,

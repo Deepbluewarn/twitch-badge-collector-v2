@@ -203,6 +203,9 @@
   "profileIdCopied": {
     "message": "已複製"
   },
+  "chzzkProfileCopyId": {
+    "message": "資料視窗中的複製 ID 按鈕"
+  },
   "anonymousStats": {
     "message": "匿名使用統計"
   },

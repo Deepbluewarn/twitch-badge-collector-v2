@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useGlobalSettingContext } from '@/context/GlobalSetting';
-import { setAnonymousStats, setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide } from '@/reducer/setting';
+import { setAnonymousStats, setChatPersistence, setChatTime, setCollectedChatMarker, setDarkTheme, setDisplayMode, setFloatingBgColor, setJumpToBottomButton, setMaximumNumberChats, setPosition, setChzzkChatSide, setChzzkProfileCopyId } from '@/reducer/setting';
 import { SettingInterface } from '@/interfaces/setting';
 import { useTranslation } from 'react-i18next';
 import { Button, Dialog, IconButton, LinkButton, Segmented, Stack, Switch, Tag, TextInput } from '@/ui';
@@ -248,6 +248,7 @@ export function generalGroups(): GeneralGroup[] {
         { key: 'collectedChatMarker', label: msg('collectedChatMarker'), render: sw(s => onOff(s.collectedChatMarker), on => setCollectedChatMarker(on ? 'on' : 'off')) },
         { key: 'jumpToBottomButton', label: msg('jumpToBottomButton'), render: sw(s => onOff(s.jumpToBottomButton), on => setJumpToBottomButton(on ? 'on' : 'off')) },
         { key: 'chatPersistence', label: msg('chatPersistence'), render: sw(s => onOff(s.chatPersistence), on => setChatPersistence(on ? 'on' : 'off')) },
+        { key: 'chzzkProfileCopyId', label: msg('chzzkProfileCopyId'), platform: 'chzzk', render: sw(s => onOff(s.chzzkProfileCopyId), on => setChzzkProfileCopyId(on ? 'on' : 'off')) },
       ],
     },
     // Firefox 빌드는 통계를 보내지 않는다

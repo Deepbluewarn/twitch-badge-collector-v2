@@ -63,6 +63,7 @@ export default defineBackground(() => {
       displayMode: "inline",
       floatingBgColor: '',
       chzzkChatSide: "right",
+      chzzkProfileCopyId: "on",
       chzzkCustomTemplate: "off",
       anonymousStats: "on",
     };

@@ -203,6 +203,9 @@
   "profileIdCopied": {
     "message": "Kopiert"
   },
+  "chzzkProfileCopyId": {
+    "message": "„ID kopieren“ im Profilfenster"
+  },
   "anonymousStats": {
     "message": "Anonyme Nutzungsstatistik"
   },

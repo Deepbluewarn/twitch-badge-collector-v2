@@ -14,7 +14,9 @@ import { markUsage } from '@/telemetry/usage-mark';
  * 창이 들어오는 순간 MutationObserver로 붙인다 — 콜백이 화면을 그리기 전에 돌아서, 버튼이 늦게 붙거나 창이 튀어 보이지 않는다.
  * 버튼 모양은 창에 원래 있는 버튼의 class를 빌려 쓴다 — hash가 바뀌어도 따라간다.
  * 선택자는 OTA로 바꿀 수 있고(profilePopup, profilePopupActions), 없으면 아래 기본값.
+ * 일반 설정에서 끌 수 있다(chzzkProfileCopyId). 끄면 열려 있는 창의 버튼도 바로 뗀다.
  */
+const SETTING = 'chzzkProfileCopyId';
 const MARK = 'tbcv2-profile-action';
 const POPUP = '[role="alertdialog"]';
 const ACTIONS = '[class*="_list_"]';
@@ -72,6 +74,16 @@ function fitInView(popup: Element) {
 }
 
 export function setupProfileActions(): () => void {
+    let enabled = true;
+    const removeButtons = () => document.querySelectorAll(`.${MARK}`).forEach(b => b.remove());
+    browser.storage.local.get(SETTING).then(r => { enabled = r[SETTING] !== 'off'; });
+    const onSetting = (changes: Record<string, { newValue?: unknown }>) => {
+        if (!(SETTING in changes)) return;
+        enabled = changes[SETTING].newValue !== 'off';
+        if (!enabled) { stop(); removeButtons(); }
+    };
+    browser.storage.local.onChanged.addListener(onSetting);
+
     let watching: { observer: MutationObserver; timer: number } | undefined;
     const stop = () => {
         if (!watching) return;
@@ -81,7 +93,7 @@ export function setupProfileActions(): () => void {
     };
 
     const onClick = (e: MouseEvent) => {
-        if (isChannelOffNow()) return;
+        if (!enabled || isChannelOffNow()) return;
         const sel = getPlatformConfig('chzzk').selectors;
         const item = (e.target as Element | null)?.closest?.('button[aria-haspopup="true"]')?.closest(`[${CHAT_ATTR.KEY}]`);
         // 원래 채팅만 — 수집 영역의 복제본도 key를 달고 있지만 거기선 프로필 창이 안 뜬다
@@ -103,7 +115,8 @@ export function setupProfileActions(): () => void {
     document.addEventListener('click', onClick, true);
     return () => {
         document.removeEventListener('click', onClick, true);
+        browser.storage.local.onChanged.removeListener(onSetting);
         stop();
-        document.querySelectorAll(`.${MARK}`).forEach(b => b.remove());
+        removeButtons();
     };
 }
