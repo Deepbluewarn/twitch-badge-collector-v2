@@ -42,7 +42,7 @@
       "present": true,
       "branchPresence": {
         "[class*=\"_icon_\"] > [class*=\"_container_\"]:has(> img)": true,
-        "[class*=\"_container_1nwpy_\"]:has(> img)": true
+        "[class*=\"_container_14814_\"]:has(> img)": true
       }
     },
     {
@@ -70,5 +70,5 @@
       "present": false
     }
   ],
-  "manifestRev": 21
+  "manifestRev": 22
 }
