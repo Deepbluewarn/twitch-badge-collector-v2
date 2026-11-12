@@ -28,10 +28,10 @@ describe('splitSelectorBranches', () => {
             '[class*="_nickname_"] [class*="_text_"]',
         ]);
 
-        const badge = '[class*="_icon_"] > [class*="_container_"]:has(> img), [class*="_container_1nwpy_"]:has(> img)';
+        const badge = '[class*="_icon_"] > [class*="_container_"]:has(> img), [class*="_container_14814_"]:has(> img)';
         expect(splitSelectorBranches(badge)).toEqual([
             '[class*="_icon_"] > [class*="_container_"]:has(> img)',
-            '[class*="_container_1nwpy_"]:has(> img)',
+            '[class*="_container_14814_"]:has(> img)',
         ]);
     });
 

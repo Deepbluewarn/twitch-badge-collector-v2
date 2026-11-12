@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "rev": 21,
+  "rev": 22,
   "platforms": {
     "twitch": {
       "livePathRegex": "^/(?!videos/)",
@@ -41,7 +41,7 @@
         "displayName": "button[aria-haspopup=\"true\"] [class*=\"_text_\"], [class*=\"_nickname_\"] [class*=\"_text_\"]",
         "messageText": "[class*=\"_chatting_message_\"] > [class*=\"_text_\"]",
         "donationText": "p[class*=\"_text_\"]",
-        "badge": "[class*=\"_icon_\"] > [class*=\"_container_\"]:has(> img), [class*=\"_container_1nwpy_\"]:has(> img)",
+        "badge": "[class*=\"_icon_\"] > [class*=\"_container_\"]:has(> img), [class*=\"_container_14814_\"]:has(> img)",
         "blindText": ".blind",
         "usernameContainer": "button[aria-haspopup=\"true\"] > [class*=\"_container_\"], [class*=\"_nickname_\"] > [class*=\"_container_\"]",
         "popupProfileHeader": ".live_chatting_popup_profile_header__OWnnU",

@@ -230,7 +230,7 @@ describe('ChzzkAdapter — extract', () => {
             const icon = document.createElement('span');
             icon.className = '_icon_1mc5x_15';
             const badgeContainer = document.createElement('span');
-            badgeContainer.className = '_container_1nwpy_2';
+            badgeContainer.className = '_container_14814_2';
             if (!badgeWithoutImg) {
                 const img = document.createElement('img');
                 img.src = 'https://ssl.pstatic.net/static/nng/glive/badge/fan_03.png';
