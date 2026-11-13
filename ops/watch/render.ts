@@ -37,7 +37,6 @@ type Info = {
         release: Err | { version: string; published: string };
     };
     github: Err | {
-        runs: ({ file: string; name: string; error: string } | { file: string; name: string; conclusion: string | null; at: string | null; url: string; recent: (string | null)[] })[];
         issues: Err | { number: number; title: string; url: string; labels: string[]; created: string }[];
     };
     badges: Err | {
@@ -93,12 +92,6 @@ function judge(live: LiveResult | undefined, bundle: BundleResult | undefined, i
         for (const r of live.runs) {
             if (r.verdict === 'broken') reasons.push({ level: 'broken', text: `${r.name}: 방송 채팅 ${r.host}줄, 모아보기 0줄` });
             else if (r.verdict === 'unknown') reasons.push({ level: 'risk', text: `${r.name}: 판정 못 함${r.error ? ` (${r.error})` : ' (방송 채팅 없음)'}` });
-        }
-    }
-    if (info && !isErr(info.github)) {
-        for (const run of info.github.runs) {
-            if ('error' in run) continue;
-            if (run.conclusion === 'failure') reasons.push({ level: 'broken', text: `GitHub ${run.name} 실패` });
         }
     }
     const gone = bundle?.dependencies.filter((d) => d.status === 'gone') ?? [];
@@ -389,14 +382,10 @@ ${row('Chrome', stores.chrome)}${row('Firefox', stores.firefox)}
 </tbody></table></section>`;
     }
 
-    // GitHub (이관 중인 카나리와 열린 이슈)
+    // GitHub 열린 이슈
     let gh = '';
     if (github) {
-        gh = `<section class="panel"><div class="panel-head"><h2>GitHub</h2><span class="meta">카나리는 11-09쯤 정리</span></div><ul class="rows">
-${github.runs.map((r) => 'error' in r
-            ? `<li>${lamp('risk')}<span class="name">${esc(r.name)}</span><span class="when err">${esc(r.error)}</span></li>`
-            : `<li>${lamp(r.conclusion === 'success' ? 'off' : r.conclusion === 'failure' ? 'broken' : 'risk', r.conclusion ?? '')}<span class="name"><a href="${esc(r.url)}">${esc(r.name)}</a></span><span class="when">${r.recent.map((c) => lamp(c === 'success' ? 'off' : c === 'failure' ? 'broken' : 'risk', c ?? '')).join('')}</span></li>`).join('')}
-</ul>
+        gh = `<section class="panel"><div class="panel-head"><h2>GitHub</h2></div>
 <details><summary>열린 이슈 ${issues.length}</summary><ul class="issues">${issues.map((i) => `<li><a href="${esc(i.url)}"><span class="mono">#${i.number}</span> ${esc(i.title)}</a>${i.labels.map((l) => ` <span class="tag">${esc(l)}</span>`).join('')}</li>`).join('')}</ul></details></section>`;
     }
 
@@ -552,8 +541,8 @@ ${desc('badgecollector.dev 사이트와 배지 수집. 확장과는 따로 돈�
 <div class="grid two">${siteSec}${withDesc(badges, '확장이 jsDelivr로 받는 치지직 배지 목록과, harvester가 채팅에서 본 배지를 견준다. 목록에 없는 배지는 추가 후보.')}</div>
 </section>
 <section class="tab" id="tab-ops" hidden>
-${desc('ovm 감시 작업이 제때 도는지와 GitHub 쪽 기록.')}
-<div class="grid two">${withDesc(jobs, 'ovm crontab 작업이 정해진 간격 안에 성공했는지. 멈춤이면 ovm의 ~/.local/state/badge-collector/logs 확인.')}${withDesc(gh, 'GitHub Actions 카나리 실행과 열린 이슈. 카나리는 ovm으로 옮겨 11-09쯤 정리한다.')}</div>
+${desc('ovm 감시 작업이 제때 도는지와 GitHub 열린 이슈.')}
+<div class="grid two">${withDesc(jobs, 'ovm crontab 작업이 정해진 간격 안에 성공했는지. 멈춤이면 ovm의 ~/.local/state/badge-collector/logs 확인.')}${withDesc(gh, '리포에 열려 있는 이슈.')}</div>
 </section>
 <footer class="meta">ovm 192.168.1.162, 5분마다 새로고침</footer>
 </main>

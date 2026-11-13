@@ -100,7 +100,6 @@ loginctl enable-linger $USER          # 로그아웃해도 사용자 서비스�
 - [ ] **확장 실제 시험(`live`)이 한 번도 성공한 적 없다.** Chromium이 쓸 시스템 라이브러리가 없다. ovm에서:
   `sudo apt-get install -y libcups2t64 libcairo2 libpango-1.0-0 libatk-bridge2.0-0`
 - [ ] **ovm이 통째로 꺼지면 아무 알림도 없다.** healthchecks.io 같은 곳에 체크(10분 주기)를 만들고 `~/.config/badge-collector/ops.env`에 `OPS_HEALTHCHECK_URL=https://hc-ping.com/...`를 넣으면 heartbeat가 신호를 보낸다.
-- [ ] **2026-11-09쯤 GitHub 카나리 정리.** ovm이 일주일 잘 돌면 `.github/workflows/canary.yml`, `canary-socket.yml`, `canary-badges.yml`, `build.yml`(옛 태그 형식, 늘 실패)을 지우고, `ops/watch/info.ts`의 GitHub 실행 목록과 현황판 "GitHub canary" 칸도 뺀다. `snapshots/`와 `scripts/canary/open-*.mjs`도 그때 정리. 워크플로 파일은 gh 토큰에 workflow 권한이 없어 SSH로 푸시한다.
 
 ## harvester
 
@@ -139,3 +138,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-08 | 익명 통계 하루 항목에 `guideOpen`(기능 안내 링크) 추가. 20칸을 넘어 `day2` 행에 들어가므로 `usage` 집계가 `day2` 행도 읽고, 이 항목의 비율은 `day2` 행 수로 나눈다 |
 | 2026-11-09 | `usage` 집계의 `guideOpen` 비율에서 v2.28.0보다 옛 버전 기록을 뺌. 그 버전에서 만든 하루 기록은 링크를 누른 사람만 `day2` 행이 생겨 비율이 부풀었다 |
 | 2026-11-12 | 익명 통계 주간 항목에 `copyIdOff`(치지직 ID 복사 버튼 끔) 추가. 나중에 덧붙인 주간 항목은 `SETTING_SINCE`에 적은 버전 이후 기록만 분모로 센다(옛 기록은 그 칸이 0으로 읽혀 비율이 눌린다) |
+| 2026-11-13 | GitHub 카나리 정리. `canary.yml`, `canary-socket.yml`, `canary-badges.yml`, `build.yml`과 `snapshots/`, `scripts/canary/open-*.mjs`, `badges.ts`(배지 인벤토리, ovm `badges` 작업이 대신함)를 지움. 현황판 GitHub 칸은 열린 이슈만 |

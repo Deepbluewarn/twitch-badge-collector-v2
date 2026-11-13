@@ -6,7 +6,7 @@
  * 여기서 먼저 잡아야 한다 (docs/reports/2026-10-10-chzzk-socket-protocol.md "결정 사항").
  *
  * 결과:
- *  - error → Discord 알림 + canary-socket-alert.json (워크플로가 추적 이슈를 열고 run을 실패로)
+ *  - error → Discord 알림 + canary-socket-alert.json (ovm의 ops/watch/canary.ts가 읽어 현황판 상태로 남긴다)
  *  - warn  → Discord 알림만
  *
  * env:

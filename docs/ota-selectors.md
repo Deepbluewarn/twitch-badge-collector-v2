@@ -111,10 +111,9 @@ chzzk는 CSS-module hash를 빌드마다 재생성한다. `_container_` 하나�
 
 | 계층 | 무엇 | 어디 |
 |---|---|---|
-| 감지 | 6시간마다 라이브 채널 다수 방문, required selector 검증 | `.github/workflows/canary.yml` |
+| 감지 | 6시간마다(치지직 배포 감지 때는 바로) 라이브 채널 다수 방문, required selector 검증 | ovm `canary` 작업 ([docs/monitoring.md](monitoring.md)), `scripts/canary/chzzk.ts` |
 | 후보 도출 | 깨진 selector의 hash 치환 후보를 **라이브 DOM에서 직접 검증** (cardinality 채점) | `scripts/canary/visit-channel.ts` |
-| 자동 수정 | 검증 통과 후보가 유일하면 rev bump + draft PR (prod/legacy 두 manifest 동시) | `scripts/canary/open-fix-pr.mjs` |
-| 추적 | 자동 수정 못 하면 GitHub Issue 생성 (열린 이슈 있으면 코멘트) | `scripts/canary/open-alert-issue.mjs` |
+| 알림 | 스냅샷과 달라지면 Discord, 깨진 채 6시간이면 다시, 회복하면 한 번. 후보는 현황판에 띄우고 OTA는 사람이 낸다 | `ops/watch/canary.ts` |
 | 데이터 이중화 | 배지를 React props 유래 data 속성 + selector 두 출처에서 읽음 — selector가 깨져도 배지 필터 동작 | `src/platform/{chzzk,twitch}.ts` |
 | 부분 수집 | 닉네임을 못 뽑아도 채팅을 버리지 않음. `exclude` atomic이 그 필드에 걸린 composite만 평가 제외 | `src/platform/chzzk.ts`, `src/filter/evaluate.ts` |
 | 사용자측 자가복구 | 채팅창 앵커를 10초간 못 찾으면 세션당 1회 강제 OTA fetch. 그 외에는 평소 경로(SW wake + 1h TTL) | `src/utils/utils-common.ts` (`findElement`) |

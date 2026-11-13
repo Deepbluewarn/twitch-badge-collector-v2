@@ -1,5 +1,5 @@
 /**
- * 3시간마다: 스토어 수치, GitHub canary 상태, 새 배지, GA 추이를 모은다.
+ * 3시간마다: 스토어 수치, GitHub 열린 이슈, 새 배지, GA 추이를 모은다.
  *
  * 스토어 대시보드의 주간 사용자, 설치, 제거 수는 API가 없다. 공개 상세 페이지와 AMO API에 나오는 값만 쓴다.
  * 새 배지는 badge-harvester가 모은 목록(~/harvester/data/badges.json)과 확장의 배지 목록을 비교한다.
@@ -12,11 +12,6 @@ import { RAW, REPO, attempt, fetchJson, fetchText, writeJson } from './state.ts'
 
 const CWS_ID = 'gbcdobpipglclbhabpkacoecddmopojp';
 const AMO_SLUG = 'twitch-badge-collector-v2';
-const WORKFLOWS = [
-    ['canary.yml', '선택자 canary'],
-    ['canary-socket.yml', '소켓 canary'],
-    ['canary-badges.yml', '배지 canary'],
-] as const;
 const GA_DAYS = 14;
 const NEW_BADGE_DAYS = 14;
 
@@ -57,33 +52,13 @@ async function stores() {
 }
 
 async function github() {
-    const runs = await Promise.all(
-        WORKFLOWS.map(async ([file, name]) => {
-            const r = await attempt(() =>
-                fetchJson<{ workflow_runs: { conclusion: string | null; status: string; created_at: string; html_url: string }[] }>(
-                    `https://api.github.com/repos/${REPO}/actions/workflows/${file}/runs?per_page=5&exclude_pull_requests=true`,
-                ),
-            );
-            if ('error' in r) return { file, name, error: r.error };
-            const done = r.workflow_runs.filter((x) => x.status === 'completed');
-            const last = done[0];
-            return {
-                file,
-                name,
-                conclusion: last?.conclusion ?? null,
-                at: last?.created_at ?? null,
-                url: last?.html_url ?? `https://github.com/${REPO}/actions/workflows/${file}`,
-                recent: done.map((x) => x.conclusion),
-            };
-        }),
-    );
     const issues = await attempt(async () => {
         const list = await fetchJson<{ number: number; title: string; html_url: string; labels: { name: string }[]; pull_request?: unknown; created_at: string }[]>(
             `https://api.github.com/repos/${REPO}/issues?state=open&per_page=50`,
         );
         return list.filter((i) => !i.pull_request).map((i) => ({ number: i.number, title: i.title, url: i.html_url, labels: i.labels.map((l) => l.name), created: i.created_at }));
     });
-    return { runs, issues };
+    return { issues };
 }
 
 interface HarvestedBadge {
