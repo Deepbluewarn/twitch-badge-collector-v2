@@ -51,6 +51,8 @@ export interface JobHealth {
     lastOk: number | null;
     lastEnd: number | null;
     code: number | null;
+    /** 이 작업이 목록에 처음 들어온 때. 한 번도 안 돈 작업은 여기서부터 센다 */
+    firstSeen?: number;
     stale: boolean;
 }
 export interface Heartbeat {
@@ -92,13 +94,16 @@ async function main(): Promise<void> {
     const jobs: JobHealth[] = JOBS.map(({ job, label, maxAgeMin }) => {
         const r = readRun(job);
         const lastOk = r?.lastOk ? r.lastOk * 1000 : null;
+        const was = prev?.jobs.find((j) => j.job === job);
+        // 한 번도 안 돈 작업은 목록에 들어온 때부터 센다 (막 설치했거나 새로 추가한 작업이 멈춤으로 뜨지 않게)
+        const firstSeen = was?.firstSeen ?? (was ? installedAt : now);
         return {
             job, label, maxAgeMin,
             lastOk,
             lastEnd: r ? r.end * 1000 : null,
             code: r?.code ?? null,
-            // 한 번도 안 돈 작업은 heartbeat를 처음 돌린 때부터 센다 (막 설치했을 때 전부 멈춤으로 뜨지 않게)
-            stale: now - (lastOk ?? installedAt) > maxAgeMin * 60_000,
+            firstSeen,
+            stale: now - (lastOk ?? firstSeen) > maxAgeMin * 60_000,
         };
     });
     const services = SERVICES.filter(serviceExists).map((name) => ({ name, state: serviceState(name) }));
