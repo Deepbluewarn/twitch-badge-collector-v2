@@ -11,25 +11,31 @@
  * 필터는 "빈 키워드 포함" 하나만 넣는다. 글자가 있는 채팅은 전부 통과하므로 창의 채팅 수가 곧 수집 수다.
  * 사용자 Chrome, 프로필은 건드리지 않는다. 매번 빈 임시 프로필을 쓴다.
  *
- * 플래그: --seconds=60 (채널마다 지켜보는 시간)
+ * 플래그: --seconds=60 (채널마다 지켜보는 시간. --main은 90)
+ * 시험용: --ext=<폴더> 릴리스 대신 이 확장, --url=<치지직 방송> 인기 목록 대신 이 방송
  */
 import { execFileSync } from 'child_process';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import { chromium, type BrowserContext, type Page } from 'playwright';
 import type { Finding } from './incidents.ts';
 import bundledManifest from '../../src/platform/bundled-selectors.prod.json' with { type: 'json' };
-import { hostChats, judgeMain, type MainRun, type PageObservation } from './main-path.ts';
+import { hostChats, judgeMain, type ContentSample, type MainRun, type PageObservation, type ShadowMismatch } from './main-path.ts';
 import { checkDependencies, diffLines, diffSignals, judgeDependencies, extractSignals, isChzzkBundle, type BundleFile, type BundleSignals, type Dependency, type SignalDiff } from './bundle.ts';
 import { CACHE_DIR, REPO, UA, attempt, fetchJson, isError, readJson, writeCheck, writeJson } from './state.ts';
 
 // Playwright 오류는 브라우저 실행 로그까지 붙어 길다. 첫 줄만 남긴다
 const firstLine = (e: unknown) => String((e as Error)?.message ?? e).split('\n')[0].slice(0, 300);
-const SECONDS = Number(process.argv.find((a) => a.startsWith('--seconds='))?.slice(10) ?? 60);
+const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const MAIN = process.argv.includes('--main');
+// 주 경로 시험은 비교 도구 요약(30초마다)을 두 번은 받으려고 더 오래 본다
+const SECONDS = Number(process.argv.find((a) => a.startsWith('--seconds='))?.slice(10) ?? (MAIN ? 90 : 60));
 /** 시험용: 확장 대신 이 폴더를 올린다 (일부러 고장 낸 빌드로 판정을 확인할 때) */
 const EXT_DIR = process.argv.find((a) => a.startsWith('--ext='))?.slice(6);
+/** 시험용: 인기 목록 대신 이 치지직 방송을 본다 */
+const CHZZK_URL = process.argv.find((a) => a.startsWith('--url='))?.slice(6);
 
 // 확장의 소켓 파서. ops tsconfig로는 src의 경로 별칭을 따라갈 수 없어 경로를 변수로 두고 불러온다(tsx는 실행한다)
 const PARSER = '../../src/platform/chzzk-socket.ts';
@@ -91,6 +97,7 @@ async function latestExtension(): Promise<{ version: string; dir: string }> {
 }
 
 async function chzzkLive(): Promise<string> {
+    if (CHZZK_URL) return CHZZK_URL;
     const lives = await fetchJson<{ content: { data: { channel: { channelId: string } }[] } }>(
         'https://api.chzzk.naver.com/service/v1/lives?size=10&sortType=POPULAR',
     );
@@ -122,7 +129,8 @@ async function configure(ctx: BrowserContext, id: string, socket: boolean): Prom
             id: `watch-${platform}`,
             filterNote: '현황판 시험',
             platform,
-            filters: [{ category: 'keyword', id: `watch-${platform}-1`, type: 'include', value: '' }],
+            // 닉네임이 \u0000이 아님: 모든 채팅이 통과한다. 빈 키워드는 글자 없는 채팅(글 없는 후원 등)을 빠뜨린다
+            filters: [{ category: 'name', id: `watch-${platform}-1`, type: 'exclude', value: '\u0000' }],
         }));
         await chrome.storage.local.set({ filter, 'tbc-socket-rollout-bucket': socket ? 0 : 99 });
     }, socket);
@@ -130,7 +138,25 @@ async function configure(ctx: BrowserContext, id: string, socket: boolean): Prom
 }
 
 /** 페이지 하나를 SECONDS 동안 보고 방송 채팅, 소켓, 수집 창을 잰다. 페이지를 못 열면 던진다 */
-async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'twitch', files?: BundleFile[]): Promise<PageObservation> {
+/** 확장의 비교 도구(socket-shadow.ts)가 콘솔에 남기는 줄. 서식 문자(%c)와 스타일 인자가 같이 온다 */
+function readShadowLine(text: string, into: ContentSample): void {
+    const m = /(\w+) 불일치 \(type (\d+) (\w+)\) (\S+)\n\s*html:\s+(.*)\n\s*socket:\s+(.*?)(?: color:[^\n]*)?$/s.exec(text);
+    if (m) {
+        const json = (v: string) => {
+            try {
+                return JSON.parse(v);
+            } catch {
+                return v;
+            }
+        };
+        into.mismatches.push({ field: m[1], type: Number(m[2]), status: m[3], id: m[4], html: json(m[5]), socket: json(m[6].trim()) } satisfies ShadowMismatch);
+        return;
+    }
+    const s = /일치 (\d+) \/ 불일치 (\d+) \/ 소켓만 (\d+) \/ html만 (\d+)/.exec(text);
+    if (s) into.shadowSummary = { matched: +s[1], mismatched: +s[2], socketOnly: +s[3], htmlOnly: +s[4] };
+}
+
+async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'twitch', files?: BundleFile[], compare = false): Promise<PageObservation> {
     const page: Page = await ctx.newPage();
     const pending: Promise<void>[] = [];
     const sockets: PageObservation['sockets'] = [];
@@ -142,13 +168,25 @@ async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'tw
     }
     if (platform === 'chzzk') {
         // 탭이 확장(ISOLATED)에 넘기는 window 메시지를 페이지에서 센다 (ws-tap.ts, TBC_SOCKET_CHAT_ACTION)
-        await page.addInitScript(() => {
-            const w = window as unknown as { __tbcWatchTap: number };
+        await page.addInitScript((compare) => {
+            const w = window as unknown as { __tbcWatchTap: number; __tbcWatchChats: unknown[] };
             w.__tbcWatchTap = 0;
+            w.__tbcWatchChats = [];
+            // 비교 도구는 이 값이 있으면 켜진다 (socket-shadow.ts isSocketShadowEnabled)
+            if (compare) {
+                try {
+                    localStorage.setItem('tbc:socket-shadow', '1');
+                } catch {
+                    // 저장소를 못 쓰면 비교 없이
+                }
+            }
             window.addEventListener('message', (e) => {
-                if (e.source === window && e.data?.action === 'tbc-socket-chat' && e.data?.kind === 'chats') w.__tbcWatchTap += e.data.chats?.length ?? 0;
+                if (e.source !== window || e.data?.action !== 'tbc-socket-chat' || e.data?.kind !== 'chats') return;
+                const chats = (e.data.chats ?? []) as { id: string; type: number; status: string; nickname: string; anonymous: boolean; message: string; badges: string[] }[];
+                w.__tbcWatchTap += chats.length;
+                if (compare) for (const c of chats) w.__tbcWatchChats.push({ id: c.id, type: c.type, status: c.status, nickname: c.nickname ?? '', anonymous: !!c.anonymous, message: c.message ?? '', badges: c.badges ?? [] });
             });
-        });
+        }, compare);
         page.on('websocket', (ws) => {
             const entry = { url: ws.url(), chats: 0 };
             sockets.push(entry);
@@ -162,6 +200,11 @@ async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'tw
             });
         });
     }
+    const content: ContentSample | undefined = compare ? { chats: [], items: [], mismatches: [] } : undefined;
+    if (content) page.on('console', (msg) => {
+        const text = msg.text();
+        if (text.includes('[TBC shadow]')) readShadowLine(text, content);
+    });
     try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
         await page.waitForTimeout(SECONDS * 1000);
@@ -187,9 +230,17 @@ async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'tw
                 paneWithBadge: items.filter((el) => el.querySelector('img')).length,
                 paneWithName: items.filter((el) => (el.textContent ?? '').trim().length > 0).length,
                 container: containerCount,
+                chats: (window as unknown as { __tbcWatchChats?: unknown[] }).__tbcWatchChats ?? [],
+                items: items.map((el) => ({
+                    key: el.getAttribute('data-tbc-chat-key') ?? '',
+                    text: el.textContent ?? '',
+                    nameImgs: el.querySelectorAll('[aria-haspopup="true"] img, [class*="_nickname_"] img').length,
+                })),
             };
         }, { platform, container: platform === 'chzzk' ? bundledManifest.platforms.chzzk.selectors.chatRoomLive : '' });
-        return { url, sockets, ...counts };
+        const { chats, items, ...rest } = counts;
+        if (content) Object.assign(content, { chats, items });
+        return { url, sockets, ...rest, ...(content ? { content } : {}) };
     } finally {
         await page.close();
     }
@@ -227,6 +278,12 @@ async function withExtension<T>(fn: (ctx: BrowserContext, id: string, version: s
     }
 }
 
+/** 배지 그림 URL → 묶음 id (data/chzzk-badges.json) */
+function badgeGroups(): Map<string, string> {
+    const list = JSON.parse(readFileSync(join(REPO_ROOT, 'data/chzzk-badges.json'), 'utf8')) as { groups: { id: string; badges: { imageUrl: string }[] }[] };
+    return new Map(list.groups.flatMap((g) => g.badges.map((b) => [b.imageUrl, g.id] as [string, string])));
+}
+
 /** 주 경로 시험: 소켓 모드를 켠 치지직 라이브 하나 */
 async function mainPath(): Promise<void> {
     const run: MainRun = { at: Date.now() };
@@ -234,16 +291,20 @@ async function mainPath(): Promise<void> {
         await withExtension(async (ctx, id, version) => {
             run.version = version;
             await configure(ctx, id, true);
-            Object.assign(run, await observe(ctx, await chzzkLive(), 'chzzk'));
+            Object.assign(run, await observe(ctx, await chzzkLive(), 'chzzk', undefined, true));
         });
     } catch (e) {
         run.error = firstLine(e);
     }
-    writeJson('main', run);
-    const report = judgeMain(run);
+    const report = judgeMain(run, badgeGroups());
+    // 비교 재료는 크다. 현황판 상태에는 건수만 남기고, 알림을 조사할 때 보도록 재료는 따로 둔다(덮어쓴다)
+    const { content, ...kept } = run;
+    if (content) writeJson('main-content', content);
+    writeJson('main', { ...kept, content: content && { chats: content.chats.length, items: content.items.length, mismatches: content.mismatches.length, shadowSummary: content.shadowSummary } });
     writeCheck(report);
     const total = (run.sockets ?? []).map((s) => `${s.url} ${s.chats}`).join(', ');
-    console.log(`[main] ${new Date().toISOString()} ${run.version ?? '-'} ${report.status}${report.note ? ` (${report.note})` : ''} pane=${run.paneExists ? run.pane : 'none'} dom=${run.domChats ?? '-'} tap=${run.tapInstalled ?? '-'}/${run.tapDelivered ?? '-'} sockets=[${total}] ${report.findings.map((f) => f.key).join(', ')}`);
+    const cmp = content ? ` compare=${content.shadowSummary ? `${content.shadowSummary.matched}/${content.shadowSummary.mismatched}/htmlOnly ${content.shadowSummary.htmlOnly}` : 'none'} chats=${content.chats.length} items=${content.items.length}` : '';
+    console.log(`[main] ${new Date().toISOString()} ${run.version ?? '-'} ${report.status}${cmp}${report.note ? ` (${report.note})` : ''} pane=${run.paneExists ? run.pane : 'none'} dom=${run.domChats ?? '-'} tap=${run.tapInstalled ?? '-'}/${run.tapDelivered ?? '-'} sockets=[${total}] ${report.findings.map((f) => f.key).join(', ')}`);
 }
 
 async function main(): Promise<void> {

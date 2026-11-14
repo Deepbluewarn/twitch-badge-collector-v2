@@ -70,6 +70,16 @@ describe('checkSocketCapture', () => {
         expect(checkSocketCapture([channel([chatPacket(...items)])]).errors.join()).toMatch(/배지가 계산된 채팅이 0건/);
     });
 
+    it('흔한 배지 출처(구독, 시청자 배지)가 채팅이 충분한데 한 번도 안 나오면 오류', () => {
+        const withSub = (sub: boolean) => item({ profile: profile({ streamingProperty: { nicknameColor: { colorCode: 'CC000' }, ...(sub ? { subscription: { badge: { imageUrl: 'https://x/sub.png' } } } : {}) } }) });
+        const none = checkSocketCapture([channel([chatPacket(...Array.from({ length: MIN_CHATS_FOR_BADGE_CHECK }, () => withSub(false)))])]);
+        expect(none.errors.join()).toMatch(/profile\.streamingProperty\.subscription가 한 번도 안 나옴/);
+        expect(none.errors.join()).not.toMatch(/profile\.viewerBadges가/);
+        const some = checkSocketCapture([channel([chatPacket(withSub(true), ...Array.from({ length: MIN_CHATS_FOR_BADGE_CHECK }, () => withSub(false)))])]);
+        expect(some.errors).toEqual([]);
+        expect(some.stats.badgeSources).toMatchObject({ subscription: 1, viewerBadges: MIN_CHATS_FOR_BADGE_CHECK + 1 });
+    });
+
     it('채팅이 적으면 배지 0건은 판정하지 않는다', () => {
         const r = checkSocketCapture([channel([chatPacket(item({ profile: profile({ viewerBadges: [] }) }))])]);
         expect(r.errors).toEqual([]);

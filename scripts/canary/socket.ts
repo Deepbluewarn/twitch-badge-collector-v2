@@ -48,7 +48,7 @@ async function notifyDiscord(content: string) {
 
 function summary(r: SocketCheckResult) {
     const s = r.stats;
-    return `채널 ${s.connected}/${s.channels} 접속 · 패킷 ${s.packets} · 채팅 ${s.chats} (배지 있음 ${s.withBadges}) · 메시지 종류 ${JSON.stringify(s.byMsgType)}`;
+    return `채널 ${s.connected}/${s.channels} 접속 · 패킷 ${s.packets} · 채팅 ${s.chats} (배지 있음 ${s.withBadges}, 출처 ${JSON.stringify(s.badgeSources)}) · 메시지 종류 ${JSON.stringify(s.byMsgType)}`;
 }
 
 interface RareEntry {

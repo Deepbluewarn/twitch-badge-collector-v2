@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { judgeMain, type MainRun } from './main-path.ts';
+import { comparedCount, judgeContent, judgeMain, type ContentSample, type MainRun, type PaneItem, type ShadowMismatch, type TapChat } from './main-path.ts';
 
 const SOCKET = 'wss://kr-ss3.chat.naver.com/chat';
 const healthy: MainRun = {
@@ -68,5 +68,89 @@ describe('judgeMain', () => {
         expect(judgeMain({ ...healthy, sockets: [{ url: SOCKET, chats: 0 }], domChats: 0 }).status).toBe('unknown');
         const r = judgeMain({ at: 1, error: '확장 zip 404' });
         expect([r.status, r.note]).toEqual(['unknown', '확장 zip 404']);
+    });
+});
+
+const SUB = 'https://nng-phinf.pstatic.net/glive/subscription/badge/ch/1/3.png';
+const FAN = 'https://ssl.pstatic.net/static/nng/glive/badge/fan_01.png';
+const groups = new Map([[FAN, 'donation']]);
+const tapChat = (i: number, over: Partial<TapChat> = {}): TapChat => ({ id: `u${i}_${1000 + i}`, type: 1, status: 'NORMAL', nickname: `닉${i}`, anonymous: false, message: `안녕 ${i}`, badges: [SUB], ...over });
+const item = (c: TapChat, over: Partial<PaneItem> = {}): PaneItem => ({ key: c.id, text: `12:00${c.nickname}${c.message}`, nameImgs: c.badges.length, ...over });
+const sample = (n: number, over: Partial<ContentSample> = {}): ContentSample => {
+    const chats = Array.from({ length: n }, (_, i) => tapChat(i));
+    return { chats, items: chats.map((c) => item(c)), mismatches: [], shadowSummary: { matched: n, mismatched: 0, socketOnly: 0, htmlOnly: 0 }, ...over };
+};
+const badgeMismatch = (c: TapChat, onlyInHtml: string[], onlyInSocket: string[] = []): ShadowMismatch => ({ field: 'badges', type: c.type, status: 'NORMAL', id: c.id, html: { onlyInHtml }, socket: { onlyInSocket } });
+const contentKeys = (c: ContentSample) => judgeContent(c, groups).map((f) => [f.key, f.level]);
+
+describe('judgeContent', () => {
+    it('화면 쪽에만 있는 주소 변형(?type=f40_40)은 같은 배지로 본다', () => {
+        const c = sample(40);
+        c.mismatches = c.chats.slice(0, 30).map((x) => badgeMismatch(x, [`${SUB}?type=f40_40`]));
+        c.shadowSummary = { matched: 10, mismatched: 30, socketOnly: 0, htmlOnly: 0 };
+        expect(contentKeys(c)).toEqual([]);
+    });
+
+    it('소켓이 구독 배지를 빠뜨리면 위험 (묶음별 key)', () => {
+        const c = sample(40);
+        for (const x of c.chats) x.badges = [];
+        c.items = c.chats.map((x) => item(x));
+        c.mismatches = c.chats.slice(0, 20).map((x) => badgeMismatch(x, [SUB, `${SUB}?type=f40_40`]));
+        c.shadowSummary = { matched: 20, mismatched: 20, socketOnly: 0, htmlOnly: 0 };
+        const f = judgeContent(c, groups);
+        expect(f.map((x) => [x.key, x.level])).toEqual([['main:compare:missing:subscription', 'risk']]);
+        expect(f[0].title).toContain('40건 중 20건');
+    });
+
+    it('소켓에만 있는 배지는 대체 경로 문제라 참고', () => {
+        const c = sample(40);
+        c.mismatches = c.chats.slice(0, 10).map((x) => badgeMismatch(x, [], [FAN]));
+        c.shadowSummary = { matched: 30, mismatched: 10, socketOnly: 0, htmlOnly: 0 };
+        expect(contentKeys(c)).toEqual([['main:compare:extra:donation', 'info']]);
+    });
+
+    it('자세한 불일치가 상한(50건)에 걸리면 그 시간 동안의 채팅으로 비율을 낸다', () => {
+        // 1000건 중 300건이 어긋났는데 자세히는 50건만 남은 경우. 전체로 나누면 5%라 놓친다
+        const c = sample(1000);
+        const broken = c.chats.filter((_, i) => i % 3 === 0).slice(0, 50);
+        c.mismatches = broken.map((x) => badgeMismatch({ ...x, badges: [] }, [SUB]));
+        for (const x of broken) x.badges = [];
+        c.shadowSummary = { matched: 700, mismatched: 300, socketOnly: 0, htmlOnly: 0 };
+        expect(comparedCount(c)).toBe(148);
+        expect(contentKeys(c)).toEqual([['main:compare:missing:subscription', 'risk']]);
+    });
+
+    it('한두 건이나 10% 미만은 넘어간다', () => {
+        const c = sample(40);
+        for (const x of c.chats.slice(0, 2)) x.badges = [];
+        c.mismatches = c.chats.slice(0, 2).map((x) => badgeMismatch(x, [SUB]));
+        c.shadowSummary = { matched: 38, mismatched: 2, socketOnly: 0, htmlOnly: 0 };
+        expect(contentKeys(c)).toEqual([]);
+    });
+
+    it('비교한 채팅이 10건 미만이면 비교 판정을 하지 않는다', () => {
+        const c = sample(5);
+        for (const x of c.chats) x.badges = [];
+        c.mismatches = c.chats.map((x) => badgeMismatch(x, [SUB]));
+        c.shadowSummary = { matched: 0, mismatched: 5, socketOnly: 0, htmlOnly: 0 };
+        expect(contentKeys(c)).toEqual([]);
+    });
+
+    it('소켓이 놓친 채팅(원래 채팅에만)이 많으면 위험', () => {
+        const c = sample(40, { shadowSummary: { matched: 40, mismatched: 0, socketOnly: 0, htmlOnly: 10 } });
+        expect(contentKeys(c)).toEqual([['main:compare:html-only', 'risk']]);
+    });
+
+    it('수집 창이 닉네임, 본문, 배지 그림을 안 그리면 위험', () => {
+        const c = sample(20);
+        c.items = c.chats.map((x) => item(x, { text: '12:00', nameImgs: 0 }));
+        expect(contentKeys(c)).toEqual([['main:render:name', 'risk'], ['main:render:text', 'risk'], ['main:render:badges', 'risk']]);
+    });
+
+    it('이모티콘만 있는 채팅, 가려진 채팅, 익명은 해당 비교에서 뺀다', () => {
+        const c = sample(20);
+        c.chats = c.chats.map((x, i) => (i % 2 ? { ...x, message: '{:d_151:}{:d_151:}' } : { ...x, status: 'CBOTBLIND', anonymous: true }));
+        c.items = c.chats.map((x) => item(x, { text: '12:00 이모티콘' }));
+        expect(contentKeys(c)).toEqual([['main:render:name', 'risk']]);
     });
 });

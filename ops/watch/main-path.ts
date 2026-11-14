@@ -5,8 +5,14 @@
  * 방송에 채팅이 있었는지는 화면이 아니라 페이지의 웹소켓 메시지로 센다(확장의 파서로 읽는다).
  * 치지직 화면 구조가 바뀌어도 "확인 못 함"으로 빠지지 않게. 소켓이 안 보이면 화면 채팅 줄로 센다.
  *
+ * 창이 차 있으면 내용도 본다 (judgeContent):
+ *  - 소켓 데이터가 화면과 같은가: 확장의 비교 도구(src/content-scripts/chzzk/socket-shadow.ts)를 켜고 콘솔 결과를 읽는다.
+ *    화면엔 있는데 소켓에 없는 배지는 주 경로 사용자의 필터가 놓치므로 위험, 반대(대체 경로가 못 읽음)는 참고
+ *  - 수집 창이 제대로 그리나: 수집 창 채팅과 탭이 넘긴 소켓 채팅을 키로 짝지어 닉네임, 본문, 배지 그림 수를 본다
+ *
  * 입출력 없는 순수 함수만 둔다. 관찰은 live-check.ts --main이 한다.
  */
+import { badgeGroup } from '../../scripts/canary/judge.ts';
 import { CHAT_SOCKET_URL } from '../../src/platform/chzzk-socket-url.ts';
 import type { CheckReport, Finding } from './incidents.ts';
 
@@ -28,6 +34,45 @@ export interface PageObservation {
     paneWithName: number;
     /** 확장이 수집 창을 붙이는 채팅 컨테이너 선택자가 지금 화면에서 맞는 수 */
     container: number;
+    /** 내용 비교 재료 (주 경로 시험만) */
+    content?: ContentSample;
+}
+
+/** 탭이 확장에 넘긴 소켓 채팅 (ChzzkSocketChat에서 비교에 쓰는 것만) */
+export interface TapChat {
+    id: string;
+    type: number;
+    status: string;
+    nickname: string;
+    anonymous: boolean;
+    message: string;
+    /** 인증 마크는 들어 있지 않다 (CSS 배경이라 그림이 아니다) */
+    badges: string[];
+}
+
+export interface PaneItem {
+    key: string;
+    text: string;
+    /** 닉네임 영역의 그림 수 */
+    nameImgs: number;
+}
+
+/** 비교 도구가 콘솔에 남긴 불일치 한 건. html은 원래 채팅 화면, socket은 소켓 쪽 */
+export interface ShadowMismatch {
+    field: string;
+    type: number;
+    status: string;
+    id: string;
+    html: unknown;
+    socket: unknown;
+}
+
+export interface ContentSample {
+    chats: TapChat[];
+    items: PaneItem[];
+    /** 비교 도구의 마지막 요약. 30초마다 나온다 */
+    shadowSummary?: { matched: number; mismatched: number; socketOnly: number; htmlOnly: number };
+    mismatches: ShadowMismatch[];
 }
 
 export interface MainRun extends Partial<PageObservation> {
@@ -36,9 +81,108 @@ export interface MainRun extends Partial<PageObservation> {
     error?: string;
 }
 
+/** 어긋남이 이만큼(비율과 건수 둘 다) 넘어야 사건이다. 한두 건의 우연한 차이로는 울리지 않게 */
+export const CONTENT_RATIO = 0.1;
+export const CONTENT_MIN = 3;
+/** 비교한 채팅이 이보다 적으면 내용은 판정하지 않는다 */
+export const CONTENT_MIN_COMPARED = 10;
+/** 비교 도구가 불일치를 자세히 남기는 건수 (socket-shadow.ts DETAILED_MISMATCH_LOGS) */
+export const SHADOW_DETAIL_LIMIT = 50;
+
+/** 소켓 채팅 id는 `${uid}_${msgTime}` */
+const timeOf = (id: string) => Number(id.split('_').at(-1));
+
+/**
+ * 비율의 분모. 자세한 불일치가 상한에 걸렸으면 그 뒤의 불일치는 내용을 모른다. 그때는 자세히 남은 불일치가
+ * 걸친 시간 동안 탭이 넘긴 채팅 수를 쓴다(상한에 걸린 채로 전체 비교 수를 쓰면 비율이 줄어 고장을 놓친다).
+ */
+export function comparedCount(c: ContentSample): number {
+    const ids = new Set(c.mismatches.map((m) => m.id));
+    if (c.mismatches.length < SHADOW_DETAIL_LIMIT) return c.shadowSummary ? c.shadowSummary.matched + c.shadowSummary.mismatched : ids.size;
+    const times = [...ids].map(timeOf).filter(Number.isFinite);
+    const [from, to] = [Math.min(...times), Math.max(...times)];
+    return Math.max(ids.size, c.chats.filter((x) => timeOf(x.id) >= from && timeOf(x.id) <= to).length);
+}
+
+/** 같은 그림의 주소 변형(?type=f40_40 등)은 같은 배지로 본다. 화면 쪽은 변형과 원래 주소를 둘 다 갖는다 */
+const baseUrl = (u: string) => u.split('?')[0];
+const norm = (t: string) => t.replace(/\s+/g, ' ').trim();
+const over = (n: number, of: number) => n >= CONTENT_MIN && n / Math.max(of, 1) >= CONTENT_RATIO;
+const typesOf = (types: Map<number, number>) => [...types].map(([t, n]) => `type ${t} ${n}건`).join(', ');
+
+export function judgeContent(c: ContentSample, groupOf: Map<string, string>): Finding[] {
+    const findings: Finding[] = [];
+    const chats = new Map(c.chats.map((x) => [x.id, x]));
+
+    // 1. 소켓 데이터가 화면과 같은가
+    const sum = c.shadowSummary;
+    const compared = comparedCount(c);
+    if (compared >= CONTENT_MIN_COMPARED) {
+        const tally = new Map<string, { level: 'risk' | 'info'; title: string; ids: Set<string>; types: Map<number, number>; samples: Set<string> }>();
+        const add = (key: string, level: 'risk' | 'info', title: string, m: ShadowMismatch, sample?: string) => {
+            const t = tally.get(key) ?? { level, title, ids: new Set<string>(), types: new Map<number, number>(), samples: new Set<string>() };
+            if (!t.ids.has(m.id)) t.types.set(m.type, (t.types.get(m.type) ?? 0) + 1);
+            t.ids.add(m.id);
+            if (sample) t.samples.add(sample);
+            tally.set(key, t);
+        };
+        for (const m of c.mismatches) {
+            if (m.field !== 'badges') {
+                add(`main:compare:${m.field}`, 'risk', `소켓과 원래 채팅의 ${m.field === 'name' ? '닉네임' : m.field === 'text' ? '본문' : '필터 판정'}이 다름`, m, `화면 ${JSON.stringify(m.html)} / 소켓 ${JSON.stringify(m.socket)}`.slice(0, 200));
+                continue;
+            }
+            const onlyHtml = ((m.html as { onlyInHtml?: string[] })?.onlyInHtml ?? []);
+            const onlySocket = ((m.socket as { onlyInSocket?: string[] })?.onlyInSocket ?? []);
+            const socketBases = new Set((chats.get(m.id)?.badges ?? onlySocket).map(baseUrl));
+            const htmlBases = new Set(onlyHtml.map(baseUrl));
+            for (const u of onlyHtml.filter((u) => !socketBases.has(baseUrl(u)))) {
+                const g = badgeGroup(baseUrl(u), groupOf);
+                add(`main:compare:missing:${g}`, 'risk', `소켓 경로가 ${g} 배지를 빠뜨림 (원래 채팅엔 있음, 이 배지 필터가 채팅을 놓친다)`, m, u);
+            }
+            for (const u of onlySocket.filter((u) => !htmlBases.has(baseUrl(u)))) {
+                const g = badgeGroup(baseUrl(u), groupOf);
+                add(`main:compare:extra:${g}`, 'info', `HTML 대체 경로가 ${g} 배지를 못 읽음 (소켓엔 있음)`, m, u);
+            }
+        }
+        for (const [key, t] of tally) {
+            if (!over(t.ids.size, compared)) continue;
+            findings.push({ key, level: t.level, title: `${t.title}: 비교한 채팅 ${compared}건 중 ${t.ids.size}건`, lines: [typesOf(t.types), ...[...t.samples].slice(0, 2)] });
+        }
+        if (sum && over(sum.htmlOnly, compared)) {
+            findings.push({ key: 'main:compare:html-only', level: 'risk', title: `소켓이 놓친 채팅: 원래 채팅에만 ${sum.htmlOnly}건 (비교 ${compared}건)`, lines: [] });
+        }
+    }
+
+    // 2. 수집 창이 제대로 그리나
+    const pairs = c.items.flatMap((i) => (chats.has(i.key) ? [{ i, chat: chats.get(i.key)! }] : []));
+    const render = { name: { n: 0, bad: new Map<number, number>(), sample: '' }, text: { n: 0, bad: new Map<number, number>(), sample: '' }, badges: { n: 0, bad: new Map<number, number>(), sample: '' } };
+    const check = (field: keyof typeof render, ok: boolean, chat: TapChat, sample: string) => {
+        const r = render[field];
+        r.n++;
+        if (ok) return;
+        r.bad.set(chat.type, (r.bad.get(chat.type) ?? 0) + 1);
+        r.sample ||= sample.slice(0, 200);
+    };
+    for (const { i, chat } of pairs) {
+        const text = norm(i.text);
+        if (!chat.anonymous && chat.nickname) check('name', text.includes(norm(chat.nickname)), chat, `${chat.nickname} → ${text}`);
+        // 이모티콘({:이름:})은 그림으로 그려지므로 글자 비교에서 뺀다. 가려진 채팅은 안내 문구가 그려진다
+        if (chat.status === 'NORMAL' && norm(chat.message) && !/\{:[^}]+:\}/.test(chat.message)) check('text', text.includes(norm(chat.message)), chat, `${chat.message} → ${text}`);
+        if (chat.badges.length) check('badges', i.nameImgs >= chat.badges.length, chat, `소켓 배지 ${chat.badges.length}개, 그림 ${i.nameImgs}개 (${chat.id})`);
+    }
+    const label = { name: '닉네임', text: '본문', badges: '배지 그림' };
+    for (const field of ['name', 'text', 'badges'] as const) {
+        const r = render[field];
+        const bad = [...r.bad.values()].reduce((a, b) => a + b, 0);
+        if (!over(bad, r.n)) continue;
+        findings.push({ key: `main:render:${field}`, level: 'risk', title: `수집 창이 ${label[field]}을(를) 제대로 안 그림: ${r.n}건 중 ${bad}건`, lines: [typesOf(r.bad), r.sample] });
+    }
+    return findings;
+}
+
 export const hostChats = (o: Partial<PageObservation>) => Math.max((o.sockets ?? []).reduce((n, s) => n + s.chats, 0), o.domChats ?? 0);
 
-export function judgeMain(run: MainRun): CheckReport {
+export function judgeMain(run: MainRun, groupOf = new Map<string, string>()): CheckReport {
     const base = { check: 'main', at: run.at };
     if (run.error) return { ...base, status: 'unknown', note: run.error, findings: [] };
     const host = hostChats(run);
@@ -63,6 +207,8 @@ export function judgeMain(run: MainRun): CheckReport {
         });
     } else if (!run.pane) {
         findings.push({ key: 'main:empty-pane', level: 'broken', title: '치지직 라이브 수집 창이 비었음', lines: where });
+    } else if (run.content) {
+        findings.push(...judgeContent(run.content, groupOf));
     }
 
     // 탭이 채팅을 넘겼으면 소켓 경로는 산다. 안 넘겼으면 나머지는 원인 단서다

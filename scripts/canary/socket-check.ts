@@ -79,6 +79,14 @@ export interface ChannelCapture {
     raws: string[];
 }
 
+/** deriveDisplayBadges가 배지를 꺼내는 곳 */
+export type BadgeSource = 'profileBadge' | 'donationRanking' | 'subscription' | 'viewerBadges';
+/** 흔해서 채팅이 충분한데 한 번도 안 나오면 필드가 옮겨진 것으로 보는 출처. 나머지 둘은 원래 드물어 횟수만 센다 */
+const COMMON_BADGE_SOURCES: { source: BadgeSource; field: string }[] = [
+    { source: 'subscription', field: 'streamingProperty.subscription' },
+    { source: 'viewerBadges', field: 'viewerBadges' },
+];
+
 export interface SocketCheckResult {
     errors: string[];
     warnings: string[];
@@ -88,6 +96,8 @@ export interface SocketCheckResult {
         packets: number;
         chats: number;
         withBadges: number;
+        /** 배지가 나오는 네 출처(deriveDisplayBadges)가 채팅에 실린 횟수 */
+        badgeSources: Record<BadgeSource, number>;
         byCmd: Record<string, number>;
         byMsgType: Record<string, number>;
     };
@@ -128,6 +138,7 @@ export function checkSocketCapture(captures: ChannelCapture[]): SocketCheckResul
     let items = 0, parseFailed = 0, chats = 0, withBadges = 0;
     let profiles = 0, profileBroken = 0, nicknameMissing = 0, badgeFieldsMissing = 0;
     let extrasBroken = 0, nonHttpsBadges = 0;
+    const badgeSources: Record<BadgeSource, number> = { profileBadge: 0, donationRanking: 0, subscription: 0, viewerBadges: 0 };
     let donations = 0, donationAmountBroken = 0;
     let blinds = 0, blindParseFailed = 0;
 
@@ -185,6 +196,11 @@ export function checkSocketCapture(captures: ChannelCapture[]): SocketCheckResul
                 if (chat.type === 30) continue; // 시스템 알림은 채팅 수집 대상이 아니다
                 chats++;
                 if (chat.badges.length) withBadges++;
+                const sp = pr.value.streamingProperty;
+                if (pr.value.badge) badgeSources.profileBadge++;
+                if (sp?.realTimeDonationRanking) badgeSources.donationRanking++;
+                if (sp?.subscription) badgeSources.subscription++;
+                if (Array.isArray(pr.value.viewerBadges) && pr.value.viewerBadges.length) badgeSources.viewerBadges++;
                 nonHttpsBadges += chat.badges.filter(b => !b.startsWith('https://')).length;
             }
         }
@@ -202,6 +218,11 @@ export function checkSocketCapture(captures: ChannelCapture[]): SocketCheckResul
     if (nicknameMissing / Math.max(profiles, 1) > BROKEN_RATIO) errors.push(`profile.nickname 없음 ${pct(nicknameMissing, profiles)} — 닉네임 필터가 깨집니다`);
     if (badgeFieldsMissing / Math.max(profiles, 1) > BROKEN_RATIO) errors.push(`profile.viewerBadges·activityBadges 둘 다 없음 ${pct(badgeFieldsMissing, profiles)} — 배지 필터가 깨집니다`);
     if (chats >= MIN_CHATS_FOR_BADGE_CHECK && withBadges === 0) errors.push(`채팅 ${chats}건 중 배지가 계산된 채팅이 0건 — deriveDisplayBadges가 가정하는 배지 필드가 바뀌었을 수 있습니다`);
+    if (chats >= MIN_CHATS_FOR_BADGE_CHECK) {
+        for (const { source, field } of COMMON_BADGE_SOURCES) {
+            if (!badgeSources[source]) errors.push(`채팅 ${chats}건에서 배지 출처 profile.${field}가 한 번도 안 나옴. 필드가 옮겨졌으면 소켓 경로에서 이 배지가 전부 빠진다 (deriveDisplayBadges)`);
+        }
+    }
     if (donations > 0 && donationAmountBroken / donations > BROKEN_RATIO) errors.push(`후원 extras.payAmount가 숫자가 아님 ${pct(donationAmountBroken, donations)}`);
     if (blinds > 0 && blindParseFailed / blinds > BROKEN_RATIO) errors.push(`블라인드 이벤트(94008) 해석 실패 ${pct(blindParseFailed, blinds)} — userId·messageTime·blindType 확인`);
 
@@ -216,7 +237,7 @@ export function checkSocketCapture(captures: ChannelCapture[]): SocketCheckResul
     return {
         errors,
         warnings,
-        stats: { channels: captures.length, connected, packets, chats, withBadges, byCmd, byMsgType },
+        stats: { channels: captures.length, connected, packets, chats, withBadges, badgeSources, byCmd, byMsgType },
         rare,
     };
 }
