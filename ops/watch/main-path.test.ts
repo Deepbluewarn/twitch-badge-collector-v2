@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { comparedCount, judgeContent, judgeMain, type ContentSample, type MainRun, type PaneItem, type ShadowMismatch, type TapChat } from './main-path.ts';
+import { comparedCount, judgeContent, judgeMain, mergeStoreReport, type ContentSample, type MainRun, type PaneItem, type ShadowMismatch, type TapChat } from './main-path.ts';
 
 const SOCKET = 'wss://kr-ss3.chat.naver.com/chat';
 const healthy: MainRun = {
@@ -152,5 +152,30 @@ describe('judgeContent', () => {
         c.chats = c.chats.map((x, i) => (i % 2 ? { ...x, message: '{:d_151:}{:d_151:}' } : { ...x, status: 'CBOTBLIND', anonymous: true }));
         c.items = c.chats.map((x) => item(x, { text: '12:00 이모티콘' }));
         expect(contentKeys(c)).toEqual([['main:render:name', 'risk']]);
+    });
+});
+
+describe('mergeStoreReport', () => {
+    const broken = judgeMain({ ...healthy, paneExists: false, pane: 0, container: 0 });
+    const ok = judgeMain(healthy);
+    const blind = judgeMain({ at: 1, error: '확장 zip 404' });
+
+    it('스토어 버전만 고장이면 main:store: 사건', () => {
+        const r = mergeStoreReport(ok, broken, '2.28.0');
+        expect([r.status, r.findings.map((f) => [f.key, f.part])]).toEqual(['issue', [['main:store:no-pane', '스토어 버전']]]);
+        expect(r.findings[0].title).toMatch(/^스토어 v2\.28\.0: /);
+    });
+
+    it('최신 릴리스 사건은 key가 그대로다 (같은 버전일 때와 같은 사건)', () => {
+        expect(mergeStoreReport(broken, ok, '2.28.0').findings.map((f) => f.key)).toEqual(['main:no-pane']);
+    });
+
+    it('한쪽만 확인 못 하면 그쪽은 unknownParts, 다른 쪽으로 판정', () => {
+        const r = mergeStoreReport(ok, blind, '2.28.0');
+        expect([r.status, r.unknownParts]).toEqual(['ok', [{ part: '스토어 버전', note: '확장 zip 404' }]]);
+    });
+
+    it('둘 다 확인 못 하면 확인 못 함', () => {
+        expect(mergeStoreReport(blind, blind, '2.28.0').status).toBe('unknown');
     });
 });

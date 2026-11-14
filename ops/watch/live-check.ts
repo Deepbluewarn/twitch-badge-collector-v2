@@ -6,23 +6,28 @@
  *   live-check.ts --main  1시간마다: 주 경로 시험. 치지직(소켓 모드 켬) 하나를 보고 판정은 main-path.ts. 보고서 checks/main.json
  *
  * 방송 채팅 수는 화면 줄 수와 페이지 웹소켓 메시지(확장 파서로 읽은 채팅) 중 큰 쪽이다.
- * 방송에 채팅이 없거나 페이지를 못 열면 그 경로는 확인 못 함이다(깨짐이 아니다).
+ * 채팅이 MIN_HOST_CHATS 미만이거나 페이지를 못 열면 다음 순위 방송으로 다시 본다(STREAM_TRIES곳까지).
+ * 끝내 채팅이 없으면 그 경로는 확인 못 함이다(깨짐이 아니다).
+ *
+ * 확장은 GitHub 릴리스 zip을 버전별로 캐시한다(CACHE_DIR/ext, 최근 KEEP_VERSIONS개). 받기는 다시 시도하고,
+ * 릴리스 정보를 끝내 못 받으면 캐시의 가장 높은 버전으로 시험한다.
+ * 주 경로 시험은 스토어 버전(info 작업이 모은 값)이 최신 릴리스와 다르면 같은 방송에서 스토어 버전도 시험한다.
  *
  * 필터는 "빈 키워드 포함" 하나만 넣는다. 글자가 있는 채팅은 전부 통과하므로 창의 채팅 수가 곧 수집 수다.
  * 사용자 Chrome, 프로필은 건드리지 않는다. 매번 빈 임시 프로필을 쓴다.
  *
  * 플래그: --seconds=60 (채널마다 지켜보는 시간. --main은 90)
- * 시험용: --ext=<폴더> 릴리스 대신 이 확장, --url=<치지직 방송> 인기 목록 대신 이 방송
+ * 시험용: --ext=<폴더> 릴리스 대신 이 확장, --url=<치지직 방송>[,<다음 방송>...] 인기 목록 대신 이 방송들
  */
 import { execFileSync } from 'child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { chromium, type BrowserContext, type Page } from 'playwright';
-import type { Finding } from './incidents.ts';
+import type { CheckReport, Finding } from './incidents.ts';
 import bundledManifest from '../../src/platform/bundled-selectors.prod.json' with { type: 'json' };
-import { hostChats, judgeMain, type ContentSample, type MainRun, type PageObservation, type ShadowMismatch } from './main-path.ts';
+import { hostChats, judgeMain, mergeStoreReport, type ContentSample, type MainRun, type PageObservation, type ShadowMismatch } from './main-path.ts';
 import { checkDependencies, diffLines, diffSignals, judgeDependencies, extractSignals, isChzzkBundle, type BundleFile, type BundleSignals, type Dependency, type SignalDiff } from './bundle.ts';
 import { CACHE_DIR, REPO, UA, attempt, fetchJson, isError, readJson, writeCheck, writeJson } from './state.ts';
 
@@ -34,8 +39,12 @@ const MAIN = process.argv.includes('--main');
 const SECONDS = Number(process.argv.find((a) => a.startsWith('--seconds='))?.slice(10) ?? (MAIN ? 90 : 60));
 /** 시험용: 확장 대신 이 폴더를 올린다 (일부러 고장 낸 빌드로 판정을 확인할 때) */
 const EXT_DIR = process.argv.find((a) => a.startsWith('--ext='))?.slice(6);
-/** 시험용: 인기 목록 대신 이 치지직 방송을 본다 */
+/** 시험용: 인기 목록 대신 이 치지직 방송들을 본다 (쉼표로 구분, 채팅이 적으면 다음) */
 const CHZZK_URL = process.argv.find((a) => a.startsWith('--url='))?.slice(6);
+/** 방송 채팅이 이보다 적으면 다음 순위 방송으로 */
+const MIN_HOST_CHATS = 10;
+const STREAM_TRIES = 3;
+const KEEP_VERSIONS = 5;
 
 // 확장의 소켓 파서. ops tsconfig로는 src의 경로 별칭을 따라갈 수 없어 경로를 변수로 두고 불러온다(tsx는 실행한다)
 const PARSER = '../../src/platform/chzzk-socket.ts';
@@ -74,46 +83,109 @@ export interface BundleResult {
     history: { at: number; diff: SignalDiff }[];
 }
 
-async function latestExtension(): Promise<{ version: string; dir: string }> {
-    if (EXT_DIR) return { version: `local ${EXT_DIR}`, dir: EXT_DIR };
-    const rel = await fetchJson<{ tag_name: string; assets: { name: string; browser_download_url: string }[] }>(
-        `https://api.github.com/repos/${REPO}/releases/latest`,
-    );
+interface Release {
+    tag_name: string;
+    assets: { name: string; browser_download_url: string }[];
+}
+interface Extension {
+    version: string;
+    dir: string;
+}
+
+const EXT_CACHE = join(CACHE_DIR, 'ext');
+const versionDir = (version: string) => join(EXT_CACHE, version);
+const isCached = (version: string) => existsSync(join(versionDir(version), 'manifest.json'));
+const semver = (v: string) => v.split('.').map(Number);
+const newestFirst = (a: string, b: string) => {
+    const [x, y] = [semver(a), semver(b)];
+    return y[0] - x[0] || y[1] - x[1] || y[2] - x[2];
+};
+
+/** 캐시에 있는 버전, 높은 순 */
+function cachedVersions(): string[] {
+    if (!existsSync(EXT_CACHE)) return [];
+    return readdirSync(EXT_CACHE).filter((v) => /^\d+\.\d+\.\d+$/.test(v) && isCached(v)).sort(newestFirst);
+}
+
+/** 실패하면 기다렸다가 다시. 마지막 실패는 던진다 */
+async function retry<T>(fn: () => Promise<T>, waits = [5_000, 20_000]): Promise<T> {
+    for (const wait of waits) {
+        try {
+            return await fn();
+        } catch {
+            await new Promise((r) => setTimeout(r, wait));
+        }
+    }
+    return fn();
+}
+
+/** 릴리스의 chrome zip을 받아 버전 폴더에 푼다. 반쯤 푼 폴더가 남지 않게 임시 폴더에 풀고 이름을 바꾼다 */
+async function download(rel: Release): Promise<Extension> {
     const version = rel.tag_name.replace(/^v/, '');
-    const dir = join(CACHE_DIR, 'ext', version);
-    if (!existsSync(join(dir, 'manifest.json'))) {
-        const asset = rel.assets.find((a) => a.name.endsWith('-chrome.zip'));
-        if (!asset) throw new Error(`${rel.tag_name}에 chrome zip 없음`);
+    if (isCached(version)) return { version, dir: versionDir(version) };
+    const asset = rel.assets.find((a) => a.name.endsWith('-chrome.zip'));
+    if (!asset) throw new Error(`${rel.tag_name}에 chrome zip 없음`);
+    const data = await retry(async () => {
         const res = await fetch(asset.browser_download_url);
         if (!res.ok) throw new Error(`zip ${res.status}`);
-        mkdirSync(dir, { recursive: true });
-        const zip = join(dir, 'ext.zip');
-        writeFileSync(zip, Buffer.from(await res.arrayBuffer()));
-        // ovm엔 unzip이 없다
-        execFileSync('python3', ['-m', 'zipfile', '-e', zip, dir]);
-        rmSync(zip);
-    }
+        return Buffer.from(await res.arrayBuffer());
+    });
+    const dir = versionDir(version);
+    const tmp = `${dir}.tmp`;
+    rmSync(tmp, { recursive: true, force: true });
+    mkdirSync(tmp, { recursive: true });
+    const zip = join(tmp, 'ext.zip');
+    writeFileSync(zip, data);
+    // ovm엔 unzip이 없다
+    execFileSync('python3', ['-m', 'zipfile', '-e', zip, tmp]);
+    rmSync(zip);
+    rmSync(dir, { recursive: true, force: true });
+    renameSync(tmp, dir);
+    for (const old of cachedVersions().slice(KEEP_VERSIONS)) rmSync(versionDir(old), { recursive: true, force: true });
     return { version, dir };
 }
 
-async function chzzkLive(): Promise<string> {
-    if (CHZZK_URL) return CHZZK_URL;
+async function latestExtension(): Promise<Extension> {
+    if (EXT_DIR) return { version: `local ${EXT_DIR}`, dir: EXT_DIR };
+    const rel = await attempt(() => retry(() => fetchJson<Release>(`https://api.github.com/repos/${REPO}/releases/latest`)));
+    if (!isError(rel)) return download(rel);
+    const cached = cachedVersions()[0];
+    if (!cached) throw new Error(`릴리스 정보를 못 받음: ${rel.error}`);
+    console.error(`[live] 릴리스 정보를 못 받아 캐시의 v${cached}로 시험: ${rel.error}`);
+    return { version: cached, dir: versionDir(cached) };
+}
+
+/** 이 버전의 릴리스. 캐시에 있으면 받지 않는다 */
+async function releaseExtension(version: string): Promise<Extension> {
+    if (isCached(version)) return { version, dir: versionDir(version) };
+    return download(await retry(() => fetchJson<Release>(`https://api.github.com/repos/${REPO}/releases/tags/v${version}`)));
+}
+
+/** info 작업이 모은 Chrome 웹 스토어 버전 */
+function storeVersion(): string | undefined {
+    const info = readJson<{ stores?: { chrome?: { version?: string | null } } }>('info');
+    const v = info?.stores?.chrome?.version ?? undefined;
+    return v && /^\d+\.\d+\.\d+$/.test(v) ? v : undefined;
+}
+
+/** 1위는 채팅이 너무 빨라 창이 상한에 걸린다. 5위부터 STREAM_TRIES곳 */
+const fromFifth = (urls: string[]) => urls.slice(Math.max(0, Math.min(4, urls.length - STREAM_TRIES))).slice(0, STREAM_TRIES);
+
+async function chzzkLives(): Promise<string[]> {
+    if (CHZZK_URL) return CHZZK_URL.split(',');
     const lives = await fetchJson<{ content: { data: { channel: { channelId: string } }[] } }>(
         'https://api.chzzk.naver.com/service/v1/lives?size=10&sortType=POPULAR',
     );
-    // 1위는 채팅이 너무 빨라 창이 상한에 걸린다. 5위쯤
-    const list = lives.content.data;
-    return `https://chzzk.naver.com/live/${list[Math.min(4, list.length - 1)].channel.channelId}`;
+    return fromFifth(lives.content.data.map((d) => `https://chzzk.naver.com/live/${d.channel.channelId}`));
 }
 
-async function twitchLive(ctx: BrowserContext): Promise<string> {
+async function twitchLives(ctx: BrowserContext): Promise<string[]> {
     const page = await ctx.newPage();
     try {
         await page.goto('https://www.twitch.tv/directory/all', { waitUntil: 'domcontentloaded', timeout: 60_000 });
         await page.waitForSelector('a[data-a-target="preview-card-image-link"]', { timeout: 30_000 });
         const hrefs = await page.$$eval('a[data-a-target="preview-card-image-link"]', (as) => as.map((a) => a.getAttribute('href') ?? ''));
-        const href = hrefs.filter((h) => /^\/[\w]+$/.test(h))[4] ?? hrefs[0];
-        return `https://www.twitch.tv${href}`;
+        return fromFifth(hrefs.filter((h) => /^\/[\w]+$/.test(h)).map((h) => `https://www.twitch.tv${h}`));
     } finally {
         await page.close();
     }
@@ -234,7 +306,8 @@ async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'tw
                 items: items.map((el) => ({
                     key: el.getAttribute('data-tbc-chat-key') ?? '',
                     text: el.textContent ?? '',
-                    nameImgs: el.querySelectorAll('[aria-haspopup="true"] img, [class*="_nickname_"] img').length,
+                    // 원본 복제(치지직 마크업)와 직접 그리기(템플릿의 .tbc-chat-badge, src/render/chzzk-templates.ts) 둘 다
+                    nameImgs: el.querySelectorAll('[aria-haspopup="true"] img, [class*="_nickname_"] img, img.tbc-chat-badge').length,
                 })),
             };
         }, { platform, container: platform === 'chzzk' ? bundledManifest.platforms.chzzk.selectors.chatRoomLive : '' });
@@ -246,20 +319,41 @@ async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'tw
     }
 }
 
-async function watch(ctx: BrowserContext, name: string, url: string, platform: 'chzzk' | 'twitch', files?: BundleFile[]): Promise<LiveRun> {
+/** 방송을 순서대로 보다가 채팅이 MIN_HOST_CHATS 이상인 첫 결과. 끝내 모자라면 마지막 결과, 모두 못 열면 마지막 오류를 던진다 */
+async function observeBusy(ctx: BrowserContext, urls: string[], platform: 'chzzk' | 'twitch', files?: BundleFile[], compare = false): Promise<PageObservation> {
+    if (!urls.length) throw new Error('볼 방송이 없음');
+    let last: PageObservation | undefined;
+    let error: unknown;
+    for (const url of urls) {
+        // 번들은 마지막으로 본 방송 것만
+        files?.splice(0);
+        try {
+            last = await observe(ctx, url, platform, files, compare);
+            if (hostChats(last) >= MIN_HOST_CHATS) return last;
+            console.error(`[live] ${url} 방송 채팅 ${hostChats(last)}줄, 다음 방송으로`);
+        } catch (e) {
+            error = e;
+            console.error(`[live] ${url} 못 봄, 다음 방송으로: ${firstLine(e)}`);
+        }
+    }
+    if (last) return last;
+    throw error;
+}
+
+async function watch(ctx: BrowserContext, name: string, urls: string[], platform: 'chzzk' | 'twitch', files?: BundleFile[]): Promise<LiveRun> {
+    const url = urls[0];
     try {
-        const o = await observe(ctx, url, platform, files);
+        const o = await observeBusy(ctx, urls, platform, files);
         const host = hostChats(o);
         const verdict = o.pane > 0 ? 'ok' : host > 0 ? 'broken' : 'unknown';
-        return { name, url, host, paneExists: o.paneExists, pane: o.pane, paneWithBadge: o.paneWithBadge, paneWithName: o.paneWithName, verdict };
+        return { name, url: o.url, host, paneExists: o.paneExists, pane: o.pane, paneWithBadge: o.paneWithBadge, paneWithName: o.paneWithName, verdict };
     } catch (e) {
         return { name, url, host: 0, pane: 0, paneWithBadge: 0, paneWithName: 0, verdict: 'unknown', error: firstLine(e) };
     }
 }
 
 /** 확장을 올린 브라우저를 띄워 fn을 돌린다. 매번 빈 임시 프로필 */
-async function withExtension<T>(fn: (ctx: BrowserContext, id: string, version: string) => Promise<T>): Promise<T> {
-    const ext = await latestExtension();
+async function withExtension<T>(ext: Extension, fn: (ctx: BrowserContext, id: string) => Promise<T>): Promise<T> {
     const profile = mkdtempSync(join(tmpdir(), 'tbc-watch-'));
     let ctx: BrowserContext | undefined;
     try {
@@ -271,7 +365,7 @@ async function withExtension<T>(fn: (ctx: BrowserContext, id: string, version: s
             args: [`--disable-extensions-except=${ext.dir}`, `--load-extension=${ext.dir}`],
         });
         const worker = ctx.serviceWorkers()[0] ?? (await ctx.waitForEvent('serviceworker', { timeout: 30_000 }));
-        return await fn(ctx, new URL(worker.url()).host, ext.version);
+        return await fn(ctx, new URL(worker.url()).host);
     } finally {
         await ctx?.close();
         rmSync(profile, { recursive: true, force: true });
@@ -284,27 +378,54 @@ function badgeGroups(): Map<string, string> {
     return new Map(list.groups.flatMap((g) => g.badges.map((b) => [b.imageUrl, g.id] as [string, string])));
 }
 
-/** 주 경로 시험: 소켓 모드를 켠 치지직 라이브 하나 */
-async function mainPath(): Promise<void> {
+/** 소켓 모드를 켠 치지직 라이브를 이 확장으로 본다 */
+async function mainRun(ext: Extension | (() => Promise<Extension>), urls: string[] | (() => Promise<string[]>)): Promise<MainRun> {
     const run: MainRun = { at: Date.now() };
     try {
-        await withExtension(async (ctx, id, version) => {
-            run.version = version;
+        const e = typeof ext === 'function' ? await ext() : ext;
+        run.version = e.version;
+        await withExtension(e, async (ctx, id) => {
             await configure(ctx, id, true);
-            Object.assign(run, await observe(ctx, await chzzkLive(), 'chzzk', undefined, true));
+            Object.assign(run, await observeBusy(ctx, typeof urls === 'function' ? await urls() : urls, 'chzzk', undefined, true));
         });
     } catch (e) {
         run.error = firstLine(e);
     }
-    const report = judgeMain(run, badgeGroups());
-    // 비교 재료는 크다. 현황판 상태에는 건수만 남기고, 알림을 조사할 때 보도록 재료는 따로 둔다(덮어쓴다)
+    return run;
+}
+
+/** 비교 재료는 크다. 현황판 상태에는 건수만 남긴다 */
+function summarize(run: MainRun) {
     const { content, ...kept } = run;
-    if (content) writeJson('main-content', content);
-    writeJson('main', { ...kept, content: content && { chats: content.chats.length, items: content.items.length, mismatches: content.mismatches.length, shadowSummary: content.shadowSummary } });
-    writeCheck(report);
+    return { ...kept, content: content && { chats: content.chats.length, items: content.items.length, mismatches: content.mismatches.length, shadowSummary: content.shadowSummary } };
+}
+
+function logLine(run: MainRun, report: CheckReport): string {
+    const { content } = run;
     const total = (run.sockets ?? []).map((s) => `${s.url} ${s.chats}`).join(', ');
     const cmp = content ? ` compare=${content.shadowSummary ? `${content.shadowSummary.matched}/${content.shadowSummary.mismatched}/htmlOnly ${content.shadowSummary.htmlOnly}` : 'none'} chats=${content.chats.length} items=${content.items.length}` : '';
-    console.log(`[main] ${new Date().toISOString()} ${run.version ?? '-'} ${report.status}${cmp}${report.note ? ` (${report.note})` : ''} pane=${run.paneExists ? run.pane : 'none'} dom=${run.domChats ?? '-'} tap=${run.tapInstalled ?? '-'}/${run.tapDelivered ?? '-'} sockets=[${total}] ${report.findings.map((f) => f.key).join(', ')}`);
+    return `${run.version ?? '-'} ${report.status}${cmp}${report.note ? ` (${report.note})` : ''} pane=${run.paneExists ? run.pane : 'none'} dom=${run.domChats ?? '-'} tap=${run.tapInstalled ?? '-'}/${run.tapDelivered ?? '-'} sockets=[${total}] ${report.findings.map((f) => f.key).join(', ')}`;
+}
+
+/** 주 경로 시험: 최신 릴리스, 스토어 버전이 다르면 같은 방송에서 스토어 버전도 */
+async function mainPath(): Promise<void> {
+    const groups = badgeGroups();
+    const latest = await mainRun(latestExtension, chzzkLives);
+    let report = judgeMain(latest, groups);
+    const store = EXT_DIR ? undefined : storeVersion();
+    let storeRun: MainRun | undefined;
+    if (store && store !== latest.version) {
+        storeRun = await mainRun(() => releaseExtension(store), latest.url ? [latest.url] : chzzkLives);
+        report = mergeStoreReport(report, judgeMain(storeRun, groups), store);
+    }
+    // 비교 재료는 알림을 조사할 때 보도록 따로 둔다(덮어쓴다)
+    if (latest.content) writeJson('main-content', latest.content);
+    if (storeRun?.content) writeJson('main-content-store', storeRun.content);
+    writeJson('main', { ...summarize(latest), ...(storeRun ? { store: summarize(storeRun) } : {}) });
+    writeCheck(report);
+    const at = new Date().toISOString();
+    console.log(`[main] ${at} ${logLine(latest, judgeMain(latest, groups))}`);
+    if (storeRun) console.log(`[main] ${at} 스토어 ${logLine(storeRun, judgeMain(storeRun, groups))}`);
 }
 
 async function main(): Promise<void> {
@@ -313,14 +434,14 @@ async function main(): Promise<void> {
     const files: BundleFile[] = [];
     try {
         // 소켓 모드 켬은 1시간마다 도는 주 경로 시험(--main)이 본다
-        await withExtension(async (ctx, id, version) => {
-            result.version = version;
-            const chzzkUrl = await chzzkLive();
+        const ext = await latestExtension();
+        result.version = ext.version;
+        await withExtension(ext, async (ctx, id) => {
             await configure(ctx, id, false);
-            result.runs.push(await watch(ctx, '치지직 (소켓 끔)', chzzkUrl, 'chzzk', files));
-            const twitchUrl = await attempt(() => twitchLive(ctx));
-            if (typeof twitchUrl === 'string') result.runs.push(await watch(ctx, '트위치', twitchUrl, 'twitch'));
-            else result.runs.push({ name: '트위치', host: 0, pane: 0, paneWithBadge: 0, paneWithName: 0, verdict: 'unknown', error: `방송 찾기 실패: ${twitchUrl.error}` });
+            result.runs.push(await watch(ctx, '치지직 (소켓 끔)', await chzzkLives(), 'chzzk', files));
+            const twitchUrls = await attempt(() => twitchLives(ctx));
+            if (!isError(twitchUrls)) result.runs.push(await watch(ctx, '트위치', twitchUrls, 'twitch'));
+            else result.runs.push({ name: '트위치', host: 0, pane: 0, paneWithBadge: 0, paneWithName: 0, verdict: 'unknown', error: `방송 찾기 실패: ${twitchUrls.error}` });
         });
     } catch (e) {
         result.error = firstLine(e);
@@ -347,7 +468,7 @@ async function main(): Promise<void> {
             const browser = await chromium.launch();
             try {
                 const ctx = await browser.newContext({ userAgent: UA });
-                await watch(ctx, '번들', await chzzkLive(), 'chzzk', files);
+                await watch(ctx, '번들', await chzzkLives(), 'chzzk', files);
             } finally {
                 await browser.close();
             }

@@ -228,3 +228,25 @@ export function judgeMain(run: MainRun, groupOf = new Map<string, string>()): Ch
 
     return { ...base, status: findings.length ? 'issue' : 'ok', findings };
 }
+
+/**
+ * 스토어 버전과 최신 릴리스가 다를 때(스토어 심사 중) 둘 다 시험한 판정을 하나로 합친다.
+ * 사용자 대부분은 스토어 버전을 쓴다. 번갈아 시험하면 한쪽만 고장일 때 사건이 열렸다 닫혔다 하므로 한 보고서에 둘 다 담는다.
+ * 스토어 쪽 사건은 key를 main:store:로 구분한다. 한쪽만 확인 못 했으면 그쪽을 unknownParts로 남겨 그쪽 사건을 닫지 않는다.
+ */
+const LATEST_PART = '최신 릴리스';
+const STORE_PART = '스토어 버전';
+
+export function mergeStoreReport(latest: CheckReport, store: CheckReport, storeVersion: string): CheckReport {
+    const findings = [
+        ...latest.findings.map((f) => ({ ...f, part: LATEST_PART })),
+        ...store.findings.map((f) => ({ ...f, part: STORE_PART, key: f.key.replace(/^main:/, 'main:store:'), title: `스토어 v${storeVersion}: ${f.title}` })),
+    ];
+    const blind = (r: CheckReport) => r.status === 'unknown' || r.status === 'error';
+    if (blind(latest) && blind(store)) return { ...latest, findings };
+    const unknownParts = [
+        ...(blind(latest) ? [{ part: LATEST_PART, note: latest.note ?? '확인 못 함' }] : []),
+        ...(blind(store) ? [{ part: STORE_PART, note: store.note ?? '확인 못 함' }] : []),
+    ];
+    return { check: 'main', at: latest.at, status: findings.length ? 'issue' : 'ok', findings, ...(unknownParts.length ? { unknownParts } : {}) };
+}
