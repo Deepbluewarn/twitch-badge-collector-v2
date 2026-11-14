@@ -1,11 +1,9 @@
 /**
- * Chzzk selector canary — 라이브 여러 채널 병렬 방문 → 다수결로 selector 매칭 검증.
- *  - class hash rotation 감지 시 auto-fix draft PR 후보 기록
- *
- * 배지 인벤토리는 관심사 분리로 별도 스크립트(badges.ts)에서 처리.
+ * Chzzk selector canary. 라이브 여러 채널 병렬 방문 → 방송 전체로 selector 판정(judge.ts).
+ *  - 결과는 canary-alert.json에 남기고 알림은 ovm 상황실이 보낸다
+ *  - class hash rotation 감지 시 auto-fix 후보 기록
  *
  * env:
- *  - DISCORD_CANARY_WEBHOOK
  *  - CANARY_MODE=live|vod
  *  - CANARY_TOTAL, CANARY_PARALLEL, CANARY_BATCH_DELAY_MS
  *  - CANARY_STATE_DIR  스냅샷과 알림 파일을 둘 곳. ovm은 리포 밖 상태 폴더를 쓴다(docs/monitoring.md). 없으면 리포 루트
@@ -15,8 +13,9 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import bundledManifest from '../../src/platform/bundled-selectors.prod.json' with { type: 'json' };
-import type { CanarySnapshot, SelectorSample, ChannelVisitResult } from './snapshot-types.ts';
+import type { CanarySnapshot, ChannelVisitResult } from './snapshot-types.ts';
 import { diffSnapshots } from './diff.ts';
+import { judge, socketIsMain } from './judge.ts';
 import { visitChannel } from './visit-channel.ts';
 import { discoverChannels } from './discover-channels.ts';
 
@@ -109,34 +108,16 @@ function saveSnapshot(snap: CanarySnapshot) {
             name: s.name,
             required: s.required,
             present: (s.count ?? 0) > 0,
-            // branch별 생존 여부도 durable. 이게 없으면 "이미 알고 있던 branch 사망"을
-            // 구분할 수 없어 매 run 같은 알림이 반복된다.
-            ...(s.branchCounts && s.branchCounts.length > 1
-                ? {
-                    branchPresence: Object.fromEntries(
-                        s.branchCounts.map(b => [b.selector, b.count > 0]),
-                    ),
-                }
-                : {}),
         })),
         manifestRev: snap.manifestRev,
     };
     writeFileSync(SNAPSHOT_FILE, JSON.stringify(durable, null, 2) + '\n', 'utf-8');
 }
 
-async function notifyDiscord(content: string) {
-    const url = process.env.DISCORD_CANARY_WEBHOOK;
-    if (!url) {
-        console.log('[canary] DISCORD_CANARY_WEBHOOK 미설정 — 콘솔 알림만.');
-        console.log(content);
-        return;
-    }
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: content.slice(0, 1900) }),
-    });
-    if (!res.ok) console.error(`[canary] Discord fail: ${res.status}`);
+/** 배지 그림 URL → 묶음 id (배지 놓침 알림에 묶음을 적으려고) */
+function badgeGroups(): Map<string, string> {
+    const list = JSON.parse(readFileSync(join(REPO_ROOT, 'data/chzzk-badges.json'), 'utf-8')) as { groups: { id: string; badges: { imageUrl: string }[] }[] };
+    return new Map(list.groups.flatMap(g => g.badges.map(b => [b.imageUrl, g.id] as [string, string])));
 }
 
 async function main() {
@@ -184,87 +165,36 @@ async function main() {
             const req = r.selectors.filter(s => s.required);
             const passed = req.filter(s => (s.count ?? 0) > 0).map(s => s.name).join(',');
             const failed = req.filter(s => s.count === 0).map(s => s.name).join(',');
-            console.log(`[canary] ${r.url}: ok=${r.ok} anchor=${r.anchorLayer} pass=${passed || 'none'} fail=${failed || 'none'} badges=${r.badgeUrls.length}`);
+            console.log(`[canary] ${r.url}: ok=${r.ok} anchor=${r.anchorLayer} pass=${passed || 'none'} fail=${failed || 'none'} badges=${r.badgeUrls.length} badgeImgs=${r.badgeImages?.total ?? 0} missed=${r.badgeImages?.missed.length ?? 0}`);
         }
 
+        // 판정은 방송 전체로 (judge.ts). ovm 상황실(ops/watch/canary.ts → dispatch.ts)이 이 파일로 사건을 만든다
+        const judged = judge(results, requiredList, badgeGroups(), {
+            containers: ['chatRoomLive', 'chatRoomVod'],
+            contentLevel: socketIsMain(bundledManifest.platforms.chzzk.constants) ? 'risk' : 'broken',
+        });
         const snapshot = mergeToSnapshot(results, MODE);
-        const requiredFailInSnapshot = snapshot.selectors.filter(s => s.required && s.count === 0);
 
-        // 첫 실행 == baseline 없음
+        // 스냅샷 비교는 참고(anchor 하락)와 자동 수정 후보만 맡는다. 첫 실행이면 비교 없이 저장
         const baseline = loadBaseline();
-        if (baseline === null) {
-            if (requiredFailInSnapshot.length > 0) {
-                console.error(`[canary] 첫 실행이지만 required selector ${requiredFailInSnapshot.length}개 실패 — baseline 저장 skip.`);
-                console.error(`  실패: ${requiredFailInSnapshot.map(s => s.name).join(', ')}`);
-                process.exit(1);
-            }
-            saveSnapshot(snapshot);
-            console.log('[canary] baseline 저장 (첫 실행)');
-            return;
-        }
+        const diff = baseline ? diffSnapshots(baseline, snapshot) : null;
+        // 깨졌거나 확인을 못 했으면 기준을 그대로 둔다
+        if (judged.status !== 'unknown' && !judged.findings.some(f => f.level === 'broken')) saveSnapshot(snapshot);
 
-        // Diff
-        const diff = diffSnapshots(baseline, snapshot);
+        writeFileSync(join(OUT_DIR, 'canary-alert.json'), JSON.stringify({
+            mode: MODE,
+            status: judged.status,
+            note: judged.note,
+            findings: judged.findings,
+            alerts: diff?.alerts ?? [],
+            autoFixCandidates: diff?.autoFixCandidates ?? [],
+            url: snapshot.url,
+            capturedAt: snapshot.capturedAt,
+        }, null, 2));
+        console.log(`[canary] 판정 ${judged.status}${judged.note ? ` (${judged.note})` : ''}: ${judged.findings.map(f => f.key).join(', ') || '이상 없음'}`);
 
-        if (diff.brokenRequired.length === 0 && diff.alerts.length === 0) {
-            saveSnapshot(snapshot);
-            console.log('[canary] 정상 — 스냅샷 갱신');
-            return;
-        }
-
-        // 알림 구성
-        const lines: string[] = [];
-        if (diff.brokenRequired.length > 0 || diff.alerts.length > 0) {
-            lines.push(`⚠️ **Chzzk canary ${MODE} 이상**`);
-            lines.push(`- 대표 URL: ${snapshot.url}`);
-            lines.push(`- anchor: ${snapshot.anchorLayer}`);
-            lines.push(`- 채널 다수결: ${snapshot.channelStatuses?.filter(c => c.requiredPass).length ?? 0}/${snapshot.channelsVisited ?? 0} required pass`);
-            if (diff.brokenRequired.length > 0) {
-                lines.push(`- 깨진 required selector: ${diff.brokenRequired.map(s => s.name).join(', ')}`);
-                // auto-fix로 못 올린 경우에도 검증된 후보는 보여준다 — 사람이 손으로
-                // 고칠 때 바로 붙여넣을 수 있게. (옛 알림은 "후보 못 찾음"만 남겼다.)
-                for (const b of diff.brokenRequired) {
-                    const probes = b.candidates ?? [];
-                    if (probes.length === 0) continue;
-                    lines.push(`  - \`${b.name}\` 검증된 후보 ${probes.length}개:`);
-                    for (const c of probes.slice(0, 3)) {
-                        lines.push(`    - ${c.replaced} · 점수 ${c.score.toFixed(2)} · 문서 ${c.docCount}건`);
-                    }
-                }
-            }
-            if (diff.autoFixCandidates.length > 0) {
-                lines.push(`- auto-fix 후보 ${diff.autoFixCandidates.length}개:`);
-                for (const c of diff.autoFixCandidates) {
-                    lines.push(`  - \`${c.selectorName}\`: ${c.reason}`);
-                }
-                // ovm에는 gh가 없어 PR을 못 연다. 후보는 현황판에 나온다(docs/monitoring.md)
-                lines.push(process.env.GITHUB_ACTIONS ? `  → draft PR 자동 생성.` : `  → 후보는 현황판 카나리 칸에 있음.`);
-            }
-            for (const a of diff.alerts) lines.push(`- ${a}`);
-        }
-        await notifyDiscord(lines.join('\n'));
-
-        // ovm 상황실(ops/watch/canary.ts → dispatch.ts)이 이 파일로 사건을 만든다. 깨짐이 없는
-        // 변화(anchor 하락 등)도 남긴다. ovm은 이 스크립트의 Discord 알림을 끄고 이 파일만 본다.
-        // (rev 13 사고: Discord 알림 한 번이 묻혀 18시간 동안 아무 조치가 없었다)
-        {
-            writeFileSync(join(OUT_DIR, 'canary-alert.json'), JSON.stringify({
-                mode: MODE,
-                title: `chzzk canary: required selector ${diff.brokenRequired.map(s => s.name).join(', ')} 깨짐`,
-                body: lines.join('\n'),
-                brokenRequired: diff.brokenRequired.map(s => ({
-                    name: s.name, selector: s.selector, candidates: s.candidates ?? [],
-                })),
-                autoFixCandidates: diff.autoFixCandidates,
-                alerts: diff.alerts,
-                url: snapshot.url,
-                capturedAt: snapshot.capturedAt,
-            }, null, 2));
-            console.log('[canary] 알림 요약 canary-alert.json에 기록');
-        }
-
-        // auto-fix 후보 있으면 workflow 소비용 파일 생성
-        if (diff.autoFixCandidates.length > 0) {
+        // auto-fix 후보는 현황판 카나리 칸에 나온다
+        if (diff && diff.autoFixCandidates.length > 0) {
             writeFileSync(join(OUT_DIR, 'canary-autofix.json'), JSON.stringify({
                 snapshotFile: SNAPSHOT_FILE,
                 candidates: diff.autoFixCandidates,
@@ -273,14 +203,6 @@ async function main() {
             }, null, 2));
             console.log('[canary] auto-fix 후보 canary-autofix.json에 기록');
         }
-
-        // brokenRequired 없는 케이스(알림만) → 스냅샷 갱신해서 같은 변화 반복 알림 방지.
-        // brokenRequired 있으면 baseline 유지 → 사람이 fix 후 정상 상태에서 재저장 유도.
-        if (diff.brokenRequired.length === 0) {
-            saveSnapshot(snapshot);
-        }
-
-        if (diff.brokenRequired.length > 0) process.exit(1);
     } finally {
         await context.close();
         await browser.close();
@@ -289,6 +211,5 @@ async function main() {
 
 main().catch(err => {
     console.error('[canary] fail:', err);
-    void notifyDiscord(`💥 Chzzk canary crashed: \`${String(err).slice(0, 500)}\``);
     process.exit(2);
 });

@@ -1,7 +1,7 @@
 /**
  * Canary 스냅샷 diff + auto-fix 후보 도출.
  *
- * class hash 접미사 rotation만 auto-PR 대상. 다른 유형은 알림만.
+ * class hash 접미사 rotation만 auto-fix 대상. 깨짐, 갈래 사망 판정은 judge.ts가 방송 전체로 한다.
  * 예: `_container_o04z9_` → `_container_zw6kq_` (앞 word 같음, hash만 다름)
  */
 import type { CanarySnapshot, SelectorSample } from './snapshot-types';
@@ -58,34 +58,8 @@ export function diffSnapshots(baseline: CanarySnapshot | null, current: CanarySn
             // auto-fix 후보 탐지: selector string 내 class hash 후보 뽑아
             // 현재 스냅샷의 matchedClasses나 sampleSkeleton에서 같은 "base word"를 찾음
             const candidate = tryAutoFix(cur, base, current);
-            if (candidate) {
-                autoFixCandidates.push(candidate);
-            } else {
-                alerts.push(`selector "${cur.name}" 깨짐 — auto-fix 후보 못 찾음. 사람 리뷰 필요.`);
-            }
+            if (candidate) autoFixCandidates.push(candidate);
         }
-    }
-
-    // selector list(콤마) branch 단위 사망 감지.
-    //
-    // rev 14부터 fragile selector는 여러 후보를 콤마로 나열해 이중화했다. 덕분에 한쪽이
-    // 죽어도 기능은 살아있지만, 그래서 brokenRequired에 안 잡히고 canary가 조용해진다.
-    // 남은 branch까지 깨지는 날 한꺼번에 터지므로, branch가 죽은 시점에 알린다.
-    for (const cur of current.selectors) {
-        if (!cur.branchCounts || cur.branchCounts.length < 2) continue;
-        const dead = cur.branchCounts.filter(b => b.count === 0);
-        // 전멸은 위에서 brokenRequired로 이미 잡혔거나 optional — 여기선 부분 사망만.
-        if (dead.length === 0 || dead.length === cur.branchCounts.length) continue;
-
-        const knownDead = byName.get(cur.name)?.branchPresence;
-        const newlyDead = dead.filter(b => !knownDead || knownDead[b.selector] !== false);
-        if (newlyDead.length === 0) continue; // 이미 알고 있던 사망 → 매 run 재알림 X
-
-        alerts.push(
-            `selector "${cur.name}" branch 사망 (전체는 아직 매칭 — 기능 정상): `
-            + newlyDead.map(b => `\`${b.selector}\``).join(' | ')
-            + ' → 다음 롤링 전 교체 권장',
-        );
     }
 
     const changed = brokenRequired.length > 0 || autoFixCandidates.length > 0 || alerts.length > 0;

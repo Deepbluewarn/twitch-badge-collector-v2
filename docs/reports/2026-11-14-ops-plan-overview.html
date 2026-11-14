@@ -62,8 +62,8 @@ a{color:var(--now)}
 
 <h2>진행 순서</h2>
 <ol class="steps">
-<li class="step now"><div class="num">1</div><div>
-<h3>상황실로 전환, 바깥 생존 확인 <span class="code">R1, T4</span> <span class="chip now">푸시 대기</span></h3>
+<li class="step"><div class="num">1</div><div>
+<h3>상황실로 전환, 바깥 생존 확인 <span class="code">R1, T4</span> <span class="chip done">완료</span></h3>
 <p>시범 운영 없이 바로 바꾼다. 모든 알림이 상황실을 거친다. ovm이 꺼지면 healthchecks.io가 알린다(연결 완료).</p>
 </div></li>
 
@@ -72,34 +72,39 @@ a{color:var(--now)}
 <p>깨짐과 위험은 긴급 채널로 휴대폰 알림, 나머지는 지금 채널로. 멘션 없이 채널 알림만 쓴다.</p>
 </div></li>
 
-<li class="step"><div class="num">3</div><div>
-<h3>선택자 카나리 정밀하게 <span class="code">T1</span> <span class="chip wait">대기</span></h3>
-<p>선택자의 갈래 하나가 죽어도, 일부 방송에서만 깨져도 잡는다. 11-12에 놓친 경우다.</p>
+<li class="step now"><div class="num">3</div><div>
+<h3>선택자 카나리 정밀하게 <span class="code">T1</span> <span class="chip now">푸시 대기</span></h3>
+<p>선택자의 갈래 하나가 죽어도, 일부 방송에서만 깨져도, 배지 그림 일부를 놓쳐도 잡는다. 11-12에 놓친 경우다(갈래 사망 알림이 로그로만 남았다). 채팅 컨테이너가 깨지면 깨짐, 닉네임 같은 내용 선택자는 소켓이 주 경로인 동안 위험.</p>
 </div></li>
 
 <li class="step"><div class="num">4</div><div>
+<h3>주 경로 시험 <span class="code">T6</span> <span class="chip wait">대기</span></h3>
+<p>가장 중요한 고장 두 가지를 1시간마다 본다. 수집 창이 아예 안 생기는지(채팅 컨테이너가 바뀐 경우 등), 소켓 경로가 죽고 HTML 대체로 넘어갔는지.</p>
+</div></li>
+
+<li class="step"><div class="num">5</div><div>
 <h3>확장 실제 시험 보강 <span class="code">T2</span> <span class="chip wait">대기</span></h3>
 <p>배지가 빠지는 고장, 배지 필터 고장을 잡는다. 다운로드 실패, 채팅 없는 방송 같은 헛경보를 없앤다.</p>
 </div></li>
 
-<li class="step"><div class="num">5</div><div>
+<li class="step"><div class="num">6</div><div>
 <h3>고친 선택자 빨리 전달 <span class="code">S2</span> <span class="chip wait">대기</span></h3>
 <p>선택자를 푸시하면 캐시를 바로 비우고, 사용자 쪽에 닿았는지 실제 시험으로 확인한다. 최대 12시간이 15분 안으로.</p>
 </div></li>
 
-<li class="step"><div class="num">6</div><div>
+<li class="step"><div class="num">7</div><div>
 <h3>실제 사용자 데이터로 판정 <span class="code">T3, S3</span> <span class="chip wait">대기</span></h3>
 <p>치지직 사용자 중 수집에 성공한 비율이 평소보다 떨어지면 알린다. 새 버전만 낮으면 단계 배포를 멈추라고 알린다.</p>
 <p class="you"><b>할 일:</b> 알림 기준 숫자 정하기</p>
 </div></li>
 
-<li class="step"><div class="num">7</div><div>
+<li class="step"><div class="num">8</div><div>
 <h3>다시보기 감시, 이슈와 처리 스킬 <span class="code">T5, S1</span> <span class="chip wait">대기</span></h3>
 <p>다시보기 화면도 감시한다. 고칠 문제는 GitHub 이슈로 열리고, 세션에서 스킬 한 번으로 고칠 준비가 된다.</p>
 <p class="you"><b>할 일:</b> GitHub 토큰(이슈 권한만)</p>
 </div></li>
 
-<li class="step"><div class="num">8</div><div>
+<li class="step"><div class="num">9</div><div>
 <h3>2주 뒤 점검 <span class="chip wait">대기</span></h3>
 <p>쌓인 기록으로 헛경보 비율, 감지 시간, 고치는 데 걸린 시간을 처음 잰다. 단계 배포 자동 멈춤 여부를 정한다.</p>
 </div></li>
@@ -114,8 +119,8 @@ a{color:var(--now)}
 
 <h2>준비할 것</h2>
 <ul class="todo">
-<li><span>사용자 비율 알림 기준 숫자</span><span class="when">6단계 때</span></li>
-<li><span>GitHub 토큰 (이슈 권한만)</span><span class="when">7단계 전</span></li>
+<li><span>사용자 비율 알림 기준 숫자</span><span class="when">7단계 때</span></li>
+<li><span>GitHub 토큰 (이슈 권한만)</span><span class="when">8단계 전</span></li>
 </ul>
 
 </main>

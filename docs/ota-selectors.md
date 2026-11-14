@@ -100,20 +100,22 @@ chzzk는 CSS-module hash를 빌드마다 재생성한다. `_container_` 하나�
 - 배지 selector에는 `:has(> img)`를 붙인다. selector를 넓히면 `<img>` 없는 노드를 잡을
   수 있고, `extract`가 그 안의 img에 접근하기 때문이다.
 
-### branch 사망은 조용하다 — canary가 본다
+### branch 사망은 조용하다: canary가 본다
 
 이중화의 대가로 한쪽 branch가 죽어도 전체는 계속 매칭되어 아무 알림이 없다. canary는
-`branchCounts`로 branch별 매칭을 따로 세고, "전체는 살아있지만 branch 하나 사망"이면
-알림을 보낸다. 이 알림을 받으면 **남은 branch까지 깨지기 전에** 죽은 branch를 교체한다.
+`branchCounts`로 branch별 매칭을 따로 세고, 방문한 방송 전부에서 0개인 branch를 위험 사건으로
+낸다(`scripts/canary/judge.ts`). 죽은 branch에도 hash 치환 후보를 찾아 알림에 싣는다. 이 알림을 받으면
+**남은 branch까지 깨지기 전에** 죽은 branch를 교체한다. 2026-11-12에 배지 예비 branch가 죽었을 때는
+이 알림이 ovm에서 로그로만 남아 놓쳤다.
 사용자 진단 리포트에도 `branchCounts` / `health.degraded`로 같은 정보가 실린다.
 
 ## 사고 대응 자동화
 
 | 계층 | 무엇 | 어디 |
 |---|---|---|
-| 감지 | 6시간마다(치지직 배포 감지 때는 바로) 라이브 채널 다수 방문, required selector 검증 | ovm `canary` 작업 ([docs/monitoring.md](monitoring.md)), `scripts/canary/chzzk.ts` |
-| 후보 도출 | 깨진 selector의 hash 치환 후보를 **라이브 DOM에서 직접 검증** (cardinality 채점) | `scripts/canary/visit-channel.ts` |
-| 알림 | 스냅샷과 달라지면 Discord, 깨진 채 6시간이면 다시, 회복하면 한 번. 후보는 현황판에 띄우고 OTA는 사람이 낸다 | `ops/watch/canary.ts` |
+| 감지 | 6시간마다(치지직 배포 감지 때는 바로) 라이브 채널 다수 방문, 방송 전체로 required selector, branch, 배지 놓침 판정 | ovm `canary` 작업 ([docs/monitoring.md](monitoring.md)), `scripts/canary/chzzk.ts` |
+| 후보 도출 | 깨진 selector와 죽은 branch의 hash 치환 후보를 **라이브 DOM에서 직접 검증** (cardinality 채점) | `scripts/canary/visit-channel.ts` |
+| 알림 | ovm 상황실이 사건 단위로 Discord에 보낸다(깨짐은 6시간, 위험은 24시간마다 다시, 회복하면 한 번). 후보는 알림과 현황판에 싣고 OTA는 사람이 낸다 | `ops/watch/canary.ts`, `ops/watch/dispatch.ts` |
 | 데이터 이중화 | 배지를 React props 유래 data 속성 + selector 두 출처에서 읽음 — selector가 깨져도 배지 필터 동작 | `src/platform/{chzzk,twitch}.ts` |
 | 부분 수집 | 닉네임을 못 뽑아도 채팅을 버리지 않음. `exclude` atomic이 그 필드에 걸린 composite만 평가 제외 | `src/platform/chzzk.ts`, `src/filter/evaluate.ts` |
 | 사용자측 자가복구 | 채팅창 앵커를 10초간 못 찾으면 세션당 1회 강제 OTA fetch. 그 외에는 평소 경로(SW wake + 1h TTL) | `src/utils/utils-common.ts` (`findElement`) |

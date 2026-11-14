@@ -21,9 +21,7 @@ export interface SelectorSample {
      * 콤마로 나열한다 — branch 하나가 죽어도 전체는 계속 매칭되므로 total만 보면
      * canary가 조용해진다. branch별로 봐야 "절반 죽음"을 조기에 잡는다.
      */
-    branchCounts?: Array<{ selector: string; count: number }> | null;
-    /** persist용 — branch selector 문자열 → count>0이었는지. */
-    branchPresence?: Record<string, boolean>;
+    branchCounts?: Array<{ selector: string; count: number; candidates?: AutoFixProbe[] | null }> | null;
     /**
      * 이 selector가 깨졌을 때 봇이 라이브 DOM에서 직접 검증해본 대체 후보들.
      * hash만 치환한 문자열을 실제로 querySelectorAll 해보고 cardinality까지 확인한
@@ -86,4 +84,6 @@ export interface ChannelVisitResult {
     badgeUrls: string[];
     /** 이 페이지에서 인식한 채팅 item 수 — 후보 검증 점수의 분모. */
     chatItemCount?: number;
+    /** 닉네임 영역의 배지 그림 수와, 그중 배지 selector가 못 잡은 그림 URL (judge.ts의 배지 놓침) */
+    badgeImages?: { total: number; missed: string[] };
 }

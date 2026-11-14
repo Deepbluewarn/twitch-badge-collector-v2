@@ -174,7 +174,7 @@ export async function visitChannel(context: BrowserContext, opts: VisitOpts): Pr
             const results: Array<{
                 name: string; selector: string; count: number; required: boolean;
                 matchedClasses: string[] | null;
-                branchCounts: Array<{ selector: string; count: number }> | null;
+                branchCounts: Array<{ selector: string; count: number; candidates: Array<{ selector: string; replaced: string; docCount: number; score: number }> | null }> | null;
                 candidates: Array<{ selector: string; replaced: string; docCount: number; score: number }> | null;
             }> = [];
 
@@ -192,11 +192,14 @@ export async function visitChannel(context: BrowserContext, opts: VisitOpts): Pr
                 } catch { /* invalid selector */ }
 
                 const branches = splitBranches(value);
-                const branchCounts = branches.length > 1
-                    ? branches.map(b => ({ selector: b, count: countOf(b) }))
-                    : null;
-
                 const required = requiredNames.has(name);
+                // 선택자는 맞는데 죽은 갈래도 해시를 바꿔 끼운 후보를 찾는다 (11-12의 1nwpy → 14814)
+                const branchCounts = branches.length > 1
+                    ? branches.map(b => {
+                        const n = countOf(b);
+                        return { selector: b, count: n, candidates: required && count > 0 && n <= 0 ? probeCandidates(name, b) : null };
+                    })
+                    : null;
                 const candidates = (required && count === 0) ? probeCandidates(name, value) : null;
 
                 results.push({ name, selector: value, count, required, matchedClasses, branchCounts, candidates });
@@ -215,6 +218,18 @@ export async function visitChannel(context: BrowserContext, opts: VisitOpts): Pr
                     badgeUrls.add(img.src);
                 }
             } catch { /* invalid selector */ }
+
+            // 배지 놓침: 닉네임 영역(구조 앵커)의 그림 중 배지 selector 안에 있지 않은 것.
+            // 인증 마크는 그림이 아니라 CSS 배경이라 세지 않는다 (src/platform/chzzk-verified.ts)
+            const badgeImages = { total: 0, missed: [] as string[] };
+            for (const item of chatItems) {
+                for (const img of Array.from(item.querySelectorAll('button[aria-haspopup="true"] img, [class*="_nickname_"] img'))) {
+                    badgeImages.total++;
+                    let caught = false;
+                    try { caught = !!img.closest(badgeSel); } catch { /* invalid selector */ }
+                    if (!caught) badgeImages.missed.push((img as HTMLImageElement).src);
+                }
+            }
 
             // sample skeleton
             let sampleSkeleton: string | null = null;
@@ -240,6 +255,7 @@ export async function visitChannel(context: BrowserContext, opts: VisitOpts): Pr
                 sampleSkeleton,
                 badgeUrls: Array.from(badgeUrls),
                 chatItemCount: chatItems.length,
+                badgeImages,
             };
         }, {
             sel: opts.selectors,
@@ -255,6 +271,7 @@ export async function visitChannel(context: BrowserContext, opts: VisitOpts): Pr
             sampleSkeleton: result.sampleSkeleton,
             badgeUrls: result.badgeUrls,
             chatItemCount: result.chatItemCount,
+            badgeImages: result.badgeImages,
         };
     } catch (e) {
         return {

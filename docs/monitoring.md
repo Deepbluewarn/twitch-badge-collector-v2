@@ -41,7 +41,7 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 | `deploy` | 1분 | 치지직 첫 페이지 HTML이 불러오는 JS, CSS 파일 목록(해시 포함)을 본다. 처음 보는 목록이면 배포로 보고 `canary`, `socket`, `live`를 바로 띄운다 | `deploy`: 가장 최근 배포 (참고, `deploy:<시각>`) |
 | `badges` | 10분 (5분부터) | harvester 데이터와 업적 배지 API를 `data/chzzk-badges.json`과 비교해 목록에 없는 배지를 찾는다. 넣을 그룹과 JSON 한 줄을 같이 남긴다. 흐름은 `docs/chzzk-badges.md` | `badges`: 배지마다 (참고, `badge:<이미지>`) |
 | `socket` | 매시 30분 | 인기 라이브 8개 채팅 소켓에 2분 붙어 패킷이 `src/platform/chzzk-socket.ts`의 가정과 맞는지 본다 (`scripts/canary/socket.ts`). 템플릿이 없거나 실제로 본 적 없는 메시지(상점 구매, 파티, 미션 참여와 영상 후원, 보낸 사람이 실린 선물 알림)는 값 없이 모양만 `canary/socket-rare.json`에 모은다 | `socket`: 오류마다 (깨짐, `socket:<문구>`), 처음 보는 값 (참고), 드문 메시지 종류마다 (참고, `socket-rare:<종류>`) |
-| `canary` | 6시간 (0, 6, 12, 18시) | 라이브 채널 여러 개를 Playwright로 열어 선택자 매칭을 확인한다 (`scripts/canary/chzzk.ts`). 깨지면 자동 수정 후보를 현황판에 띄운다 | `selector`: 깨진 필수 선택자마다 (깨짐, `selector:<이름>`), 스냅샷의 다른 변화 (참고) |
+| `canary` | 6시간 (0, 6, 12, 18시) | 라이브 채널 여러 개를 Playwright로 열어 선택자 매칭을 확인한다 (`scripts/canary/chzzk.ts`). 깨지면 자동 수정 후보를 현황판에 띄운다 | `selector`: 방문한 방송 전체로 판정한다 (`scripts/canary/judge.ts`). 모든 방송에서 0개 (`selector:<이름>`. 채팅 컨테이너는 깨짐, 내용 선택자는 OTA로 소켓 경로가 100% 켜져 있는 동안 위험. 페이지는 열리는데 컨테이너가 어디에도 없으면 확인 못 함이 아니라 깨짐), 맞은 방송 70% 미만 (위험, `selector:<이름>:channels`), 갈래가 모든 방송에서 0개 (위험, `selector:<이름>:branch:<갈래>`), 닉네임 옆 배지 그림을 배지 선택자가 못 잡음 (위험, `selector:badge:missed`), anchor 하락 같은 스냅샷 변화 (참고). 채팅이 뜬 방송이 3곳 미만이면 확인 못 함 |
 | `live` | 6시간 (3, 9, 15, 21시 15분) | 최신 릴리스 zip을 Chromium에 올려 치지직(소켓 끔, 켬), 트위치에서 수집 창에 채팅이 들어오는지 본다. 치지직 번들을 받아 확장이 기대는 이름이 사라졌는지, 새 신호(메시지 타입, 소켓 cmd, API 경로, CSS 이름)가 생겼는지 비교한다 | `live`: 경로마다 (깨짐, `live:<경로>:empty-pane`). `bundle`: 사라진 이름마다 (위험), 가장 최근 변화 (참고) |
 | `info` | 3시간 | 스토어(크롬 공개 페이지, AMO), GitHub 이슈, 배지 목록 비교, GA 14일 | 없음 (현황판) |
 | `usage` | 5분 | 확장 익명 사용 통계(Analytics Engine `tbc_usage`): 28일 사용자, 기능별 비율, 지난주 설정과 언어. 4주 평균 5% 미만은 램프 (`ops/usage-report.ts`) | 없음 (현황판) |
@@ -115,7 +115,7 @@ loginctl enable-linger $USER          # 로그아웃해도 사용자 서비스�
 
 ## 남은 일
 
-- [ ] 개선 계획(`docs/reports/2026-11-13-ops-alert-plan.html`)의 2단계 이후: 선택자 갈래별 검사, 실제 시험 비교 판정, OTA 반영 확인, 사용자 수집 비율 판정.
+- [ ] 개선 계획(`docs/reports/2026-11-13-ops-alert-plan.html`)의 2단계 이후: 실제 시험 비교 판정, OTA 반영 확인, 사용자 수집 비율 판정.
 
 ## harvester
 
@@ -156,3 +156,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-12 | 익명 통계 주간 항목에 `copyIdOff`(치지직 ID 복사 버튼 끔) 추가. 나중에 덧붙인 주간 항목은 `SETTING_SINCE`에 적은 버전 이후 기록만 분모로 센다(옛 기록은 그 칸이 0으로 읽혀 비율이 눌린다) |
 | 2026-11-13 | GitHub 카나리 정리. `canary.yml`, `canary-socket.yml`, `canary-badges.yml`, `build.yml`과 `snapshots/`, `scripts/canary/open-*.mjs`, `badges.ts`(배지 인벤토리, ovm `badges` 작업이 대신함)를 지움. 현황판 GitHub 칸은 열린 이슈만 |
 | 2026-11-14 | 상황실(`ops/watch/dispatch.ts`, `incidents.ts`). 확인 작업은 `watch/checks/`에 보고서만 남기고 Discord는 상황실만 보낸다. 사건 key 단위 장부(`watch/incidents.json`), 보낸 알림 기록(`alerts.jsonl`), 긴급 웹훅과 깨짐 멘션, 위험 24시간 재알림, 확인 못 함은 연달아 못 할 때만 위험. 현황판 판정도 장부로. 카나리 스크립트의 직접 알림 끔. healthchecks.io 연결 |
+| 2026-11-14 | 선택자 카나리 판정을 방송 전체로(`scripts/canary/judge.ts`). 지난 스냅샷과의 비교 대신 지금 상태를 매번 보고한다. 죽은 갈래는 위험과 hash 치환 후보, 맞은 방송 비율, 배지 놓침(묶음별) 추가. 소켓 경로가 주 경로인 동안 내용 선택자 깨짐은 위험, 채팅 컨테이너는 깨짐. 11-12에 갈래 사망 알림이 로그로만 남아 놓친 일 |

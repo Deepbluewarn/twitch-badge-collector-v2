@@ -48,10 +48,10 @@ describe('diffSnapshots — auto-fix 후보', () => {
 
         const d = diffSnapshots(baseline, current);
         expect(d.autoFixCandidates).toHaveLength(0);
-        expect(d.alerts.some(a => a.includes('auto-fix 후보 못 찾음'))).toBe(true);
+        expect(d.brokenRequired.map(s => s.name)).toEqual(['displayName']);
     });
 
-    it('후보가 아예 없으면 사람 리뷰 알림만 남긴다', () => {
+    it('후보가 아예 없으면 깨짐만 남긴다', () => {
         const current = snap([{
             name: 'displayName',
             required: true,
@@ -62,55 +62,6 @@ describe('diffSnapshots — auto-fix 후보', () => {
 
         const d = diffSnapshots(baseline, current);
         expect(d.autoFixCandidates).toHaveLength(0);
-        expect(d.alerts.some(a => a.includes('displayName'))).toBe(true);
-    });
-});
-
-describe('diffSnapshots — branch 부분 사망', () => {
-    it('전체는 매칭되지만 branch 하나가 죽으면 알린다', () => {
-        // 이중화된 selector는 한쪽이 죽어도 count>0이라 brokenRequired에 안 잡힌다.
-        // 그 상태를 방치하면 남은 branch가 깨지는 날 한꺼번에 터진다.
-        const baseline = snap([{ name: 'badge', required: true, present: true }]);
-        const current = snap([{
-            name: 'badge',
-            required: true,
-            count: 6,
-            selector: 'NEW, OLD',
-            branchCounts: [
-                { selector: 'NEW', count: 6 },
-                { selector: 'OLD', count: 0 },
-            ],
-        }]);
-
-        const d = diffSnapshots(baseline, current);
-        expect(d.brokenRequired).toHaveLength(0);
-        expect(d.alerts.some(a => a.includes('branch 사망') && a.includes('OLD'))).toBe(true);
-    });
-
-    it('이미 알고 있던 branch 사망은 재알림하지 않는다', () => {
-        const baseline = snap([{
-            name: 'badge', required: true, present: true,
-            branchPresence: { NEW: true, OLD: false },
-        }]);
-        const current = snap([{
-            name: 'badge', required: true, count: 6, selector: 'NEW, OLD',
-            branchCounts: [{ selector: 'NEW', count: 6 }, { selector: 'OLD', count: 0 }],
-        }]);
-
-        const d = diffSnapshots(baseline, current);
-        expect(d.alerts).toHaveLength(0);
-    });
-
-    it('branch 전멸은 branch 알림이 아니라 selector 깨짐으로 다룬다', () => {
-        const baseline = snap([{ name: 'badge', required: true, present: true }]);
-        const current = snap([{
-            name: 'badge', required: true, count: 0, selector: 'NEW, OLD',
-            branchCounts: [{ selector: 'NEW', count: 0 }, { selector: 'OLD', count: 0 }],
-            candidates: [],
-        }]);
-
-        const d = diffSnapshots(baseline, current);
-        expect(d.brokenRequired.map(s => s.name)).toEqual(['badge']);
-        expect(d.alerts.some(a => a.includes('branch 사망'))).toBe(false);
+        expect(d.brokenRequired.map(s => s.name)).toEqual(['displayName']);
     });
 });

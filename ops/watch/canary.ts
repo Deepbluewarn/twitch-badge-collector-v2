@@ -6,7 +6,7 @@
  *
  * 결과는 보고서(checks/selector.json, checks/socket.json)로 남기고 상황실(dispatch.ts)이 알린다.
  * 두 스크립트의 Discord 알림은 끈다(DISCORD_CANARY_WEBHOOK을 비운다).
- *  - 선택자: 깨진 필수 선택자마다 깨짐 사건(selector:<이름>), 스냅샷의 다른 변화(anchor 하락 등)는 참고
+ *  - 선택자: 방송 전체 판정(scripts/canary/judge.ts)의 사건을 그대로 옮긴다. 스냅샷의 다른 변화(anchor 하락 등)는 참고
  *  - 소켓: 오류마다 깨짐 사건(socket:<문구>), 처음 보는 값은 참고, 드문 메시지는 종류마다 참고(socket-rare:<종류>).
  *    모양은 $CANARY_STATE_DIR/socket-rare.json
  *  - 채널을 못 찾았거나 스크립트가 죽으면 확인 못 함. 연달아 못 하면 상황실이 위험으로 올린다
@@ -76,15 +76,14 @@ function runScript(script: string, env: Record<string, string>): Promise<{ code:
 }
 
 interface AlertFile {
-    title?: string;
-    body?: string;
-    /** 선택자: 깨진 필수 선택자와 검증된 후보 */
-    brokenRequired?: { name: string; selector: string; candidates: { replaced: string; score: number; docCount: number }[] }[];
-    autoFixCandidates?: { selectorName: string; newSelector: string; reason: string }[];
-    /** 선택자: 깨짐 말고 스냅샷이 달라진 점 */
+    /** 선택자: 방송 전체 판정 (scripts/canary/judge.ts) */
+    status?: 'ok' | 'issue' | 'unknown';
+    note?: string;
+    findings?: Finding[];
+    /** 선택자: 지난 스냅샷과 달라진 점(anchor 하락 등). 참고 */
     alerts?: string[];
-    url?: string;
-    /** 소켓: 확인을 못 했다 */
+    /** 소켓 */
+    title?: string;
     blind?: boolean;
     errors?: string[];
 }
@@ -113,24 +112,10 @@ async function main(): Promise<void> {
     const findings: Finding[] = [];
     let blindNote: string | undefined;
     if (kind === 'selector') {
-        for (const b of alert?.brokenRequired ?? []) {
-            const fix = alert?.autoFixCandidates?.find((c) => c.selectorName === b.name);
-            findings.push({
-                key: `selector:${b.name}`,
-                level: 'broken',
-                title: `선택자 ${b.name} 깨짐 (필수 선택자가 라이브 화면에서 0개)`,
-                lines: [
-                    `지금 선택자: ${b.selector}`,
-                    ...b.candidates.slice(0, 3).map((c) => `검증된 후보: ${c.replaced} (점수 ${c.score.toFixed(2)}, ${c.docCount}건)`),
-                    ...(fix ? [`자동 수정 후보: ${fix.newSelector} (${fix.reason})`] : []),
-                    ...(alert?.url ? [`대표 방송: ${alert.url}`] : []),
-                    '고치는 법: docs/ota-selectors.md',
-                ],
-                evidence: { ...b, autoFix: fix },
-            });
-        }
+        findings.push(...(alert?.findings ?? []));
         for (const a of alert?.alerts ?? []) findings.push({ key: `selector:notice:${stableKey(a)}`, level: 'info', title: `선택자 카나리: ${a}` });
-        if (!alert?.brokenRequired?.length && code !== 0) blindNote = output.trim().split('\n').at(-1) ?? `종료 코드 ${code}`;
+        if (alert?.status === 'unknown') blindNote = alert.note ?? '판정 못 함';
+        else if (!alert) blindNote = output.trim().split('\n').at(-1) ?? `종료 코드 ${code}`;
     } else {
         if (alert?.blind) blindNote = alert.title ?? '채널을 못 찾음';
         else {
@@ -144,7 +129,7 @@ async function main(): Promise<void> {
     }
 
     // 현황판 표시용 상태
-    const status: CanaryStatus = findings.some((f) => f.level === 'broken') ? 'broken' : blindNote ? 'error' : warnings.length ? 'warn' : 'ok';
+    const status: CanaryStatus = findings.some((f) => f.level === 'broken') ? 'broken' : blindNote ? 'error' : warnings.length || findings.some((f) => f.level === 'risk') ? 'warn' : 'ok';
     const problems = status === 'ok' ? [] : blindNote ? output.trim().split('\n').slice(-8) : findings.filter((f) => !f.key.startsWith('socket-rare:')).map((f) => f.title).slice(0, 20);
 
     const prev = readJson<CanaryResult>(`canary-${kind}`);
