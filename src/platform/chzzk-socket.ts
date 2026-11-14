@@ -1,6 +1,7 @@
 import type { ChatInfo } from "@/interfaces/chat";
 import nicknameColors from "./chzzk-nickname-colors.json";
 import { isVerifiedMarkType, verifiedMarkUrl, type VerifiedMarkType } from "./chzzk-verified";
+export { CHAT_SOCKET_URL } from "./chzzk-socket-url";
 
 /**
  * 치지직 채팅 프로토콜 → 정규화된 채팅 객체.

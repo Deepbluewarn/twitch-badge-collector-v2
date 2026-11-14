@@ -1,8 +1,11 @@
 /**
- * 6시간마다: 최신 릴리스 확장을 Chromium에 올려 치지직(소켓 모드 끔, 켬), 트위치 라이브에 붙이고
- * 모아보기 창에 채팅이 들어오는지 본다. 치지직을 여는 김에 JS, CSS 번들을 받아 bundle.ts로 검사한다.
+ * 최신 릴리스 확장을 Chromium에 올려 라이브에 붙이고 수집 창에 채팅이 들어오는지 본다.
  *
- * 결과는 보고서 두 개로 상황실에 넘긴다: checks/live.json(경로마다 수집 창이 비었는지), checks/bundle.json(번들 의존, 변화).
+ *   live-check.ts         6시간마다: 치지직(소켓 모드 끔), 트위치. 치지직을 여는 김에 JS, CSS 번들을 받아 bundle.ts로 검사한다.
+ *                         보고서 checks/live.json(경로마다 수집 창이 없거나 비었는지), checks/bundle.json(번들 의존, 변화)
+ *   live-check.ts --main  1시간마다: 주 경로 시험. 치지직(소켓 모드 켬) 하나를 보고 판정은 main-path.ts. 보고서 checks/main.json
+ *
+ * 방송 채팅 수는 화면 줄 수와 페이지 웹소켓 메시지(확장 파서로 읽은 채팅) 중 큰 쪽이다.
  * 방송에 채팅이 없거나 페이지를 못 열면 그 경로는 확인 못 함이다(깨짐이 아니다).
  *
  * 필터는 "빈 키워드 포함" 하나만 넣는다. 글자가 있는 채팅은 전부 통과하므로 창의 채팅 수가 곧 수집 수다.
@@ -16,18 +19,29 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { chromium, type BrowserContext, type Page } from 'playwright';
 import type { Finding } from './incidents.ts';
+import bundledManifest from '../../src/platform/bundled-selectors.prod.json' with { type: 'json' };
+import { hostChats, judgeMain, type MainRun, type PageObservation } from './main-path.ts';
 import { checkDependencies, diffLines, diffSignals, judgeDependencies, extractSignals, isChzzkBundle, type BundleFile, type BundleSignals, type Dependency, type SignalDiff } from './bundle.ts';
 import { CACHE_DIR, REPO, UA, attempt, fetchJson, isError, readJson, writeCheck, writeJson } from './state.ts';
 
 // Playwright 오류는 브라우저 실행 로그까지 붙어 길다. 첫 줄만 남긴다
 const firstLine = (e: unknown) => String((e as Error)?.message ?? e).split('\n')[0].slice(0, 300);
 const SECONDS = Number(process.argv.find((a) => a.startsWith('--seconds='))?.slice(10) ?? 60);
+const MAIN = process.argv.includes('--main');
+/** 시험용: 확장 대신 이 폴더를 올린다 (일부러 고장 낸 빌드로 판정을 확인할 때) */
+const EXT_DIR = process.argv.find((a) => a.startsWith('--ext='))?.slice(6);
+
+// 확장의 소켓 파서. ops tsconfig로는 src의 경로 별칭을 따라갈 수 없어 경로를 변수로 두고 불러온다(tsx는 실행한다)
+const PARSER = '../../src/platform/chzzk-socket.ts';
+const { parseChzzkPacket } = (await import(PARSER)) as { parseChzzkPacket: (packet: unknown) => unknown[] };
 
 export interface LiveRun {
     name: string;
     url?: string;
     /** 방송 쪽 채팅 줄 수 (판정 근거가 있는지) */
     host: number;
+    /** 수집 창 요소가 있는지 */
+    paneExists?: boolean;
     /** 모아보기 창 채팅 수 */
     pane: number;
     /** 모아보기 창 채팅 중 배지 이미지가 붙은 것 */
@@ -55,6 +69,7 @@ export interface BundleResult {
 }
 
 async function latestExtension(): Promise<{ version: string; dir: string }> {
+    if (EXT_DIR) return { version: `local ${EXT_DIR}`, dir: EXT_DIR };
     const rel = await fetchJson<{ tag_name: string; assets: { name: string; browser_download_url: string }[] }>(
         `https://api.github.com/repos/${REPO}/releases/latest`,
     );
@@ -114,48 +129,89 @@ async function configure(ctx: BrowserContext, id: string, socket: boolean): Prom
     await page.close();
 }
 
-async function watch(ctx: BrowserContext, name: string, url: string, platform: 'chzzk' | 'twitch', files?: BundleFile[]): Promise<LiveRun> {
+/** 페이지 하나를 SECONDS 동안 보고 방송 채팅, 소켓, 수집 창을 잰다. 페이지를 못 열면 던진다 */
+async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'twitch', files?: BundleFile[]): Promise<PageObservation> {
     const page: Page = await ctx.newPage();
     const pending: Promise<void>[] = [];
+    const sockets: PageObservation['sockets'] = [];
     if (files) {
         page.on('response', (res) => {
             if (!isChzzkBundle(res.url())) return;
             pending.push(res.text().then((text) => void files.push({ url: res.url(), text }), () => {}));
         });
     }
+    if (platform === 'chzzk') {
+        // 탭이 확장(ISOLATED)에 넘기는 window 메시지를 페이지에서 센다 (ws-tap.ts, TBC_SOCKET_CHAT_ACTION)
+        await page.addInitScript(() => {
+            const w = window as unknown as { __tbcWatchTap: number };
+            w.__tbcWatchTap = 0;
+            window.addEventListener('message', (e) => {
+                if (e.source === window && e.data?.action === 'tbc-socket-chat' && e.data?.kind === 'chats') w.__tbcWatchTap += e.data.chats?.length ?? 0;
+            });
+        });
+        page.on('websocket', (ws) => {
+            const entry = { url: ws.url(), chats: 0 };
+            sockets.push(entry);
+            ws.on('framereceived', ({ payload }) => {
+                if (typeof payload !== 'string') return;
+                try {
+                    entry.chats += parseChzzkPacket(JSON.parse(payload)).length;
+                } catch {
+                    // JSON이 아닌 메시지
+                }
+            });
+        });
+    }
     try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
         await page.waitForTimeout(SECONDS * 1000);
         await Promise.all(pending);
-        const counts = await page.evaluate((platform) => {
-            const items = [...document.querySelectorAll(`#${platform}-container [data-tbc-chat-key], #tbc-floating-${platform} [data-tbc-chat-key]`)];
-            const host = platform === 'chzzk'
-                ? document.querySelectorAll('aside#aside-chatting [class*="_chatting_message_"]').length
-                : document.querySelectorAll('.chat-line__message').length;
+        const counts = await page.evaluate(({ platform, container }) => {
+            const panes = [...document.querySelectorAll(`#${platform}-container, #tbc-floating-${platform}`)];
+            const items = panes.flatMap((p) => [...p.querySelectorAll('[data-tbc-chat-key]')]);
+            let containerCount = 0;
+            try {
+                containerCount = container ? document.querySelectorAll(container).length : 0;
+            } catch {
+                // 선택자 문법 오류
+            }
+            const WS = (globalThis as unknown as { WebSocket: Record<symbol, unknown> }).WebSocket;
             return {
-                host,
+                domChats: platform === 'chzzk'
+                    ? document.querySelectorAll('aside#aside-chatting [class*="_chatting_message_"]').length
+                    : document.querySelectorAll('.chat-line__message').length,
+                tapInstalled: WS[Symbol.for('tbc.chzzkSocketTap')] === true,
+                tapDelivered: (window as unknown as { __tbcWatchTap?: number }).__tbcWatchTap ?? 0,
+                paneExists: panes.length > 0,
                 pane: items.length,
                 paneWithBadge: items.filter((el) => el.querySelector('img')).length,
                 paneWithName: items.filter((el) => (el.textContent ?? '').trim().length > 0).length,
+                container: containerCount,
             };
-        }, platform);
-        const verdict = counts.pane > 0 ? 'ok' : counts.host > 0 ? 'broken' : 'unknown';
-        return { name, url, ...counts, verdict };
-    } catch (e) {
-        return { name, url, host: 0, pane: 0, paneWithBadge: 0, paneWithName: 0, verdict: 'unknown', error: firstLine(e) };
+        }, { platform, container: platform === 'chzzk' ? bundledManifest.platforms.chzzk.selectors.chatRoomLive : '' });
+        return { url, sockets, ...counts };
     } finally {
         await page.close();
     }
 }
 
-async function main(): Promise<void> {
-    const result: LiveResult = { at: Date.now(), runs: [] };
-    const files: BundleFile[] = [];
+async function watch(ctx: BrowserContext, name: string, url: string, platform: 'chzzk' | 'twitch', files?: BundleFile[]): Promise<LiveRun> {
+    try {
+        const o = await observe(ctx, url, platform, files);
+        const host = hostChats(o);
+        const verdict = o.pane > 0 ? 'ok' : host > 0 ? 'broken' : 'unknown';
+        return { name, url, host, paneExists: o.paneExists, pane: o.pane, paneWithBadge: o.paneWithBadge, paneWithName: o.paneWithName, verdict };
+    } catch (e) {
+        return { name, url, host: 0, pane: 0, paneWithBadge: 0, paneWithName: 0, verdict: 'unknown', error: firstLine(e) };
+    }
+}
+
+/** 확장을 올린 브라우저를 띄워 fn을 돌린다. 매번 빈 임시 프로필 */
+async function withExtension<T>(fn: (ctx: BrowserContext, id: string, version: string) => Promise<T>): Promise<T> {
+    const ext = await latestExtension();
     const profile = mkdtempSync(join(tmpdir(), 'tbc-watch-'));
     let ctx: BrowserContext | undefined;
     try {
-        const ext = await latestExtension();
-        result.version = ext.version;
         ctx = await chromium.launchPersistentContext(profile, {
             channel: 'chromium',
             headless: true,
@@ -164,21 +220,49 @@ async function main(): Promise<void> {
             args: [`--disable-extensions-except=${ext.dir}`, `--load-extension=${ext.dir}`],
         });
         const worker = ctx.serviceWorkers()[0] ?? (await ctx.waitForEvent('serviceworker', { timeout: 30_000 }));
-        const id = new URL(worker.url()).host;
-
-        const chzzkUrl = await chzzkLive();
-        await configure(ctx, id, false);
-        result.runs.push(await watch(ctx, '치지직 (소켓 끔)', chzzkUrl, 'chzzk', files));
-        await configure(ctx, id, true);
-        result.runs.push(await watch(ctx, '치지직 (소켓 켬)', chzzkUrl, 'chzzk'));
-        const twitchUrl = await attempt(() => twitchLive(ctx!));
-        if (typeof twitchUrl === 'string') result.runs.push(await watch(ctx, '트위치', twitchUrl, 'twitch'));
-        else result.runs.push({ name: '트위치', host: 0, pane: 0, paneWithBadge: 0, paneWithName: 0, verdict: 'unknown', error: `방송 찾기 실패: ${twitchUrl.error}` });
-    } catch (e) {
-        result.error = firstLine(e);
+        return await fn(ctx, new URL(worker.url()).host, ext.version);
     } finally {
         await ctx?.close();
         rmSync(profile, { recursive: true, force: true });
+    }
+}
+
+/** 주 경로 시험: 소켓 모드를 켠 치지직 라이브 하나 */
+async function mainPath(): Promise<void> {
+    const run: MainRun = { at: Date.now() };
+    try {
+        await withExtension(async (ctx, id, version) => {
+            run.version = version;
+            await configure(ctx, id, true);
+            Object.assign(run, await observe(ctx, await chzzkLive(), 'chzzk'));
+        });
+    } catch (e) {
+        run.error = firstLine(e);
+    }
+    writeJson('main', run);
+    const report = judgeMain(run);
+    writeCheck(report);
+    const total = (run.sockets ?? []).map((s) => `${s.url} ${s.chats}`).join(', ');
+    console.log(`[main] ${new Date().toISOString()} ${run.version ?? '-'} ${report.status}${report.note ? ` (${report.note})` : ''} pane=${run.paneExists ? run.pane : 'none'} dom=${run.domChats ?? '-'} tap=${run.tapInstalled ?? '-'}/${run.tapDelivered ?? '-'} sockets=[${total}] ${report.findings.map((f) => f.key).join(', ')}`);
+}
+
+async function main(): Promise<void> {
+    if (MAIN) return mainPath();
+    const result: LiveResult = { at: Date.now(), runs: [] };
+    const files: BundleFile[] = [];
+    try {
+        // 소켓 모드 켬은 1시간마다 도는 주 경로 시험(--main)이 본다
+        await withExtension(async (ctx, id, version) => {
+            result.version = version;
+            const chzzkUrl = await chzzkLive();
+            await configure(ctx, id, false);
+            result.runs.push(await watch(ctx, '치지직 (소켓 끔)', chzzkUrl, 'chzzk', files));
+            const twitchUrl = await attempt(() => twitchLive(ctx));
+            if (typeof twitchUrl === 'string') result.runs.push(await watch(ctx, '트위치', twitchUrl, 'twitch'));
+            else result.runs.push({ name: '트위치', host: 0, pane: 0, paneWithBadge: 0, paneWithName: 0, verdict: 'unknown', error: `방송 찾기 실패: ${twitchUrl.error}` });
+        });
+    } catch (e) {
+        result.error = firstLine(e);
     }
     writeJson('live', result);
     writeCheck({
@@ -188,10 +272,10 @@ async function main(): Promise<void> {
         note: result.error,
         unknownParts: result.runs.filter((r) => r.verdict === 'unknown').map((r) => ({ part: r.name, note: r.error ?? '방송 채팅 없음' })),
         findings: result.runs.filter((r) => r.verdict === 'broken').map((r) => ({
-            key: `live:${r.name}:empty-pane`,
+            key: `live:${r.name}:${r.paneExists === false ? 'no-pane' : 'empty-pane'}`,
             part: r.name,
             level: 'broken',
-            title: `확장 실제 시험 ${r.name}: 수집 창이 비었음`,
+            title: `확장 실제 시험 ${r.name}: ${r.paneExists === false ? '수집 창이 생기지 않음' : '수집 창이 비었음'}`,
             lines: [`방송 채팅 ${r.host}줄, 수집 창 0줄 (v${result.version})`, ...(r.url ? [r.url] : [])],
         })),
     });

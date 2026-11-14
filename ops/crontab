@@ -5,7 +5,7 @@ RUN=sh /home/bluewarn/tbc/ops/run.sh
 
 # 리포 갱신 (master를 따라간다. ops 코드를 고치면 10분 안에 반영)
 */10 * * * * $RUN pull
-# 치지직 배포 감지. 감지하면 canary, socket, live를 바로 띄운다
+# 치지직 배포 감지. 감지하면 canary, socket, live, main을 바로 띄운다
 * * * * * $RUN deploy
 # 목록에 없는 새 배지 알림 (pull 5분 뒤라 방금 커밋한 배지는 이미 목록에 있다)
 5-59/10 * * * * $RUN badges
@@ -18,6 +18,8 @@ RUN=sh /home/bluewarn/tbc/ops/run.sh
 # 선택자 카나리, 확장 실제 시험 (브라우저 작업이라 시각을 엇갈린다)
 0 */6 * * * $RUN canary
 15 3-23/6 * * * $RUN live
+# 주 경로 시험: 수집 창이 생기는지, 소켓 경로가 사는지 (치지직 소켓 모드 켬)
+50 * * * * $RUN main
 # 스토어, 배지, GA 수집
 45 */3 * * * $RUN info
 # 확장 익명 사용 통계 (현황판). 배포 직후 퍼지는 걸 보려고 5분마다

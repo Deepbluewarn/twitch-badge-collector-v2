@@ -1,4 +1,4 @@
-import { CHZZK_CMD, parseChzzkBlindEvent, parseChzzkPacket } from "@/platform/chzzk-socket";
+import { CHAT_SOCKET_URL, CHZZK_CMD, parseChzzkBlindEvent, parseChzzkPacket } from "@/platform/chzzk-socket";
 import { isChannelOffNow } from '../base/channel-off-flag';
 import { TBC_SOCKET_CHAT_ACTION, TBC_SOCKET_REPLAY_ACTION, TBC_SOCKET_REPLAY_REQUEST, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
 
@@ -14,7 +14,6 @@ import { TBC_SOCKET_CHAT_ACTION, TBC_SOCKET_REPLAY_ACTION, TBC_SOCKET_REPLAY_REQ
  * **동기로** 호출해야 한다 (dynamic import 뒤에 두면 늦을 수 있다).
  */
 
-const CHAT_SOCKET_URL = /^wss:\/\/[^/]*\.chat\.naver\.com\/chat\b/;
 const TAPPED = Symbol.for('tbc.chzzkSocketTap');
 
 type Post = (msg: TbcSocketChatMessage) => void;

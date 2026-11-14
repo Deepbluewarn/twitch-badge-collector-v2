@@ -75,7 +75,7 @@ const RECENT_MS = 7 * 24 * HOUR;
 const RANK: Record<Level, number> = { info: 0, risk: 1, broken: 2 };
 
 /** 몇 번 연달아 확인 못 하면 위험으로 올릴지. 주기가 길수록 적게 */
-export const BLIND_AFTER: Record<string, number> = { selector: 2, live: 3, bundle: 3, socket: 3 };
+export const BLIND_AFTER: Record<string, number> = { selector: 2, live: 3, main: 2, bundle: 3, socket: 3 };
 const DEFAULT_BLIND_AFTER = 3;
 
 export const CHECK_LABEL: Record<string, string> = {
@@ -83,6 +83,7 @@ export const CHECK_LABEL: Record<string, string> = {
     selector: '선택자 카나리',
     socket: '소켓 카나리',
     live: '확장 실제 시험',
+    main: '주 경로 시험',
     bundle: '번들 검사',
     heartbeat: '감시 작업 확인',
     badges: '새 배지',
