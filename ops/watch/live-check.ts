@@ -1,7 +1,7 @@
 /**
  * 최신 릴리스 확장을 Chromium에 올려 라이브에 붙이고 수집 창에 채팅이 들어오는지 본다.
  *
- *   live-check.ts         6시간마다: 치지직(소켓 모드 끔), 트위치. 치지직을 여는 김에 JS, CSS 번들을 받아 bundle.ts로 검사한다.
+ *   live-check.ts         6시간마다: 치지직(소켓 모드 끔), 트위치, 치지직 다시보기(소켓 모드 켬). 치지직을 여는 김에 JS, CSS 번들을 받아 bundle.ts로 검사한다.
  *                         보고서 checks/live.json(경로마다 수집 창이 없거나 비었는지), checks/bundle.json(번들 의존, 변화)
  *   live-check.ts --main  1시간마다: 주 경로 시험. 치지직(소켓 모드 켬) 하나를 보고 판정은 main-path.ts. 보고서 checks/main.json
  *
@@ -28,6 +28,7 @@ import { chromium, type BrowserContext, type Page } from 'playwright';
 import type { CheckReport, Finding } from './incidents.ts';
 import bundledManifest from '../../src/platform/bundled-selectors.prod.json' with { type: 'json' };
 import { hostChats, judgeMain, mergeStoreReport, type ContentSample, type MainRun, type OtaRevs, type PageObservation, type ShadowMismatch } from './main-path.ts';
+import { discoverVideos } from '../../scripts/canary/discover-channels.ts';
 import { checkDependencies, diffLines, diffSignals, judgeDependencies, extractSignals, isChzzkBundle, type BundleFile, type BundleSignals, type Dependency, type SignalDiff } from './bundle.ts';
 import { CACHE_DIR, REPO, UA, attempt, fetchJson, isError, readJson, writeCheck, writeJson } from './state.ts';
 
@@ -44,6 +45,7 @@ const CHZZK_URL = process.argv.find((a) => a.startsWith('--url='))?.slice(6);
 /** 방송 채팅이 이보다 적으면 다음 순위 방송으로 */
 const MIN_HOST_CHATS = 10;
 const STREAM_TRIES = 3;
+const VOD_SECONDS = 90;
 const KEEP_VERSIONS = 5;
 
 // 확장의 소켓 파서. ops tsconfig로는 src의 경로 별칭을 따라갈 수 없어 경로를 변수로 두고 불러온다(tsx는 실행한다)
@@ -209,7 +211,10 @@ async function configure(ctx: BrowserContext, id: string, socket: boolean): Prom
     await page.close();
 }
 
-/** 페이지 하나를 SECONDS 동안 보고 방송 채팅, 소켓, 수집 창을 잰다. 페이지를 못 열면 던진다 */
+/**
+ * 페이지 하나를 SECONDS 동안 보고 방송 채팅, 소켓, 수집 창을 잰다. 페이지를 못 열면 던진다.
+ * 치지직 다시보기(/video/)는 영상이 재생돼야(광고가 끝나야) 채팅이 떠서 VOD_SECONDS 이상 본다
+ */
 /** 확장의 비교 도구(socket-shadow.ts)가 콘솔에 남기는 줄. 서식 문자(%c)와 스타일 인자가 같이 온다 */
 function readShadowLine(text: string, into: ContentSample): void {
     const m = /(\w+) 불일치 \(type (\d+) (\w+)\) (\S+)\n\s*html:\s+(.*)\n\s*socket:\s+(.*?)(?: color:[^\n]*)?$/s.exec(text);
@@ -229,6 +234,7 @@ function readShadowLine(text: string, into: ContentSample): void {
 }
 
 async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'twitch', files?: BundleFile[], compare = false): Promise<PageObservation> {
+    const vod = platform === 'chzzk' && url.includes('/video/');
     const page: Page = await ctx.newPage();
     const pending: Promise<void>[] = [];
     const sockets: PageObservation['sockets'] = [];
@@ -279,7 +285,7 @@ async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'tw
     });
     try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-        await page.waitForTimeout(SECONDS * 1000);
+        await page.waitForTimeout((vod ? Math.max(SECONDS, VOD_SECONDS) : SECONDS) * 1000);
         await Promise.all(pending);
         const counts = await page.evaluate(({ platform, container }) => {
             const panes = [...document.querySelectorAll(`#${platform}-container, #tbc-floating-${platform}`)];
@@ -293,7 +299,7 @@ async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'tw
             const WS = (globalThis as unknown as { WebSocket: Record<symbol, unknown> }).WebSocket;
             return {
                 domChats: platform === 'chzzk'
-                    ? document.querySelectorAll('aside#aside-chatting [class*="_chatting_message_"]').length
+                    ? document.querySelectorAll('aside#aside-chatting [class*="_chatting_message_"], aside#vod-aside [class*="_chatting_message_"]').length
                     : document.querySelectorAll('.chat-line__message').length,
                 tapInstalled: WS[Symbol.for('tbc.chzzkSocketTap')] === true,
                 tapDelivered: (window as unknown as { __tbcWatchTap?: number }).__tbcWatchTap ?? 0,
@@ -310,7 +316,7 @@ async function observe(ctx: BrowserContext, url: string, platform: 'chzzk' | 'tw
                     nameImgs: el.querySelectorAll('[aria-haspopup="true"] img, [class*="_nickname_"] img, img.tbc-chat-badge').length,
                 })),
             };
-        }, { platform, container: platform === 'chzzk' ? bundledManifest.platforms.chzzk.selectors.chatRoomLive : '' });
+        }, { platform, container: platform === 'chzzk' ? bundledManifest.platforms.chzzk.selectors[vod ? 'chatRoomVod' : 'chatRoomLive'] : '' });
         const { chats, items, ...rest } = counts;
         if (content) Object.assign(content, { chats, items });
         return { url, sockets, ...rest, ...(content ? { content } : {}) };
@@ -466,6 +472,11 @@ async function main(): Promise<void> {
             const twitchUrls = await attempt(() => twitchLives(ctx));
             if (!isError(twitchUrls)) result.runs.push(await watch(ctx, '트위치', twitchUrls, 'twitch'));
             else result.runs.push({ name: '트위치', host: 0, pane: 0, paneWithBadge: 0, paneWithName: 0, verdict: 'unknown', error: `방송 찾기 실패: ${twitchUrls.error}` });
+            // 다시보기는 사용자와 같이 소켓 모드 켬(다시보기 채팅 REST 탭)으로
+            await configure(ctx, id, true);
+            const vodUrls = await attempt(async () => (await discoverVideos({ max: STREAM_TRIES })).map((no) => `https://chzzk.naver.com/video/${no}`));
+            if (!isError(vodUrls)) result.runs.push(await watch(ctx, '치지직 다시보기', vodUrls, 'chzzk'));
+            else result.runs.push({ name: '치지직 다시보기', host: 0, pane: 0, paneWithBadge: 0, paneWithName: 0, verdict: 'unknown', error: `다시보기 찾기 실패: ${vodUrls.error}` });
         });
     } catch (e) {
         result.error = firstLine(e);

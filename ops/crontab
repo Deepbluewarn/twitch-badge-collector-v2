@@ -7,7 +7,7 @@ RUN=sh /home/bluewarn/tbc/ops/run.sh
 */10 * * * * $RUN pull
 # OTA 파일(선택자, 배지 목록)이 jsDelivr에 닿았는지. 리포와 다르면 purge (pull 1분 뒤)
 1-59/10 * * * * $RUN ota
-# 치지직 배포 감지. 감지하면 canary, socket, live, main을 바로 띄운다
+# 치지직 배포 감지. 감지하면 canary, socket, live, main, vod를 바로 띄운다
 * * * * * $RUN deploy
 # 목록에 없는 새 배지 알림 (pull 5분 뒤라 방금 커밋한 배지는 이미 목록에 있다)
 5-59/10 * * * * $RUN badges
@@ -17,9 +17,10 @@ RUN=sh /home/bluewarn/tbc/ops/run.sh
 */10 * * * * $RUN heartbeat
 # 소켓 카나리
 30 * * * * $RUN socket
-# 선택자 카나리, 확장 실제 시험 (브라우저 작업이라 시각을 엇갈린다)
+# 선택자 카나리(라이브, 다시보기), 확장 실제 시험 (브라우저 작업이라 시각을 엇갈린다)
 0 */6 * * * $RUN canary
 15 3-23/6 * * * $RUN live
+40 1-23/6 * * * $RUN vod
 # 주 경로 시험: 수집 창이 생기는지, 소켓 경로가 사는지 (치지직 소켓 모드 켬)
 50 * * * * $RUN main
 # 스토어, 배지, GA 수집

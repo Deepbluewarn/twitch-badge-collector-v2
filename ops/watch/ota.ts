@@ -3,7 +3,7 @@
  *
  * 확장은 jsDelivr의 master 주소에서 선택자와 배지 목록을 받는다. jsDelivr는 최대 12시간 옛 파일을 내므로
  * 리포(ovm이 막 pull한 master)와 다르면 바로 purge하고 30초 뒤 다시 본다. purge는 같은 리포 버전에 한 번만.
- * 새 빌드용 선택자가 새 rev로 닿으면 canary와 main을 바로 띄워 고친 선택자를 실제 방송과 확장으로 확인한다.
+ * 새 빌드용 선택자가 새 rev로 닿으면 canary, main, vod를 바로 띄워 고친 선택자를 실제 방송과 확장으로 확인한다.
  *
  * 상태: watch/ota.json, 보고서: watch/checks/ota.json
  */
@@ -19,7 +19,7 @@ const CDN = `https://cdn.jsdelivr.net/gh/${REPO}@master`;
 const PURGE = `https://purge.jsdelivr.net/gh/${REPO}@master`;
 const RECHECK_MS = 30_000;
 /** 새 선택자가 닿으면 바로 띄울 작업 */
-const FOLLOW_UP = ['canary', 'main'];
+const FOLLOW_UP = ['canary', 'main', 'vod'];
 
 /** rev 숫자, 또는 JSON 내용 해시 (줄바꿈, 공백 차이는 무시) */
 function versionOf(t: OtaTarget, text: string): string {

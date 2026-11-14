@@ -109,3 +109,31 @@ export async function discoverChannels(context: BrowserContext, opts: { max: num
         .map(([id]) => id)
         .slice(0, opts.max);
 }
+
+/** 다시보기는 이보다 길어야 고른다 (짧은 클립성 다시보기는 채팅이 거의 없다) */
+const MIN_VOD_SECONDS = 30 * 60;
+
+/**
+ * 다시보기 번호. 인기 라이브 채널마다 가장 최근 다시보기 하나. 인기 채널이라 채팅이 많다.
+ * 방송 중인 채널의 최근 다시보기는 지난 방송이라 끝까지 올라와 있다.
+ */
+export async function discoverVideos(opts: { max: number }): Promise<number[]> {
+    const channels = (await fetchApiLives('POPULAR', 50)).map(e => e.channelId);
+    const videos: number[] = [];
+    for (const id of channels) {
+        if (videos.length >= opts.max) break;
+        try {
+            const res = await fetch(`https://api.chzzk.naver.com/service/v1/channels/${id}/videos?sortType=LATEST&pagingType=PAGE&page=0&size=5`, {
+                headers: { 'User-Agent': UA, 'Accept': 'application/json' },
+            });
+            if (!res.ok) continue;
+            const json = await res.json() as { content?: { data?: Array<{ videoNo?: number; videoType?: string; duration?: number; adult?: boolean }> } };
+            const pick = (json.content?.data ?? []).find(v => v.videoNo && v.videoType === 'REPLAY' && (v.duration ?? 0) >= MIN_VOD_SECONDS && !v.adult);
+            if (pick?.videoNo) videos.push(pick.videoNo);
+        } catch (e) {
+            console.warn(`[discover] ${id} 다시보기 목록 fail: ${String(e).slice(0, 200)}`);
+        }
+    }
+    console.log(`[discover] 다시보기 ${videos.length}개 (인기 채널 ${channels.length}곳에서)`);
+    return videos;
+}

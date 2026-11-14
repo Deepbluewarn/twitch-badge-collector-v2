@@ -6,7 +6,7 @@
  *
  * 처음 보는 파일 목록이 나오면
  *  - 보고서(checks/deploy.json)에 참고 사건으로 남긴다. 상황실이 알린다 (어느 파일이 바뀌었는지, vendor만 바뀌었는지 등)
- *  - 바로 canary, socket, live, main 작업을 띄워 영향을 확인한다 (6시간 주기를 기다리지 않는다)
+ *  - 바로 canary, socket, live, main, vod 작업을 띄워 영향을 확인한다 (6시간 주기를 기다리지 않는다)
  * 배포 중에는 서버마다 옛 HTML과 새 HTML이 섞여 나올 수 있다. 전에 본 목록으로 돌아가는 건 알리지 않는다.
  *
  * 상태: watch/deploy.json, 보고서: watch/checks/deploy.json (가장 최근 배포 하나)
@@ -16,7 +16,7 @@ import { readJson, spawnJobs, writeCheck, writeJson } from './state.ts';
 
 const PAGE = 'https://chzzk.naver.com/';
 /** 배포를 감지하면 바로 띄울 작업 */
-const FOLLOW_UP = ['canary', 'socket', 'live', 'main'];
+const FOLLOW_UP = ['canary', 'socket', 'live', 'main', 'vod'];
 
 export interface Deploy {
     at: number;

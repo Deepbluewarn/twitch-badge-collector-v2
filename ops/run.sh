@@ -35,6 +35,7 @@ run() {
             ;;
         deploy) npx tsx ops/watch/deploy.ts ;;
         canary) npx tsx ops/watch/canary.ts selector ;;
+        vod) npx tsx ops/watch/canary.ts vod ;;
         socket) npx tsx ops/watch/canary.ts socket ;;
         live) npx tsx ops/watch/live-check.ts ;;
         main) npx tsx ops/watch/live-check.ts --main ;;
@@ -50,9 +51,9 @@ run() {
     esac
 }
 
-# 같은 작업이 겹치면 건너뛴다. 브라우저를 띄우는 작업(canary, live, main)은 서로 기다린다(odroid 메모리 7GB)
+# 같은 작업이 겹치면 건너뛴다. 브라우저를 띄우는 작업(canary, vod, live, main)은 서로 기다린다(odroid 메모리 7GB)
 lock="/tmp/badge-collector-$job.lock"
-case "$job" in canary|live|main) lock="/tmp/badge-collector-browser.lock"; wait=-w1800 ;; *) wait=-n ;; esac
+case "$job" in canary|vod|live|main) lock="/tmp/badge-collector-browser.lock"; wait=-w1800 ;; *) wait=-n ;; esac
 
 start=$(date +%s)
 exec 9>"$lock"
@@ -99,7 +100,7 @@ esac
 
 # 현황판. 1분마다 도는 deploy, 30분마다 도는 spike 뒤에는 그리지 않는다
 case "$job" in
-    canary|socket|live|main|info|heartbeat|usage|badges)
+    canary|vod|socket|live|main|info|heartbeat|usage|badges)
         npx tsx ops/watch/render.ts 9>&- > "$LOGS/render.log" 2>&1 || echo "$(date '+%F %T') render 실패 (after $job)" >> "$STATE/ops.log"
         ;;
 esac

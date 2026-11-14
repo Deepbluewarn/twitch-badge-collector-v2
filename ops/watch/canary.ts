@@ -2,6 +2,7 @@
  * 리포의 카나리 스크립트(scripts/canary)를 ovm에서 돌리고 결과를 현황판 상태로 남긴다.
  *
  *   npx tsx ops/watch/canary.ts selector   선택자 카나리 (Playwright로 라이브 채널 방문)
+ *   npx tsx ops/watch/canary.ts vod        다시보기 선택자 카나리 (인기 채널의 최근 다시보기 방문). 사건 key는 selector: 대신 vod:
  *   npx tsx ops/watch/canary.ts socket     소켓 카나리 (채팅 소켓에 2분 붙어 패킷 형태 확인)
  *
  * 결과는 보고서(checks/selector.json, checks/socket.json)로 남기고 상황실(dispatch.ts)이 알린다.
@@ -27,7 +28,7 @@ import { readJson, writeCheck, writeJson } from './state.ts';
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT_DIR = process.env.CANARY_STATE_DIR || join(homedir(), '.local/state/badge-collector/canary');
 
-type Kind = 'selector' | 'socket';
+type Kind = 'selector' | 'vod' | 'socket';
 export type CanaryStatus = 'ok' | 'warn' | 'broken' | 'error';
 
 export interface CanaryResult {
@@ -52,6 +53,13 @@ const SPEC: Record<Kind, { label: string; script: string; alert: string; env: Re
         alert: 'canary-alert.json',
         // odroid(4코어, 7GB)라 GitHub 기본값 8보다 줄인다
         env: { CANARY_MODE: 'live', CANARY_PARALLEL: '4', DISCORD_CANARY_WEBHOOK: '' },
+    },
+    vod: {
+        label: '다시보기 선택자 카나리',
+        script: 'canary:chzzk',
+        alert: 'canary-alert-vod.json',
+        // 영상을 재생해야 채팅이 떠서 라이브보다 무겁다
+        env: { CANARY_MODE: 'vod', CANARY_TOTAL: '12', CANARY_PARALLEL: '3', DISCORD_CANARY_WEBHOOK: '' },
     },
     socket: {
         label: '소켓 카나리',
@@ -96,24 +104,28 @@ function readAlert(file: string): AlertFile | undefined {
 async function main(): Promise<void> {
     const kind = process.argv[2] as Kind;
     const spec = SPEC[kind];
-    if (!spec) throw new Error('usage: canary.ts selector|socket');
+    if (!spec) throw new Error('usage: canary.ts selector|vod|socket');
+    const selectorLike = kind === 'selector' || kind === 'vod';
+    const autofixFile = kind === 'vod' ? 'canary-autofix-vod.json' : 'canary-autofix.json';
 
     mkdirSync(OUT_DIR, { recursive: true });
     // 지난 실행의 알림 파일이 남아 있으면 이번 결과로 오해한다
-    for (const f of [spec.alert, 'canary-autofix.json']) rmSync(join(OUT_DIR, f), { force: true });
+    for (const f of [spec.alert, autofixFile]) rmSync(join(OUT_DIR, f), { force: true });
 
     const started = Date.now();
     const { code, output } = await runScript(spec.script, spec.env);
     const alert = readAlert(spec.alert);
-    const autofixPath = join(OUT_DIR, 'canary-autofix.json');
-    const autofix = kind === 'selector' && existsSync(autofixPath) ? JSON.parse(readFileSync(autofixPath, 'utf8')) : undefined;
+    const autofixPath = join(OUT_DIR, autofixFile);
+    const autofix = selectorLike && existsSync(autofixPath) ? JSON.parse(readFileSync(autofixPath, 'utf8')) : undefined;
     const warnings = [...output.matchAll(/\[socket-canary\] WARN (.+)/g)].map((m) => m[1]);
 
     const findings: Finding[] = [];
     let blindNote: string | undefined;
-    if (kind === 'selector') {
-        findings.push(...(alert?.findings ?? []));
-        for (const a of alert?.alerts ?? []) findings.push({ key: `selector:notice:${stableKey(a)}`, level: 'info', title: `선택자 카나리: ${a}` });
+    if (selectorLike) {
+        // 라이브와 다시보기는 같은 판정(judge.ts)이라 key가 겹친다. 다시보기는 vod:로
+        const rekey = (key: string) => (kind === 'vod' ? key.replace(/^selector:/, 'vod:') : key);
+        findings.push(...(alert?.findings ?? []).map((f) => ({ ...f, key: rekey(f.key), title: kind === 'vod' ? `다시보기 ${f.title}` : f.title })));
+        for (const a of alert?.alerts ?? []) findings.push({ key: rekey(`selector:notice:${stableKey(a)}`), level: 'info', title: `${spec.label}: ${a}` });
         if (alert?.status === 'unknown') blindNote = alert.note ?? '판정 못 함';
         else if (!alert) blindNote = output.trim().split('\n').at(-1) ?? `종료 코드 ${code}`;
     } else {

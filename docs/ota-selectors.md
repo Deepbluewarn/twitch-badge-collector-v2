@@ -115,7 +115,7 @@ chzzk는 CSS-module hash를 빌드마다 재생성한다. `_container_` 하나�
 
 | 계층 | 무엇 | 어디 |
 |---|---|---|
-| 감지 | 6시간마다(치지직 배포 감지 때는 바로) 라이브 채널 다수 방문, 방송 전체로 required selector, branch, 배지 놓침 판정 | ovm `canary` 작업 ([docs/monitoring.md](monitoring.md)), `scripts/canary/chzzk.ts` |
+| 감지 | 6시간마다(치지직 배포 감지 때는 바로) 라이브 채널과 다시보기 다수 방문, 방송 전체로 required selector, branch, 배지 놓침 판정 | ovm `canary`, `vod` 작업 ([docs/monitoring.md](monitoring.md)), `scripts/canary/chzzk.ts` |
 | 후보 도출 | 깨진 selector와 죽은 branch의 hash 치환 후보를 **라이브 DOM에서 직접 검증** (cardinality 채점) | `scripts/canary/visit-channel.ts` |
 | 알림 | ovm 상황실이 사건 단위로 Discord에 보낸다(깨짐은 6시간, 위험은 24시간마다 다시, 회복하면 한 번). 후보는 알림과 현황판에 싣고 OTA는 사람이 낸다 | `ops/watch/canary.ts`, `ops/watch/dispatch.ts` |
 | 데이터 이중화 | 배지를 React props 유래 data 속성 + selector 두 출처에서 읽음 — selector가 깨져도 배지 필터 동작 | `src/platform/{chzzk,twitch}.ts` |

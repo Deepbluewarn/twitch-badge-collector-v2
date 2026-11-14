@@ -1,6 +1,6 @@
 /**
- * Chzzk selector canary. 라이브 여러 채널 병렬 방문 → 방송 전체로 selector 판정(judge.ts).
- *  - 결과는 canary-alert.json에 남기고 알림은 ovm 상황실이 보낸다
+ * Chzzk selector canary. 라이브 여러 채널(다시보기 모드는 인기 채널의 최근 다시보기) 병렬 방문 → 방송 전체로 selector 판정(judge.ts).
+ *  - 결과는 canary-alert.json(다시보기는 canary-alert-vod.json)에 남기고 알림은 ovm 상황실이 보낸다
  *  - class hash rotation 감지 시 auto-fix 후보 기록
  *
  * env:
@@ -17,7 +17,7 @@ import type { CanarySnapshot, ChannelVisitResult } from './snapshot-types.ts';
 import { diffSnapshots } from './diff.ts';
 import { judge, socketIsMain } from './judge.ts';
 import { visitChannel } from './visit-channel.ts';
-import { discoverChannels } from './discover-channels.ts';
+import { discoverChannels, discoverVideos } from './discover-channels.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -30,6 +30,10 @@ const PARALLEL = Math.max(1, parseInt(process.env.CANARY_PARALLEL ?? '8', 10));
 const TOTAL = Math.max(1, parseInt(process.env.CANARY_TOTAL ?? '50', 10));
 const BATCH_DELAY_MS = Math.max(0, parseInt(process.env.CANARY_BATCH_DELAY_MS ?? '3000', 10));
 const SNAPSHOT_FILE = join(SNAPSHOT_DIR, `chzzk-${MODE === 'live' ? 'live' : 'vod'}.json`);
+/** 라이브와 다시보기 결과 파일을 나눈다 (ovm에서 따로 돈다) */
+const SUFFIX = MODE === 'live' ? '' : '-vod';
+// 다시보기는 영상이 재생돼야(광고가 끝나야) 채팅이 뜬다
+const CHAT_WAIT_MS = MODE === 'live' ? 25_000 : 60_000;
 
 /**
  * 여러 채널 결과에서 대표 스냅샷 선정.
@@ -129,9 +133,9 @@ async function main() {
 
     try {
         // 여러 소스 union으로 채널 pool 확보
-        const channelIds = await discoverChannels(context, { max: TOTAL });
+        const channelIds = MODE === 'live' ? await discoverChannels(context, { max: TOTAL }) : (await discoverVideos({ max: TOTAL })).map(String);
         if (channelIds.length === 0) {
-            console.error('[canary] 방문할 라이브 채널 없음 — discovery 실패');
+            console.error(`[canary] 방문할 ${MODE === 'live' ? '라이브 채널' : '다시보기'} 없음, discovery 실패`);
             process.exit(2);
         }
         const totalBatches = Math.ceil(channelIds.length / PARALLEL);
@@ -153,6 +157,7 @@ async function main() {
                 pageMode: MODE,
                 selectors: selectors as unknown as Record<string, unknown>,
                 requiredList,
+                chatWaitTimeoutMs: CHAT_WAIT_MS,
             })));
             results.push(...batchResults);
             if (i + PARALLEL < channelIds.length && BATCH_DELAY_MS > 0) {
@@ -181,7 +186,7 @@ async function main() {
         // 깨졌거나 확인을 못 했으면 기준을 그대로 둔다
         if (judged.status !== 'unknown' && !judged.findings.some(f => f.level === 'broken')) saveSnapshot(snapshot);
 
-        writeFileSync(join(OUT_DIR, 'canary-alert.json'), JSON.stringify({
+        writeFileSync(join(OUT_DIR, `canary-alert${SUFFIX}.json`), JSON.stringify({
             mode: MODE,
             status: judged.status,
             note: judged.note,
@@ -195,13 +200,13 @@ async function main() {
 
         // auto-fix 후보는 현황판 카나리 칸에 나온다
         if (diff && diff.autoFixCandidates.length > 0) {
-            writeFileSync(join(OUT_DIR, 'canary-autofix.json'), JSON.stringify({
+            writeFileSync(join(OUT_DIR, `canary-autofix${SUFFIX}.json`), JSON.stringify({
                 snapshotFile: SNAPSHOT_FILE,
                 candidates: diff.autoFixCandidates,
                 capturedAt: snapshot.capturedAt,
                 url: snapshot.url,
             }, null, 2));
-            console.log('[canary] auto-fix 후보 canary-autofix.json에 기록');
+            console.log(`[canary] auto-fix 후보 canary-autofix${SUFFIX}.json에 기록`);
         }
     } finally {
         await context.close();

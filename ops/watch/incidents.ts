@@ -76,12 +76,13 @@ const RANK: Record<Level, number> = { info: 0, risk: 1, broken: 2 };
 
 /** 몇 번 연달아 확인 못 하면 위험으로 올릴지. 주기가 길수록 적게 */
 // collect는 5분마다 보고서를 내므로 한 시간쯤 이어질 때만
-export const BLIND_AFTER: Record<string, number> = { selector: 2, live: 3, main: 2, bundle: 3, socket: 3, collect: 6 };
+export const BLIND_AFTER: Record<string, number> = { selector: 2, live: 3, main: 2, bundle: 3, socket: 3, collect: 6, vod: 2 };
 const DEFAULT_BLIND_AFTER = 3;
 
 export const CHECK_LABEL: Record<string, string> = {
     deploy: '배포 감지',
     selector: '선택자 카나리',
+    vod: '다시보기 선택자 카나리',
     socket: '소켓 카나리',
     live: '확장 실제 시험',
     main: '주 경로 시험',

@@ -493,6 +493,8 @@ interface Finding {
 <h3>T5. 다시보기 선택자 카나리 <span class="tag">작음</span></h3>
 <p><code>ops/watch/canary.ts</code>에 <code>vod</code> 종류를 더해 <code>CANARY_MODE=vod</code>로 돌린다. 브라우저 작업이라 잠금을 같이 쓰고, crontab에서 6시간마다 canary와 live 사이(예: 1, 7, 13, 19시 40분). <code>deploy.ts</code>의 <code>FOLLOW_UP</code>과 <code>heartbeat.ts</code>의 <code>JOBS</code>에도 넣는다. 스냅샷은 <code>canary/snapshots/chzzk-vod.json</code>(스크립트가 이미 이 이름을 쓴다).</p>
 
+<p><b>11-14 한 일:</b> 위대로 <code>vod</code> 작업(1, 7, 13, 19시 40분)을 더했다. 예전 스크립트는 다시보기 주소에 채널 ID를 넣어 다시보기를 하나도 열지 못했다. 인기 라이브 채널마다 가장 최근 다시보기(30분 이상) 번호를 API로 찾고, 영상이 재생돼야 채팅이 떠서 60초까지 기다린다. 사건 key는 <code>vod:</code>. 6시간 실제 시험에도 치지직 다시보기 경로(소켓 모드 켬)를 더했다. 로컬 시험: 다시보기 6개 모두 필수 선택자 맞음, 실제 시험 다시보기 수집 창 100/105.</p>
+
 <h2 id="speed">9. 작업: 조치부</h2>
 
 <h3>S1. 알림 한 번으로 고칠 수 있게 <span class="tag">중간</span></h3>

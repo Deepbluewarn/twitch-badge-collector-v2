@@ -69,7 +69,7 @@ interface Extra {
     heartbeat?: Heartbeat;
     usage?: UsageSummary | Err;
 }
-const CANARY_LABEL = { selector: '선택자 카나리', socket: '소켓 카나리' } as const;
+const CANARY_LABEL = { selector: '선택자 카나리', vod: '다시보기 선택자 카나리', socket: '소켓 카나리' } as const;
 
 /** 상황실 장부의 열린 깨짐, 위험 사건. 깨짐 먼저 */
 function reasonsOf(ledger: Ledger | undefined): Reason[] {
@@ -498,7 +498,7 @@ ${desc('확장이 지금 트위치, 치지직 화면에서 제대로 도는지 �
 ${reasons.length ? `<section class="panel reasons-panel"><h2>판정 근거</h2><ul class="reasons">${reasons.map((r) => `<li>${lamp(r.level)}<span>${esc(humanError(r.text))}</span></li>`).join('')}</ul></section>` : ''}
 <div class="grid">
 ${withDesc(liveSec, 'ovm이 실제 Chromium에 스토어 최신 확장을 올려 방송을 열고, 모아보기에 채팅이 모이는지 6시간마다 본다. 방송 채팅은 있는데 모아보기가 0이면 깨짐.')}
-${withDesc(canary, '선택자 카나리는 치지직 화면에서 확장이 찾는 요소(채팅창 등)가 그대로인지 6시간마다, 소켓 카나리는 치지직 채팅 소켓 메시지 형식이 그대로인지 1시간마다 본다.')}
+${withDesc(canary, '선택자 카나리는 치지직 라이브와 다시보기 화면에서 확장이 찾는 요소(채팅창 등)가 그대로인지 6시간마다, 소켓 카나리는 치지직 채팅 소켓 메시지 형식이 그대로인지 1시간마다 본다.')}
 ${withDesc(deploy, '치지직 웹이 새로 배포되면 1분 안에 알아채고 카나리와 실제 시험을 바로 돌린다. 지금 HTML은 치지직 페이지가 마지막으로 바뀐 시각.')}
 ${withDesc(bundleSec, '치지직 웹 코드(번들)에 확장이 기대는 이름이 아직 있는지와, 새로 생긴 메시지 종류 같은 새 기능 흔적.')}
 </div>
@@ -546,7 +546,7 @@ async function main(): Promise<void> {
     const info = readJson<Info>('info');
     const extra: Extra = {
         deploy: readJson<DeployState>('deploy'),
-        canaries: (['selector', 'socket'] as const).map((k) => readJson<CanaryResult>(`canary-${k}`)).filter((c): c is CanaryResult => !!c),
+        canaries: (['selector', 'vod', 'socket'] as const).map((k) => readJson<CanaryResult>(`canary-${k}`)).filter((c): c is CanaryResult => !!c),
         heartbeat: readJson<Heartbeat>('heartbeat'),
         usage: readJson<UsageSummary | Err>('usage'),
     };
