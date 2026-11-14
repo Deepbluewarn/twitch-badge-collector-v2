@@ -92,12 +92,12 @@ a{color:var(--now)}
 <p>선택자를 푸시하면 10분 안에 캐시를 비우고, 확장이 실제로 적용했는지 시험으로 확인한다. jsDelivr까지 최대 12시간이 10분 안으로, 사용자 쪽은 그 뒤 1시간 안.</p>
 </div></li>
 
-<li class="step now"><div class="num">7</div><div>
-<h3>실제 사용자 데이터로 판정 <span class="code">T3</span> <span class="chip now">푸시 대기</span></h3>
+<li class="step"><div class="num">7</div><div>
+<h3>실제 사용자 데이터로 판정 <span class="code">T3</span> <span class="chip done">완료</span></h3>
 <p>치지직 사용자 중 수집에 성공한 비율이 지난 7일 중앙값보다 8%p 넘게 떨어지면 알린다. 단계 배포 멈추기(S3)는 뺐다: 게시가 바로 100%로 나가고 있다.</p>
 </div></li>
 
-<li class="step"><div class="num">8</div><div>
+<li class="step now"><div class="num">8</div><div>
 <h3>다시보기 감시, 이슈와 처리 스킬 <span class="code">T5, S1</span> <span class="chip wait">대기</span></h3>
 <p>다시보기 화면도 감시한다. 고칠 문제는 GitHub 이슈로 열리고, 세션에서 스킬 한 번으로 고칠 준비가 된다.</p>
 <p class="you"><b>할 일:</b> GitHub 토큰(이슈 권한만)</p>
