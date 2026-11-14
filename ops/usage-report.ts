@@ -13,6 +13,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 import { SETTING_FLAGS, USAGE_FLAGS, type SettingFlag, type UsageFlag } from '../src/telemetry/flags.ts';
+import { kstDate } from './common.ts';
+import type { CollectRow } from './watch/collect.ts';
 
 const DAY = 86_400_000;
 const WINDOW_DAYS = 28;
@@ -103,24 +105,35 @@ async function sql(query: string): Promise<SqlRow[]> {
 const RELEASES_CACHE = join(homedir(), '.cache/badge-collector/releases.json');
 const RELEASES_TTL = 3_600_000;
 
-async function releasedVersions(): Promise<Set<string>> {
-    const cached = existsSync(RELEASES_CACHE) ? (JSON.parse(readFileSync(RELEASES_CACHE, 'utf8')) as { at: number; versions: string[] }) : null;
-    if (cached && Date.now() - cached.at < RELEASES_TTL) return new Set(cached.versions);
+interface Releases {
+    versions: Set<string>;
+    /** 버전 → 릴리스 날짜(한국). 날짜를 남기기 전의 캐시면 비어 있다 */
+    dates: Record<string, string>;
+}
+
+async function releases(): Promise<Releases> {
+    type Cache = { at: number; versions: string[]; dates?: Record<string, string> };
+    const cached = existsSync(RELEASES_CACHE) ? (JSON.parse(readFileSync(RELEASES_CACHE, 'utf8')) as Cache) : null;
+    const from = (c: Cache): Releases => ({ versions: new Set(c.versions), dates: c.dates ?? {} });
+    if (cached?.dates && Date.now() - cached.at < RELEASES_TTL) return from(cached);
     try {
         const res = await fetch('https://api.github.com/repos/Deepbluewarn/twitch-badge-collector-v2/releases?per_page=100', {
             headers: { 'User-Agent': 'badge-collector-ops', Accept: 'application/vnd.github+json' },
         });
         if (!res.ok) throw new Error(`github releases: ${res.status}`);
-        const list = (await res.json()) as { tag_name: string; draft: boolean }[];
-        const versions = list.filter((r) => !r.draft).map((r) => r.tag_name.replace(/^v/, ''));
+        const list = ((await res.json()) as { tag_name: string; draft: boolean; published_at: string }[]).filter((r) => !r.draft);
+        const versions = list.map((r) => r.tag_name.replace(/^v/, ''));
+        const dates = Object.fromEntries(list.map((r) => [r.tag_name.replace(/^v/, ''), kstDate(Date.parse(r.published_at))]));
         mkdirSync(dirname(RELEASES_CACHE), { recursive: true });
-        writeFileSync(RELEASES_CACHE, JSON.stringify({ at: Date.now(), versions }));
-        return new Set(versions);
+        writeFileSync(RELEASES_CACHE, JSON.stringify({ at: Date.now(), versions, dates }));
+        return { versions: new Set(versions), dates };
     } catch (err) {
-        if (cached) return new Set(cached.versions);
+        if (cached) return from(cached);
         throw err;
     }
 }
+
+const releasedVersions = async () => (await releases()).versions;
 
 const sums = (n: number) => Array.from({ length: n }, (_, i) => `SUM(_sample_interval * double${i + 1}) AS d${i + 1}`).join(', ');
 const num = (x: string | number | undefined) => Number(x ?? 0);
@@ -275,6 +288,22 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
 
     const days = daily.filter((d) => d.users > 0).length;
     return { at: Date.now(), yesterday, daily, week, month, days, features, settings, review: REVIEW, minDays: MIN_DAYS, minWeeks: MIN_WEEKS };
+}
+
+/**
+ * 수집 비율 재료 (ops/watch/collect.ts). 날짜, 브라우저, 버전별로 치지직만 쓴 사용자와 그중 수집된 사용자.
+ * 하루 기록의 double3 twitch, double4 chzzk, double5 collected (USAGE_FLAGS 순서). 실수 리터럴(1.0)을 써야 소수 표본 배율이 안 잘린다
+ */
+export async function fetchCollect(): Promise<{ rows: CollectRow[]; releasedAt: Record<string, string> }> {
+    const { versions, dates } = await releases();
+    const rows = await sql(`SELECT blob2 AS date, blob3 AS v, blob4 AS b,
+             SUM(IF(double4 > 0 AND double3 = 0, _sample_interval * 1.0, 0.0)) AS users,
+             SUM(IF(double4 > 0 AND double3 = 0 AND double5 > 0, _sample_interval * 1.0, 0.0)) AS collected
+             FROM tbc_usage WHERE blob1 = 'day' AND timestamp > NOW() - INTERVAL '${QUERY_DAYS}' DAY GROUP BY date, v, b`);
+    return {
+        rows: rows.filter((r) => versions.has(String(r.v))).map((r) => ({ date: String(r.date), browser: String(r.b), version: String(r.v), users: num(r.users), collected: num(r.collected) })),
+        releasedAt: dates,
+    };
 }
 
 /** 하루 리포트에 붙는 한 줄. 자세한 건 현황판 */

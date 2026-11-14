@@ -75,7 +75,8 @@ const RECENT_MS = 7 * 24 * HOUR;
 const RANK: Record<Level, number> = { info: 0, risk: 1, broken: 2 };
 
 /** 몇 번 연달아 확인 못 하면 위험으로 올릴지. 주기가 길수록 적게 */
-export const BLIND_AFTER: Record<string, number> = { selector: 2, live: 3, main: 2, bundle: 3, socket: 3 };
+// collect는 5분마다 보고서를 내므로 한 시간쯤 이어질 때만
+export const BLIND_AFTER: Record<string, number> = { selector: 2, live: 3, main: 2, bundle: 3, socket: 3, collect: 6 };
 const DEFAULT_BLIND_AFTER = 3;
 
 export const CHECK_LABEL: Record<string, string> = {
@@ -86,6 +87,7 @@ export const CHECK_LABEL: Record<string, string> = {
     main: '주 경로 시험',
     bundle: '번들 검사',
     ota: 'OTA 전달',
+    collect: '사용자 수집 비율',
     heartbeat: '감시 작업 확인',
     badges: '새 배지',
     spike: '방문 급증',
