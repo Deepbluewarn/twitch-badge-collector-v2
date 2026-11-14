@@ -3,7 +3,7 @@
 확장이 깨졌는지, 깨질 것 같은지, 치지직이 뭘 바꿨는지를 집 서버 ovm에서 지켜본다.
 
 - **현황판: http://192.168.1.162:3400** (LAN 전용). 판정(정상/위험/깨짐), 치지직 배포, 카나리, 감시 작업 상태, 확장 실제 시험, 번들 변화, 배지, 스토어, GA가 한 화면에 있다.
-- **알림: Discord** (community-watch 웹훅 채널 하나로 모은다).
+- **알림: Discord.** 확인 작업은 보고서만 남기고, 상황실(`ops/watch/dispatch.ts`) 하나가 모아서 보낸다. 깨짐, 위험은 긴급 웹훅(없으면 community-watch 웹훅), 나머지는 community-watch 웹훅. 아래 "알림 규칙".
 - **코드: 이 리포 `ops/`**. ovm은 `~/tbc` 클론을 10분마다 pull해서 돌린다. ovm에서 파일을 직접 고치지 않는다.
 - 터미널에서 빠르게 숫자만 보려면 로컬 셸의 `tbc` (오늘 방문, 설치, 실시간).
 
@@ -19,43 +19,61 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 │   ├─ badge-dashboard          ops/watch/serve.ts, :3400
 │   └─ badge-harvester          배지 수집 서버, :8787 (아래 "harvester")
 ├─ ~/.config/badge-collector/  비밀 값 (리포에 없음)
-│   ├─ community-watch.env      DISCORD_COMMUNITY_WEBHOOK (모든 알림이 이 웹훅을 쓴다)
+│   ├─ community-watch.env      DISCORD_COMMUNITY_WEBHOOK (참고 알림, 하루 리포트), DISCORD_URGENT_WEBHOOK (긴급, 선택), DISCORD_MENTION_USER_ID (깨짐 때 멘션, 선택)
 │   ├─ cloudflare.env           CF_ACCOUNT_ID, CF_ANALYTICS_TOKEN (Account Analytics 읽기, 확장 익명 통계 조회)
-│   └─ ops.env                  OPS_HEALTHCHECK_URL (선택, 아직 없음)
+│   └─ ops.env                  OPS_HEALTHCHECK_URL (healthchecks.io, 11-14부터)
 ├─ ~/.config/analytics-mcp/adc.json   GA 인증 (사용자 refresh token)
 └─ ~/.local/state/badge-collector/    결과
     ├─ ops.log                  실행마다 한 줄
     ├─ logs/<작업>.log           그 작업의 마지막 실행 출력
-    ├─ runs/<작업>.json          마지막 성공 시각 (heartbeat가 본다)
-    ├─ watch/*.json             현황판 데이터 (deploy, canary-selector, canary-socket, heartbeat, new-badges, live, bundle, info, verdict)
+    ├─ runs/<작업>.json          마지막 성공 시각 (heartbeat가 본다). 상황실은 runs/dispatch.json
+    ├─ alerts.jsonl             보낸 알림 (한 줄에 하나, 추가만)
+    ├─ watch/checks/*.json      확인 작업의 보고서 (상황실이 읽는다)
+    ├─ watch/incidents.json     상황실 장부 (지금 열린 사건, 확인 못 함 횟수)
+    ├─ watch/*.json             현황판 데이터 (deploy, canary-selector, canary-socket, heartbeat, new-badges, live, bundle, info)
     └─ canary/                  카나리 스크립트의 스냅샷과 알림 파일
 ```
 
 ## 작업
 
-| 작업 | 주기 | 하는 일 | 알림 |
+| 작업 | 주기 | 하는 일 | 보고서 (사건 key) |
 |---|---|---|---|
-| `deploy` | 1분 | 치지직 첫 페이지 HTML이 불러오는 JS, CSS 파일 목록(해시 포함)을 본다. 처음 보는 목록이면 배포로 보고 `canary`, `socket`, `live`를 바로 띄운다 | 배포 감지 때 |
-| `badges` | 10분 (5분부터) | harvester 데이터와 업적 배지 API를 `data/chzzk-badges.json`과 비교해 목록에 없는 배지를 알린다. 넣을 그룹과 JSON 한 줄을 같이 보낸다. 흐름은 `docs/chzzk-badges.md` | 처음 보는 배지 |
-| `socket` | 매시 30분 | 인기 라이브 8개 채팅 소켓에 2분 붙어 패킷이 `src/platform/chzzk-socket.ts`의 가정과 맞는지 본다 (`scripts/canary/socket.ts`). 템플릿이 없거나 실제로 본 적 없는 메시지(상점 구매, 파티, 미션 참여와 영상 후원, 보낸 사람이 실린 선물 알림)는 값 없이 모양만 `canary/socket-rare.json`에 모은다 | 처음 보는 문제, 깨진 채 6시간, 회복, 드문 메시지 첫 수집 |
-| `canary` | 6시간 (0, 6, 12, 18시) | 라이브 채널 여러 개를 Playwright로 열어 선택자 매칭을 확인한다 (`scripts/canary/chzzk.ts`). 깨지면 자동 수정 후보를 현황판에 띄운다 | 스냅샷과 달라졌을 때, 깨진 채 6시간, 회복 |
-| `live` | 6시간 (3, 9, 15, 21시 15분) | 최신 릴리스 zip을 Chromium에 올려 치지직(소켓 끔, 켬), 트위치에서 모아보기 창에 채팅이 들어오는지 본다. 치지직 번들을 받아 확장이 기대는 이름이 사라졌는지, 새 신호(메시지 타입, 소켓 cmd, API 경로, CSS 이름)가 생겼는지 비교한다 | 판정이 바뀔 때, 번들 변화 |
-| `info` | 3시간 | 스토어(크롬 공개 페이지, AMO), GitHub 실행과 이슈, 배지 목록 비교, GA 14일 | 판정이 바뀔 때 |
+| `deploy` | 1분 | 치지직 첫 페이지 HTML이 불러오는 JS, CSS 파일 목록(해시 포함)을 본다. 처음 보는 목록이면 배포로 보고 `canary`, `socket`, `live`를 바로 띄운다 | `deploy`: 가장 최근 배포 (참고, `deploy:<시각>`) |
+| `badges` | 10분 (5분부터) | harvester 데이터와 업적 배지 API를 `data/chzzk-badges.json`과 비교해 목록에 없는 배지를 찾는다. 넣을 그룹과 JSON 한 줄을 같이 남긴다. 흐름은 `docs/chzzk-badges.md` | `badges`: 배지마다 (참고, `badge:<이미지>`) |
+| `socket` | 매시 30분 | 인기 라이브 8개 채팅 소켓에 2분 붙어 패킷이 `src/platform/chzzk-socket.ts`의 가정과 맞는지 본다 (`scripts/canary/socket.ts`). 템플릿이 없거나 실제로 본 적 없는 메시지(상점 구매, 파티, 미션 참여와 영상 후원, 보낸 사람이 실린 선물 알림)는 값 없이 모양만 `canary/socket-rare.json`에 모은다 | `socket`: 오류마다 (깨짐, `socket:<문구>`), 처음 보는 값 (참고), 드문 메시지 종류마다 (참고, `socket-rare:<종류>`) |
+| `canary` | 6시간 (0, 6, 12, 18시) | 라이브 채널 여러 개를 Playwright로 열어 선택자 매칭을 확인한다 (`scripts/canary/chzzk.ts`). 깨지면 자동 수정 후보를 현황판에 띄운다 | `selector`: 깨진 필수 선택자마다 (깨짐, `selector:<이름>`), 스냅샷의 다른 변화 (참고) |
+| `live` | 6시간 (3, 9, 15, 21시 15분) | 최신 릴리스 zip을 Chromium에 올려 치지직(소켓 끔, 켬), 트위치에서 수집 창에 채팅이 들어오는지 본다. 치지직 번들을 받아 확장이 기대는 이름이 사라졌는지, 새 신호(메시지 타입, 소켓 cmd, API 경로, CSS 이름)가 생겼는지 비교한다 | `live`: 경로마다 (깨짐, `live:<경로>:empty-pane`). `bundle`: 사라진 이름마다 (위험), 가장 최근 변화 (참고) |
+| `info` | 3시간 | 스토어(크롬 공개 페이지, AMO), GitHub 이슈, 배지 목록 비교, GA 14일 | 없음 (현황판) |
 | `usage` | 5분 | 확장 익명 사용 통계(Analytics Engine `tbc_usage`): 28일 사용자, 기능별 비율, 지난주 설정과 언어. 4주 평균 5% 미만은 램프 (`ops/usage-report.ts`) | 없음 (현황판) |
-| `channels` | 매일 5시 20분 | harvester 데이터로 사이트의 스트리머별 구독 배지 페이지 데이터(`badgecollector-site`의 `src/data/channels.json`)를 다시 만들고, 바뀐 채널이 있으면 사이트 리포에 푸시한다(`ops/watch/site-channels.sh`). 2분쯤 | heartbeat가 대신 |
-| `heartbeat` | 10분 | `runs/*.json`을 보고 정해진 시간보다 오래 성공 못 한 작업, 멈춘 서비스를 찾는다 | 문제가 생기거나 바뀔 때, 12시간마다 다시 |
-| `pull` | 10분 | `git pull --ff-only`, `package-lock.json`이 바뀌었으면 `npm ci` | heartbeat가 대신 |
-| `spike` | 30분 | GA 실시간 30분 방문 20명 이상이면 알림 (6시간 쿨다운) | 급증 때 |
-| `stats` | 매일 10시 | 어제 스토어 페이지 방문, 유입 경로, 사이트 방문, 확장 사용자 수 한 줄 | 매일 |
+| `channels` | 매일 5시 20분 | harvester 데이터로 사이트의 스트리머별 구독 배지 페이지 데이터(`badgecollector-site`의 `src/data/channels.json`)를 다시 만들고, 바뀐 채널이 있으면 사이트 리포에 푸시한다(`ops/watch/site-channels.sh`). 2분쯤 | 없음 (heartbeat가 멈춤을 잡는다) |
+| `heartbeat` | 10분 | `runs/*.json`을 보고 정해진 시간보다 오래 성공 못 한 작업, 멈춘 서비스를 찾는다. healthchecks.io에 신호(문제가 있으면 /fail) | `heartbeat`: 작업, 서비스마다 (위험) |
+| `pull` | 10분 | `git pull --ff-only`, `package-lock.json`이 바뀌었으면 `npm ci` | 없음 (heartbeat) |
+| `spike` | 30분 | GA 실시간 30분 방문 20명 이상 (6시간 동안 같은 사건) | `spike` (참고) |
+| `stats` | 매일 10시 | 어제 스토어 페이지 방문, 유입 경로, 사이트 방문, 확장 사용자 수 한 줄 | 보고서 없이 Discord로 바로 (보고) |
 
 같은 작업은 겹쳐 돌지 않는다. 브라우저를 쓰는 `canary`와 `live`는 서로 끝나기를 기다린다(메모리 7GB).
 
 커뮤니티 언급 감시(`~/badge-collector-community-watch`, 매일 10시)는 이 리포 밖에 있고 crontab에만 같이 들어 있다.
 
+### 알림 규칙 (상황실)
+
+`run.sh`가 작업을 마치면(pull, channels, stats, info, usage 빼고. deploy는 배포를 감지했을 때만) 상황실을 부른다. 상황실은 `watch/checks/`의 보고서를 전부 읽어 장부(`watch/incidents.json`)와 맞춘다. 규칙과 시험은 `ops/watch/incidents.ts`, `incidents.test.ts`.
+
+- 사건은 key 하나다. key는 "어느 확인이, 무엇에서, 어떤 문제"이고 바뀌는 숫자는 넣지 않는다. 같은 key가 다시 오면 장부만 고친다.
+- 알리는 때: 새 사건, 등급이 오르거나 내려감, 사라짐(회복, 참고는 조용히), 안 고친 채 이어짐(깨짐 6시간마다, 위험 24시간마다).
+- 확인을 못 한 보고(방송에 채팅 없음, 채널 못 찾음, zip 못 받음 등)는 사건을 닫지 않는다. 같은 확인이 연달아 못 하면(선택자 2번, 그 밖 3번) 위험 사건 `blind:<확인>`을 연다.
+- 깜빡이는 참고(드문 메시지, 처음 보는 값)는 닫힌 뒤 7일 안에 다시 보여도 알리지 않는다.
+- 장부가 없을 때(처음 켤 때, 지웠을 때)는 지금 보이는 것을 알리지 않고 장부에만 적는다.
+- 상황실이 실패하면 `run.sh`가 웹훅으로 "상황실 실패" 한 줄을 보낸다(1시간에 한 번까지).
+
+손으로 볼 때: `npx tsx ops/watch/dispatch.ts --dry-run` (보낼 알림만 출력, 장부와 기록은 그대로).
+
 ### 판정 (현황판 맨 위)
 
-- **깨짐**: 확장 실제 시험에서 방송엔 채팅이 있는데 모아보기 창이 비었다, 카나리가 깨짐을 찾았다
-- **위험**: 번들에서 확장이 기대던 이름이 사라졌다, 시험 결과가 오래됐다, 카나리 실행 실패, 감시 작업이 멈췄다
+장부의 열린 사건으로 정한다. 깨짐 사건이 있으면 **깨짐**, 위험 사건이 있으면 **위험**, 아니면 정상.
+
+- **깨짐**: 확장 실제 시험에서 방송엔 채팅이 있는데 수집 창이 비었다, 카나리가 필수 선택자 깨짐이나 소켓 형식 변화를 찾았다
+- **위험**: 번들에서 확장이 기대던 이름이 사라졌다, 감시 작업이 멈췄다, 확인을 연달아 못 했다
 
 ## 확인하는 법
 
@@ -79,7 +97,7 @@ crontab -l
    cp ~/tbc/ops/systemd/badge-dashboard.service ~/.config/systemd/user/ && systemctl --user daemon-reload && systemctl --user restart badge-dashboard
    ```
 3. 타입 검사: `npx tsc -p ops` (루트 `npm run compile`은 `ops/`를 뺀다).
-4. 작업을 더하면 `ops/run.sh`의 case, `ops/crontab`, `ops/watch/heartbeat.ts`의 `JOBS`, 이 문서의 표를 같이 고친다.
+4. 작업을 더하면 `ops/run.sh`의 case, `ops/crontab`, `ops/watch/heartbeat.ts`의 `JOBS`, 이 문서의 표를 같이 고친다. 알릴 것이 있는 작업은 Discord로 보내지 말고 `writeCheck`로 보고서를 남긴다(`ops/watch/state.ts`).
 
 ## 처음부터 설치
 
@@ -97,9 +115,7 @@ loginctl enable-linger $USER          # 로그아웃해도 사용자 서비스�
 
 ## 남은 일
 
-- [ ] **확장 실제 시험(`live`)이 한 번도 성공한 적 없다.** Chromium이 쓸 시스템 라이브러리가 없다. ovm에서:
-  `sudo apt-get install -y libcups2t64 libcairo2 libpango-1.0-0 libatk-bridge2.0-0`
-- [ ] **ovm이 통째로 꺼지면 아무 알림도 없다.** healthchecks.io 같은 곳에 체크(10분 주기)를 만들고 `~/.config/badge-collector/ops.env`에 `OPS_HEALTHCHECK_URL=https://hc-ping.com/...`를 넣으면 heartbeat가 신호를 보낸다.
+- [ ] 개선 계획(`docs/reports/2026-11-13-ops-alert-plan.html`)의 2단계 이후: 선택자 갈래별 검사, 실제 시험 비교 판정, OTA 반영 확인, 사용자 수집 비율 판정.
 
 ## harvester
 
@@ -117,7 +133,7 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 - GitHub 예약 실행은 붐비면 늦거나 건너뛴다. 6시간 설정이 실제로는 4~9시간 간격, 저녁 6번 설정이 하루 1번이었다.
 - ovm은 한국 가정집 IP라 사용자와 같은 조건으로 치지직을 본다. GitHub 러너는 미국 데이터센터다.
 - 카나리 스냅샷을 master에 커밋하지 않아도 된다(전엔 하루 몇 번 봇 커밋이 생겼다).
-- 대신 ovm이 멈추면 조용해진다. 그래서 heartbeat와 외부 신호(위 "남은 일")를 둔다.
+- 대신 ovm이 멈추면 조용해진다. 그래서 heartbeat와 외부 신호(healthchecks.io)를 둔다.
 
 ## 변경 이력
 
@@ -139,3 +155,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-09 | `usage` 집계의 `guideOpen` 비율에서 v2.28.0보다 옛 버전 기록을 뺌. 그 버전에서 만든 하루 기록은 링크를 누른 사람만 `day2` 행이 생겨 비율이 부풀었다 |
 | 2026-11-12 | 익명 통계 주간 항목에 `copyIdOff`(치지직 ID 복사 버튼 끔) 추가. 나중에 덧붙인 주간 항목은 `SETTING_SINCE`에 적은 버전 이후 기록만 분모로 센다(옛 기록은 그 칸이 0으로 읽혀 비율이 눌린다) |
 | 2026-11-13 | GitHub 카나리 정리. `canary.yml`, `canary-socket.yml`, `canary-badges.yml`, `build.yml`과 `snapshots/`, `scripts/canary/open-*.mjs`, `badges.ts`(배지 인벤토리, ovm `badges` 작업이 대신함)를 지움. 현황판 GitHub 칸은 열린 이슈만 |
+| 2026-11-14 | 상황실(`ops/watch/dispatch.ts`, `incidents.ts`). 확인 작업은 `watch/checks/`에 보고서만 남기고 Discord는 상황실만 보낸다. 사건 key 단위 장부(`watch/incidents.json`), 보낸 알림 기록(`alerts.jsonl`), 긴급 웹훅과 깨짐 멘션, 위험 24시간 재알림, 확인 못 함은 연달아 못 할 때만 위험. 현황판 판정도 장부로. 카나리 스크립트의 직접 알림 끔. healthchecks.io 연결 |

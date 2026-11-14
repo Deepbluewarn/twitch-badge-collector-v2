@@ -5,20 +5,19 @@
  * 배포하면 해시가 바뀐다. HTML 하나(몇 KB)만 받으므로 자주 돌려도 부담이 없다.
  *
  * 처음 보는 파일 목록이 나오면
- *  - Discord로 알리고 (어느 파일이 바뀌었는지, vendor만 바뀌었는지 등)
+ *  - 보고서(checks/deploy.json)에 참고 사건으로 남긴다. 상황실이 알린다 (어느 파일이 바뀌었는지, vendor만 바뀌었는지 등)
  *  - 바로 canary, socket, live 작업을 띄워 영향을 확인한다 (6시간 주기를 기다리지 않는다)
  * 배포 중에는 서버마다 옛 HTML과 새 HTML이 섞여 나올 수 있다. 전에 본 목록으로 돌아가는 건 알리지 않는다.
  *
- * 상태: watch/deploy.json
+ * 상태: watch/deploy.json, 보고서: watch/checks/deploy.json (가장 최근 배포 하나)
+ * 가져오기에 실패하면 1로 끝난다. 보고서는 쓰지 않고 heartbeat가 멈춤으로 잡는다.
  */
 import { spawn } from 'child_process';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { sendDiscord } from '../common.ts';
-import { readJson, writeJson } from './state.ts';
+import { readJson, writeCheck, writeJson } from './state.ts';
 
 const PAGE = 'https://chzzk.naver.com/';
-const DASHBOARD_URL = 'http://192.168.1.162:3400';
 const RUN_SH = join(dirname(fileURLToPath(import.meta.url)), '../run.sh');
 /** 배포를 감지하면 바로 띄울 작업 */
 const FOLLOW_UP = ['canary', 'socket', 'live'];
@@ -60,6 +59,19 @@ export function compare(prev: string[], cur: string[]): Pick<Deploy, 'changed' |
     return { changed, added, removed };
 }
 
+const kst = (s: string | null) => (s ? new Date(s).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false }) : '-');
+
+function deployLines(d: Deploy): string[] {
+    const vendorOnly = d.changed.length > 0 && d.changed.every((s) => /vendor|runtime/.test(s));
+    return [
+        d.changed.length ? `바뀜: ${d.changed.join(', ')}` : '',
+        d.added.length ? `새 파일: ${d.added.join(', ')}` : '',
+        d.removed.length ? `빠진 파일: ${d.removed.join(', ')}` : '',
+        vendorOnly ? '라이브러리(vendor)만 바뀜, 치지직 자체 코드는 그대로' : '',
+        '카나리, 소켓, 확장 시험을 바로 돌린다',
+    ].filter(Boolean);
+}
+
 function followUp(): void {
     for (const job of FOLLOW_UP) {
         // 이 작업이 끝나도 계속 돌게 떼어 낸다. 겹치면 run.sh의 잠금이 알아서 거른다
@@ -91,21 +103,19 @@ async function main(): Promise<void> {
         const deploy: Deploy = { at: Date.now(), lastModified, files, ...diff };
         state.history = [deploy, ...state.history].slice(0, 50);
 
-        const kst = (s: string | null) => (s ? new Date(s).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false }) : '-');
-        const vendorOnly = diff.changed.length > 0 && diff.changed.every((s) => /vendor|runtime/.test(s));
-        await sendDiscord([
-            `**치지직 배포 감지** (HTML 수정 시각 ${kst(lastModified)})`,
-            diff.changed.length ? `바뀜: ${diff.changed.join(', ')}` : '',
-            diff.added.length ? `새 파일: ${diff.added.join(', ')}` : '',
-            diff.removed.length ? `빠진 파일: ${diff.removed.join(', ')}` : '',
-            vendorOnly ? '라이브러리(vendor)만 바뀜, 치지직 자체 코드는 그대로' : '',
-            `카나리, 소켓, 확장 시험을 바로 돌립니다. ${DASHBOARD_URL}`,
-        ].filter(Boolean));
         followUp();
         console.log(`[deploy] ${new Date().toISOString()} 배포 감지 ${JSON.stringify(diff)}`);
     }
     if (!state.seen.includes(key)) state.seen = [key, ...state.seen].slice(0, 100);
     writeJson('deploy', state);
+
+    const last = state.history[0];
+    writeCheck({
+        check: 'deploy',
+        at: state.checkedAt,
+        status: 'ok',
+        findings: last ? [{ key: `deploy:${last.at}`, level: 'info', title: `치지직 배포 감지 (HTML 수정 시각 ${kst(last.lastModified)})`, lines: deployLines(last) }] : [],
+    });
 }
 
 main().catch((err) => {

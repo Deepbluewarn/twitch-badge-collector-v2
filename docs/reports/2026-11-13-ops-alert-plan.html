@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>감시 개선 계획</title>
+<style>
+:root{color-scheme:light dark;--bg:#fafaf9;--card:#fff;--ink:#1c1c1c;--ink2:#555;--line:#e3e3e0;--code:#f1f1ee;--accent:#b88a00;--ok:#167a3a;--warn:#a86200;--bad:#b42318;--new:#2f5fb3}
+@media (prefers-color-scheme:dark){:root{--bg:#141415;--card:#1c1c1e;--ink:#ececec;--ink2:#a6a6ab;--line:#2e2e31;--code:#26262a;--accent:#f2c200;--ok:#4cc38a;--warn:#f0a020;--bad:#f06a6a;--new:#7aa7ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 "Pretendard Variable",Pretendard,system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:28px;line-height:1.25;margin:0 0 6px}
+h2{font-size:20px;margin:44px 0 12px;padding-top:16px;border-top:2px solid var(--ink)}
+h3{font-size:16px;margin:26px 0 8px}
+p,li{color:var(--ink)}
+.meta{color:var(--ink2);font-size:13px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:14px 0}
+.box.key{border-left:4px solid var(--accent)}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:14px;background:var(--card)}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--code);font-weight:700}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13px;background:var(--code);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5}
+pre code{background:none;padding:0}
+.ok{color:var(--ok);font-weight:700}.warn{color:var(--warn);font-weight:700}.bad{color:var(--bad);font-weight:700}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:0 7px;border-radius:9px;border:1px solid currentColor;margin-right:4px}
+.tag.ok{color:var(--ok)}.tag.warn{color:var(--warn)}.tag.bad{color:var(--bad)}.tag.new{color:var(--new)}
+ol li,ul li{margin:3px 0}
+nav.toc{columns:2;font-size:14px}
+@media (max-width:640px){nav.toc{columns:1}}
+/* 흐름도 */
+.flow{display:flex;align-items:stretch;gap:8px;margin:14px 0 6px}
+.flow .dept{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.55}
+.flow .dept b{display:block;font-size:16px;margin-bottom:2px}
+.flow .dept.hq{border:2px solid var(--accent)}
+.flow .arrow{display:flex;flex-direction:column;justify-content:center;align-items:center;color:var(--ink2);font-size:12px;text-align:center;min-width:78px}
+.flow .arrow span{font-size:22px;line-height:1}
+@media (max-width:720px){.flow{flex-direction:column}.flow .arrow{flex-direction:row;gap:6px;min-width:0}.flow .arrow span{transform:rotate(90deg)}}
+/* 직원 명부 */
+.dept-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:28px 0 4px}
+.dept-head h3{margin:0}
+.dept-head .duty{color:var(--ink2);font-size:13px}
+.staff{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:10px 0 18px}
+.emp{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.6;border-top:4px solid var(--line)}
+.emp.g-ok{border-top-color:var(--ok)}.emp.g-warn{border-top-color:var(--warn)}.emp.g-bad{border-top-color:var(--bad)}
+.emp.hire{border-style:dashed;border-top:4px dashed var(--new)}
+.emp .who{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.emp .role{font-size:16px;font-weight:700}
+.emp .shift{color:var(--ink2);font-size:12px;margin:2px 0 6px}
+.emp p{margin:4px 0}
+.emp .lbl{color:var(--ink2);font-size:12px;font-weight:700;margin-right:4px}
+.emp .fix{margin-top:6px;font-size:12px;color:var(--ink2)}
+.verdict-line{font-size:16px}
+</style>
+</head>
+<body>
+<main>
+
+<h1>감시 개선 계획</h1>
+<p class="meta">2026-11-13 작성, 같은 날 확인, 상황실, 조치 세 부서 구조로 고침. 리포 <code>Deepbluewarn/twitch-badge-collector-v2</code>, 작업 위치 <code>~/development/twitch-badge-collector-v2</code>. 다른 세션이 이어서 작업할 수 있게 근거와 파일 위치를 같이 적었다. 같은 날 앞서 쓴 "감시 알림 정리 계획"(알림 기록, GitHub 이슈, 스킬)을 대신한다.</p>
+
+<div class="box key">
+<b>목표는 두 가지다.</b>
+<ol style="margin:6px 0 0">
+<li><b>신호를 믿을 수 있게:</b> 울리면 진짜 문제이고(오탐 없음), 사용자에게 문제가 생기면 울린다(놓침 없음).</li>
+<li><b>빨리 고칠 수 있게:</b> 치지직 배포에서 사용자에게 고친 선택자가 닿을 때까지의 시간을 줄인다.</li>
+</ol>
+<p style="margin:10px 0 0">전수 조사 결과, 지금 체계는 <b>잘 돌지만(11일 동안 실패 4번) 놓치는 곳이 구조적으로 있다.</b> 11-12 치지직 배포 때 선택자 카나리는 "정상"이었다. 그리고 확인하는 작업들이 알림까지 각자 보내서 규칙이 7가지다.</p>
+<p style="margin:8px 0 0"><b>그래서 일을 세 부서로 나눈다.</b> 확인부는 결과만 남기고, 상황실 하나가 판정, 기록, 알림을 맡고, 조치부는 되돌릴 수 있는 일만 자동으로 하고 나머지는 사람이 한다.</p>
+</div>
+
+<div class="flow" aria-label="확인부에서 상황실, 조치부로 가는 흐름">
+<div class="dept"><b>확인부</b>치지직, 확장, 사용자, 감시 작업을 보고 정해진 양식으로 결과만 남긴다. 알림을 직접 보내지 않는다.</div>
+<div class="arrow"><span>→</span>결과 파일</div>
+<div class="dept hq"><b>상황실</b>모든 결과를 모아 사건을 가리고(새로 생김, 이어짐, 회복), 긴급과 참고로 나눠 보내고, 전부 기록한다. 직접 고치지 않는다.</div>
+<div class="arrow"><span>→</span>알림, 이슈</div>
+<div class="dept"><b>조치부</b>다시 확인, 캐시 비우기, 반영 확인은 자동. OTA 푸시, 단계 배포 멈춤, 릴리스는 사람.</div>
+</div>
+<p class="meta">두 부서(확인, 조치)가 아니라 세 부서인 이유: "진짜 문제인가, 얼마나 급한가"를 정하는 규칙이 한 곳에 모여야 신호를 믿을 수 있다. 조치에는 자동으로 해도 되는 것과 사람이 해야 하는 것이 섞여 있어 판정과 따로 둔다.</p>
+
+<h2 id="staff">직원 명부</h2>
+<p>감시 작업과 CI를 직원으로 보고 새 부서에 배치했다. 위 띠 색은 지금의 근무 평가다: <span class="tag ok">잘함</span> <span class="tag warn">손볼 곳</span> <span class="tag bad">문제</span> <span class="tag new">채용 예정</span>. 작업 번호(R, T, S)는 7~9장의 개선 작업이다.</p>
+
+<div class="dept-head"><h3>확인부</h3><span class="duty">보고 결과만 남긴다. 지금은 대부분 자기가 직접 전화하는데, R1 뒤에는 상황실로만 보고한다.</span></div>
+<div class="staff">
+<div class="emp g-ok"><div class="who"><span class="role">정문 경비</span><code>deploy</code></div><div class="shift">1분마다</div>
+<p>치지직 첫 화면의 파일 이름(해시)이 바뀌면 "배포 들어왔다"고 보고하고 카나리, socket, live를 바로 깨운다.</p>
+<p><span class="lbl">평가</span>11일 동안 보고 1번, 헛보고 없음. 빠르고 정확하다.</p>
+<p><span class="lbl">한계</span>정문만 본다. 뒷문(나중에 불러오는 파일)으로 들어오는 변경은 못 본다.</p></div>
+
+<div class="emp g-bad"><div class="who"><span class="role">순찰 요원</span><code>canary</code> 선택자</div><div class="shift">6시간마다, 배포 때</div>
+<p>라이브 방송 여러 곳을 돌며 확장이 쓰는 선택자가 맞는지 확인한다. 깨지면 고칠 후보를 찾아 온다.</p>
+<p><span class="lbl">평가</span><b>11-12에 "이상 없음"이라고 보고했는데 배지 예비 갈래가 죽어 있었다.</b> 문이 두 개인데 하나만 열려도 통과로 적고, 여러 방송 중 한 곳만 괜찮으면 괜찮다고 보고한다. 상황실을 건너뛰고 직접 전화한다.</p>
+<p><span class="lbl">담당 아님</span>다시보기(VOD)</p>
+<div class="fix">개선: T1 갈래별, 채널별 보고, R1 직접 전화 끊기</div></div>
+
+<div class="emp g-ok"><div class="who"><span class="role">무전 감청 요원</span><code>socket</code></div><div class="shift">매시 30분, 배포 때</div>
+<p>인기 방송 8곳의 채팅 소켓을 2분씩 듣고 메시지 형식이 확장의 예상과 맞는지 본다. 처음 보는 메시지(영상 후원, 미션 등)는 모양을 채집해 온다.</p>
+<p><span class="lbl">평가</span>가장 쓸모 있었던 직원. 이 직원이 채집한 것으로 v2.28.0 기능이 나왔다. 손볼 곳 없음.</p></div>
+
+<div class="emp g-bad"><div class="who"><span class="role">위장 손님</span><code>live</code></div><div class="shift">6시간마다, 배포 때</div>
+<p>진짜 확장을 깔고 치지직(소켓 끔, 켬), 트위치를 60초씩 보며 수집 창에 채팅이 들어오는지 확인한다.</p>
+<p><span class="lbl">평가</span>가장 믿어야 할 직원인데 헛보고 2번(확장 파일을 못 받았을 때, 방송에 채팅이 없었을 때). "확인 못 함"을 "이상"으로 보고한다. "창에 1줄이라도 있나"만 봐서 배지가 빠져도 정상으로 보고하고, 배지 필터는 써 보지 않는다.</p>
+<p><span class="lbl">한계</span>스토어 버전이 아니라 GitHub 최신 버전으로 시험한다.</p>
+<div class="fix">개선: T2, R1 "확인 못 함" 칸 따로</div></div>
+
+<div class="emp g-warn"><div class="who"><span class="role">문서 감식반</span><code>bundle</code></div><div class="shift">live와 같이 출근</div>
+<p>치지직 코드에서 확장이 기대는 이름이 사라졌는지 찾는다.</p>
+<p><span class="lbl">평가</span>11-12에 실제로 문제를 잡은 직원. 다만 "이 이름이 사라졌다"까지만 말하고 무엇에 영향이 있는지는 모른다.</p>
+<div class="fix">개선: T1이 같은 사건을 선택자 단위로 잡게 한다</div></div>
+
+<div class="emp g-warn"><div class="who"><span class="role">고객 설문 담당</span><code>usage</code></div><div class="shift">5분마다</div>
+<p>익명 사용 통계를 받아 현황판에 붙인다.</p>
+<p><span class="lbl">평가</span><b>가장 큰 그물을 쥐고도 건강 판정에는 빠져 있다.</b> 하루 7천 명 중 몇 %가 수집에 성공했는지 안다(평소 79~86%).</p>
+<p><span class="lbl">한계</span>하루 늦게 안다. 트위치 고객은 하루 40~60명이라 판정 못 한다.</p>
+<div class="fix">개선: T3, S3 새 버전만 낮으면 단계 배포 멈춤 근거</div></div>
+
+<div class="emp g-warn"><div class="who"><span class="role">인사 담당</span><code>heartbeat</code></div><div class="shift">10분마다</div>
+<p>직원들이 제때 출근해 일을 마쳤는지, harvester와 현황판 서버가 도는지 확인한다.</p>
+<p><span class="lbl">평가</span>잘한다(harvester 8일 멈춤 사건 뒤에 들어왔다). 직접 전화한다.</p>
+<p><span class="lbl">한계</span>회사(ovm)가 통째로 정전되면 같이 멈춰서 아무도 모른다.</p>
+<div class="fix">개선: T4 바깥 경비, R1 뒤에는 상황실도 감시 대상</div></div>
+
+<div class="emp g-ok"><div class="who"><span class="role">신상품 담당</span><code>badges</code></div><div class="shift">10분마다</div>
+<p>harvester가 모은 것 중 목록에 없는 배지를 찾는다. 1,592번 근무, 보고할 일은 아직 없었다. 직접 전화한다.</p></div>
+
+<div class="emp g-ok"><div class="who"><span class="role">손님 몰림 경보</span><code>spike</code></div><div class="shift">30분마다</div>
+<p>스토어에 30분 동안 20명 넘게 오면 울린다. 530번 근무, 한 번도 안 울렸다. 설계대로다. 직접 전화한다.</p></div>
+
+<div class="emp g-warn"><div class="who"><span class="role">여론 담당</span><code>community-watch</code></div><div class="shift">매일 10시, 회사 밖 소속</div>
+<p>커뮤니티 언급을 모은다. 사용자 신고가 들어오는 길인데 하루 1번만 본다. 리포 밖이라 이번 개편에서 빠진다.</p></div>
+
+<div class="emp hire"><div class="who"><span class="role">다시보기 순찰 요원</span><code>vod</code></div><div class="shift">6시간마다, 배포 때</div>
+<p>다시보기 화면의 선택자를 확인한다. 순찰 요원과 같은 스크립트를 다른 모드로 돌린다.</p>
+<div class="fix">채용: T5</div></div>
+
+<div class="emp hire"><div class="who"><span class="role">바깥 경비</span>healthchecks.io</div><div class="shift">상시, 회사 밖</div>
+<p>ovm이 10분마다 보내는 신호가 끊기면 회사 밖에서 알린다. 회사 전체가 멈췄을 때의 유일한 감시.</p>
+<div class="fix">채용: T4 (사용자가 등록)</div></div>
+</div>
+
+<div class="dept-head"><h3>상황실</h3><span class="duty">판정, 사건 관리, 기록, 알림. 지금은 이름만 상황실이고 일부 보고만 받는다.</span></div>
+<div class="staff">
+<div class="emp g-bad"><div class="who"><span class="role">상황실장</span><code>render</code> → <code>dispatch</code></div><div class="shift">다른 작업이 끝날 때마다</div>
+<p>모든 보고를 모아 정상, 위험, 깨짐을 정하고 현황판에 붙인다.</p>
+<p><span class="lbl">평가</span><b>등급이 그대로면 새 사건이 생겨도 보고하지 않는다.</b> 다른 직원들이 상황실을 건너뛰고 직접 전화해서 전체 그림도 없다. 보낸 알림 기록이 없다.</p>
+<div class="fix">개선: R1 (현황판 그리기는 render에 남기고 판정, 알림을 dispatch로)</div></div>
+
+<div class="emp g-warn"><div class="who"><span class="role">전화 한 대</span>Discord 웹훅</div><div class="shift">상시</div>
+<p>모든 보고가 이 전화 한 대로 온다. "배지가 깨졌다"와 "오늘 방문 몇 명", "커뮤니티 새 글"이 같은 벨소리로, 멘션 없이 온다.</p>
+<div class="fix">개선: R1 긴급 전화 따로, 휴대폰 알림</div></div>
+</div>
+
+<div class="dept-head"><h3>조치부</h3><span class="duty">되돌릴 수 있는 일은 자동, 되돌리기 어려운 일은 사람.</span></div>
+<div class="staff">
+<div class="emp g-warn"><div class="who"><span class="role">사장님</span>사용자</div><div class="shift">알림을 볼 때</div>
+<p>OTA 선택자 푸시, 새 배지 추가, 단계 배포 멈춤, 릴리스를 한다.</p>
+<p><span class="lbl">평가</span>11-12에 알림에서 고친 커밋까지 7시간. 알림 뒤에 조사를 처음부터 다시 해야 한다.</p>
+<div class="fix">개선: S1 고칠 내용이 담긴 알림과 이슈</div></div>
+
+<div class="emp hire"><div class="who"><span class="role">처리 비서</span><code>ops-alert</code> 스킬</div><div class="shift">사장님이 세션을 열 때</div>
+<p>열린 감시 이슈를 읽고 절차대로 고칠 준비를 한다. 푸시는 사장님 확인 뒤.</p>
+<div class="fix">채용: S1</div></div>
+
+<div class="emp hire"><div class="who"><span class="role">반영 확인 담당</span><code>pull</code> 확장</div><div class="shift">선택자 푸시 때</div>
+<p>jsDelivr 캐시를 비우고, 사용자가 받는 파일이 새 rev가 됐는지, 실제 시험이 통과하는지 확인한다.</p>
+<div class="fix">채용: S2</div></div>
+
+<div class="emp g-warn"><div class="who"><span class="role">단계 출하 담당</span><code>scheduled-publish</code></div><div class="shift">매일 4시, GitHub</div>
+<p>Chrome 배포를 10%, 50%, 100% 순서로 하루씩 올린다.</p>
+<p><span class="lbl">평가</span>문제 버전을 10%에서 막을 수 있는 유일한 직원인데, 멈추라는 신호를 받을 길이 없다.</p>
+<div class="fix">개선: S3</div></div>
+
+<div class="emp g-warn"><div class="who"><span class="role">배지 목록 배송 담당</span><code>site-rebuild</code></div><div class="shift">배지 목록이 바뀔 때, GitHub</div>
+<p>사이트를 다시 빌드하고 jsDelivr 캐시를 비운다.</p>
+<p><span class="lbl">빈자리</span>선택자 파일에는 이런 배송 담당이 없다. OTA로 고쳐도 사용자에게 닿기까지 최대 12시간.</p>
+<div class="fix">개선: S2</div></div>
+
+<div class="emp g-ok"><div class="who"><span class="role">출하 담당</span><code>publish</code></div><div class="shift">릴리스 때, GitHub</div>
+<p>릴리스를 빌드하고 스토어에 제출한다.</p></div>
+</div>
+
+<div class="dept-head"><h3>지원팀</h3><span class="duty">감시와 관계없는 일. 멈추면 인사 담당이 잡는다.</span></div>
+<div class="staff">
+<div class="emp g-ok"><div class="who"><span class="role">상주 수집원</span><code>harvester</code></div><div class="shift">24시간</div>
+<p>소켓 29개에 붙어 분당 채팅 약 2천 개에서 배지를 모은다. 신상품 담당의 재료다.</p></div>
+
+<div class="emp g-ok"><div class="who"><span class="role">업무 지침 배달</span><code>pull</code></div><div class="shift">10분마다</div>
+<p>리포 master를 받아 직원들 지침을 최신으로 바꾼다.</p></div>
+
+<div class="emp g-ok"><div class="who"><span class="role">시장 조사원</span><code>info</code></div><div class="shift">3시간마다</div>
+<p>스토어 수치, GitHub 이슈, GA를 모은다.</p></div>
+
+<div class="emp g-ok"><div class="who"><span class="role">일일 보고 비서</span><code>stats</code></div><div class="shift">매일 10시</div>
+<p>어제 숫자를 한 줄로 보고한다. 알림이 아니라 보고라 상황실을 거치지 않는다.</p></div>
+
+<div class="emp g-ok"><div class="who"><span class="role">사이트 진열 담당</span><code>channels</code></div><div class="shift">매일 5시 20분</div>
+<p>스트리머별 구독 배지 페이지 데이터를 갱신해 사이트에 올린다.</p></div>
+</div>
+<p class="meta">퇴사: GitHub 순찰조(canary, socket, badges 워크플로)는 11-13에 퇴사했고 일은 ovm 직원들이 이어받았다.</p>
+
+<div class="box key verdict-line"><b>총평.</b> 부지런하고 결근도 거의 없다(11일 동안 실패 4번). 하지만 <b>순찰 요원과 위장 손님이 너무 쉽게 "이상 없음"이라고 보고하고, 직원 7명이 각자 다른 규칙으로 직접 전화하며, 상황실장은 같은 등급이면 새 사건을 보고하지 않는다.</b> 고객 설문 담당은 가장 좋은 정보를 쥐고도 판정에 빠져 있다. R 작업은 상황실을 세우는 일, T 작업은 확인부의 보고 품질을 고치는 일, S 작업은 보고를 받은 뒤 사람 손이 덜 가게 하는 일이다.</div>
+
+<nav class="toc">
+<ol>
+<li><a href="#measure">무엇을 재는가</a></li>
+<li><a href="#inventory">전수 조사: 감시마다 보는 것과 못 보는 것</a></li>
+<li><a href="#incident">11-12 사건으로 본 지연</a></li>
+<li><a href="#usage">실제 사용자 데이터로 판정할 수 있는가</a></li>
+<li><a href="#findings">발견 정리</a></li>
+<li><a href="#structure">세 부서 구조</a></li>
+<li><a href="#hq">작업: 상황실</a></li>
+<li><a href="#trust">작업: 확인부</a></li>
+<li><a href="#speed">작업: 조치부</a></li>
+<li><a href="#order">순서와 완료 기준</a></li>
+<li><a href="#not">하지 않는 것</a></li>
+<li><a href="#need">사용자에게 받을 것</a></li>
+<li><a href="#rules">지켜야 할 규칙</a></li>
+<li><a href="#files">참고 파일</a></li>
+</ol>
+</nav>
+
+<h2 id="measure">1. 무엇을 재는가</h2>
+<p>지금은 보낸 알림이 어디에도 남지 않아 아래 숫자를 하나도 셀 수 없다. 개선의 효과를 보려면 이것부터 남겨야 한다(작업 R1).</p>
+<div class="wrap"><table>
+<tr><th>지표</th><th>뜻</th><th>목표</th></tr>
+<tr><td>오탐률</td><td>깨짐, 위험 알림 중 확장 문제가 아니었던 비율</td><td>깨짐 0, 위험 10% 미만</td></tr>
+<tr><td>놓침</td><td>사용자에게 문제가 있었는데 깨짐, 위험이 안 뜬 사건 수 (사용자 신고, 사용 통계, 사후 발견으로 셈)</td><td>0</td></tr>
+<tr><td>감지 시간</td><td>치지직 배포(또는 문제 시작)에서 첫 알림까지</td><td>15분 이내</td></tr>
+<tr><td>조치 시간</td><td>첫 알림에서 고친 커밋 푸시까지</td><td>잴 수 있게 만든 뒤 정함</td></tr>
+<tr><td>도달 시간</td><td>푸시에서 jsDelivr가 새 rev를 내주고 실제 시험이 통과할 때까지</td><td>15분 이내 (지금은 최대 12시간)</td></tr>
+</table></div>
+
+<h2 id="inventory">2. 전수 조사: 감시마다 보는 것과 못 보는 것</h2>
+<p class="meta">근거: <code>ops/</code>, <code>scripts/canary/</code> 코드, ovm <code>~/.local/state/badge-collector/</code>의 <code>ops.log</code>(11-02부터 7,840줄)와 <code>watch/*.json</code>, Cloudflare 익명 통계, GitHub 실행 기록. 2026-11-13 18시 기준.</p>
+
+<h3>ovm 작업</h3>
+<div class="wrap"><table>
+<tr><th>감시</th><th>보는 것</th><th>못 보는 것, 틀리는 경우</th></tr>
+<tr><td><b>deploy</b> (1분)</td><td>치지직 첫 화면 HTML의 JS, CSS 파일 해시. 바뀌면 canary, socket, live를 바로 띄움</td><td>첫 화면 HTML이 불러오지 않는 지연 로드 청크만 바뀌는 배포. 11일 동안 감지 1번(11-12 11:26), 오탐 없음</td></tr>
+<tr><td><b>canary</b> 선택자 (6시간, 배포 때)</td><td>라이브 채널 여러 개에서 <code>bundled-selectors.prod.json</code>(master) 선택자가 하나 이상 맞는지</td><td>
+<span class="bad">놓침 1</span> 선택자가 쉼표로 묶은 여러 갈래면 한 갈래만 맞아도 통과. 11-12에 배지 예비 갈래가 죽었는데 "정상"이었다(배지 선택자 <code>[class*="_icon_"] &gt; [class*="_container_"]:has(&gt; img), [class*="_container_14814_"]:has(&gt; img)</code>).<br>
+<span class="bad">놓침 2</span> "다수결"이라고 적혀 있지만 실제로는 필수 선택자를 모두 통과한 채널이 <b>하나라도</b> 있으면 그 채널을 대표로 쓴다(<code>chzzk.ts</code> <code>mergeToSnapshot</code>). 일부 채널 유형에서만 깨지면 못 잡는다.<br>
+<span class="warn">사각</span> 다시보기(VOD)는 안 본다. 스크립트에 <code>CANARY_MODE=vod</code>가 있는데 ovm에서 돌리지 않는다.<br>
+<span class="warn">사각</span> 기준 스냅샷과 비교라, 기준에 이미 0이던 선택자는 계속 못 잡는다.<br>
+<span class="warn">지연</span> master 파일을 시험한다. 사용자는 jsDelivr가 최대 12시간 캐시한 파일을 받으므로, 고친 직후 카나리는 정상인데 사용자는 아직 깨져 있을 수 있다.</td></tr>
+<tr><td><b>socket</b> (매시 30분, 배포 때)</td><td>인기 라이브 8개 채팅 소켓 2분, 패킷이 <code>chzzk-socket.ts</code> 가정과 맞는지. 드문 메시지 모양 수집</td><td>쓸모를 보인 감시(v2.28.0 미션, 영상 후원 지원으로 이어짐). 30번 기록 모두 정상. 큰 빈 곳 없음</td></tr>
+<tr><td><b>live</b> 확장 실제 시험 (6시간, 배포 때)</td><td>최신 GitHub 릴리스 zip을 Chromium에 올려 치지직(소켓 끔, 켬), 트위치 방송 하나씩 60초. 수집 창에 채팅이 1줄 이상이면 정상</td><td>
+<span class="bad">놓침 3</span> 판정이 "수집 창 0줄인가"뿐이다. 배지 이미지가 붙은 줄 수(<code>paneWithBadge</code>)를 재지만 판정에 쓰지 않는다. 배지가 안 붙거나 닉네임이 비어도 정상이다. 이 확장의 핵심이 배지다.<br>
+<span class="bad">놓침 4</span> 필터가 "빈 키워드 포함" 하나라 배지 필터 경로를 시험하지 않는다.<br>
+<span class="warn">오탐</span> "위험" 두 번이 모두 확장 문제가 아니었다: zip 다운로드 504, 트위치 방송에 채팅이 없어 "판정 못 함".<br>
+<span class="warn">약함</span> 트위치 표본이 작다(최근 결과 방송 4줄, 수집 2줄).<br>
+<span class="warn">어긋남</span> GitHub 최신 릴리스를 시험하지만 사용자는 스토어 버전을 쓴다. 단계 배포(10, 50, 100%) 중에는 두 버전이 같이 있다.</td></tr>
+<tr><td><b>bundle</b> (live 안에서)</td><td>치지직 번들에서 확장이 기대는 이름(클래스 해시, 메시지 타입 번호)이 사라졌는지, 새 신호가 생겼는지</td><td>11-12에 실제로 문제를 잡은 감시. "처음부터 못 찾음" 4개는 늘 떠 있지만 판정에 안 들어간다. 6시간 주기라 배포 때만 빨리 돈다</td></tr>
+<tr><td><b>render</b> 판정 알림</td><td>정상, 위험, 깨짐 수준이 바뀌면 Discord</td><td><span class="bad">놓침 5</span> <b>수준이 같으면 이유가 바뀌어도 안 울린다.</b> 위험 상태에서 새 위험이 생기거나, 깨짐 상태에서 다른 곳이 또 깨지면 조용하다.</td></tr>
+<tr><td><b>heartbeat</b> (10분)</td><td>작업마다 마지막 성공 시각, harvester와 현황판 서비스</td><td><span class="bad">사각</span> ovm이 꺼지거나 네트워크가 끊기면 아무 알림도 없다. <code>OPS_HEALTHCHECK_URL</code> 코드는 있는데 값을 안 넣었다</td></tr>
+<tr><td><b>badges</b> (10분)</td><td>harvester와 업적 배지 API에서 목록에 없는 배지</td><td>1,592번 돌아 알림 0번. 문제 없음</td></tr>
+<tr><td><b>usage</b> (5분)</td><td>익명 사용 통계를 현황판으로</td><td><span class="warn">안 씀</span> "채팅 수집" 비율이 있는데 건강 판정에 안 쓴다(4장)</td></tr>
+<tr><td><b>info, stats, spike, channels, pull</b></td><td>스토어, GA, 사이트 데이터, 리포 갱신</td><td>확장 건강과는 관계없다. 실패는 heartbeat가 잡는다</td></tr>
+<tr><td>harvester (상시 서비스)</td><td>소켓 29개 연결, 분당 채팅 약 2천</td><td>heartbeat가 서비스 상태를 본다. 연결 수가 떨어지는 건 안 본다(배지 감시 품질에만 영향)</td></tr>
+<tr><td>community-watch (매일 10시, 리포 밖)</td><td>커뮤니티 언급</td><td>사용자 신고가 들어오는 길이지만 하루 1번이다</td></tr>
+</table></div>
+
+<h3>GitHub Actions</h3>
+<p>11-13 커밋 <code>d0a50df</code>로 카나리 워크플로를 지워 남은 것은 <code>publish.yml</code>(릴리스 빌드, 제출), <code>scheduled-publish.yml</code>(매일 4시, Chrome 단계 배포 10 → 50 → 100%), <code>site-rebuild.yml</code>(배지 목록 바뀌면 사이트 빌드, jsDelivr purge) 세 개다. 감시는 없다. 다만 <b>단계 배포는 문제를 막을 수 있는 수단인데 지금은 멈출 근거가 없다</b>(9장 S3).</p>
+
+<h3>알림이 가는 길</h3>
+<p>Discord로 보내는 곳이 7군데이고 곳마다 다시 알림, 회복 알림, 중복 거르기 규칙이 다르다.</p>
+<div class="wrap"><table>
+<tr><th>보내는 곳</th><th>언제</th><th>다시 알림</th><th>회복 알림</th></tr>
+<tr><td><code>deploy.ts</code></td><td>처음 보는 파일 목록</td><td>없음</td><td>해당 없음</td></tr>
+<tr><td><code>scripts/canary/chzzk.ts</code></td><td>선택자 스냅샷과 달라짐 (상황실을 거치지 않고 웹훅으로 직접)</td><td>없음</td><td>없음</td></tr>
+<tr><td><code>ops/watch/canary.ts</code></td><td>선택자 깨진 채 6시간, 소켓 처음 보는 문제, 드문 메시지</td><td>깨짐 6시간마다</td><td>있음</td></tr>
+<tr><td><code>new-badges.ts</code></td><td>목록에 없는 배지</td><td>없음</td><td>해당 없음</td></tr>
+<tr><td><code>render.ts</code></td><td>판정 수준이 바뀜, 번들 변화</td><td>없음</td><td>수준이 바뀔 때만</td></tr>
+<tr><td><code>heartbeat.ts</code></td><td>문제 목록이 바뀜</td><td>12시간마다</td><td>있음</td></tr>
+<tr><td><code>spike-alert.ts</code></td><td>30분 방문 20명 이상</td><td>6시간 쉼</td><td>해당 없음</td></tr>
+</table></div>
+<p>모두 웹훅 하나로 간다. 커뮤니티 언급, 하루 통계, 배포 감지, 깨짐이 한 채널에 섞이고 멘션도 끄고 보낸다(<code>allowed_mentions: { parse: [] }</code>). 깨짐도 하루 통계와 같은 무게로 도착한다.</p>
+
+<h2 id="incident">3. 11-12 사건으로 본 지연</h2>
+<div class="wrap"><table>
+<tr><th>시각 (KST)</th><th>일</th><th>걸린 시간</th></tr>
+<tr><td>11:26</td><td>deploy가 치지직 배포 감지, canary, socket, live를 띄움</td><td>배포 직후</td></tr>
+<tr><td>11:30</td><td>선택자 카나리 끝: <b>정상</b> (예비 갈래가 죽었지만 다른 갈래가 맞음)</td><td></td></tr>
+<tr><td>11:34</td><td>live 안의 번들 검사가 <code>_container_1nwpy_</code>가 사라진 것을 잡음, 판정 위험</td><td class="n">감지 8분</td></tr>
+<tr><td>18:45</td><td>OTA rev 22 커밋, 푸시 (<code>ca91766</code>)</td><td class="n">조치 7시간 11분</td></tr>
+<tr><td>?</td><td>jsDelivr가 새 파일을 내줌 (수동 purge 여부 기록 없음, 안 했으면 최대 12시간)</td><td class="n">도달 ?</td></tr>
+</table></div>
+<ul>
+<li><b>감지는 빨랐다.</b> 다만 선택자 카나리가 아니라 번들 검사가 잡았다. 번들 검사는 "이름이 사라졌다"까지만 표시하고, 그 이름이 어느 선택자의 어느 갈래인지, 사용자에게 영향이 있는지는 결과에 없다.</li>
+<li><b>조치까지 7시간</b>이 대부분이다. 알림을 언제 봤는지, 조사에 얼마나 걸렸는지 기록이 없어 어디서 늦었는지 모른다. 이번엔 구조 갈래가 살아 있어 급하지 않았지만, 두 갈래가 같이 죽었다면 이 7시간 내내 배지 필터가 멈춘다.</li>
+<li><b>도달은 재지 않는다.</b> 푸시 뒤 사용자가 언제 새 선택자를 받았는지 확인하는 감시가 없다.</li>
+</ul>
+
+<h2 id="usage">4. 실제 사용자 데이터로 판정할 수 있는가</h2>
+<p>익명 통계 하루 기록에는 그날 치지직을 썼는지, 트위치를 썼는지, 수집 창에 채팅이 한 번 이상 모였는지(<code>collected</code>)가 있고 버전과 브라우저로 나뉜다. 치지직만 쓴 사용자와 트위치만 쓴 사용자로 나눠 뽑았다.</p>
+<div class="wrap"><table>
+<tr><th>날짜</th><th>Chrome 치지직만</th><th>수집 비율</th><th>Edge 치지직만</th><th>수집 비율</th><th>트위치만 (두 브라우저)</th><th>수집 비율</th></tr>
+<tr><td>11-07</td><td class="n">7,313</td><td class="n">83.8%</td><td class="n">1,180</td><td class="n">81.1%</td><td class="n">62</td><td class="n">59.7%</td></tr>
+<tr><td>11-08</td><td class="n">7,293</td><td class="n">83.2%</td><td class="n">1,195</td><td class="n">83.5%</td><td class="n">50</td><td class="n">56.0%</td></tr>
+<tr><td>11-09</td><td class="n">7,369</td><td class="n">80.9%</td><td class="n">1,147</td><td class="n">80.2%</td><td class="n">43</td><td class="n">58.1%</td></tr>
+<tr><td>11-10</td><td class="n">7,129</td><td class="n">79.3%</td><td class="n">1,122</td><td class="n">80.4%</td><td class="n">50</td><td class="n">52.0%</td></tr>
+<tr><td>11-11</td><td class="n">7,154</td><td class="n">82.2%</td><td class="n">1,110</td><td class="n">83.2%</td><td class="n">48</td><td class="n">58.3%</td></tr>
+<tr><td>11-12</td><td class="n">6,363</td><td class="n">85.5%</td><td class="n">1,027</td><td class="n">84.8%</td><td class="n">36</td><td class="n">38.9%</td></tr>
+</table></div>
+<ul>
+<li><b>치지직은 판정에 쓸 수 있다.</b> 하루 7천 명대, 비율이 79~86% 안에서 움직인다. Chrome과 Edge가 거의 같다. 배지 필터가 통째로 죽으면 이 비율이 크게 떨어진다.</li>
+<li><b>트위치는 쓸 수 없다.</b> 하루 40~60명이라 흔들림이 크다(39~60%). 트위치는 실제 시험이 유일한 감시로 남는다.</li>
+<li><b>하루 늦다.</b> 하루 기록은 다음 날 브라우저를 쓸 때 보내진다. 카나리를 대신하지 못하고, 카나리가 놓친 고장을 잡는 그물이다.</li>
+<li><b>버전끼리 같은 날 비교하면 요일, 방송 사정이 지워진다.</b> 단계 배포 중에는 새 버전(10%)과 옛 버전(90%)이 같은 날 같이 있으므로, 새 버전 비율이 옛 버전보다 낮은지가 가장 깨끗한 신호다(S3).</li>
+</ul>
+
+<h2 id="findings">5. 발견 정리</h2>
+<div class="wrap"><table>
+<tr><th>#</th><th>종류</th><th>발견</th><th>작업</th></tr>
+<tr><td>1</td><td><span class="bad">구조</span></td><td>알림을 보내는 곳이 7군데이고 규칙이 제각각, 선택자 카나리는 상황실을 건너뛴다</td><td>R1</td></tr>
+<tr><td>2</td><td><span class="bad">놓침</span></td><td>판정 알림이 수준 변화에만 울린다</td><td>R1</td></tr>
+<tr><td>3</td><td><span class="bad">놓침</span></td><td>선택자 카나리가 갈래별로 보지 않는다 (11-12 실제로 놓침)</td><td>T1</td></tr>
+<tr><td>4</td><td><span class="bad">놓침</span></td><td>선택자 카나리가 채널 하나만 통과해도 정상</td><td>T1</td></tr>
+<tr><td>5</td><td><span class="bad">놓침</span></td><td>실제 시험이 배지, 닉네임을 판정에 안 쓴다</td><td>T2</td></tr>
+<tr><td>6</td><td><span class="bad">놓침</span></td><td>실제 사용자 수집 비율을 판정에 안 쓴다</td><td>T3</td></tr>
+<tr><td>7</td><td><span class="bad">사각</span></td><td>ovm이 꺼지면 조용하다</td><td>T4</td></tr>
+<tr><td>8</td><td><span class="warn">사각</span></td><td>다시보기 선택자를 안 본다</td><td>T5</td></tr>
+<tr><td>9</td><td><span class="warn">오탐</span></td><td>"확인 못 함"(zip 다운로드 실패, 채팅 없는 방송)이 "위험"이 된다</td><td>R1, T2</td></tr>
+<tr><td>10</td><td><span class="warn">측정</span></td><td>보낸 알림, 확인, 조치 기록이 없다</td><td>R1</td></tr>
+<tr><td>11</td><td><span class="warn">지연</span></td><td>깨짐 알림이 하루 통계, 커뮤니티 글과 같은 채널에 멘션 없이 간다</td><td>R1</td></tr>
+<tr><td>12</td><td><span class="warn">지연</span></td><td>알림을 받은 뒤 조사, 수정을 사람이 처음부터 한다</td><td>S1</td></tr>
+<tr><td>13</td><td><span class="warn">지연</span></td><td>OTA 푸시 뒤 jsDelivr 캐시 최대 12시간, 도달 확인 없음</td><td>S2</td></tr>
+<tr><td>14</td><td><span class="warn">지연</span></td><td>단계 배포를 멈출 근거가 없다</td><td>S3</td></tr>
+<tr><td>15</td><td><span class="warn">어긋남</span></td><td>실제 시험이 스토어 버전이 아니라 최신 릴리스를 시험한다</td><td>T2</td></tr>
+</table></div>
+
+<h2 id="structure">6. 세 부서 구조</h2>
+<div class="wrap"><table>
+<tr><th>부서</th><th>하는 일</th><th>하지 않는 일</th><th>소속</th></tr>
+<tr><td><b>확인부</b></td><td>보고 정해진 양식으로 결과를 남긴다: 정상, 이상, 확인 못 함, 실행 실패. 이상이면 증거와 (있으면) 고칠 후보를 같이 남긴다</td><td>알림을 보내지 않는다. 다시 알릴지, 얼마나 급한지 정하지 않는다</td><td>deploy, canary, vod, socket, live(bundle 포함), usage, heartbeat, badges, spike</td></tr>
+<tr><td><b>상황실</b></td><td>결과를 모아 사건 단위로 관리한다(새로 생김, 이어짐, 회복). 판정(정상, 위험, 깨짐), 긴급과 참고 나누기, 전부 기록, 이슈 열고 닫기</td><td>직접 고치지 않는다. 브라우저를 띄우거나 외부를 확인하지 않는다(파일만 읽는다)</td><td><code>ops/watch/dispatch.ts</code> (새 파일)</td></tr>
+<tr><td><b>조치부</b></td><td>되돌릴 수 있는 일은 자동: 다시 확인, jsDelivr purge, 반영 확인. 되돌리기 어려운 일은 사람: OTA 푸시, 새 배지 추가, 단계 배포 멈춤, 릴리스</td><td>판정하지 않는다. Claude 자동 수정 없음(11장)</td><td>사용자, <code>ops-alert</code> 스킬, purge 워크플로, <code>pull</code>의 반영 확인, <code>scheduled-publish</code></td></tr>
+</table></div>
+<ul>
+<li><b>"확인 못 함"은 "이상"과 다른 칸이다.</b> 방송에 채팅이 없었다, 확장 파일을 못 받았다, 채널을 못 찾았다는 확장 문제가 아니다. 확인부는 있는 그대로 적고, 그게 오래 이어질 때 위험으로 올릴지는 상황실이 정한다. 위장 손님의 헛보고 2번이 이 칸으로 간다.</li>
+<li><b>상황실이 하나라 상황실이 멈추면 모든 알림이 멈춘다.</b> 그래서 상황실 실패만은 <code>run.sh</code>가 웹훅으로 직접 한 줄 보내고(유일한 예외), 인사 담당이 상황실도 감시하고, 바깥 경비(T4)를 둔다.</li>
+<li><b>하루 통계(<code>stats</code>)와 커뮤니티 감시는 알림이 아니라 보고라</b> 상황실을 거치지 않고 참고 채널로 그대로 간다.</li>
+</ul>
+
+<h2 id="hq">7. 작업: 상황실</h2>
+
+<h3>R1. 상황실 하나로 모으기 <span class="tag">중간</span></h3>
+<p><b>왜:</b> 알림 규칙 7가지를 하나로 만들어야 신호를 믿을 수 있다. 기록(1장 지표), 긴급도 나누기, 이슈 열기를 7군데가 아니라 한 곳에 붙인다. 앞서 따로 있던 알림 기록, 이유 단위 알림, 알림 등급 나누기를 이 작업 하나로 합쳤다.</p>
+
+<p><b>1) 결과 양식 (확인부 → 상황실)</b></p>
+<pre><code>interface CheckResult {
+  check: string;          // 'deploy' | 'selector' | 'vod' | 'socket' | 'live' | 'bundle' | 'usage' | 'heartbeat' | 'badges' | 'spike'
+  at: number;
+  status: 'ok' | 'issue' | 'unknown' | 'error';   // 정상, 이상, 확인 못 함, 실행 실패
+  findings: Finding[];    // issue일 때 이상마다 하나
+  note?: string;          // unknown, error일 때 이유 (예: "방송 채팅 없음", "zip 504")
+}
+interface Finding {
+  key: string;            // 같은 문제는 같은 key. 예 'selector:badge:branch1', 'live:치지직 소켓 끔:no-badge', 'badge:&lt;imageUrl&gt;'
+  level: 'broken' | 'risk' | 'info';
+  title: string;          // 알림 첫 줄
+  lines: string[];
+  evidence?: unknown;     // 수정 후보, 배지 JSON 한 줄, 문제 목록 등 (이슈 본문과 S1에 그대로 씀)
+}</code></pre>
+<ul>
+<li>지금 상태 파일(<code>canary-selector.json</code>, <code>live.json</code>, <code>deploy.json</code> 등)은 현황판이 읽으므로 그대로 두고, 각 작업이 끝에 <code>watch/checks/&lt;check&gt;.json</code> 하나를 더 쓴다. 바뀌는 양이 작다.</li>
+<li>확인부 작업에서 <code>sendDiscord</code> 호출을 모두 뺀다: <code>deploy.ts</code>, <code>canary.ts</code>, <code>new-badges.ts</code>, <code>heartbeat.ts</code>, <code>spike-alert.ts</code>, <code>render.ts</code>. 선택자 카나리 스크립트의 직접 알림은 <code>ops/watch/canary.ts</code> selector SPEC env에 <code>DISCORD_CANARY_WEBHOOK: ''</code>를 넣어 끊는다(소켓은 이미 이렇게 한다). <code>chzzk.ts</code>의 <code>canary-alert.json</code>은 findings의 재료로 쓴다.</li>
+</ul>
+
+<p><b>2) 상황실 <code>ops/watch/dispatch.ts</code> (새 파일)</b></p>
+<ul>
+<li><code>render.ts</code>의 <code>judge</code>와 알림 부분을 옮긴다. <code>render.ts</code>는 현황판 HTML만 그린다. dispatch가 끝에 render를 부른다.</li>
+<li><code>run.sh</code>: <code>pull</code>을 뺀 모든 작업 끝에 dispatch를 부른다(JSON 몇 개 읽기라 1분마다 돌아도 가볍다). 지금 작업마다 붙은 <code>&amp;&amp; render.ts</code>는 dispatch로 바꾼다.</li>
+<li><b>사건 규칙</b> (key 단위, 상태 <code>watch/incidents.json</code>):
+<ul>
+<li>처음 보는 key: 알림 (open).</li>
+<li>broken key가 이어지면 6시간마다 다시 알림 (recur). risk와 info는 다시 알리지 않는다.</li>
+<li>key가 사라지면 회복 알림 (resolved). info는 회복을 알리지 않는다.</li>
+<li>같은 check가 <code>unknown</code>이나 <code>error</code>를 3번 연속 내거나, 마지막 <code>ok</code>가 정해진 시간보다 오래되면 risk 사건 <code>check:&lt;이름&gt;:blind</code>를 연다.</li>
+<li>등급이 아니라 key 단위라 위험 중 새 위험도 울린다.</li>
+</ul></li>
+<li><b>판정:</b> 열린 사건에 broken이 있으면 깨짐, risk가 있으면 위험, 아니면 정상. 현황판 띠는 지금과 같다.</li>
+<li><b>기록:</b> 알림마다 <code>~/.local/state/badge-collector/alerts.jsonl</code> 한 줄(<code>at</code>, <code>check</code>, <code>key</code>, <code>state</code>, <code>level</code>, <code>title</code>, <code>lines</code>, <code>evidence</code>). <code>DRY_RUN</code>이면 쓰지 않는다.</li>
+<li><b>긴급과 참고:</b>
+<ul>
+<li>긴급 (<code>DISCORD_URGENT_WEBHOOK</code>): broken 전부, risk 새로 생김, 상황실 실패. broken에만 사용자 멘션(<code>allowed_mentions</code>에 그 사용자만). 긴급 채널은 휴대폰 알림을 켜 둔다.</li>
+<li>참고 (지금 웹훅): info 전부(배포 감지, 번들 변화, 드문 메시지, 새 배지, 급증), 회복.</li>
+<li>긴급 웹훅이 없으면 지금 웹훅으로 보낸다.</li>
+</ul></li>
+<li><b>이슈:</b> S1이 이 자리에 붙는다.</li>
+<li><b>현황판 운영 탭:</b> 열린 사건, 최근 알림 30개, 종류별 7일 건수.</li>
+<li><b>상황실 실패:</b> <code>run.sh</code>가 dispatch 종료 코드가 0이 아니면 지금 웹훅으로 "상황실 실패" 한 줄을 직접 보낸다. 인사 담당의 <code>JOBS</code>에 dispatch를 넣는다.</li>
+</ul>
+<p><b>시험:</b> <code>ops/watch/dispatch.test.ts</code>에 사건 규칙(새로 생김, 깨짐 6시간 재알림, 회복, 위험 중 새 위험, unknown 3번 연속, 긴급과 참고 나누기).</p>
+
+<h2 id="trust">8. 작업: 확인부</h2>
+
+<h3>T1. 선택자 카나리를 갈래별, 채널별로 <span class="tag">중간</span></h3>
+<p><b>왜:</b> 11-12에 실제로 놓쳤다. 다음 배포에 남은 갈래까지 죽으면 그때 처음 깨짐이 뜨고, 이미 사용자는 깨져 있다.</p>
+<ul>
+<li><code>scripts/canary/visit-channel.ts</code>: 선택자를 최상위 쉼표로 나눠 갈래마다 매칭 수를 따로 센다(괄호 안 쉼표는 나누지 않는다). 결과에 <code>branches: { selector, count }[]</code>를 더한다.</li>
+<li><code>scripts/canary/diff.ts</code>: 전체는 맞는데 기준에서 맞던 갈래가 0이 되면 <code>degraded</code>로 낸다. 이 갈래에도 해시 교체 수정 후보를 찾는다(11-12의 <code>1nwpy → 14814</code>가 정확히 이 경우).</li>
+<li><code>chzzk.ts</code> <code>mergeToSnapshot</code>: 대표 채널 하나를 고르는 대신 필수 선택자마다 통과한 채널 비율을 남긴다.</li>
+<li>findings: 모든 채널 실패면 broken, 일부 채널만 실패(예: 30% 이상)면 risk, 갈래 하나가 죽으면 risk. key는 <code>selector:&lt;이름&gt;</code>, <code>selector:&lt;이름&gt;:branch&lt;n&gt;</code>.</li>
+<li>시험: <code>scripts/canary/diff.test.ts</code>에 11-12 경우(구조 갈래는 맞고 예비 갈래 0)를 넣는다.</li>
+</ul>
+
+<h3>T2. 확장 실제 시험의 보고를 바로잡기 <span class="tag">중간</span></h3>
+<p><b>왜:</b> 가장 강한 신호인데 오탐 두 번, 배지가 빠지는 고장은 못 잡는다.</p>
+<ul>
+<li><b>확인 못 함을 따로</b> (<code>ops/watch/live-check.ts</code>):
+<ul>
+<li>zip 다운로드는 3번까지 다시 받는다. 같은 버전 zip이 캐시에 있으면 그걸 쓴다. 그래도 실패하면 <code>unknown</code>(note "zip 받기 실패")로 남긴다.</li>
+<li>방송 쪽 채팅이 10줄 미만이면 다음 순위 방송으로 한 번 더 한다(치지직 인기 목록 5위, 7위, 트위치 목록 5위, 7위). 그래도 모자라면 그 경로는 <code>unknown</code>. 오래 이어질 때 위험으로 올리는 일은 상황실 규칙(R1)이 한다.</li>
+</ul></li>
+<li><b>놓침 제거</b>:
+<ul>
+<li>수집 창 줄 수가 방송 줄 수의 30% 미만이면 risk. 치지직에서 방송 쪽에 배지가 있는 채팅이 있는데 수집 창의 배지 붙은 줄이 0이면 broken. 닉네임이 빈 줄이 절반을 넘으면 broken. 방송 쪽 배지 줄 수를 같이 센다.</li>
+<li>필터를 하나 더 넣는다: 방송에서 실제로 보인 배지 하나로 배지 필터를 만들어, 그 배지 단 채팅이 수집 창에 오는지 본다. 사용자가 가장 많이 쓰는 경로다.</li>
+</ul></li>
+<li><b>버전 맞추기</b>: 스토어 공개 페이지 버전(<code>info.ts</code>가 이미 받는다)과 최신 릴리스가 다르면 실행마다 번갈아 시험하고 결과에 버전을 적는다. 단계 배포 중 두 버전 모두 사용자에게 있기 때문이다.</li>
+</ul>
+
+<h3>T3. 실제 사용자 수집 비율 확인 <span class="tag">중간</span></h3>
+<p><b>왜:</b> 카나리는 방송 몇 개를 보지만 이건 하루 8천 명의 채널, 필터, 브라우저를 본다. 카나리가 놓친 고장을 잡는 그물이다.</p>
+<ul>
+<li><code>ops/usage-report.ts</code>에 쿼리 하나: 날짜, 브라우저, 버전별로 치지직만 쓴 사용자 수와 그중 수집한 수. 4장 표를 만든 쿼리(<code>IF(double4&gt;0 AND double3=0, ...)</code>, 실수 리터럴 <code>1.0</code>을 써야 한다)를 그대로 쓴다.</li>
+<li>findings (치지직만, 표본 500명 이상인 칸만):
+<ul>
+<li>어제 비율이 지난 7일 중앙값보다 8%p 넘게 낮으면 risk, 20%p 넘게 낮으면 broken. 기준 숫자는 2주 기록을 더 보고 정한다(지금 7일 범위가 79~86%).</li>
+<li>같은 날 버전끼리: 새 버전 비율이 옛 버전보다 5%p 넘게 낮으면 risk (S3과 이어짐).</li>
+</ul></li>
+<li>하루 한 번이면 충분하다(<code>usage</code> 작업 안에서 날짜가 바뀐 뒤 정오에). 결과를 <code>watch/checks/usage.json</code>에 쓴다.</li>
+<li>트위치는 표본이 모자라 판정하지 않는다. 현황판에 숫자만.</li>
+</ul>
+
+<h3>T4. ovm 바깥에서 생존 확인 <span class="tag">작음, 사용자 몫</span></h3>
+<p>코드는 있다(<code>heartbeat.ts</code>가 <code>OPS_HEALTHCHECK_URL</code>로 10분마다 신호). healthchecks.io 무료 체크 하나를 만들고 기한 20분, 알림은 Discord 긴급 채널과 이메일로. URL을 ovm <code>~/.config/badge-collector/ops.env</code>에 넣으면 끝난다. R1 뒤에는 상황실이 하나라 이 확인이 더 중요해진다.</p>
+
+<h3>T5. 다시보기 선택자 카나리 <span class="tag">작음</span></h3>
+<p><code>ops/watch/canary.ts</code>에 <code>vod</code> 종류를 더해 <code>CANARY_MODE=vod</code>로 돌린다. 브라우저 작업이라 잠금을 같이 쓰고, crontab에서 6시간마다 canary와 live 사이(예: 1, 7, 13, 19시 40분). <code>deploy.ts</code>의 <code>FOLLOW_UP</code>과 <code>heartbeat.ts</code>의 <code>JOBS</code>에도 넣는다. 스냅샷은 <code>canary/snapshots/chzzk-vod.json</code>(스크립트가 이미 이 이름을 쓴다).</p>
+
+<h2 id="speed">9. 작업: 조치부</h2>
+
+<h3>S1. 알림 한 번으로 고칠 수 있게 <span class="tag">중간</span></h3>
+<p><b>왜:</b> 조치 7시간의 상당 부분은 알림을 받은 뒤 다시 조사하는 시간이다. 증거와 고칠 내용이 알림 안에 있으면 확인, 적용, 푸시만 남는다.</p>
+<ul>
+<li><b>알림 내용</b> (확인부의 <code>evidence</code>를 상황실이 그대로 싣는다): 무엇이 깨졌나(선택자 이름, 갈래), 영향(어느 기능, 실제 시험과 사용자 비율 결과), 검증된 수정 후보, 절차 문서. 선택자 깨짐과 갈래 죽음(T1)은 rev를 올린 <code>bundled-selectors.prod.json</code>, <code>bundled-selectors.json</code> 바뀔 줄을 그대로 붙인다.</li>
+<li><b>GitHub 이슈</b> (상황실이 연다): 긴급 사건 중 고칠 대상(selector, vod, socket broken, live broken, usage 하락)만. 같은 key가 열려 있으면 댓글, 회복이면 댓글 달고 닫는다. 본문 끝에 <code>&lt;!-- ops-alert key: ... --&gt;</code>를 남겨 <code>incidents.json</code>이 사라져도 찾을 수 있게 한다. 라벨 <code>ops-alert</code>, <code>ops:&lt;check&gt;</code>. 토큰은 ovm <code>ops.env</code>의 <code>GITHUB_ISSUES_TOKEN</code>(Issues 쓰기만). 없으면 이슈 단계만 건너뛴다. 예전 <code>git show d0a50df^:scripts/canary/open-alert-issue.mjs</code>를 참고한다.</li>
+<li><b>처리 스킬</b> <code>.claude/skills/ops-alert/SKILL.md</code>(로컬 전용, <code>.claude/skills/ga/</code>와 같은 자리): 열린 <code>ops-alert</code> 이슈를 읽고, 선택자는 <code>docs/ota-selectors.md</code> 절차로 후보를 넣고 시험을 돌린 뒤 diff를 보여 주고 <b>사용자 확인을 받고</b> 푸시한다(푸시가 곧 OTA 배포). 새 배지는 <code>docs/chzzk-badges.md</code>. 후보가 없거나 여럿이면 고치지 않고 조사 결과를 댓글로.</li>
+<li>이슈 열림, 닫힘 시각이 1장의 조치 시간이 된다. "확장 문제 아님"으로 닫은 이슈가 오탐률이 된다.</li>
+</ul>
+
+<h3>S2. OTA 도달을 15분 안으로, 그리고 확인 <span class="tag">작음</span></h3>
+<p><b>왜:</b> 고쳐 푸시해도 jsDelivr가 최대 12시간 옛 파일을 낸다. 지금은 손으로 purge하고, 확인하는 감시가 없다.</p>
+<ul>
+<li><code>.github/workflows/site-rebuild.yml</code>처럼 <code>src/platform/bundled-selectors*.json</code>이 바뀌면 jsDelivr purge하는 워크플로(또는 같은 파일에 job 추가). 워크플로 파일은 SSH로 푸시한다(규칙 참고).</li>
+<li>ovm <code>pull</code> 작업: 이번 pull에서 선택자 파일이 바뀌었으면 jsDelivr가 그 rev를 낼 때까지 1분 간격으로 확인하고(최대 30분), 그 뒤 canary와 live를 띄운다. live는 확장이 jsDelivr에서 OTA를 받으므로 사용자와 같은 길로 고친 결과를 확인한다.</li>
+<li>결과는 확인부 양식으로 <code>watch/checks/ota.json</code>에 남긴다: 도달하면 info "rev 22 도달", 30분 지나도 안 보이면 risk. 실제 시험 결과는 live 사건의 회복으로 이어진다.</li>
+</ul>
+
+<h3>S3. 단계 배포를 멈출 근거 <span class="tag">중간</span></h3>
+<p><b>왜:</b> <code>scheduled-publish.yml</code>이 매일 10 → 50 → 100%로 올린다. 새 버전 고장은 10%일 때 막으면 사용자 90%가 피한다. 지금은 멈출 근거가 없다.</p>
+<ul>
+<li>1단계: T3의 버전 비교가 risk면 상황실이 긴급 알림에 "단계 배포 멈추기: <code>gh workflow disable scheduled-publish.yml</code>"을 같이 보낸다. 사람이 멈춘다.</li>
+<li>2단계(1단계로 몇 번 써 본 뒤): 워크플로가 단계를 올리기 전에 ovm 판정을 읽는다. 방법은 둘 중 하나. (a) 워크플로가 Cloudflare 읽기 토큰으로 직접 쿼리, (b) ovm이 판정을 GitHub 릴리스의 표시 파일이나 커밋 상태로 올림. 데이터가 하루 늦어 10% 단계를 하루 더 두는 것도 같이 정한다.</li>
+<li>T2의 버전 맞추기로 실제 시험도 새 버전을 보므로 같은 날 신호가 하나 더 생긴다.</li>
+</ul>
+
+<h2 id="order">10. 순서와 완료 기준</h2>
+<p>상황실을 먼저 세운다. 그래야 뒤의 확인부 개선이 모두 같은 규칙으로 알림되고 기록된다. 각 단계는 따로 푸시해도 된다.</p>
+<div class="wrap"><table>
+<tr><th>단계</th><th>작업</th><th>완료 기준</th></tr>
+<tr><td>1</td><td>R1 상황실, T4 바깥 생존</td><td><code>grep sendDiscord ops scripts/canary</code>가 <code>common.ts</code>, <code>dispatch.ts</code>, <code>stats-report.ts</code>, <code>run.sh</code> 예외에만 나온다. ovm <code>alerts.jsonl</code>에 줄이 쌓인다. <code>dispatch.test.ts</code> 통과. 위험 상태에서 다른 위험을 만들어(<code>--dry-run</code>, 상태 파일 조작) 알림이 나온다. 긴급 채널 시험 알림이 휴대폰에 온다. healthchecks.io가 신호를 받는다</td></tr>
+<tr><td>2</td><td>T1 선택자 갈래, 채널별</td><td>11-12 경우를 단위 시험으로 재현해 risk와 수정 후보가 나온다. ovm에서 한 번 돌려 지금 선택자가 모든 갈래 정상으로 나온다</td></tr>
+<tr><td>3</td><td>T2 실제 시험</td><td>ovm에서 세 경로 모두 배지 줄 수, 배지 필터 결과가 현황판에 나온다. zip URL을 일부러 틀려 <code>unknown</code>으로 남고 바로 위험이 되지 않는다</td></tr>
+<tr><td>4</td><td>S2 OTA 도달</td><td>rev를 그대로 둔 채 purge 워크플로를 수동 실행해 통과, ovm이 도달 확인 결과를 남긴다</td></tr>
+<tr><td>5</td><td>T3 사용자 비율, S3 1단계</td><td>지난 14일 데이터로 돌려 findings가 0건(정상 기간이므로). 기준을 일부러 낮춰 risk가 나오는지 확인</td></tr>
+<tr><td>6</td><td>T5 다시보기, S1 이슈와 스킬</td><td>vod 카나리가 정상으로 돈다. 시험 이슈 하나를 열고 닫는다. 스킬로 가짜 선택자 이슈를 커밋 직전까지 처리한다</td></tr>
+<tr><td>7</td><td>2주 뒤 점검</td><td><code>alerts.jsonl</code>로 1장 지표를 처음 계산해 이 문서 아래에 덧붙인다. S3 2단계 여부를 정한다</td></tr>
+</table></div>
+<p>모든 단계: <code>npx tsc -p ops</code>, <code>npx vitest run</code> 통과, <code>docs/monitoring.md</code> 작업 표와 변경 이력에 한 줄. 1단계 뒤에는 <code>docs/monitoring.md</code> "구성"과 "판정"을 세 부서 구조로 고친다.</p>
+
+<h2 id="not">11. 하지 않는 것</h2>
+<ul>
+<li><b>Claude를 사람 없이 돌려 고치기</b>(ovm에서 <code>claude -p</code>, 클라우드 루틴, GitHub Actions용 Claude). 구독 계정 약관 문제로 사용자가 뺐다. 고치는 일은 사용자가 연 세션에서 한다.</li>
+<li><b>OTA 자동 푸시.</b> master 푸시가 곧 사용자 배포다. 예전 무단 OTA 배포 사고가 있었다. 사람 확인은 남긴다.</li>
+<li><b>확장에 새 진단 신호 넣기</b>(예: 수집 창이 몇 분째 비면 즉시 보내는 통계). 하루 늦은 문제를 풀지만 확장 릴리스, 처리방침 변경이 필요하고 "있는 듯 없는 듯" 원칙과 부딪힌다. T3을 써 본 뒤 다시 본다.</li>
+<li><b>트위치 사용자 비율 판정.</b> 하루 40~60명으로는 안 된다.</li>
+<li><b>커뮤니티 감시를 상황실로 옮기기.</b> 리포 밖이고 보고라 그대로 둔다.</li>
+<li><b>급증, 새 배지 감시 자체 손보기.</b> 설계대로 돈다. 알림 길만 상황실로 옮긴다.</li>
+</ul>
+
+<h2 id="need">12. 사용자에게 받을 것</h2>
+<ul>
+<li>healthchecks.io 체크 URL을 ovm <code>~/.config/badge-collector/ops.env</code>의 <code>OPS_HEALTHCHECK_URL</code>로 (T4).</li>
+<li>긴급용 Discord 채널과 웹훅, 멘션할 사용자 ID (R1). <code>community-watch.env</code>에 <code>DISCORD_URGENT_WEBHOOK</code>으로.</li>
+<li>GitHub 세분화 토큰(리포 하나, Issues 읽기 쓰기만, 만료 1년)을 ovm <code>ops.env</code>의 <code>GITHUB_ISSUES_TOKEN</code>으로 (S1). 토큰 값을 대화에 붙여 넣지 않는다.</li>
+<li>T3 기준 숫자(8%p, 20%p)와 S3에서 10% 단계를 하루 더 둘지 결정.</li>
+</ul>
+
+<h2 id="rules">13. 지켜야 할 규칙</h2>
+<ul>
+<li><b>답변은 한국어.</b> 코드 주석과 커밋 메시지도 한국어(기존 스타일).</li>
+<li><b>엠대시, 가운뎃점 문자 금지.</b> 답변, 커밋, 주석, 알림 문구, 문서 전부.</li>
+<li><b>소프트웨어 의인화 금지.</b> 코드, 주석, 알림 문구, <code>docs/monitoring.md</code>에서 "알려 준다", "판단한다" 대신 "표시한다", "판정한다". 이 문서의 직원 명부는 사용자가 요청한 비유라 예외다. 부서 이름(확인부, 상황실, 조치부)도 코드와 운영 문서에는 쓰지 않고 <code>check</code>, <code>dispatch</code>로 쓴다.</li>
+<li><b>파일을 지정해서 스테이징.</b> <code>git add -A</code>, <code>git add .</code> 금지. 여러 세션이 작업 트리를 같이 쓴다.</li>
+<li><b>master에 바로 커밋, 푸시.</b> 브랜치, worktree, PR 없음. ovm은 10분마다 master를 받으므로 푸시가 곧 ovm 배포다.</li>
+<li><b>ops를 고치면</b> <code>docs/monitoring.md</code> 변경 이력에 한 줄. crontab, systemd를 고치면 ovm에서 직접 설치(<code>docs/monitoring.md</code> "고치는 법").</li>
+<li><b>ovm에서 시험:</b> <code>ssh ovm 'cd ~/tbc &amp;&amp; git pull -q &amp;&amp; npx tsx ops/watch/&lt;파일&gt;.ts --dry-run'</code>. 브라우저 작업(canary, live, vod)은 잠금을 같이 쓴다. 메모리 7GB.</li>
+<li><b>워크플로 파일은 SSH로 푸시</b>(gh 토큰에 workflow 권한 없음). S2에 해당.</li>
+<li><b>선택자 JSON(<code>bundled-selectors*.json</code>)은 시험으로라도 rev를 올려 푸시하지 않는다.</b> 곧바로 사용자에게 나간다.</li>
+<li><b>확장 코드를 고쳐 릴리스하게 되면</b> <code>CLAUDE.md</code>의 "릴리스 전 실제 업데이트 시험"을 거친다. 이 계획의 작업은 모두 ops, 카나리 스크립트, 워크플로만 바꾼다.</li>
+<li><b>보고서는 리포 안 파일로.</b> Claude 아티팩트, <code>/tmp</code> 금지.</li>
+</ul>
+
+<h2 id="files">14. 참고 파일</h2>
+<div class="wrap"><table>
+<tr><th>파일</th><th>왜</th></tr>
+<tr><td><code>docs/monitoring.md</code></td><td>ovm 감시 원본 설명, 작업 표, 확인법, 변경 이력</td></tr>
+<tr><td><code>docs/ota-selectors.md</code></td><td>선택자 OTA 절차, purge 주소</td></tr>
+<tr><td><code>ops/common.ts</code></td><td><code>sendDiscord</code>, <code>DRY_RUN</code>, env (R1)</td></tr>
+<tr><td><code>ops/watch/render.ts</code></td><td><code>judge</code>와 판정 알림. R1에서 판정, 알림을 <code>dispatch.ts</code>로 옮기고 현황판만 남긴다</td></tr>
+<tr><td><code>ops/run.sh</code>, <code>ops/crontab</code></td><td>작업 진입점, 잠금, dispatch 호출, 상황실 실패 예외 (R1, T5)</td></tr>
+<tr><td><code>ops/watch/canary.ts</code></td><td>카나리 실행, 상태, 지금의 알림 규칙 (R1, T1, T5)</td></tr>
+<tr><td><code>scripts/canary/chzzk.ts</code>, <code>visit-channel.ts</code>, <code>diff.ts</code>, <code>diff.test.ts</code></td><td>선택자 카나리 본체, 대표 채널 고르기, 수정 후보 (T1)</td></tr>
+<tr><td><code>ops/watch/live-check.ts</code>, <code>bundle.ts</code></td><td>확장 실제 시험, 번들 검사 (T2)</td></tr>
+<tr><td><code>ops/usage-report.ts</code>, <code>src/telemetry/flags.ts</code></td><td>익명 통계 쿼리와 항목 순서(double3 twitch, double4 chzzk, double5 collected) (T3)</td></tr>
+<tr><td><code>ops/watch/heartbeat.ts</code></td><td>작업 생존, 외부 신호 (R1, T4)</td></tr>
+<tr><td><code>ops/watch/deploy.ts</code>, <code>new-badges.ts</code>, <code>ops/spike-alert.ts</code></td><td>알림 길만 상황실로 옮길 확인 작업 (R1)</td></tr>
+<tr><td><code>.github/workflows/site-rebuild.yml</code>, <code>scheduled-publish.yml</code></td><td>purge 예시 (S2), 단계 배포 (S3)</td></tr>
+<tr><td><code>src/platform/bundled-selectors.prod.json</code>, <code>ota-fetch.ts</code></td><td>사용자가 받는 선택자, jsDelivr 주소</td></tr>
+<tr><td><code>git show d0a50df^:scripts/canary/open-alert-issue.mjs</code></td><td>예전 이슈 열기 스크립트 (S1)</td></tr>
+</table></div>
+
+</main>
+</body>
+</html>

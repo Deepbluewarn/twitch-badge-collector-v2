@@ -6,7 +6,8 @@
  *
  * env:
  *  - ~/.config/badge-collector/stats-report.env  GOOGLE_APPLICATION_CREDENTIALS (없으면 ~/.config/analytics-mcp/adc.json)
- *  - ~/.config/badge-collector/community-watch.env  DISCORD_COMMUNITY_WEBHOOK 을 같이 쓴다. 없으면 콘솔 출력만
+ *  - ~/.config/badge-collector/community-watch.env  DISCORD_COMMUNITY_WEBHOOK 을 같이 쓴다. 없으면 콘솔 출력만.
+ *    DISCORD_URGENT_WEBHOOK(긴급 알림, 없으면 위 웹훅), DISCORD_MENTION_USER_ID(깨짐 때 멘션할 사용자)
  *  - ~/.config/badge-collector/cloudflare.env  CF_ACCOUNT_ID, CF_ANALYTICS_TOKEN (usage-report.ts)
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
@@ -29,6 +30,7 @@ const STATE_FILE = join(homedir(), '.local/state/badge-collector/stats-state.jso
 
 export interface State {
     lastSpikeAt?: number;
+    lastSpikeTitle?: string;
 }
 
 export function loadState(): State {
@@ -135,8 +137,14 @@ export function dateHourToKst(dateHour: string, tz: string): string {
     return dateHourToKstTime(dateHour, tz).day;
 }
 
+/** 하루 리포트 같은 보고용. 감시 알림은 dispatch.ts(상황실)만 보낸다 */
 export async function sendDiscord(lines: string[]): Promise<void> {
-    const url = process.env.DISCORD_COMMUNITY_WEBHOOK;
+    await postDiscord(process.env.DISCORD_COMMUNITY_WEBHOOK, lines);
+}
+
+/** mentionUserId가 있으면 첫 메시지 앞에 그 사용자를 멘션한다 (휴대폰 알림) */
+export async function postDiscord(url: string | undefined, lines: string[], mentionUserId?: string): Promise<void> {
+    if (mentionUserId) lines = [`<@${mentionUserId}>`, ...lines];
     if (DRY_RUN || !url) {
         console.log(lines.join('\n'));
         return;
@@ -152,7 +160,7 @@ export async function sendDiscord(lines: string[]): Promise<void> {
         const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content, allowed_mentions: { parse: [] } }),
+            body: JSON.stringify({ content, allowed_mentions: mentionUserId ? { users: [mentionUserId] } : { parse: [] } }),
         });
         if (!res.ok) throw new Error(`discord: ${res.status} ${await res.text()}`);
     }

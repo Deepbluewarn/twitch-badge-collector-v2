@@ -1,29 +1,24 @@
 /**
- * 검사 결과(live, bundle, info)를 모아 판정을 내리고 현황판 HTML을 쓴다. 검사가 끝날 때마다 부른다.
+ * 검사 결과(live, bundle, info 등)와 상황실 장부(watch/incidents.json)로 현황판 HTML을 쓴다. 상황실이 돈 뒤에 부른다.
  *
- * 판정
- *  - 깨짐: 실제 확장 시험에서 방송엔 채팅이 있는데 모아보기 창이 비었다, 또는 canary가 깨짐을 찾았다
- *  - 위험: 확장이 기대던 이름이 번들에서 사라졌다, 시험 결과가 오래됐다, 감시 작업이 멈췄다
- *  - 정상: 그 밖
- * 판정이 바뀌거나 번들에 새 신호가 생기면 Discord로 알린다.
+ * 판정은 상황실(dispatch.ts) 장부의 열린 사건으로 정한다. 깨짐 사건이 있으면 깨짐, 위험 사건이 있으면 위험.
+ * 알림은 보내지 않는다.
  *
  * 출력: ops/public/index.html (serve.ts가 LAN에 연다)
  */
 import { mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { DRY_RUN, sendDiscord } from '../common.ts';
-import type { Dependency, SignalDiff } from './bundle.ts';
+import { diffLines, type Dependency } from './bundle.ts';
+import type { Ledger } from './incidents.ts';
 import type { BundleResult, LiveResult } from './live-check.ts';
 import type { CanaryResult } from './canary.ts';
 import type { DeployState } from './deploy.ts';
 import type { Heartbeat } from './heartbeat.ts';
 import type { Ratio, UsageSummary } from '../usage-report.ts';
-import { REPO, readJson, writeJson } from './state.ts';
+import { REPO, readJson } from './state.ts';
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '../public/index.html');
-const DASHBOARD_URL = 'http://192.168.1.162:3400';
-const LIVE_STALE_MS = 13 * 3_600_000;
 
 type Level = 'ok' | 'risk' | 'broken';
 const LEVEL_LABEL: Record<Level, string> = { ok: '정상', risk: '위험', broken: '깨짐' };
@@ -76,38 +71,17 @@ interface Extra {
 }
 const CANARY_LABEL = { selector: '선택자 카나리', socket: '소켓 카나리' } as const;
 
-function judge(live: LiveResult | undefined, bundle: BundleResult | undefined, info: Info | undefined, extra: Extra): Reason[] {
-    const reasons: Reason[] = [];
-    for (const c of extra.canaries) {
-        if (c.status === 'broken') reasons.push({ level: 'broken', text: `${CANARY_LABEL[c.kind]}: ${c.problems[0] ?? '깨짐'}` });
-        else if (c.status === 'error') reasons.push({ level: 'risk', text: `${CANARY_LABEL[c.kind]} 실행 실패` });
-    }
-    for (const j of extra.heartbeat?.jobs.filter((x) => x.stale) ?? []) reasons.push({ level: 'risk', text: `감시 멈춤: ${j.label}` });
-    for (const s of extra.heartbeat?.services.filter((x) => x.state !== 'active') ?? []) reasons.push({ level: 'risk', text: `서비스 ${s.name}: ${s.state}` });
-    if (extra.deploy?.error) reasons.push({ level: 'risk', text: `배포 감지 실패: ${extra.deploy.error}` });
-    if (!live) reasons.push({ level: 'risk', text: '확장 시험 결과 없음' });
-    else {
-        if (Date.now() - live.at > LIVE_STALE_MS) reasons.push({ level: 'risk', text: `확장 시험이 ${ago(live.at)} 결과` });
-        if (live.error) reasons.push({ level: 'risk', text: `확장 시험 실패: ${live.error}` });
-        for (const r of live.runs) {
-            if (r.verdict === 'broken') reasons.push({ level: 'broken', text: `${r.name}: 방송 채팅 ${r.host}줄, 모아보기 0줄` });
-            else if (r.verdict === 'unknown') reasons.push({ level: 'risk', text: `${r.name}: 판정 못 함${r.error ? ` (${r.error})` : ' (방송 채팅 없음)'}` });
-        }
-    }
-    const gone = bundle?.dependencies.filter((d) => d.status === 'gone') ?? [];
-    if (gone.length) reasons.push({ level: 'risk', text: `번들에서 사라진 이름 ${gone.length}개: ${gone.map((d) => d.name).join(', ')}` });
-    return reasons;
+/** 상황실 장부의 열린 깨짐, 위험 사건. 깨짐 먼저 */
+function reasonsOf(ledger: Ledger | undefined): Reason[] {
+    if (!ledger) return [{ level: 'risk', text: '상황실 장부가 없음 (dispatch가 아직 안 돌았다)' }];
+    return Object.values(ledger.open)
+        .filter((i) => i.level !== 'info')
+        .sort((a, b) => (a.level === b.level ? a.firstSeen - b.firstSeen : a.level === 'broken' ? -1 : 1))
+        .map((i) => ({ level: i.level as Exclude<Level, 'ok'>, text: i.title }));
 }
 
 function levelOf(reasons: Reason[]): Level {
     return reasons.some((r) => r.level === 'broken') ? 'broken' : reasons.length ? 'risk' : 'ok';
-}
-
-function diffLines(diff: SignalDiff): string[] {
-    const lines: string[] = [];
-    for (const [kind, items] of Object.entries(diff.added)) lines.push(`+ ${kind}: ${items.join(', ')}`);
-    for (const [kind, items] of Object.entries(diff.removed)) lines.push(`- ${kind}: ${items.join(', ')}`);
-    return lines;
 }
 
 function riskPrompt(reasons: Reason[], live: LiveResult | undefined, bundle: BundleResult | undefined): string {
@@ -152,7 +126,7 @@ const statusCell = (level: Level, text = LEVEL_LABEL[level]) => `<span class="st
 
 /** 사람이 읽을 오류. 자주 나는 것은 원인과 할 일로 바꾼다 */
 function humanError(e: string): string {
-    if (/launchPersistentContext|browser has been closed/.test(e)) return '브라우저를 띄우지 못함. ovm에 Chromium 시스템 라이브러리가 없다 (docs/monitoring.md 남은 일)';
+    if (/launchPersistentContext|browser has been closed/.test(e)) return '브라우저를 띄우지 못함. ovm에 Chromium 시스템 라이브러리가 있는지 확인';
     return e;
 }
 
@@ -576,29 +550,12 @@ async function main(): Promise<void> {
         heartbeat: readJson<Heartbeat>('heartbeat'),
         usage: readJson<UsageSummary | Err>('usage'),
     };
-    const reasons = judge(live, bundle, info, extra);
-    const level = levelOf(reasons);
+    const reasons = reasonsOf(readJson<Ledger>('incidents'));
 
     mkdirSync(dirname(OUT), { recursive: true });
     writeFileSync(OUT, render(live, bundle, info, extra, reasons));
 
-    // 알림: 판정이 바뀌었을 때, 번들에 새 변화가 기록됐을 때
-    const prev = readJson<{ level: Level; bundleChangeAt?: number }>('verdict');
-    const lines: string[] = [];
-    if (prev && prev.level !== level) {
-        lines.push(`**확장 현황 ${LEVEL_LABEL[prev.level]} → ${LEVEL_LABEL[level]}**`);
-        for (const r of reasons) lines.push(`- ${r.text}`);
-    }
-    const latest = bundle?.history[0];
-    if (latest && prev && latest.at !== prev.bundleChangeAt) {
-        lines.push('**치지직 번들 변화**', ...diffLines(latest.diff).map((l) => (l.length > 300 ? `${l.slice(0, 300)}…` : l)));
-    }
-    if (lines.length) {
-        lines.push(DASHBOARD_URL);
-        await sendDiscord(lines);
-    }
-    if (!DRY_RUN) writeJson('verdict', { level, bundleChangeAt: latest?.at ?? prev?.bundleChangeAt });
-    console.log(`[render] ${new Date().toISOString()} ${level} ${reasons.length}`);
+    console.log(`[render] ${new Date().toISOString()} ${levelOf(reasons)} ${reasons.length}`);
 }
 
 main().catch((err) => {

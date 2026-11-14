@@ -4,12 +4,12 @@
  *   npx tsx ops/watch/canary.ts selector   선택자 카나리 (Playwright로 라이브 채널 방문)
  *   npx tsx ops/watch/canary.ts socket     소켓 카나리 (채팅 소켓에 2분 붙어 패킷 형태 확인)
  *
- * 알림
- *  - 선택자: 스크립트가 스냅샷과 달라진 점을 직접 Discord로 알린다. 여기서는 깨진 채로 6시간이 지나면 다시 알리고,
- *    회복하면 알린다. (rev 13 사고: 알림 한 번이 묻혀 18시간 동안 아무도 못 봤다)
- *  - 소켓: 매시간 돌아서 스크립트 알림을 그대로 쓰면 같은 경고가 매번 온다. 스크립트 알림은 끄고,
- *    처음 보는 문제일 때, 깨진 채로 6시간이 지났을 때, 회복했을 때만 여기서 알린다.
- *    드문 메시지(상점 구매, 파티 등 템플릿이 없는 것)가 처음 잡히면 상태와 따로 알린다. 모양은 $CANARY_STATE_DIR/socket-rare.json.
+ * 결과는 보고서(checks/selector.json, checks/socket.json)로 남기고 상황실(dispatch.ts)이 알린다.
+ * 두 스크립트의 Discord 알림은 끈다(DISCORD_CANARY_WEBHOOK을 비운다).
+ *  - 선택자: 깨진 필수 선택자마다 깨짐 사건(selector:<이름>), 스냅샷의 다른 변화(anchor 하락 등)는 참고
+ *  - 소켓: 오류마다 깨짐 사건(socket:<문구>), 처음 보는 값은 참고, 드문 메시지는 종류마다 참고(socket-rare:<종류>).
+ *    모양은 $CANARY_STATE_DIR/socket-rare.json
+ *  - 채널을 못 찾았거나 스크립트가 죽으면 확인 못 함. 연달아 못 하면 상황실이 위험으로 올린다
  *
  * 카나리가 문제를 찾아도 이 스크립트는 0으로 끝난다(결과는 상태에 남긴다). 스크립트를 못 돌렸을 때만 1.
  *
@@ -21,13 +21,11 @@ import { existsSync, mkdirSync, readFileSync, rmSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { sendDiscord } from '../common.ts';
-import { readJson, writeJson } from './state.ts';
+import { stableKey, type Finding } from './incidents.ts';
+import { readJson, writeCheck, writeJson } from './state.ts';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT_DIR = process.env.CANARY_STATE_DIR || join(homedir(), '.local/state/badge-collector/canary');
-const NAG_MS = 6 * 3_600_000;
-const DASHBOARD_URL = 'http://192.168.1.162:3400';
 
 type Kind = 'selector' | 'socket';
 export type CanaryStatus = 'ok' | 'warn' | 'broken' | 'error';
@@ -44,8 +42,6 @@ export interface CanaryResult {
     autofix?: unknown;
     /** 지금 상태가 시작된 시각 */
     since: number;
-    notifiedAt?: number;
-    notifiedKey?: string;
     history: { at: number; status: CanaryStatus }[];
 }
 
@@ -55,7 +51,7 @@ const SPEC: Record<Kind, { label: string; script: string; alert: string; env: Re
         script: 'canary:chzzk',
         alert: 'canary-alert.json',
         // odroid(4코어, 7GB)라 GitHub 기본값 8보다 줄인다
-        env: { CANARY_MODE: 'live', CANARY_PARALLEL: '4' },
+        env: { CANARY_MODE: 'live', CANARY_PARALLEL: '4', DISCORD_CANARY_WEBHOOK: '' },
     },
     socket: {
         label: '소켓 카나리',
@@ -79,7 +75,21 @@ function runScript(script: string, env: Record<string, string>): Promise<{ code:
     });
 }
 
-function readAlert(file: string): { title?: string; body?: string } | undefined {
+interface AlertFile {
+    title?: string;
+    body?: string;
+    /** 선택자: 깨진 필수 선택자와 검증된 후보 */
+    brokenRequired?: { name: string; selector: string; candidates: { replaced: string; score: number; docCount: number }[] }[];
+    autoFixCandidates?: { selectorName: string; newSelector: string; reason: string }[];
+    /** 선택자: 깨짐 말고 스냅샷이 달라진 점 */
+    alerts?: string[];
+    url?: string;
+    /** 소켓: 확인을 못 했다 */
+    blind?: boolean;
+    errors?: string[];
+}
+
+function readAlert(file: string): AlertFile | undefined {
     const path = join(OUT_DIR, file);
     return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : undefined;
 }
@@ -99,24 +109,43 @@ async function main(): Promise<void> {
     const autofixPath = join(OUT_DIR, 'canary-autofix.json');
     const autofix = kind === 'selector' && existsSync(autofixPath) ? JSON.parse(readFileSync(autofixPath, 'utf8')) : undefined;
     const warnings = [...output.matchAll(/\[socket-canary\] WARN (.+)/g)].map((m) => m[1]);
-    const rareNew = [...output.matchAll(/\[socket-canary\] RARE-NEW (.+)/g)].map((m) => m[1]);
 
-    let status: CanaryStatus;
-    let problems: string[];
-    if (alert) {
-        status = 'broken';
-        problems = [alert.title ?? '', ...(alert.body ?? '').split('\n')].filter(Boolean).slice(0, 20);
-    } else if (code !== 0) {
-        // 선택자 2: 채널을 못 찾았거나 스크립트가 죽음. 판정을 못 한 것이지 깨진 건 아니다
-        status = 'error';
-        problems = output.trim().split('\n').slice(-8);
-    } else if (warnings.length) {
-        status = 'warn';
-        problems = warnings;
+    const findings: Finding[] = [];
+    let blindNote: string | undefined;
+    if (kind === 'selector') {
+        for (const b of alert?.brokenRequired ?? []) {
+            const fix = alert?.autoFixCandidates?.find((c) => c.selectorName === b.name);
+            findings.push({
+                key: `selector:${b.name}`,
+                level: 'broken',
+                title: `선택자 ${b.name} 깨짐 (필수 선택자가 라이브 화면에서 0개)`,
+                lines: [
+                    `지금 선택자: ${b.selector}`,
+                    ...b.candidates.slice(0, 3).map((c) => `검증된 후보: ${c.replaced} (점수 ${c.score.toFixed(2)}, ${c.docCount}건)`),
+                    ...(fix ? [`자동 수정 후보: ${fix.newSelector} (${fix.reason})`] : []),
+                    ...(alert?.url ? [`대표 방송: ${alert.url}`] : []),
+                    '고치는 법: docs/ota-selectors.md',
+                ],
+                evidence: { ...b, autoFix: fix },
+            });
+        }
+        for (const a of alert?.alerts ?? []) findings.push({ key: `selector:notice:${stableKey(a)}`, level: 'info', title: `선택자 카나리: ${a}` });
+        if (!alert?.brokenRequired?.length && code !== 0) blindNote = output.trim().split('\n').at(-1) ?? `종료 코드 ${code}`;
     } else {
-        status = 'ok';
-        problems = [];
+        if (alert?.blind) blindNote = alert.title ?? '채널을 못 찾음';
+        else {
+            for (const e of alert?.errors ?? []) findings.push({ key: `socket:${stableKey(e)}`, level: 'broken', title: `소켓 카나리: ${e}`, lines: ['고치는 법: src/platform/chzzk-socket.ts, 급하면 OTA constants.socketRender: 0 (docs/ota-selectors.md)'] });
+            if (code !== 0 && !alert) blindNote = output.trim().split('\n').at(-1) ?? `종료 코드 ${code}`;
+        }
+        for (const w of warnings) findings.push({ key: `socket:warn:${stableKey(w)}`, level: 'info', title: `소켓 카나리 처음 보는 값: ${w}` });
+        const rarePath = join(OUT_DIR, 'socket-rare.json');
+        const rare = existsSync(rarePath) ? Object.keys(JSON.parse(readFileSync(rarePath, 'utf8'))) : [];
+        for (const k of rare) findings.push({ key: `socket-rare:${k}`, level: 'info', title: `소켓 카나리: 처음 잡힌 드문 메시지 ${k}`, lines: [`모양: ovm ${rarePath}`] });
     }
+
+    // 현황판 표시용 상태
+    const status: CanaryStatus = findings.some((f) => f.level === 'broken') ? 'broken' : blindNote ? 'error' : warnings.length ? 'warn' : 'ok';
+    const problems = status === 'ok' ? [] : blindNote ? output.trim().split('\n').slice(-8) : findings.filter((f) => !f.key.startsWith('socket-rare:')).map((f) => f.title).slice(0, 20);
 
     const prev = readJson<CanaryResult>(`canary-${kind}`);
     const now = Date.now();
@@ -129,36 +158,16 @@ async function main(): Promise<void> {
         problems,
         autofix,
         since: prev && prev.status === status ? prev.since : now,
-        notifiedAt: prev?.notifiedAt,
-        notifiedKey: prev?.notifiedKey,
         history: [{ at: now, status }, ...(prev?.history ?? [])].slice(0, 30),
     };
 
-    const key = `${status}:${problems.join('|')}`;
-    const lines: string[] = [];
-    if (status === 'ok' && prev && prev.status !== 'ok') {
-        lines.push(`**${spec.label} 회복** (${prev.status} 상태였음)`);
-    } else if (status === 'broken' && prev?.status === 'broken' && now - (prev.notifiedAt ?? prev.since) >= NAG_MS) {
-        const hours = Math.round((now - result.since) / 3_600_000);
-        lines.push(`**${spec.label} 아직 깨져 있음** (${hours}시간째)`, ...problems.slice(0, 6));
-    } else if (kind === 'socket' && status !== 'ok' && key !== prev?.notifiedKey) {
-        lines.push(`**${spec.label} ${status === 'broken' ? '깨짐' : status === 'warn' ? '처음 보는 값' : '실행 실패'}**`, ...problems.slice(0, 8));
-    }
-    if (lines.length) {
-        lines.push(DASHBOARD_URL);
-        await sendDiscord(lines);
-        result.notifiedAt = now;
-        result.notifiedKey = key;
-    } else if (kind === 'selector' && status !== prev?.status) {
-        // 상태가 바뀐 첫 알림은 스크립트가 보냈다
-        result.notifiedAt = now;
-        result.notifiedKey = key;
-    }
-
-    if (rareNew.length) {
-        await sendDiscord([`**${spec.label}: 처음 잡힌 드문 메시지** ${rareNew.join(', ')}`, `모양: ovm ${join(OUT_DIR, 'socket-rare.json')}`]);
-    }
-
+    writeCheck({
+        check: kind,
+        at: now,
+        status: blindNote ? 'unknown' : findings.length ? 'issue' : 'ok',
+        note: blindNote,
+        findings,
+    });
     writeJson(`canary-${kind}`, result);
     console.log(`[canary] ${new Date().toISOString()} ${kind} ${status} exit=${code}`);
 }

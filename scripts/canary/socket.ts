@@ -6,7 +6,7 @@
  * 여기서 먼저 잡아야 한다 (docs/reports/2026-10-10-chzzk-socket-protocol.md "결정 사항").
  *
  * 결과:
- *  - error → Discord 알림 + canary-socket-alert.json (ovm의 ops/watch/canary.ts가 읽어 현황판 상태로 남긴다)
+ *  - error → Discord 알림 + canary-socket-alert.json (ovm의 ops/watch/canary.ts가 읽어 상황실 보고서로 남긴다)
  *  - warn  → Discord 알림만
  *
  * env:
@@ -76,8 +76,10 @@ function saveRare(rare: SocketCheckResult['rare']): string[] {
     return fresh;
 }
 
-function writeAlert(title: string, lines: string[]) {
+/** blind: 채널을 못 찾는 등 소켓을 확인하지 못했다(깨진 게 아니다). errors: 깨짐 근거 한 줄씩 */
+function writeAlert(title: string, lines: string[], extra: { blind?: boolean; errors?: string[] } = {}) {
     writeFileSync(ALERT_FILE, JSON.stringify({
+        ...extra,
         label: 'canary-socket',
         labelDescription: 'chzzk 채팅 소켓 canary 자동 감지',
         title,
@@ -105,7 +107,7 @@ async function main() {
     } catch (err) {
         const msg = `라이브 목록/채팅 채널 조회 실패: ${(err as Error).message}`;
         console.error(`[socket-canary] ${msg}`);
-        writeAlert('chzzk socket canary: 채널 조회 실패', [msg]);
+        writeAlert('chzzk socket canary: 채널 조회 실패', [msg], { blind: true });
         await notifyDiscord(`🔴 **chzzk socket canary** — ${msg}`);
         process.exit(1);
     }
@@ -125,7 +127,9 @@ async function main() {
         const lines = ['## 오류', ...r.errors.map(e => `- ${e}`)];
         if (r.warnings.length) lines.push('', '## 경고', ...r.warnings.map(w => `- ${w}`));
         lines.push('', `- ${summary(r)}`);
-        writeAlert(`chzzk socket canary: ${r.errors[0].slice(0, 80)}`, lines);
+        // 채팅 채널을 하나도 못 찾았으면 확인을 못 한 것이다
+        const blind = r.errors.length === 1 && r.errors[0].startsWith('채팅 채널을 하나도 찾지 못했');
+        writeAlert(`chzzk socket canary: ${r.errors[0].slice(0, 80)}`, lines, { blind, errors: r.errors });
         await notifyDiscord(['🔴 **chzzk socket canary — 소켓 응답이 파서 가정과 다릅니다**', ...r.errors.map(e => `- ${e}`), ...r.warnings.map(w => `- ⚠ ${w}`), summary(r)].join('\n'));
         process.exit(1);
     }

@@ -3,9 +3,10 @@
  *
  * 위치: ~/.local/state/badge-collector/watch/<이름>.json
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import type { CheckReport } from './incidents.ts';
 
 export const WATCH_DIR = join(homedir(), '.local/state/badge-collector/watch');
 export const CACHE_DIR = join(homedir(), '.cache/badge-collector');
@@ -19,9 +20,24 @@ export function readJson<T>(name: string): T | undefined {
     return existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as T) : undefined;
 }
 
+/** 다른 작업(상황실)이 쓰는 도중의 파일을 읽지 않게 임시 파일에 쓰고 이름을 바꾼다 */
 export function writeJson(name: string, data: unknown): void {
-    mkdirSync(WATCH_DIR, { recursive: true });
-    writeFileSync(join(WATCH_DIR, `${name}.json`), JSON.stringify(data, null, 2));
+    const file = join(WATCH_DIR, `${name}.json`);
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(`${file}.tmp`, JSON.stringify(data, null, 2));
+    renameSync(`${file}.tmp`, file);
+}
+
+/**
+ * 확인 작업의 보고서. 상황실(dispatch.ts)이 watch/checks/에서 모아 사건과 알림을 정한다.
+ * --dry-run이면 쓰지 않고 출력만 한다 (다음 상황실 실행이 시험 결과를 읽지 않게).
+ */
+export function writeCheck(report: CheckReport): void {
+    if (process.argv.includes('--dry-run')) {
+        console.log(`[check] ${JSON.stringify(report, null, 2)}`);
+        return;
+    }
+    writeJson(`checks/${report.check}`, report);
 }
 
 export async function fetchText(url: string, init?: RequestInit): Promise<string> {

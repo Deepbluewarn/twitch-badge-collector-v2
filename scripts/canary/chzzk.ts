@@ -244,10 +244,10 @@ async function main() {
         }
         await notifyDiscord(lines.join('\n'));
 
-        // 사람이 봐야 하는 상태면 workflow가 GitHub Issue를 열 수 있게 본문을 남긴다.
-        // Discord webhook만으로는 놓친다 — rev 13 사고에서 알림은 갔지만 18시간 동안
-        // 아무 조치가 없었고, 저장소엔 흔적이 남지 않아 추적도 안 됐다.
-        if (diff.brokenRequired.length > 0) {
+        // ovm 상황실(ops/watch/canary.ts → dispatch.ts)이 이 파일로 사건을 만든다. 깨짐이 없는
+        // 변화(anchor 하락 등)도 남긴다. ovm은 이 스크립트의 Discord 알림을 끄고 이 파일만 본다.
+        // (rev 13 사고: Discord 알림 한 번이 묻혀 18시간 동안 아무 조치가 없었다)
+        {
             writeFileSync(join(OUT_DIR, 'canary-alert.json'), JSON.stringify({
                 mode: MODE,
                 title: `chzzk canary: required selector ${diff.brokenRequired.map(s => s.name).join(', ')} 깨짐`,
@@ -256,6 +256,7 @@ async function main() {
                     name: s.name, selector: s.selector, candidates: s.candidates ?? [],
                 })),
                 autoFixCandidates: diff.autoFixCandidates,
+                alerts: diff.alerts,
                 url: snapshot.url,
                 capturedAt: snapshot.capturedAt,
             }, null, 2));

@@ -1,5 +1,5 @@
 /**
- * 10분마다: data/chzzk-badges.json에 없는 치지직 배지를 찾아 Discord로 알린다.
+ * 10분마다: data/chzzk-badges.json에 없는 치지직 배지를 찾아 보고서(checks/badges.json)에 참고 사건으로 남긴다.
  *
  * 출처 두 곳
  *  - harvester(~/harvester/data/badges.json): 채팅에 지나간 배지. 후원, 구독 선물, 치트키, 팝업스토어 같은 건
@@ -7,8 +7,8 @@
  *  - 업적 배지 API(/service/v1/badges/assets?badgeType=CHANNEL_ACHIEVEMENT): 아무도 채팅하지 않아도 나오자마자 보이고
  *    공식 이름(title)이 있다
  *
- * 알림에는 붙여 넣을 JSON 한 줄과 어느 그룹에 넣을지를 담는다. 목록 파일은 사람만 고친다(docs/chzzk-badges.md).
- * 한 번 알린 배지는 다시 알리지 않는다.
+ * 배지마다 붙여 넣을 JSON 한 줄과 어느 그룹에 넣을지를 담는다. 목록 파일은 사람만 고친다(docs/chzzk-badges.md).
+ * 상황실이 배지마다 한 번 알리고, 목록에 들어가면 조용히 닫는다.
  *
  * 상태: watch/new-badges.json
  */
@@ -16,8 +16,7 @@ import { existsSync, readFileSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { sendDiscord } from '../common.ts';
-import { fetchJson, readJson, writeJson } from './state.ts';
+import { fetchJson, writeCheck, writeJson } from './state.ts';
 
 const LIST_FILE = join(dirname(fileURLToPath(import.meta.url)), '../../data/chzzk-badges.json');
 const HARVESTER_FILE = join(homedir(), 'harvester/data/badges.json');
@@ -50,7 +49,6 @@ export interface NewBadgesState {
     at: number;
     listed: number;
     unlisted: NewBadge[];
-    notified: string[];
     error?: string;
 }
 
@@ -87,7 +85,6 @@ async function achievements(): Promise<{ badgeId: string; title: string; imageUr
 async function main(): Promise<void> {
     const list = JSON.parse(readFileSync(LIST_FILE, 'utf8')) as { groups: { id: string; badges: { imageUrl: string }[] }[] };
     const known = new Set(list.groups.flatMap((g) => g.badges.map((b) => b.imageUrl)));
-    const prev = readJson<NewBadgesState>('new-badges');
     const errors: string[] = [];
     const found: NewBadge[] = [];
 
@@ -108,32 +105,31 @@ async function main(): Promise<void> {
         errors.push(`업적 배지 API: ${(e as Error).message}`);
     }
 
-    const notified = new Set(prev?.notified ?? []);
-    const fresh = found.filter((b) => !notified.has(b.key));
-    if (fresh.length) {
-        const lines = [`**새 치지직 배지 ${fresh.length}개** (data/chzzk-badges.json에 없음)`];
-        for (const b of fresh.slice(0, 10)) {
-            lines.push(
-                '',
-                `\`${b.badgeId ?? '-'}\` ${b.scope}${b.channels ? `, 채널 ${b.channels}곳` : ''}${b.source === 'api' ? ', 업적 API' : ''}`,
-                `그룹 \`${b.group ?? '새 그룹?'}\`에: \`${JSON.stringify({ name: b.name, imageUrl: b.imageUrl })}\``,
-                b.imageUrl,
-            );
-        }
-        if (fresh.length > 10) lines.push('', `외 ${fresh.length - 10}개는 현황판에`);
-        lines.push('', '이름을 확인해 커밋하면 사이트와 확장에 몇 분 안에 반영된다 (docs/chzzk-badges.md)');
-        await sendDiscord(lines);
-        for (const b of fresh) notified.add(b.key);
-    }
-
     writeJson('new-badges', {
         at: Date.now(),
         listed: known.size,
         unlisted: found.sort((a, b) => b.firstSeen - a.firstSeen),
-        notified: [...notified],
         ...(errors.length ? { error: errors.join(', ') } : {}),
     } satisfies NewBadgesState);
-    console.log(`[new-badges] ${new Date().toISOString()} 목록 ${known.size}, 없는 것 ${found.length}, 새로 알림 ${fresh.length}${errors.length ? `, 오류 ${errors.join(', ')}` : ''}`);
+    writeCheck({
+        check: 'badges',
+        at: Date.now(),
+        status: errors.length ? 'error' : found.length ? 'issue' : 'ok',
+        note: errors.join(', ') || undefined,
+        findings: found.map((b) => ({
+            key: `badge:${b.key}`,
+            level: 'info',
+            title: `새 치지직 배지 \`${b.badgeId ?? '-'}\` (data/chzzk-badges.json에 없음)`,
+            lines: [
+                `${b.scope}${b.channels ? `, 채널 ${b.channels}곳` : ''}${b.source === 'api' ? ', 업적 API' : ''}`,
+                `그룹 \`${b.group ?? '새 그룹?'}\`에: \`${JSON.stringify({ name: b.name, imageUrl: b.imageUrl })}\``,
+                b.imageUrl,
+                '이름을 확인해 커밋하면 사이트와 확장에 몇 분 안에 반영된다 (docs/chzzk-badges.md)',
+            ],
+            evidence: b,
+        })),
+    });
+    console.log(`[new-badges] ${new Date().toISOString()} 목록 ${known.size}, 없는 것 ${found.length}${errors.length ? `, 오류 ${errors.join(', ')}` : ''}`);
     if (errors.length) process.exit(1);
 }
 

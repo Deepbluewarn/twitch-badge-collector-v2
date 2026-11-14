@@ -3,10 +3,12 @@
  * (2026-10-25에 harvester가 멈췄는데 8일 동안 아무도 몰랐다)
  *
  * 근거는 run.sh가 남기는 ~/.local/state/badge-collector/runs/<작업>.json 의 마지막 성공 시각이다.
- * 정해 둔 시간보다 오래 성공하지 못한 작업이 생기면 Discord로 알리고, 12시간마다 다시 알린다.
+ * 정해 둔 시간보다 오래 성공하지 못한 작업, 멈춘 서비스를 보고서(checks/heartbeat.json)에 위험 사건으로 남긴다.
+ * 상황실이 알리고 24시간마다 다시 알린다.
  *
  * ovm 자체가 꺼지면 이 스크립트도 못 돈다. ~/.config/badge-collector/ops.env 에 OPS_HEALTHCHECK_URL이 있으면
  * 돌 때마다 그 주소에 신호를 보낸다(healthchecks.io 같은 외부 서비스가 신호가 끊기면 알린다).
+ * 문제가 있으면 /fail로 보낸다. 상황실이 멈춰 Discord 알림이 안 나가도 외부 서비스가 알린다.
  *
  * 상태: watch/heartbeat.json
  */
@@ -14,19 +16,18 @@ import { execFileSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
-import { sendDiscord } from '../common.ts';
-import { readJson, writeJson } from './state.ts';
+import { readJson, writeCheck, writeJson } from './state.ts';
 
 const OPS_ENV = join(homedir(), '.config/badge-collector/ops.env');
 if (existsSync(OPS_ENV)) process.loadEnvFile(OPS_ENV);
 
 const RUNS = join(homedir(), '.local/state/badge-collector/runs');
-const REMIND_MS = 12 * 3_600_000;
-const DASHBOARD_URL = 'http://192.168.1.162:3400';
 
 /** 작업마다 마지막 성공에서 이만큼(분) 지나면 멈춘 것으로 본다. 주기보다 넉넉하게 */
 export const JOBS: { job: string; label: string; maxAgeMin: number }[] = [
     { job: 'deploy', label: '치지직 배포 감지 (1분)', maxAgeMin: 10 },
+    // 상황실은 작업이 끝날 때마다, 적어도 heartbeat(10분)마다 돈다
+    { job: 'dispatch', label: '상황실 (작업이 끝날 때마다)', maxAgeMin: 30 },
     { job: 'socket', label: '소켓 카나리 (1시간)', maxAgeMin: 150 },
     { job: 'badges', label: '새 배지 알림 (10분)', maxAgeMin: 40 },
     { job: 'canary', label: '선택자 카나리 (6시간)', maxAgeMin: 420 },
@@ -58,8 +59,6 @@ export interface Heartbeat {
     jobs: JobHealth[];
     services: { name: string; state: string }[];
     staleSince: Record<string, number>;
-    notifiedAt?: number;
-    notifiedKey?: string;
 }
 
 function readRun(job: string): RunRecord | undefined {
@@ -104,22 +103,27 @@ async function main(): Promise<void> {
     });
     const services = SERVICES.filter(serviceExists).map((name) => ({ name, state: serviceState(name) }));
 
-    const problems = [
-        ...jobs.filter((j) => j.stale).map((j) => `${j.label}: 마지막 성공 ${j.lastOk ? new Date(j.lastOk).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false }) : '없음'}${j.code ? `, 마지막 종료 코드 ${j.code}` : ''}`),
-        ...services.filter((s) => s.state !== 'active').map((s) => `서비스 ${s.name}: ${s.state}`),
+    const kst = (ms: number | null) => (ms ? new Date(ms).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false }) : '없음');
+    const findings = [
+        ...jobs.filter((j) => j.stale).map((j) => ({
+            key: `heartbeat:job:${j.job}`,
+            level: 'risk' as const,
+            title: `감시 작업 멈춤: ${j.label}`,
+            lines: [`마지막 성공 ${kst(j.lastOk)}${j.code ? `, 마지막 종료 코드 ${j.code}` : ''}`, '로그: ssh ovm, ~/.local/state/badge-collector/ops.log'],
+        })),
+        ...services.filter((s) => s.state !== 'active').map((s) => ({
+            key: `heartbeat:service:${s.name}`,
+            level: 'risk' as const,
+            title: `서비스 ${s.name}: ${s.state}`,
+            lines: [`systemctl --user status ${s.name}`],
+        })),
     ];
+    const problems = findings.map((f) => f.title);
     const staleSince: Record<string, number> = {};
     for (const j of jobs.filter((x) => x.stale)) staleSince[j.job] = prev?.staleSince?.[j.job] ?? now;
 
-    const hb: Heartbeat = { at: now, installedAt, jobs, services, staleSince, notifiedAt: prev?.notifiedAt, notifiedKey: prev?.notifiedKey };
-    const key = problems.join('|');
-    if (key !== (prev?.notifiedKey ?? '') || (key && now - (prev?.notifiedAt ?? 0) >= REMIND_MS)) {
-        if (key) await sendDiscord(['**감시 작업 이상**', ...problems.map((p) => `- ${p}`), `로그: ssh ovm, ~/.local/state/badge-collector/ops.log`, DASHBOARD_URL]);
-        else if (prev?.notifiedKey) await sendDiscord(['**감시 작업 모두 정상으로 돌아옴**']);
-        hb.notifiedAt = now;
-        hb.notifiedKey = key;
-    }
-    writeJson('heartbeat', hb);
+    writeJson('heartbeat', { at: now, installedAt, jobs, services, staleSince } satisfies Heartbeat);
+    writeCheck({ check: 'heartbeat', at: now, status: findings.length ? 'issue' : 'ok', findings });
 
     const url = process.env.OPS_HEALTHCHECK_URL;
     if (url) await fetch(problems.length ? `${url.replace(/\/$/, '')}/fail` : url, { method: 'POST', body: problems.join('\n') }).catch(() => {});

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>감시 개선 진행표</title>
+<style>
+:root{color-scheme:light dark;--bg:#fafaf9;--card:#fff;--ink:#1c1c1c;--ink2:#5c5c5c;--line:#e3e3e0;--soft:#f1f1ee;--accent:#b88a00;--now:#2f5fb3;--done:#167a3a}
+@media (prefers-color-scheme:dark){:root{--bg:#141415;--card:#1c1c1e;--ink:#ececec;--ink2:#a6a6ab;--line:#2e2e31;--soft:#26262a;--accent:#f2c200;--now:#7aa7ff;--done:#4cc38a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:36px 16px 80px}
+h1{font-size:28px;line-height:1.25;margin:0 0 6px}
+h2{font-size:19px;margin:40px 0 12px}
+.meta{color:var(--ink2);font-size:13px;margin:0}
+.goal{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:14px 18px;margin:20px 0}
+.goal p{margin:0}
+.flow{display:flex;gap:8px;align-items:stretch}
+.flow .d{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px}
+.flow .d b{display:block;font-size:16px}
+.flow .d.hq{border:2px solid var(--accent)}
+.flow .a{display:flex;align-items:center;color:var(--ink2);font-size:20px}
+@media (max-width:640px){.flow{flex-direction:column}.flow .a{justify-content:center;transform:rotate(90deg)}}
+ol.steps{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.step{display:grid;grid-template-columns:44px 1fr;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.step.now{border:2px solid var(--now)}
+.num{width:36px;height:36px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;font-weight:700}
+.step.now .num{background:var(--now);color:#fff}
+.step h3{margin:0;font-size:17px;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.step h3 .code{font-size:12px;color:var(--ink2);font-weight:400}
+.step p{margin:4px 0 0;font-size:15px}
+.step .you{margin-top:6px;font-size:14px;color:var(--ink2)}
+.step .you b{color:var(--ink)}
+.chip{font-size:12px;font-weight:700;padding:1px 8px;border-radius:9px;border:1px solid currentColor}
+.chip.now{color:var(--now)}.chip.wait{color:var(--ink2)}.chip.done{color:var(--done)}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.how div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px}
+.how b{display:block;font-size:15px}
+@media (max-width:640px){.how{grid-template-columns:1fr}}
+ul.todo{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+ul.todo li{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+ul.todo .when{color:var(--ink2);font-size:14px}
+a{color:var(--now)}
+</style>
+</head>
+<body>
+<main>
+
+<h1>감시 개선 진행표</h1>
+<p class="meta">2026-11-14. 자세한 근거와 설계는 <a href="2026-11-13-ops-alert-plan.html">감시 개선 계획</a>.</p>
+
+<div class="goal"><p><b>목표:</b> 울리면 진짜 문제이고, 문제가 생기면 반드시 울리고, 고친 것이 빨리 사용자에게 닿게 한다.</p></div>
+
+<h2>바뀌는 구조</h2>
+<div class="flow">
+<div class="d"><b>확인</b>카나리, 실제 시험, 사용 통계 등이 결과만 남긴다</div>
+<div class="a">→</div>
+<div class="d hq"><b>상황실</b>한 곳에서 판정하고, 긴급과 참고로 나눠 알리고, 기록한다</div>
+<div class="a">→</div>
+<div class="d"><b>조치</b>캐시 비우기, 반영 확인은 자동. OTA 푸시, 배포 멈춤은 사람</div>
+</div>
+
+<h2>진행 순서</h2>
+<ol class="steps">
+<li class="step now"><div class="num">1</div><div>
+<h3>상황실로 전환, 바깥 생존 확인 <span class="code">R1, T4</span> <span class="chip now">푸시 대기</span></h3>
+<p>시범 운영 없이 바로 바꾼다. 모든 알림이 상황실을 거친다. ovm이 꺼지면 healthchecks.io가 알린다(연결 완료).</p>
+</div></li>
+
+<li class="step"><div class="num">2</div><div>
+<h3>긴급 채널 연결 <span class="chip done">완료</span></h3>
+<p>깨짐과 위험은 긴급 채널로 휴대폰 알림, 나머지는 지금 채널로. 멘션 없이 채널 알림만 쓴다.</p>
+</div></li>
+
+<li class="step"><div class="num">3</div><div>
+<h3>선택자 카나리 정밀하게 <span class="code">T1</span> <span class="chip wait">대기</span></h3>
+<p>선택자의 갈래 하나가 죽어도, 일부 방송에서만 깨져도 잡는다. 11-12에 놓친 경우다.</p>
+</div></li>
+
+<li class="step"><div class="num">4</div><div>
+<h3>확장 실제 시험 보강 <span class="code">T2</span> <span class="chip wait">대기</span></h3>
+<p>배지가 빠지는 고장, 배지 필터 고장을 잡는다. 다운로드 실패, 채팅 없는 방송 같은 헛경보를 없앤다.</p>
+</div></li>
+
+<li class="step"><div class="num">5</div><div>
+<h3>고친 선택자 빨리 전달 <span class="code">S2</span> <span class="chip wait">대기</span></h3>
+<p>선택자를 푸시하면 캐시를 바로 비우고, 사용자 쪽에 닿았는지 실제 시험으로 확인한다. 최대 12시간이 15분 안으로.</p>
+</div></li>
+
+<li class="step"><div class="num">6</div><div>
+<h3>실제 사용자 데이터로 판정 <span class="code">T3, S3</span> <span class="chip wait">대기</span></h3>
+<p>치지직 사용자 중 수집에 성공한 비율이 평소보다 떨어지면 알린다. 새 버전만 낮으면 단계 배포를 멈추라고 알린다.</p>
+<p class="you"><b>할 일:</b> 알림 기준 숫자 정하기</p>
+</div></li>
+
+<li class="step"><div class="num">7</div><div>
+<h3>다시보기 감시, 이슈와 처리 스킬 <span class="code">T5, S1</span> <span class="chip wait">대기</span></h3>
+<p>다시보기 화면도 감시한다. 고칠 문제는 GitHub 이슈로 열리고, 세션에서 스킬 한 번으로 고칠 준비가 된다.</p>
+<p class="you"><b>할 일:</b> GitHub 토큰(이슈 권한만)</p>
+</div></li>
+
+<li class="step"><div class="num">8</div><div>
+<h3>2주 뒤 점검 <span class="chip wait">대기</span></h3>
+<p>쌓인 기록으로 헛경보 비율, 감지 시간, 고치는 데 걸린 시간을 처음 잰다. 단계 배포 자동 멈춤 여부를 정한다.</p>
+</div></li>
+</ol>
+
+<h2>단계마다 진행 방식</h2>
+<div class="how">
+<div><b>1. 설계 확인</b>무엇을 왜 바꾸는지 설명을 듣고 방향을 정한다</div>
+<div><b>2. 작업</b>코드, 시험, ovm 시험 실행까지</div>
+<div><b>3. 푸시 확인</b>바뀐 내용과 시험 결과를 보고 승인하면 푸시</div>
+</div>
+
+<h2>준비할 것</h2>
+<ul class="todo">
+<li><span>사용자 비율 알림 기준 숫자</span><span class="when">6단계 때</span></li>
+<li><span>GitHub 토큰 (이슈 권한만)</span><span class="when">7단계 전</span></li>
+</ul>
+
+</main>
+</body>
+</html>

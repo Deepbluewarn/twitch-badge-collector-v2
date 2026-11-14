@@ -176,6 +176,14 @@ export function judgeDependencies(deps: Dependency[], prev: Dependency[] | undef
     return deps.map((d) => ({ ...d, status: d.found ? 'ok' : seen.has(`${d.kind} ${d.name}`) ? 'gone' : 'absent' }));
 }
 
+/** 번들 변화를 사람이 읽을 줄로 (알림, 현황판 프롬프트) */
+export function diffLines(diff: SignalDiff): string[] {
+    const lines: string[] = [];
+    for (const [kind, items] of Object.entries(diff.added)) lines.push(`+ ${kind}: ${items.join(', ')}`);
+    for (const [kind, items] of Object.entries(diff.removed)) lines.push(`- ${kind}: ${items.join(', ')}`);
+    return lines;
+}
+
 export function diffSignals(prev: BundleSignals | undefined, cur: BundleSignals): SignalDiff {
     const added: Record<string, string[]> = {};
     const removed: Record<string, string[]> = {};

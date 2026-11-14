@@ -2,6 +2,9 @@
  * 6시간마다: 최신 릴리스 확장을 Chromium에 올려 치지직(소켓 모드 끔, 켬), 트위치 라이브에 붙이고
  * 모아보기 창에 채팅이 들어오는지 본다. 치지직을 여는 김에 JS, CSS 번들을 받아 bundle.ts로 검사한다.
  *
+ * 결과는 보고서 두 개로 상황실에 넘긴다: checks/live.json(경로마다 수집 창이 비었는지), checks/bundle.json(번들 의존, 변화).
+ * 방송에 채팅이 없거나 페이지를 못 열면 그 경로는 확인 못 함이다(깨짐이 아니다).
+ *
  * 필터는 "빈 키워드 포함" 하나만 넣는다. 글자가 있는 채팅은 전부 통과하므로 창의 채팅 수가 곧 수집 수다.
  * 사용자 Chrome, 프로필은 건드리지 않는다. 매번 빈 임시 프로필을 쓴다.
  *
@@ -12,8 +15,9 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { chromium, type BrowserContext, type Page } from 'playwright';
-import { checkDependencies, diffSignals, judgeDependencies, extractSignals, isChzzkBundle, type BundleFile, type BundleSignals, type Dependency, type SignalDiff } from './bundle.ts';
-import { CACHE_DIR, REPO, UA, attempt, fetchJson, isError, readJson, writeJson } from './state.ts';
+import type { Finding } from './incidents.ts';
+import { checkDependencies, diffLines, diffSignals, judgeDependencies, extractSignals, isChzzkBundle, type BundleFile, type BundleSignals, type Dependency, type SignalDiff } from './bundle.ts';
+import { CACHE_DIR, REPO, UA, attempt, fetchJson, isError, readJson, writeCheck, writeJson } from './state.ts';
 
 // Playwright 오류는 브라우저 실행 로그까지 붙어 길다. 첫 줄만 남긴다
 const firstLine = (e: unknown) => String((e as Error)?.message ?? e).split('\n')[0].slice(0, 300);
@@ -177,6 +181,20 @@ async function main(): Promise<void> {
         rmSync(profile, { recursive: true, force: true });
     }
     writeJson('live', result);
+    writeCheck({
+        check: 'live',
+        at: result.at,
+        status: result.error ? 'error' : result.runs.some((r) => r.verdict === 'broken') ? 'issue' : 'ok',
+        note: result.error,
+        unknownParts: result.runs.filter((r) => r.verdict === 'unknown').map((r) => ({ part: r.name, note: r.error ?? '방송 채팅 없음' })),
+        findings: result.runs.filter((r) => r.verdict === 'broken').map((r) => ({
+            key: `live:${r.name}:empty-pane`,
+            part: r.name,
+            level: 'broken',
+            title: `확장 실제 시험 ${r.name}: 수집 창이 비었음`,
+            lines: [`방송 채팅 ${r.host}줄, 수집 창 0줄 (v${result.version})`, ...(r.url ? [r.url] : [])],
+        })),
+    });
 
     // 확장을 못 띄웠어도 번들 검사는 한다. 확장 없는 브라우저로 페이지만 연다
     if (!files.length) {
@@ -192,7 +210,9 @@ async function main(): Promise<void> {
         if (isError(fallback)) console.error(`[live] 번들 받기 실패: ${fallback.error}`);
     }
 
-    if (files.length) {
+    if (!files.length) {
+        writeCheck({ check: 'bundle', at: Date.now(), status: 'unknown', note: '치지직 번들을 받지 못함', findings: [] });
+    } else {
         const prev = readJson<BundleResult>('bundle');
         const signals = extractSignals(files);
         const dependencies = judgeDependencies(await checkDependencies(files, signals), prev?.dependencies);
@@ -200,6 +220,15 @@ async function main(): Promise<void> {
         const changed = Object.keys(diff.added).length + Object.keys(diff.removed).length > 0;
         const history = [...(changed ? [{ at: Date.now(), diff }] : []), ...(prev?.history ?? [])].slice(0, 30);
         writeJson('bundle', { at: Date.now(), signals, dependencies, diff, history } satisfies BundleResult);
+        const findings: Finding[] = dependencies.filter((d) => d.status === 'gone').map((d) => ({
+            key: `bundle:gone:${d.name}`,
+            level: 'risk',
+            title: `번들에서 확장이 기대던 이름이 사라짐: ${d.name}`,
+            lines: [`${d.kind}, ${d.where}${d.detail ? `, ${d.detail}` : ''}`],
+        }));
+        // 가장 최근 변화 하나. 다음 변화가 오면 조용히 닫힌다
+        if (history[0]) findings.push({ key: `bundle-change:${history[0].at}`, level: 'info', title: '치지직 번들 변화', lines: diffLines(history[0].diff).map((l) => (l.length > 300 ? `${l.slice(0, 300)}…` : l)) });
+        writeCheck({ check: 'bundle', at: Date.now(), status: findings.length ? 'issue' : 'ok', findings });
     }
     console.log(`[live] ${new Date().toISOString()} ${result.version ?? '-'} ${result.runs.map((r) => `${r.name} ${r.verdict} ${r.pane}/${r.host}`).join(', ')}${result.error ? ` error ${result.error}` : ''}`);
 }
