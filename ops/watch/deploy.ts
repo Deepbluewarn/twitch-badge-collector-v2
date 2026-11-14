@@ -12,13 +12,9 @@
  * 상태: watch/deploy.json, 보고서: watch/checks/deploy.json (가장 최근 배포 하나)
  * 가져오기에 실패하면 1로 끝난다. 보고서는 쓰지 않고 heartbeat가 멈춤으로 잡는다.
  */
-import { spawn } from 'child_process';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
-import { readJson, writeCheck, writeJson } from './state.ts';
+import { readJson, spawnJobs, writeCheck, writeJson } from './state.ts';
 
 const PAGE = 'https://chzzk.naver.com/';
-const RUN_SH = join(dirname(fileURLToPath(import.meta.url)), '../run.sh');
 /** 배포를 감지하면 바로 띄울 작업 */
 const FOLLOW_UP = ['canary', 'socket', 'live', 'main'];
 
@@ -72,13 +68,6 @@ function deployLines(d: Deploy): string[] {
     ].filter(Boolean);
 }
 
-function followUp(): void {
-    for (const job of FOLLOW_UP) {
-        // 이 작업이 끝나도 계속 돌게 떼어 낸다. 겹치면 run.sh의 잠금이 알아서 거른다
-        spawn('sh', [RUN_SH, job], { detached: true, stdio: 'ignore' }).unref();
-    }
-}
-
 async function main(): Promise<void> {
     const prev = readJson<DeployState>('deploy');
     const res = await fetch(PAGE, { headers: { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' } });
@@ -103,7 +92,7 @@ async function main(): Promise<void> {
         const deploy: Deploy = { at: Date.now(), lastModified, files, ...diff };
         state.history = [deploy, ...state.history].slice(0, 50);
 
-        followUp();
+        spawnJobs(FOLLOW_UP);
         console.log(`[deploy] ${new Date().toISOString()} 배포 감지 ${JSON.stringify(diff)}`);
     }
     if (!state.seen.includes(key)) state.seen = [key, ...state.seen].slice(0, 100);

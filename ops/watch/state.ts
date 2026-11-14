@@ -3,9 +3,11 @@
  *
  * 위치: ~/.local/state/badge-collector/watch/<이름>.json
  */
+import { spawn } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import type { CheckReport } from './incidents.ts';
 
 export const WATCH_DIR = join(homedir(), '.local/state/badge-collector/watch');
@@ -38,6 +40,13 @@ export function writeCheck(report: CheckReport): void {
         return;
     }
     writeJson(`checks/${report.check}`, report);
+}
+
+const RUN_SH = join(dirname(fileURLToPath(import.meta.url)), '../run.sh');
+
+/** run.sh 작업을 띄운다. 이 작업이 끝나도 계속 돌게 떼어 낸다. 겹치면 run.sh의 잠금이 알아서 거른다 */
+export function spawnJobs(jobs: string[]): void {
+    for (const job of jobs) spawn('sh', [RUN_SH, job], { detached: true, stdio: 'ignore' }).unref();
 }
 
 export async function fetchText(url: string, init?: RequestInit): Promise<string> {

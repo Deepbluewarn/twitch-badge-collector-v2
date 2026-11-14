@@ -5,6 +5,8 @@ RUN=sh /home/bluewarn/tbc/ops/run.sh
 
 # 리포 갱신 (master를 따라간다. ops 코드를 고치면 10분 안에 반영)
 */10 * * * * $RUN pull
+# OTA 파일(선택자, 배지 목록)이 jsDelivr에 닿았는지. 리포와 다르면 purge (pull 1분 뒤)
+1-59/10 * * * * $RUN ota
 # 치지직 배포 감지. 감지하면 canary, socket, live, main을 바로 띄운다
 * * * * * $RUN deploy
 # 목록에 없는 새 배지 알림 (pull 5분 뒤라 방금 커밋한 배지는 이미 목록에 있다)

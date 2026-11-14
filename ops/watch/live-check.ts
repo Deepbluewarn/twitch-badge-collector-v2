@@ -27,7 +27,7 @@ import { fileURLToPath } from 'url';
 import { chromium, type BrowserContext, type Page } from 'playwright';
 import type { CheckReport, Finding } from './incidents.ts';
 import bundledManifest from '../../src/platform/bundled-selectors.prod.json' with { type: 'json' };
-import { hostChats, judgeMain, mergeStoreReport, type ContentSample, type MainRun, type PageObservation, type ShadowMismatch } from './main-path.ts';
+import { hostChats, judgeMain, mergeStoreReport, type ContentSample, type MainRun, type OtaRevs, type PageObservation, type ShadowMismatch } from './main-path.ts';
 import { checkDependencies, diffLines, diffSignals, judgeDependencies, extractSignals, isChzzkBundle, type BundleFile, type BundleSignals, type Dependency, type SignalDiff } from './bundle.ts';
 import { CACHE_DIR, REPO, UA, attempt, fetchJson, isError, readJson, writeCheck, writeJson } from './state.ts';
 
@@ -378,6 +378,27 @@ function badgeGroups(): Map<string, string> {
     return new Map(list.groups.flatMap((g) => g.badges.map((b) => [b.imageUrl, g.id] as [string, string])));
 }
 
+/**
+ * 선택자 rev 세 가지. 확장이 받아 적용한 것은 확장 저장소(ota-fetch.ts STORAGE_KEY)에서,
+ * 확장에 든 것은 그 릴리스 태그의 파일에서, jsDelivr 것은 사용자와 같은 주소에서 읽는다. 모르면 비워 둔다
+ */
+async function otaRevs(ctx: BrowserContext, id: string, version: string): Promise<OtaRevs> {
+    const page = await ctx.newPage();
+    let applied: number | undefined;
+    try {
+        await page.goto(`chrome-extension://${id}/popup.html`);
+        applied = await page.evaluate(async () => {
+            const { chrome } = globalThis as unknown as { chrome: { storage: { local: { get(key: string): Promise<Record<string, { rev?: number } | undefined>> } } } };
+            return (await chrome.storage.local.get('tbcv2-selectors-manifest'))['tbcv2-selectors-manifest']?.rev;
+        });
+    } finally {
+        await page.close();
+    }
+    const bundled = await attempt(async () => (JSON.parse(execFileSync('git', ['show', `v${version}:src/platform/bundled-selectors.prod.json`], { cwd: REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })) as { rev: number }).rev);
+    const cdn = await attempt(async () => (await fetchJson<{ rev: number }>(`https://cdn.jsdelivr.net/gh/${REPO}@master/src/platform/bundled-selectors.prod.json`)).rev);
+    return { applied, bundled: isError(bundled) ? undefined : bundled, cdn: isError(cdn) ? undefined : cdn };
+}
+
 /** 소켓 모드를 켠 치지직 라이브를 이 확장으로 본다 */
 async function mainRun(ext: Extension | (() => Promise<Extension>), urls: string[] | (() => Promise<string[]>)): Promise<MainRun> {
     const run: MainRun = { at: Date.now() };
@@ -387,6 +408,8 @@ async function mainRun(ext: Extension | (() => Promise<Extension>), urls: string
         await withExtension(e, async (ctx, id) => {
             await configure(ctx, id, true);
             Object.assign(run, await observeBusy(ctx, typeof urls === 'function' ? await urls() : urls, 'chzzk', undefined, true));
+            // 확장은 뜨자마자 선택자를 받는다. 다 본 뒤에 읽는다
+            run.ota = await otaRevs(ctx, id, e.version);
         });
     } catch (e) {
         run.error = firstLine(e);
@@ -404,7 +427,8 @@ function logLine(run: MainRun, report: CheckReport): string {
     const { content } = run;
     const total = (run.sockets ?? []).map((s) => `${s.url} ${s.chats}`).join(', ');
     const cmp = content ? ` compare=${content.shadowSummary ? `${content.shadowSummary.matched}/${content.shadowSummary.mismatched}/htmlOnly ${content.shadowSummary.htmlOnly}` : 'none'} chats=${content.chats.length} items=${content.items.length}` : '';
-    return `${run.version ?? '-'} ${report.status}${cmp}${report.note ? ` (${report.note})` : ''} pane=${run.paneExists ? run.pane : 'none'} dom=${run.domChats ?? '-'} tap=${run.tapInstalled ?? '-'}/${run.tapDelivered ?? '-'} sockets=[${total}] ${report.findings.map((f) => f.key).join(', ')}`;
+    const ota = run.ota ? ` ota=${run.ota.applied ?? '-'}/${run.ota.bundled ?? '-'}/${run.ota.cdn ?? '-'}` : '';
+    return `${run.version ?? '-'} ${report.status}${cmp}${ota}${report.note ? ` (${report.note})` : ''} pane=${run.paneExists ? run.pane : 'none'} dom=${run.domChats ?? '-'} tap=${run.tapInstalled ?? '-'}/${run.tapDelivered ?? '-'} sockets=[${total}] ${report.findings.map((f) => f.key).join(', ')}`;
 }
 
 /** 주 경로 시험: 최신 릴리스, 스토어 버전이 다르면 같은 방송에서 스토어 버전도 */

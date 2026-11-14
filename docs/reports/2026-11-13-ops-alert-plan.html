@@ -506,6 +506,14 @@ interface Finding {
 <li>ovm <code>pull</code> 작업: 이번 pull에서 선택자 파일이 바뀌었으면 jsDelivr가 그 rev를 낼 때까지 1분 간격으로 확인하고(최대 30분), 그 뒤 canary와 live를 띄운다. live는 확장이 jsDelivr에서 OTA를 받으므로 사용자와 같은 길로 고친 결과를 확인한다.</li>
 <li>결과는 확인부 양식으로 <code>watch/checks/ota.json</code>에 남긴다: 도달하면 info "rev 22 도달", 30분 지나도 안 보이면 risk. 실제 시험 결과는 live 사건의 회복으로 이어진다.</li>
 </ul>
+<p><b>11-14 한 일:</b> 위 설계에서 바꾼 점이 있다.</p>
+<ul>
+<li>purge 워크플로는 만들지 않았다. ovm <code>ota</code> 작업(10분, <code>pull</code> 1분 뒤)이 리포와 jsDelivr를 비교해 다르면 purge한다. 워크플로가 몇 분 빠를 뿐이고, ovm이 멈추면 바깥 생존 확인이 알린다.</li>
+<li>1분 간격 30분 대기 대신 purge 30초 뒤 한 번 다시 보고, 그 뒤는 다음 실행(10분)이 본다. 30분 넘게 안 닿으면 새 빌드용 선택자는 위험, 옛 빌드용 선택자와 배지 목록은 참고.</li>
+<li>도달은 사건으로 남기지 않고 새 rev가 닿으면 <code>canary</code>, <code>main</code>을 바로 띄운다.</li>
+<li>더한 것: 확장이 실제로 적용했는지. 확장은 형식 번호가 안 맞는 선택자를 조용히 버린다. <code>main</code>이 확장 저장소의 적용 rev, 릴리스 태그의 내장 rev, jsDelivr rev를 읽어 낮으면 위험(<code>main:ota-rev</code>). 스토어 버전 2.25.0(내장 rev 21)으로 돌려 rev 22를 받아 적용하는 것을 확인했다.</li>
+<li>사용자에게 닿는 시간: 푸시 뒤 10분 안에 jsDelivr, 그 뒤 확장의 1시간 확인 주기 안.</li>
+</ul>
 
 <h3>S3. 단계 배포를 멈출 근거 <span class="tag">중간</span></h3>
 <p><b>왜:</b> <code>scheduled-publish.yml</code>이 매일 10 → 50 → 100%로 올린다. 새 버전 고장은 10%일 때 막으면 사용자 90%가 피한다. 지금은 멈출 근거가 없다.</p>

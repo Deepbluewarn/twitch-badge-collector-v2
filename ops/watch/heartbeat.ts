@@ -36,6 +36,7 @@ export const JOBS: { job: string; label: string; maxAgeMin: number }[] = [
     { job: 'info', label: '스토어, 배지, GA 수집 (3시간)', maxAgeMin: 240 },
     { job: 'usage', label: '확장 사용 통계 (5분)', maxAgeMin: 30 },
     { job: 'pull', label: '리포 갱신 (10분)', maxAgeMin: 40 },
+    { job: 'ota', label: 'OTA 전달 확인 (10분)', maxAgeMin: 40 },
     { job: 'spike', label: '방문 급증 알림 (30분)', maxAgeMin: 90 },
     { job: 'stats', label: '일일 통계 리포트 (매일 10시)', maxAgeMin: 26 * 60 },
     { job: 'channels', label: '구독 배지 페이지 데이터 (매일 5시 20분)', maxAgeMin: 26 * 60 },

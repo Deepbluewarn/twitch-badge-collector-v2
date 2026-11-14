@@ -75,11 +75,22 @@ export interface ContentSample {
     mismatches: ShadowMismatch[];
 }
 
+/** 선택자 rev. 확장이 받아 적용한 것(저장소), 확장에 들어 있던 것, 지금 jsDelivr가 주는 것 */
+export interface OtaRevs {
+    applied?: number;
+    bundled?: number;
+    cdn?: number;
+}
+
 export interface MainRun extends Partial<PageObservation> {
     at: number;
     version?: string;
     error?: string;
+    ota?: OtaRevs;
 }
+
+/** 확장이 쓰는 선택자 rev: 받아 적용한 것이 있으면 그것, 없으면 들어 있던 것 */
+export const effectiveRev = (o: OtaRevs) => (o.applied ?? o.bundled);
 
 /** 어긋남이 이만큼(비율과 건수 둘 다) 넘어야 사건이다. 한두 건의 우연한 차이로는 울리지 않게 */
 export const CONTENT_RATIO = 0.1;
@@ -223,6 +234,21 @@ export function judgeMain(run: MainRun, groupOf = new Map<string, string>()): Ch
             level: 'risk',
             title: run.pane ? '소켓 경로가 죽어 HTML 대체 경로로 동작 중' : '소켓 경로가 죽음',
             lines: [...reasons, ...where, '급하면 OTA constants.socketRender: 0 (docs/ota-selectors.md)'],
+        });
+    }
+
+    // 확장은 형식 번호가 안 맞으면 받은 선택자를 조용히 버린다 (ota-fetch.ts, host-selectors.ts setManifest)
+    const rev = run.ota && effectiveRev(run.ota);
+    if (run.ota?.cdn !== undefined && rev !== undefined && rev < run.ota.cdn) {
+        findings.push({
+            key: 'main:ota-rev',
+            level: 'risk',
+            title: `확장이 jsDelivr의 선택자 rev ${run.ota.cdn}을(를) 적용하지 않음 (지금 rev ${rev})`,
+            lines: [
+                run.ota.applied === undefined ? `받아 적용한 선택자 없음, 확장에 든 rev ${run.ota.bundled}` : `받아 적용한 rev ${run.ota.applied}`,
+                '형식 번호(schemaVersion)나 검증에 걸려 버려졌는지 볼 것: src/platform/host-selectors.ts setManifest, ota-fetch.ts',
+                ...where,
+            ],
         });
     }
 

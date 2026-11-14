@@ -179,3 +179,21 @@ describe('mergeStoreReport', () => {
         expect(mergeStoreReport(blind, blind, '2.28.0').status).toBe('unknown');
     });
 });
+
+describe('선택자 rev 적용', () => {
+    it('jsDelivr rev를 적용했거나 확장에 든 rev가 같으면 정상', () => {
+        expect(judgeMain({ ...healthy, ota: { applied: 23, bundled: 22, cdn: 23 } }).status).toBe('ok');
+        expect(judgeMain({ ...healthy, ota: { bundled: 22, cdn: 22 } }).status).toBe('ok');
+    });
+
+    it('받은 선택자가 버려져 옛 rev로 돌면 위험', () => {
+        const r = judgeMain({ ...healthy, ota: { bundled: 22, cdn: 23 } });
+        expect(r.findings.map((f) => [f.key, f.level])).toEqual([['main:ota-rev', 'risk']]);
+        expect(r.findings[0].lines![0]).toBe('받아 적용한 선택자 없음, 확장에 든 rev 22');
+    });
+
+    it('rev를 하나라도 모르면 판정하지 않는다', () => {
+        expect(judgeMain({ ...healthy, ota: { cdn: 23 } }).status).toBe('ok');
+        expect(judgeMain({ ...healthy, ota: { bundled: 22 } }).status).toBe('ok');
+    });
+});

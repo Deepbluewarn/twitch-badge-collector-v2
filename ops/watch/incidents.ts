@@ -85,6 +85,7 @@ export const CHECK_LABEL: Record<string, string> = {
     live: '확장 실제 시험',
     main: '주 경로 시험',
     bundle: '번들 검사',
+    ota: 'OTA 전달',
     heartbeat: '감시 작업 확인',
     badges: '새 배지',
     spike: '방문 급증',

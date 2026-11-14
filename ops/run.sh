@@ -38,6 +38,7 @@ run() {
         socket) npx tsx ops/watch/canary.ts socket ;;
         live) npx tsx ops/watch/live-check.ts ;;
         main) npx tsx ops/watch/live-check.ts --main ;;
+        ota) npx tsx ops/watch/ota.ts ;;
         info) npx tsx ops/watch/info.ts ;;
         badges) npx tsx ops/watch/new-badges.ts ;;
         channels) sh ops/watch/site-channels.sh ;;

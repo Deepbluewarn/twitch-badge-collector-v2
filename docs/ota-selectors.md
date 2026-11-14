@@ -52,11 +52,13 @@ MAIN(inject, React props 접근용)은 `browser` 자체가 없다. **MAIN이 man
 3. 검증되면 같은 변경을 `src/platform/bundled-selectors.prod.json`에 적용.
 4. **`rev` 값 +1** (필수, strict monotonic).
 5. master에 커밋 + 푸시.
-6. jsDelivr 캐시 갱신 대기 (수 분 ~ 12시간) — 긴급 시 수동 purge:
+6. jsDelivr 캐시: ovm `ota` 작업이 10분 안에 리포와 비교해 purge한다. 새 rev가 닿으면 선택자 카나리와 주 경로 시험을 바로 돌리고,
+   30분 넘게 안 닿으면 위험 알림이 온다([docs/monitoring.md](monitoring.md)). ovm이 멈췄을 때만 손으로 purge:
    ```
    https://purge.jsdelivr.net/gh/Deepbluewarn/twitch-badge-collector-v2@master/src/platform/bundled-selectors.prod.json
    ```
-7. 사용자 측: 다음 SW wake 때 자동 갱신.
+7. 사용자 측: 다음 SW wake 때 자동 갱신(받은 지 1시간 지났을 때). 주 경로 시험이 빈 프로필의 확장에 적용된 rev를 보고,
+   jsDelivr rev보다 낮으면(형식 번호가 안 맞아 버려짐 등) `main:ota-rev` 위험을 낸다.
 
 ### 구 빌드 사용자 (v2.18.15 이하) 대상
 
