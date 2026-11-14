@@ -8,9 +8,10 @@
  *
  * 토큰: ~/.config/badge-collector/ops.env GITHUB_ISSUES_TOKEN (이 리포만, Issues 읽기와 쓰기). 없으면 건너뛴다.
  * 토큰을 나중에 넣으면 그때 열려 있는 대상 사건의 이슈가 한꺼번에 열린다.
+ * 토큰 상태는 보고서(checks/issues.json)로 남겨 다음 상황실 실행이 알린다(judgeIssues): 만료 7일 전, 거절(401)이면 위험.
  */
 import type { AutoFixProbe } from '../../scripts/canary/snapshot-types.ts';
-import { CHECK_LABEL, LEVEL_LABEL, type Incident } from './incidents.ts';
+import { CHECK_LABEL, LEVEL_LABEL, type CheckReport, type Finding, type Incident } from './incidents.ts';
 import { REPO } from './state.ts';
 
 export const LABEL = 'ops-alert';
@@ -102,20 +103,74 @@ export function issueBody(i: Incident, rev: number): { title: string; body: stri
     return { title: title.length > 200 ? `${title.slice(0, 199)}…` : title, body: parts.join('\n'), labels: [LABEL, `ops:${i.check}`] };
 }
 
+const DAY = 86_400_000;
+/** 토큰 만료가 이만큼 남으면 알린다 */
+export const EXPIRY_WARN_MS = 7 * DAY;
+
+/** 이번 상황실 실행에서 GitHub와 주고받은 결과 */
+export interface IssueRun {
+    /** 토큰이 없어 건너뜀 */
+    skipped?: boolean;
+    /** 실패한 요청의 HTTP 상태(네트워크 실패는 0)와 내용 */
+    errors: { status: number; message: string }[];
+    /** 응답 헤더의 토큰 만료 시각 */
+    expiresAt?: number;
+}
+
+export function judgeIssues(run: IssueRun, now: number): CheckReport {
+    const base = { check: 'issues', at: now };
+    if (run.skipped) return { ...base, status: 'ok', note: '토큰 없음, 이슈를 열지 않음', findings: [] };
+    const findings: Finding[] = [];
+    const fix = ['새 토큰: GitHub fine-grained, 이 리포만, Issues 읽기와 쓰기', 'ovm ~/.config/badge-collector/ops.env의 GITHUB_ISSUES_TOKEN을 바꾼다'];
+    const rejected = run.errors.find((e) => e.status === 401);
+    if (rejected) {
+        findings.push({ key: 'issues:token', level: 'risk', title: '이슈 토큰이 거절됨 (만료되었거나 지워짐). 감시 이슈가 열리지 않는다', lines: [rejected.message, ...fix] });
+    } else if (run.expiresAt !== undefined && run.expiresAt - now < EXPIRY_WARN_MS) {
+        const left = Math.max(0, Math.ceil((run.expiresAt - now) / DAY));
+        findings.push({ key: 'issues:token-expiring', level: 'risk', title: `이슈 토큰이 ${left}일 뒤 만료 (${new Date(run.expiresAt + 9 * 3_600_000).toISOString().slice(0, 10)})`, lines: fix });
+    }
+    const forbidden = run.errors.find((e) => e.status === 403 || e.status === 404);
+    if (forbidden) findings.push({ key: 'issues:permission', level: 'risk', title: '이슈 토큰 권한이 모자람 (이 리포의 Issues 쓰기가 필요)', lines: [forbidden.message, ...fix] });
+    if (findings.length) return { ...base, status: 'issue', findings };
+    // 그 밖의 실패(네트워크, GitHub 장애)는 확인 못 함. 연달아 이어질 때만 상황실이 위험으로 올린다
+    if (run.errors.length) return { ...base, status: 'error', note: run.errors[0].message, findings };
+    return { ...base, status: 'ok', findings };
+}
+
 // ── GitHub ──
 
-async function gh<T>(token: string, method: string, path: string, body?: unknown): Promise<T> {
-    const res = await fetch(`https://api.github.com/repos/${REPO}${path}`, {
-        method,
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'User-Agent': 'badge-collector-ops', 'X-GitHub-Api-Version': '2022-11-28' },
-        body: body === undefined ? undefined : JSON.stringify(body),
-    });
-    if (!res.ok) throw new Error(`GitHub ${method} ${path}: ${res.status} ${(await res.text()).slice(0, 200)}`);
+class GitHubError extends Error {
+    constructor(readonly status: number, message: string) {
+        super(message);
+    }
+}
+
+async function gh<T>(token: string, method: string, path: string, body: unknown, run: IssueRun): Promise<T> {
+    let res: Response;
+    try {
+        res = await fetch(`https://api.github.com/repos/${REPO}${path}`, {
+            method,
+            headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'User-Agent': 'badge-collector-ops', 'X-GitHub-Api-Version': '2022-11-28' },
+            body: body === undefined ? undefined : JSON.stringify(body),
+        });
+    } catch (e) {
+        throw new GitHubError(0, `GitHub ${method} ${path}: ${String((e as Error).message ?? e)}`);
+    }
+    // fine-grained 토큰은 응답마다 만료 시각을 알려 준다 (예: 2027-02-12 03:00:00 UTC)
+    const expiry = Date.parse(res.headers.get('github-authentication-token-expiration')?.replace(' UTC', 'Z').replace(' ', 'T') ?? '');
+    if (!Number.isNaN(expiry)) run.expiresAt = expiry;
+    if (!res.ok) throw new GitHubError(res.status, `GitHub ${method} ${path}: ${res.status} ${(await res.text()).slice(0, 200)}`);
     return (await res.json()) as T;
 }
 
-async function openIssues(token: string): Promise<Map<string, IssueRef>> {
-    const list = await gh<{ number: number; html_url: string; body: string | null; pull_request?: unknown }[]>(token, 'GET', `/issues?labels=${LABEL}&state=open&per_page=100`);
+const failed = (run: IssueRun, e: unknown) => {
+    const err = e instanceof GitHubError ? e : new GitHubError(0, String((e as Error)?.message ?? e));
+    run.errors.push({ status: err.status, message: err.message });
+    return err.message;
+};
+
+async function openIssues(token: string, run: IssueRun): Promise<Map<string, IssueRef>> {
+    const list = await gh<{ number: number; html_url: string; body: string | null; pull_request?: unknown }[]>(token, 'GET', `/issues?labels=${LABEL}&state=open&per_page=100`, undefined, run);
     const map = new Map<string, IssueRef>();
     for (const x of list) {
         const key = x.body?.match(MARKER)?.[1];
@@ -124,45 +179,53 @@ async function openIssues(token: string): Promise<Map<string, IssueRef>> {
     return map;
 }
 
-async function ensureLabels(token: string, labels: string[]): Promise<void> {
+async function ensureLabels(token: string, labels: string[], run: IssueRun): Promise<void> {
     for (const name of labels) {
         // 이미 있으면 422. 무시한다
-        await gh(token, 'POST', '/labels', { name, color: name === LABEL ? 'B60205' : 'D93F0B', description: name === LABEL ? 'ovm 감시 상황실이 연 이슈' : '' }).catch(() => {});
+        await gh(token, 'POST', '/labels', { name, color: name === LABEL ? 'B60205' : 'D93F0B', description: name === LABEL ? 'ovm 감시 상황실이 연 이슈' : '' }, run).catch(() => {});
     }
 }
 
 /**
- * 이슈를 맞추고 갱신된 issues.json 내용을 돌려준다. 하나가 실패해도 나머지는 한다(실패는 로그에).
- * 새로 연 이슈는 created에 넣어 알림에 링크를 붙인다.
+ * 이슈를 맞추고 갱신된 issues.json 내용을 돌려준다. 하나가 실패해도 나머지는 한다(실패는 run.errors와 로그에).
+ * links는 사건 key → 이슈 주소. 알림에 링크를 붙인다.
  */
-export async function syncIssues(token: string, open: Record<string, Incident>, known: Record<string, IssueRef>, rev: number, log: (s: string) => void): Promise<{ known: Record<string, IssueRef>; links: Map<string, string> }> {
+export async function syncIssues(token: string, open: Record<string, Incident>, known: Record<string, IssueRef>, rev: number, log: (s: string) => void): Promise<{ known: Record<string, IssueRef>; links: Map<string, string>; run: IssueRun }> {
+    const run: IssueRun = { errors: [] };
     const next = { ...known };
     const links = new Map<string, string>(Object.entries(known).map(([k, r]) => [k, r.url]));
-    const plan = planIssues(open, known, await openIssues(token));
+    let existing: Map<string, IssueRef>;
+    try {
+        existing = await openIssues(token, run);
+    } catch (e) {
+        log(`열린 이슈 목록 실패: ${failed(run, e)}`);
+        return { known, links, run };
+    }
+    const plan = planIssues(open, known, existing);
     for (const [key, ref] of plan.adopt) {
         next[key] = ref;
         links.set(key, ref.url);
     }
-    if (plan.create.length) await ensureLabels(token, [LABEL, ...new Set(plan.create.map((i) => `ops:${i.check}`))]);
+    if (plan.create.length) await ensureLabels(token, [LABEL, ...new Set(plan.create.map((i) => `ops:${i.check}`))], run);
     for (const i of plan.create) {
         try {
-            const created = await gh<{ number: number; html_url: string }>(token, 'POST', '/issues', issueBody(i, rev));
+            const created = await gh<{ number: number; html_url: string }>(token, 'POST', '/issues', issueBody(i, rev), run);
             next[i.key] = { number: created.number, url: created.html_url };
             links.set(i.key, created.html_url);
             log(`이슈 #${created.number} 열림 ${i.key}`);
         } catch (e) {
-            log(`이슈 열기 실패 ${i.key}: ${String((e as Error).message ?? e)}`);
+            log(`이슈 열기 실패 ${i.key}: ${failed(run, e)}`);
         }
     }
     for (const [key, ref] of plan.close) {
         try {
-            await gh(token, 'POST', `/issues/${ref.number}/comments`, { body: `회복: 감시에서 더 이상 보이지 않는다 (${kst(Date.now())} 한국). 자동으로 닫는다.` });
-            await gh(token, 'PATCH', `/issues/${ref.number}`, { state: 'closed', state_reason: 'completed' });
+            await gh(token, 'POST', `/issues/${ref.number}/comments`, { body: `회복: 감시에서 더 이상 보이지 않는다 (${kst(Date.now())} 한국). 자동으로 닫는다.` }, run);
+            await gh(token, 'PATCH', `/issues/${ref.number}`, { state: 'closed', state_reason: 'completed' }, run);
             delete next[key];
             log(`이슈 #${ref.number} 닫음 ${key}`);
         } catch (e) {
-            log(`이슈 닫기 실패 #${ref.number}: ${String((e as Error).message ?? e)}`);
+            log(`이슈 닫기 실패 #${ref.number}: ${failed(run, e)}`);
         }
     }
-    return { known: next, links };
+    return { known: next, links, run };
 }

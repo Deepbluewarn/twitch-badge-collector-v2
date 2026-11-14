@@ -89,6 +89,7 @@ export const CHECK_LABEL: Record<string, string> = {
     bundle: '번들 검사',
     ota: 'OTA 전달',
     collect: '사용자 수집 비율',
+    issues: '감시 이슈',
     heartbeat: '감시 작업 확인',
     badges: '새 배지',
     spike: '방문 급증',

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Incident } from './incidents.ts';
-import { isIssueWorthy, issueBody, planIssues, selectorFix } from './issues.ts';
+import { isIssueWorthy, issueBody, judgeIssues, planIssues, selectorFix } from './issues.ts';
 
 const inc = (key: string, over: Partial<Incident> = {}): Incident => ({ key, check: 'selector', level: 'broken', title: '제목', lines: ['줄'], firstSeen: 0, lastSeen: 0, lastNotified: 0, ...over });
 const ref = (n: number) => ({ number: n, url: `https://github.com/x/y/issues/${n}` });
@@ -60,5 +60,34 @@ describe('issueBody', () => {
 
     it('후보가 없으면 고칠 내용 절이 없다', () => {
         expect(issueBody(inc('main:no-pane', { check: 'main' }), 22).body).not.toContain('## 고칠 내용');
+    });
+});
+
+describe('judgeIssues', () => {
+    const NOW = Date.UTC(2027, 1, 1);
+    const DAY = 86_400_000;
+
+    it('토큰이 없으면 정상(건너뜀)', () => {
+        expect(judgeIssues({ skipped: true, errors: [] }, NOW).status).toBe('ok');
+    });
+
+    it('만료 7일 전부터 위험', () => {
+        expect(judgeIssues({ errors: [], expiresAt: NOW + 8 * DAY }, NOW).status).toBe('ok');
+        const r = judgeIssues({ errors: [], expiresAt: NOW + 3 * DAY }, NOW);
+        expect(r.findings.map((f) => [f.key, f.level, f.title])).toEqual([['issues:token-expiring', 'risk', '이슈 토큰이 3일 뒤 만료 (2027-02-04)']]);
+    });
+
+    it('거절(401)이면 위험, 만료 임박 사건 대신', () => {
+        const r = judgeIssues({ errors: [{ status: 401, message: 'GitHub GET /issues: 401 Bad credentials' }], expiresAt: NOW - DAY }, NOW);
+        expect(r.findings.map((f) => [f.key, f.level])).toEqual([['issues:token', 'risk']]);
+    });
+
+    it('권한이 모자라면(403) 위험', () => {
+        expect(judgeIssues({ errors: [{ status: 403, message: 'x' }] }, NOW).findings.map((f) => f.key)).toEqual(['issues:permission']);
+    });
+
+    it('네트워크, GitHub 장애는 확인 못 함', () => {
+        const r = judgeIssues({ errors: [{ status: 502, message: 'GitHub GET /issues: 502' }] }, NOW);
+        expect([r.status, r.findings.length]).toEqual(['error', 0]);
     });
 });

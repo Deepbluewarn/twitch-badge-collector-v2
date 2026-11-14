@@ -17,8 +17,8 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { DRY_RUN, postDiscord } from '../common.ts';
 import { formatAlerts, reconcile, type CheckReport, type Ledger } from './incidents.ts';
-import { syncIssues, type IssueRef } from './issues.ts';
-import { WATCH_DIR, readJson, writeJson } from './state.ts';
+import { judgeIssues, syncIssues, type IssueRef } from './issues.ts';
+import { WATCH_DIR, readJson, writeCheck, writeJson } from './state.ts';
 
 const CHECKS_DIR = join(WATCH_DIR, 'checks');
 const ALERTS_LOG = join(WATCH_DIR, '../alerts.jsonl');
@@ -39,20 +39,20 @@ async function main(): Promise<void> {
     const prev = readJson<Ledger>('incidents');
     const { ledger, alerts } = reconcile(prev, readReports(), now);
 
-    // 이슈가 실패해도 Discord 알림은 보낸다
+    // 이슈가 실패해도 Discord 알림은 보낸다. 토큰 상태는 보고서로 남겨 다음 실행이 알린다(만료, 거절)
     const token = process.env.GITHUB_ISSUES_TOKEN;
-    if (token && !DRY_RUN) {
-        try {
+    if (!DRY_RUN) {
+        if (!token) writeCheck(judgeIssues({ skipped: true, errors: [] }, now));
+        else {
             const rev = (JSON.parse(readFileSync(SELECTORS, 'utf8')) as { rev: number }).rev;
             const synced = await syncIssues(token, ledger.open, readJson<Record<string, IssueRef>>('issues') ?? {}, rev, (s) => console.log(`[dispatch] ${s}`));
             writeJson('issues', synced.known);
+            writeCheck(judgeIssues(synced.run, now));
             for (const a of alerts) {
                 const url = synced.links.get(a.key);
                 // 다시 알림은 앞 몇 줄만 보이므로 맨 앞에
                 if (url && a.state !== 'resolved') a.lines = [`이슈: ${url}`, ...a.lines];
             }
-        } catch (e) {
-            console.error(`[dispatch] 이슈 맞추기 실패: ${String((e as Error).message ?? e)}`);
         }
     }
 
