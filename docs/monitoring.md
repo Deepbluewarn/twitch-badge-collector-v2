@@ -21,7 +21,7 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 ├─ ~/.config/badge-collector/  비밀 값 (리포에 없음)
 │   ├─ community-watch.env      DISCORD_COMMUNITY_WEBHOOK (참고 알림, 하루 리포트), DISCORD_URGENT_WEBHOOK (긴급, 선택), DISCORD_MENTION_USER_ID (깨짐 때 멘션, 선택)
 │   ├─ cloudflare.env           CF_ACCOUNT_ID, CF_ANALYTICS_TOKEN (Account Analytics 읽기, 확장 익명 통계 조회)
-│   └─ ops.env                  OPS_HEALTHCHECK_URL (healthchecks.io, 11-14부터)
+│   └─ ops.env                  OPS_HEALTHCHECK_URL (healthchecks.io, 11-14부터), GITHUB_ISSUES_TOKEN (이슈, 이 리포 Issues 읽기와 쓰기만)
 ├─ ~/.config/analytics-mcp/adc.json   GA 인증 (사용자 refresh token)
 └─ ~/.local/state/badge-collector/    결과
     ├─ ops.log                  실행마다 한 줄
@@ -68,6 +68,7 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 - 깜빡이는 참고(드문 메시지, 처음 보는 값)는 닫힌 뒤 7일 안에 다시 보여도 알리지 않는다.
 - 장부가 없을 때(처음 켤 때, 지웠을 때)는 지금 보이는 것을 알리지 않고 장부에만 적는다.
 - 상황실이 실패하면 `run.sh`가 웹훅으로 "상황실 실패" 한 줄을 보낸다(1시간에 한 번까지).
+- 고칠 사건(깨짐 전부, 선택자 카나리의 위험)은 GitHub 이슈로도 연다(`ops/watch/issues.ts`, 라벨 `ops-alert`, `ops:<확인>`). 사건이 장부에서 사라지면 댓글을 달고 닫는다. 본문 끝 `<!-- ops-alert key: ... -->`로 이슈를 찾으므로 `watch/issues.json`이 사라져도 다시 잇는다. 선택자 사건에 검증된 후보가 있으면 바꿀 JSON 줄(rev+1)을 본문에 넣는다. Discord 알림에는 이슈 링크가 붙는다. 토큰이 없으면 이 단계만 건너뛴다. 처리는 로컬 스킬 `.claude/skills/ops-alert`.
 
 손으로 볼 때: `npx tsx ops/watch/dispatch.ts --dry-run` (보낼 알림만 출력, 장부와 기록은 그대로).
 
@@ -166,3 +167,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-14 | OTA 전달 확인 `ota`(10분): 리포와 jsDelivr가 다르면 purge, 30분 넘게 안 닿으면 알림, 새 선택자가 닿으면 `canary`, `main`을 바로. `main`이 확장에 적용된 선택자 rev를 본다(`main:ota-rev`). crontab 다시 설치 |
 | 2026-11-14 | 실제 사용자 수집 비율 `collect`(`usage` 작업 안). 단계 배포 멈추기(S3)는 뺌: 최근 게시가 모두 바로 100%였고 다음 날 사용자 대부분이 새 버전이라 전체 비율로 잡힌다 |
 | 2026-11-14 | 다시보기 선택자 카나리 `vod`(6시간). 인기 채널의 최근 다시보기 번호를 API로 찾는다(예전 스크립트는 다시보기 주소에 채널 ID를 넣어 동작하지 않았다). 6시간 실제 시험에 치지직 다시보기 경로. crontab 다시 설치 |
+| 2026-11-14 | 상황실이 고칠 사건을 GitHub 이슈로 열고 회복하면 닫는다(`issues.ts`, `GITHUB_ISSUES_TOKEN`). 선택자 후보가 있으면 바꿀 JSON 줄을 본문에. 처리 스킬 `.claude/skills/ops-alert`(로컬). 시험 이슈 #29를 열고 닫음 |

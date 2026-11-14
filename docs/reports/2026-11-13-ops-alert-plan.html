@@ -505,6 +505,7 @@ interface Finding {
 <li><b>처리 스킬</b> <code>.claude/skills/ops-alert/SKILL.md</code>(로컬 전용, <code>.claude/skills/ga/</code>와 같은 자리): 열린 <code>ops-alert</code> 이슈를 읽고, 선택자는 <code>docs/ota-selectors.md</code> 절차로 후보를 넣고 시험을 돌린 뒤 diff를 보여 주고 <b>사용자 확인을 받고</b> 푸시한다(푸시가 곧 OTA 배포). 새 배지는 <code>docs/chzzk-badges.md</code>. 후보가 없거나 여럿이면 고치지 않고 조사 결과를 댓글로.</li>
 <li>이슈 열림, 닫힘 시각이 1장의 조치 시간이 된다. "확장 문제 아님"으로 닫은 이슈가 오탐률이 된다.</li>
 </ul>
+<p><b>11-14 한 일:</b> <code>ops/watch/issues.ts</code>를 상황실에 붙였다. 대상은 깨짐 사건 전부와 선택자 카나리(라이브, 다시보기)의 위험 사건. 회복하면 댓글을 달고 닫는다. 이슈 링크는 알림 맨 앞 줄에 붙는다(다시 알림은 앞 몇 줄만 보여서). 토큰이 없으면 이슈만 건너뛰고, 넣으면 그때 열려 있는 대상 사건이 한꺼번에 열린다. 시험 이슈 #29를 열고 닫았다(라벨, 표시, 회복 댓글 확인). 스킬은 <code>.claude/skills/ops-alert/SKILL.md</code>(로컬, 리포에 올리지 않는다). 가짜 선택자 이슈를 스킬로 커밋 직전까지 처리하는 시험은 토큰을 넣은 뒤 실제 이슈로 한다.</p>
 
 <h3>S2. OTA 도달을 15분 안으로, 그리고 확인 <span class="tag">작음</span></h3>
 <p><b>왜:</b> 고쳐 푸시해도 jsDelivr가 최대 12시간 옛 파일을 낸다. 지금은 손으로 purge하고, 확인하는 감시가 없다.</p>
