@@ -177,12 +177,13 @@ function barChart(rows: { date: string; value: number; title: string }[], label:
 }
 
 /** 기능, 설정 비율 표. 4주 평균이 기준 아래면 램프를 켠다(모인 기간이 짧으면 켜지 않는다) */
-function ratioTable(items: Ratio[], nowLabel: string, judged: boolean, review: number, avgLabel = '4주 평균'): string {
+function ratioTable(items: Ratio[], nowLabel: string, judged: boolean, review: number, avgLabel = '4주 평균', curLabel = ''): string {
     const rows = [...items].sort((a, b) => b.avg - a.avg || b.now - a.now).map((r) => {
         const low = judged && r.avg < review;
-        return `<tr><td><div class="item">${lamp(low ? 'risk' : 'off', low ? `4주 평균 ${pct(review)} 미만` : '')}<div><div>${esc(r.label)}</div><div class="meta">${esc(r.desc)}</div></div></div></td><td class="n">${pct(r.now)}<div class="meta">${r.nowN}명</div></td><td class="n${low ? ' warn' : ''}">${pct(r.avg)}<div class="meta">${r.avgN}명</div></td></tr>`;
+        const cur = curLabel ? `<td class="n">${r.cur === undefined ? '-' : `${pct(r.cur)}<div class="meta">${r.curN}명</div>`}</td>` : '';
+        return `<tr><td><div class="item">${lamp(low ? 'risk' : 'off', low ? `4주 평균 ${pct(review)} 미만` : '')}<div><div>${esc(r.label)}</div><div class="meta">${esc(r.desc)}</div></div></div></td><td class="n">${pct(r.now)}<div class="meta">${r.nowN}명</div></td>${cur}<td class="n${low ? ' warn' : ''}">${pct(r.avg)}<div class="meta">${r.avgN}명</div></td></tr>`;
     }).join('');
-    return `<table><thead><tr><th></th><th class="n">${nowLabel}</th><th class="n">${avgLabel}</th></tr></thead><tbody>${rows}</tbody></table>`;
+    return `<table><thead><tr><th></th><th class="n">${nowLabel}</th>${curLabel ? `<th class="n">${curLabel}</th>` : ''}<th class="n">${avgLabel}</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 const desc = (text: string) => `<p class="desc">${text}</p>`;
@@ -236,10 +237,10 @@ ${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)
     ];
     const groups = st ? GROUPS.map((g) => {
         const items = g.keys.map((k) => st.items.find((i) => i.key === k)).filter((i): i is Ratio => !!i);
-        return `<div class="group"><h3>${g.title}</h3>${desc(g.text)}${ratioTable(items, g.label, g.judged && st.weeks >= u.minWeeks, u.review, '4주')}</div>`;
+        return `<div class="group"><h3>${g.title}</h3>${desc(g.text)}${ratioTable(items, g.label, g.judged && st.weeks >= u.minWeeks, u.review, '4주', st.current ? '이번 주' : '')}</div>`;
     }).join('') : '';
-    const settings = `<section class="panel wide"><div class="panel-head"><h2>설정</h2><span class="meta">${st ? `${esc(st.range)}${st.partial ? ' (진행 중)' : ''}, 사용자 ${st.users}명` : '기록 없음'}</span></div>
-${desc(`그 주에 확장을 쓴 사람 중 해당하는 사람의 비율과 추정 인원. 4주 칸은 주 평균. 인원은 Cloudflare 표본 배율을 반영한 추정치라 몇 명 차이는 날 수 있다. 주에 한 번, 그 주에 처음 쓴 날의 설정 상태를 본다. ${st?.partial ? '배포 첫 주라 진행 중인 이번 주를 보여 준다.' : '끝난 지난주 기준.'}`)}
+    const settings = `<section class="panel wide"><div class="panel-head"><h2>설정</h2><span class="meta">${st ? `${esc(st.range)}${st.partial ? ' (진행 중)' : ''}, 사용자 ${st.users}명${st.current ? `. 이번 주 ${esc(st.current.range)} 진행 중, ${st.current.users}명` : ''}` : '기록 없음'}</span></div>
+${desc(`그 주에 확장을 쓴 사람 중 해당하는 사람의 비율과 추정 인원. 4주 칸은 주 평균. 인원은 Cloudflare 표본 배율을 반영한 추정치라 몇 명 차이는 날 수 있다. 주에 한 번, 그 주에 처음 쓴 날의 설정 상태를 본다. ${st?.partial ? '배포 첫 주라 진행 중인 이번 주를 보여 준다.' : '첫 칸은 끝난 지난주. 이번 주 칸은 지금까지 온 기록이라 주 초반엔 자주 쓰는 사람 위주로 잡힌다. 판정은 지난주와 4주로만 한다.'}`)}
 ${st ? `<div class="groups">${groups}</div>
 <p class="figure-line" style="margin-top:16px"><span class="label">브라우저 언어</span><span class="mono">${st.langs.slice(0, 8).map((l) => `${esc(l.lang)} ${pct(l.ratio)} (${l.n}명)`).join(', ')}</span></p>` : ''}</section>`;
 

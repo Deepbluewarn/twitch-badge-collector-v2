@@ -151,8 +151,8 @@ function isoWeek(date: string): string {
     return `${year}-W${String(Math.ceil(((t.getTime() - Date.UTC(year, 0, 1)) / DAY + 1) / 7)).padStart(2, '0')}`;
 }
 
-/** now, avg는 비율. nowN, avgN은 추정 인원(표본 배율 반영). 기능의 avgN은 하루 평균, 설정의 avgN은 주 평균 */
-export interface Ratio { key: string; label: string; desc: string; now: number; avg: number; nowN: number; avgN: number }
+/** now, avg는 비율. nowN, avgN은 추정 인원(표본 배율 반영). 기능의 avgN은 하루 평균, 설정의 avgN은 주 평균. cur, curN은 설정의 진행 중인 이번 주 */
+export interface Ratio { key: string; label: string; desc: string; now: number; avg: number; nowN: number; avgN: number; cur?: number; curN?: number }
 export interface UsageSummary {
     at: number;
     /** 기준일(어제, 한국 날짜) */
@@ -168,7 +168,9 @@ export interface UsageSummary {
     /** 지난 완결된 주의 설정 기록. now = 그 주 비율, avg = 최근 4주 평균 */
     /** partial = 지난주 기록이 없어 진행 중인 이번 주를 보여 준다 (배포 첫 주) */
     /** users = 그 주 주간 기록 수(= 그 주에 쓴 사람), chrome = 그중 Chrome. 스토어 사용자와 견줄 때 쓴다 */
-    settings: null | { week: string; range: string; partial: boolean; users: number; chrome: number; weeks: number; items: Ratio[]; langs: { lang: string; ratio: number; n: number }[] };
+    /** current = 진행 중인 이번 주(주 초반엔 자주 쓰는 사람 위주라 비율이 부풀 수 있다). partial이면 null */
+    settings: null | { week: string; range: string; partial: boolean; users: number; chrome: number; weeks: number; items: Ratio[]; langs: { lang: string; ratio: number; n: number }[];
+        current: null | { week: string; range: string; users: number } };
     review: number;
     minDays: number;
     minWeeks: number;
@@ -266,17 +268,21 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
     const shownWeek = partial ? thisWeek : lastWeek;
     const last = tally((w) => w === shownWeek);
     const recent = tally((w) => recentWeeks.has(w) || (partial && w === thisWeek));
+    const cur = partial ? null : tally((w) => w === thisWeek);
+    const thisSunday = shiftDay(today, 7 - (dow(today) || 7));
     const settings = last.users === 0 ? null : {
         week: shownWeek,
         // 사람이 읽는 날짜 범위 (월요일 ~ 일요일)
-        range: (() => { const sun = partial ? shiftDay(today, 7 - (dow(today) || 7)) : lastSunday; return `${shiftDay(sun, -6).slice(5)} ~ ${sun.slice(5)}`; })(),
+        range: (() => { const sun = partial ? thisSunday : lastSunday; return `${shiftDay(sun, -6).slice(5)} ~ ${sun.slice(5)}`; })(),
         partial,
         users: last.users,
         chrome: last.chrome,
         weeks: recent.weeks,
         items: SETTING_FLAGS.map((key, i) => ({ key, label: SETTING_TEXT[key][0], desc: SETTING_TEXT[key][1], now: last.ratio[i], avg: recent.ratio[i],
-            nowN: Math.round(last.counts[i]), avgN: Math.round(recent.counts[i] / (recent.weeks || 1)) })),
+            nowN: Math.round(last.counts[i]), avgN: Math.round(recent.counts[i] / (recent.weeks || 1)),
+            ...(cur?.users ? { cur: cur.ratio[i], curN: Math.round(cur.counts[i]) } : {}) })),
         langs: [...last.langs].sort((a, b) => b[1] - a[1]).map(([lang, n]) => ({ lang, ratio: n / last.users, n: Math.round(n) })),
+        current: cur?.users ? { week: thisWeek, range: `${shiftDay(thisSunday, -6).slice(5)} ~ ${thisSunday.slice(5)}`, users: Math.round(cur.users) } : null,
     };
 
     // 이번 주 사용자는 주간 기록 수로 센다 — 설치마다 그 주 처음 쓴 날 바로 오므로, 다음 날 오는 하루 기록의 firstWeek보다 빠르다
