@@ -11,6 +11,7 @@ import { isSocketShadowEnabled, socketIdFromHostKey, startChzzkSocketShadow } fr
 import { isSocketRenderEnabled } from "@/content-scripts/chzzk/socket-mode";
 import { TBC_BLOCK_LIST_REQUEST, TBC_SOCKET_CHAT_ACTION, TbcSocketChatMessage } from "@/interfaces/chat-attributes";
 import { applyBlindEvent, toChatInfo, type ChzzkSocketChat } from "@/platform/chzzk-socket";
+import { VERIFIED_MARK_URL } from "@/platform/chzzk-verified";
 import { renderChzzkChat, type ChzzkTemplates } from "@/render/chzzk-render";
 import { getPlatformConfig } from "@/platform/host-selectors";
 import type { ArchiveKind } from "@/archive/chat-archive";
@@ -27,6 +28,8 @@ export interface PassedChat {
     /** bar preview 등 파생 뷰용 — buffer 안에서 latest 재emit 위해 함께 전달. */
     nickname: string;
     text: string;
+    /** bar preview에서 닉네임 앞에 그릴 배지 그림 주소. 인증 마크는 빼고. */
+    badges: string[];
     /** 보관함(src/archive)에 넣을 나머지 값 — 화면용 clone과 별개로 데이터에서 바로 뽑는다. 보관함엔 트위치 라이브만 쓴다(치지직 라이브는 chzzk-archive-feed가 따로 기록, 다시보기는 보관하지 않는다). */
     archive?: { badges: string[]; kind: ArchiveKind; amount?: number; marker?: string; hidden?: boolean };
 }
@@ -61,6 +64,9 @@ function archiveBadgesOf(platform: PlatformAdapter['type'], element: HTMLElement
         .map(el => (el instanceof HTMLImageElement ? el : el.querySelector('img'))?.src ?? '')
         .filter(src => src.startsWith('https://'));
 }
+
+const VERIFIED_MARK_URLS = new Set<string>(Object.values(VERIFIED_MARK_URL));
+const previewBadgesOf = (badges: string[]) => badges.filter(url => !VERIFIED_MARK_URLS.has(url));
 
 export default function useChatStream(
     adapter: PlatformAdapter,
@@ -127,7 +133,8 @@ export default function useChatStream(
             // 팝오버 목록과 완전 같은 진입점 = 두 뷰 어긋날 여지 없음 (persistence 복원 포함).
             const nickname = chat.nickName;
             const text = chat.textContents.filter(Boolean).join(' ').trim();
-            onChatPassed({ clone: element, key, time, prevKey, nickname, text, archive: { badges: archiveBadgesOf(adapter.type, element, chat), kind: 'chat', marker: result.markerColor } });
+            const badges = archiveBadgesOf(adapter.type, element, chat);
+            onChatPassed({ clone: element, key, time, prevKey, nickname, text, badges: previewBadgesOf(badges), archive: { badges, kind: 'chat', marker: result.markerColor } });
         }
 
         // Phase 1: mount 시점에 이미 chzzk DOM에 있는 chats를 retroactive 스캔.
@@ -226,6 +233,7 @@ export default function useChatStream(
                 prevKey: '',
                 nickname: toChatInfo(chat).nickName,
                 text: previewText(chat),
+                badges: chat.badges,
             };
         }
 
@@ -357,6 +365,7 @@ export default function useChatStream(
                 prevKey: msg.prevKey,
                 nickname: info.nickName,
                 text: previewText(chat),
+                badges: chat.badges,
             });
             applyHighlight(msg.key, result.markerColor);
         }

@@ -11,7 +11,7 @@ import { onTeardown } from './lifecycle';
 // 그 사이 dispatch된 tbc-filtered-chat 유실 (bar preview 첫 신규 채팅까지 null).
 // Module load 시점에 window listener 부착 + latest snapshot 보관 → mount 시 useState
 // 초기값으로 소비. Phase 2 이후는 여기 latest도 갱신되고 React 구독자에게도 전달.
-interface FilteredChatDetail { nickname: string; text: string; time?: number }
+interface FilteredChatDetail { nickname: string; text: string; badges?: string[]; time?: number }
 let latestFilteredChat: FilteredChatDetail | null = null;
 const latestListeners = new Set<(c: FilteredChatDetail | null) => void>();
 if (typeof window !== 'undefined') {
@@ -244,10 +244,10 @@ function FloatingShell({ adapter, type, anchor }: ShellProps) {
                   수집된 chat이 한 건도 없을 땐 bar 자체를 숨김 — chzzk 콘텐츠 영역을 32px
                   덜 가져감. 첫 수집 시점에 등장. */}
             <div ref={barRef} className="tbcv2-float-bar" onClick={toggle} style={{ display: latestChat ? 'flex' : 'none' }}>
-                <img src={browser.runtime.getURL('/assets/icon.png')} alt="" />
                 <div className="tbcv2-float-latest">
                     {latestChat && (
                         <>
+                            {latestChat.badges?.map((url, i) => <img key={i} className="tbcv2-float-badge" src={url} alt="" />)}
                             <span className="tbcv2-float-nick">{latestChat.nickname}</span>
                             {latestChat.text || <span className="tbcv2-float-muted">{browser.i18n.getMessage('emoticonOnly' as any)}</span>}
                         </>

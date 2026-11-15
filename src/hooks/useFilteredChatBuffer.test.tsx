@@ -17,6 +17,7 @@ const passed = (over: Partial<PassedChat> = {}): PassedChat => ({
     prevKey: null,
     nickname: '',
     text: '',
+    badges: [],
     ...over,
 });
 

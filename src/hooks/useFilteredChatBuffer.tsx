@@ -38,13 +38,15 @@ export interface SavedChat {
     /** bar preview용 파생값 — html에서 매번 파싱하는 비용 회피. */
     nickname: string;
     text: string;
+    /** bar preview 배지 그림 주소. 이 필드가 생기기 전에 저장된 채팅엔 없다. */
+    badges?: string[];
     /** 디버그용 — 이 chat이 어느 채널(persistenceKey)에서 수집됐는지. hover tooltip. */
     channel?: string;
 }
 
 interface PersistedPayload {
     version: 1;
-    chats: Pick<SavedChat, 'key' | 'time' | 'html' | 'nickname' | 'text' | 'channel'>[];
+    chats: Pick<SavedChat, 'key' | 'time' | 'html' | 'nickname' | 'text' | 'badges' | 'channel'>[];
 }
 
 /**
@@ -52,7 +54,7 @@ interface PersistedPayload {
  * Buffer가 savedChats 변경 시 자동으로 latest 도출 → 발행. addChat/loadPersisted 등
  * 개별 지점에서 emit 신경 쓸 필요 없음. 배열이 진실, event는 파생.
  */
-function emitPreview(detail: { nickname: string; text: string; time: number }) {
+function emitPreview(detail: { nickname: string; text: string; badges: string[]; time: number }) {
     window.dispatchEvent(new CustomEvent('tbc-filtered-chat', { detail }));
 }
 function emitPreviewCleared() {
@@ -236,7 +238,7 @@ export default function useFilteredChatBuffer(
         }
         if (prevLatestKeyRef.current === latest.key) return;
         prevLatestKeyRef.current = latest.key;
-        emitPreview({ nickname: latest.nickname, text: latest.text, time: latest.time });
+        emitPreview({ nickname: latest.nickname, text: latest.text, badges: latest.badges ?? [], time: latest.time });
     }, [savedChats, adapter.chatOrder]);
 
     // savedChats 변경 시: persistenceKey 있으면 저장 — 많아야 PERSIST_INTERVAL_MS마다 한 번.
@@ -254,7 +256,7 @@ export default function useFilteredChatBuffer(
             if (adapter.getCurrentChannelId() !== persistenceKey.split(':')[2]) return;
             const payload: PersistedPayload = {
                 version: 1,
-                chats: latestChatsRef.current.map(({ key, time, html, nickname, text, channel }) => ({ key, time, html, nickname, text, channel })),
+                chats: latestChatsRef.current.map(({ key, time, html, nickname, text, badges, channel }) => ({ key, time, html, nickname, text, badges, channel })),
             };
             void saveWithEviction(persistenceKey, payload, adapter.chatOrder);
         }, PERSIST_INTERVAL_MS);
@@ -267,7 +269,7 @@ export default function useFilteredChatBuffer(
         }
     }, [persistenceKey]);
 
-    const addChat = useCallback(({ clone, key, time, prevKey, nickname, text }: PassedChat) => {
+    const addChat = useCallback(({ clone, key, time, prevKey, nickname, text, badges }: PassedChat) => {
         // 확장과 끊긴 뒤(업데이트로 새 스크립트가 오는 중)엔 창을 건드리지 않는다. 다시 그리다 확장 API가
         // 던지면 React가 창을 통째로 내리고, 새 스크립트가 넘겨받을 채팅(salvage.ts)이 사라진다.
         if (!contextAlive()) return;
@@ -289,7 +291,7 @@ export default function useFilteredChatBuffer(
             // time/sort 안 씀. chzzk의 time이 도착 순서와 어긋나는 경우 있어 신뢰 불가.
             // host DOM 순서는 항상 진실이므로 그걸 미러링.
             // 기존 buffer 요소의 순서는 절대 변경 안 함 — 새 chat의 자리만 찾아 splice.
-            const newEntry: SavedChat = { key, time, html: clone.outerHTML, restored: false, nickname, text, channel: persistenceKey };
+            const newEntry: SavedChat = { key, time, html: clone.outerHTML, restored: false, nickname, text, badges, channel: persistenceKey };
             let next: SavedChat[];
             if (prevKey === null) {
                 // newest-bottom(twitch)에서 null은 "앞에 key 달린 형제가 없음"이다 — 처음 들어온

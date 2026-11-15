@@ -18,10 +18,11 @@
 .tbcv2-float-bar:hover {
     background: var(--tbcv2-bar-hover);
 }
-.tbcv2-float-bar img {
-    flex: none;
+.tbcv2-float-badge {
     width: 18px;
     height: 18px;
+    margin-right: 4px;
+    vertical-align: -4px;
 }
 .tbcv2-float-latest {
     flex: 1;
