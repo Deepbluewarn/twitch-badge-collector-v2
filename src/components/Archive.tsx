@@ -7,7 +7,7 @@ import {
     archiveCap, CHAT_DISK_BYTES, expiresSoon, formatArchiveTime, listArchiveChannels, loadArchiveSetting, queryArchivedChats, sanitizeArchiveSetting, saveArchiveSetting,
     textHead, textRow, type ArchiveChannel, type ArchiveSetting, type ArchivedChat,
 } from '@/archive/chat-archive';
-import { fetchChzzkChannel } from '@/api/chzzk-channel';
+import { canReachChzzkApi, fetchChzzkChannel } from '@/api/chzzk-channel';
 import { ChannelAvatar } from './filter/ChannelSearch';
 import { Pager } from './filter/FilterList';
 import { LinkRow, Note, PlatformChip, RowLabel, SectionTitle, SettingRow, SettingsCard, SubHeader, settingsClass as ui } from './settings/SettingsUI';
@@ -47,7 +47,8 @@ const NAME_TTL = 7 * 86_400_000;
 const NAME_CONCURRENCY = 3;
 /** 요청 사이 간격 — 치지직 API에 몰아서 부르지 않게 */
 const NAME_DELAY = 150;
-type NameInfo = { name: string; image?: string; at: number };
+/** gone: 치지직에 없는 채널. 이름 대신 id를 보인다 */
+type NameInfo = { name: string; image?: string; at: number; gone?: boolean };
 
 /** 치지직 라이브 채널은 이름·사진을 불러온다. 다시보기와 트위치는 주소의 값 그대로. */
 function useChannelInfo(rows: ChannelRow[]) {
@@ -60,9 +61,15 @@ function useChannelInfo(rows: ChannelRow[]) {
             const cached = ((await browser.storage.local.get(NAME_CACHE_KEY))[NAME_CACHE_KEY] ?? {}) as Record<string, NameInfo>;
             if (!alive) return;
             setInfo(i => ({ ...cached, ...i }));
+            // 치지직 탭도 권한도 없으면 모두 403이다. 실패를 기억하지 않고 다음에 다시
+            if (!await canReachChzzkApi() || !alive) return;
             const queue = rows
                 .filter(r => r.platform === 'chzzk' && r.mode === 'live' && !started.current.has(r.channelId))
-                .filter(r => !cached[r.channelId] || Date.now() - cached[r.channelId].at > NAME_TTL)
+                .filter(r => {
+                    const c = cached[r.channelId];
+                    // 이름 자리에 id가 든 옛 기록은 불러오기 실패였을 수 있어 다시 부른다
+                    return !c || Date.now() - c.at > NAME_TTL || (c.name === r.channelId && !c.gone);
+                })
                 .map(r => r.channelId);
             queue.forEach(id => started.current.add(id));
             const found: Record<string, NameInfo> = {};
@@ -71,11 +78,14 @@ function useChannelInfo(rows: ChannelRow[]) {
                 for (let id = queue.shift(); id && alive; id = queue.shift()) {
                     try {
                         const c = await fetchChzzkChannel(id);
-                        found[id] = { name: c.name, image: c.imageUrl, at: Date.now() };
+                        // 없는 채널은 channelId가 null로 온다. id로 보이고, 열 때마다 다시 부르지 않게 하루는 기억한다
+                        found[id] = c.id
+                            ? { name: c.name, image: c.imageUrl, at: Date.now() }
+                            : { name: id, at: Date.now() - NAME_TTL + 86_400_000, gone: true };
                         setInfo(i => ({ ...i, [id]: found[id] }));
                     } catch {
-                        // 없어진 채널 등 — id로 보이고, 열 때마다 다시 부르지 않게 하루는 기억한다
-                        found[id] = { name: id, at: Date.now() - NAME_TTL + 86_400_000 };
+                        // 403, 네트워크 오류 등은 기억하지 않는다. 다음에 열 때 다시
+                        started.current.delete(id);
                     }
                     await new Promise(r => setTimeout(r, NAME_DELAY));
                 }
