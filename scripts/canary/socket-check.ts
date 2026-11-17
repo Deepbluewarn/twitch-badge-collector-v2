@@ -48,8 +48,10 @@ export interface RareShape {
  *  - shop                 type 15 상점 구매
  *  - donation:<종류>       CHAT, MISSION 말고 다른 후원 (PARTY, MISSION_PARTICIPATION, VIDEO 등)
  *  - gift:sender          보낸 사람 profile이 실린 받은 사람 알림 (받는 사람을 고른 선물)
+ *  - type:<코드>           처음 보는 msgTypeCode. 원본이 안 남아 무슨 메시지인지 모르던 문제(2026-11-17, 121)
  */
 export function rareKind(type: number, extras: Json | null, hasProfile: boolean): string | null {
+    if (!KNOWN_MSG_TYPES.has(type)) return `type:${type}`;
     if (type === 13) return `party:${extras?.type ?? '?'}`;
     if (type === 15) return 'shop';
     if (type === 10 && extras?.donationType !== 'CHAT' && extras?.donationType !== 'MISSION') return `donation:${extras?.donationType ?? '?'}`;

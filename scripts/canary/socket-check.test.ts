@@ -121,6 +121,7 @@ describe('checkSocketCapture', () => {
         expect(w).toMatch(/msgTypeCode: 77/);
         expect(w).toMatch(/msgStatusType: SHADOW/);
         expect(w).toMatch(/blindType: AI_BLIND/);
+        expect(r.rare['type:77'].count).toBe(1);
     });
 
     it('94008로 가려진 뒤의 상태(HIDDEN 등)는 경고하지 않는다', () => {
