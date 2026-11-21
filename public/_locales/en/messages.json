@@ -3,7 +3,7 @@
     "message": "Badge Collector"
   },
   "ExtensionDesc": {
-    "message": "Collect only the chats you want!"
+    "message": "Collect only chat from the streamer, moderators, and the badges you choose on CHZZK and Twitch streams."
   },
   "settings": {
     "message": "Settings"
