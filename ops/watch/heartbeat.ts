@@ -41,9 +41,11 @@ export const JOBS: { job: string; label: string; maxAgeMin: number }[] = [
     { job: 'spike', label: '방문 급증 알림 (30분)', maxAgeMin: 90 },
     { job: 'stats', label: '일일 통계 리포트 (매일 10시)', maxAgeMin: 26 * 60 },
     { job: 'channels', label: '구독 배지 페이지 데이터 (매일 5시 20분)', maxAgeMin: 26 * 60 },
+    // 상주 서비스 badge-mentions가 20분마다 남긴다
+    { job: 'mentions', label: '방송 언급 감시 (20분)', maxAgeMin: 60 },
 ];
 /** systemd 사용자 서비스. 등록돼 있지 않으면 건너뛴다 */
-const SERVICES = ['badge-dashboard', 'badge-harvester'];
+const SERVICES = ['badge-dashboard', 'badge-harvester', 'badge-mentions'];
 
 interface RunRecord { job: string; start: number; end: number; code: number; lastOk: number }
 

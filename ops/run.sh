@@ -32,6 +32,8 @@ run() {
             before=$(git rev-parse HEAD)
             git pull --ff-only -q || return 1
             if ! git diff --quiet "$before" HEAD -- package-lock.json; then npm ci --no-audit --no-fund || return 1; fi
+            # 상주 서비스는 pull로 바뀌지 않는다. 코드가 바뀌었으면 다시 띄운다
+            if ! git diff --quiet "$before" HEAD -- ops/watch/mentions.ts ops/watch/mention-match.ts ops/watch/state.ts scripts/capture/socket-client.ts; then systemctl --user try-restart badge-mentions; fi
             ;;
         deploy) npx tsx ops/watch/deploy.ts ;;
         canary) npx tsx ops/watch/canary.ts selector ;;
