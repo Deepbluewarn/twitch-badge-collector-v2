@@ -92,53 +92,8 @@
   "themeDark": {
     "message": "Dunkel"
   },
-  "diagNoActiveTab": {
-    "message": "Kein aktiver Tab"
-  },
-  "diagNoResponse": {
-    "message": "Keine Antwort (auf einer CHZZK-/Twitch-Seite ausführen)"
-  },
-  "onlyOnHostPage": {
-    "message": "Funktioniert nur auf CHZZK- oder Twitch-Seiten."
-  },
-  "otaBundled": {
-    "message": "OTA-Selektoren: mitgelieferte Standards"
-  },
-  "diagFailCount": {
-    "message": "Fehlgeschlagen $1 / $2"
-  },
-  "diagRun": {
-    "message": "Diagnose"
-  },
-  "diagRunning": {
-    "message": "Prüfe…"
-  },
-  "copy": {
-    "message": "Kopieren"
-  },
   "copied": {
     "message": "Kopiert"
-  },
-  "report": {
-    "message": "Melden"
-  },
-  "reportSubmitting": {
-    "message": "Sende…"
-  },
-  "reportSubmitted": {
-    "message": "Gesendet"
-  },
-  "reportFailed": {
-    "message": "Fehlgeschlagen"
-  },
-  "reportConsentTitle": {
-    "message": "Diagnosedaten über Discord senden"
-  },
-  "reportConsentBody": {
-    "message": "Die folgenden anonymen Daten werden an den Entwickler gesendet."
-  },
-  "reportConsentAccept": {
-    "message": "Zustimmen und senden"
   },
   "cancel": {
     "message": "Abbrechen"

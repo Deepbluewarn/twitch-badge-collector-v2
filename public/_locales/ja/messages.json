@@ -92,53 +92,8 @@
   "themeDark": {
     "message": "ダーク"
   },
-  "diagNoActiveTab": {
-    "message": "アクティブなタブがありません"
-  },
-  "diagNoResponse": {
-    "message": "応答なし（CHZZK/Twitch のページで実行してください）"
-  },
-  "onlyOnHostPage": {
-    "message": "CHZZK または Twitch のページでのみ動作します。"
-  },
-  "otaBundled": {
-    "message": "OTA セレクター: 同梱のデフォルト"
-  },
-  "diagFailCount": {
-    "message": "失敗 $1 / $2"
-  },
-  "diagRun": {
-    "message": "診断"
-  },
-  "diagRunning": {
-    "message": "確認中…"
-  },
-  "copy": {
-    "message": "コピー"
-  },
   "copied": {
     "message": "コピーしました"
-  },
-  "report": {
-    "message": "報告"
-  },
-  "reportSubmitting": {
-    "message": "送信中…"
-  },
-  "reportSubmitted": {
-    "message": "送信しました"
-  },
-  "reportFailed": {
-    "message": "失敗"
-  },
-  "reportConsentTitle": {
-    "message": "Discord で診断データを送信"
-  },
-  "reportConsentBody": {
-    "message": "以下の匿名データが開発者に送信されます。"
-  },
-  "reportConsentAccept": {
-    "message": "同意して送信"
   },
   "cancel": {
     "message": "キャンセル"

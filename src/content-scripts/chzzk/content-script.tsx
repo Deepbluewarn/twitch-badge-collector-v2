@@ -9,7 +9,6 @@ import {
     getPlatformConfig, manifestReady, getManifest,
     SELECTORS_MESSAGE_TYPE, SELECTORS_REQUEST_TYPE,
 } from "@/platform/host-selectors";
-import { registerDiagnoseListener } from "@/platform/diagnose";
 import { applyChatSide, trackSidebarSwap } from "./chat-side";
 import { ensureRolloutBucket } from "./socket-mode";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
@@ -78,7 +77,6 @@ async function bootstrap() {
             init();
         }
     });
-    registerDiagnoseListener(adapter, 'chzzk');
     // 원래 채팅의 프로필 창에 "ID 복사"
     onTeardown(setupProfileActions());
 

@@ -11,3 +11,12 @@ export function siteUrl(path: string, spot: string) {
 // 사용 설명서 페이지(badgecollector.dev/extension/guide/). 한국어로만 있어서 한국어 브라우저에만 링크를 둔다.
 export const hasFeatureGuide = () => browser.i18n.getUILanguage().toLowerCase().startsWith('ko');
 export const featureGuideUrl = (spot: string) => siteUrl('/extension/guide/', spot);
+
+// 익명 문의 페이지(badgecollector.dev/contact/). 사용 설명서처럼 한국어로만 있다.
+// 버전과 브라우저를 붙여 버그 문의에 따로 묻지 않게 한다(사이트 functions/api/contact.ts가 받는다).
+export function contactUrl() {
+    const url = new URL(siteUrl('/contact/', 'popup_contact'));
+    url.searchParams.set('v', browser.runtime.getManifest().version);
+    url.searchParams.set('b', import.meta.env.BROWSER === 'firefox' ? 'firefox' : /\bEdg\//.test(navigator.userAgent) ? 'edge' : 'chrome');
+    return url.href;
+}

@@ -11,8 +11,14 @@
   "generalSetting": {
     "message": "일반 설정"
   },
-  "featureGuide": {
-    "message": "사용 설명서"
+  "contact": {
+    "message": "문의"
+  },
+  "resetRatioShort": {
+    "message": "비율 초기화"
+  },
+  "featureGuideShort": {
+    "message": "설명서"
   },
   "reset_chat_ratio": {
     "message": "채팅창 비율 초기화"
@@ -95,53 +101,8 @@
   "themeDark": {
     "message": "다크"
   },
-  "diagNoActiveTab": {
-    "message": "활성 탭 없음"
-  },
-  "diagNoResponse": {
-    "message": "응답 없음 (치지직/트위치 페이지에서 실행)"
-  },
-  "onlyOnHostPage": {
-    "message": "치지직 또는 트위치 페이지에서만 동작합니다."
-  },
-  "otaBundled": {
-    "message": "OTA selectors: 번들 기본값"
-  },
-  "diagFailCount": {
-    "message": "실패 $1 / $2"
-  },
-  "diagRun": {
-    "message": "진단"
-  },
-  "diagRunning": {
-    "message": "진단중..."
-  },
-  "copy": {
-    "message": "복사"
-  },
   "copied": {
     "message": "복사됨"
-  },
-  "report": {
-    "message": "제보"
-  },
-  "reportSubmitting": {
-    "message": "제보중..."
-  },
-  "reportSubmitted": {
-    "message": "제보됨"
-  },
-  "reportFailed": {
-    "message": "실패"
-  },
-  "reportConsentTitle": {
-    "message": "Discord로 진단 데이터 전송"
-  },
-  "reportConsentBody": {
-    "message": "아래의 익명 데이터가 개발자에게 전송됩니다."
-  },
-  "reportConsentAccept": {
-    "message": "동의하고 전송"
   },
   "cancel": {
     "message": "취소"

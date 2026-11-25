@@ -92,53 +92,8 @@
   "themeDark": {
     "message": "深色"
   },
-  "diagNoActiveTab": {
-    "message": "没有活动标签页"
-  },
-  "diagNoResponse": {
-    "message": "无响应（请在 CHZZK/Twitch 页面上运行）"
-  },
-  "onlyOnHostPage": {
-    "message": "仅在 CHZZK 或 Twitch 页面上有效。"
-  },
-  "otaBundled": {
-    "message": "OTA 选择器：内置默认值"
-  },
-  "diagFailCount": {
-    "message": "失败 $1 / $2"
-  },
-  "diagRun": {
-    "message": "诊断"
-  },
-  "diagRunning": {
-    "message": "检查中…"
-  },
-  "copy": {
-    "message": "复制"
-  },
   "copied": {
     "message": "已复制"
-  },
-  "report": {
-    "message": "反馈"
-  },
-  "reportSubmitting": {
-    "message": "发送中…"
-  },
-  "reportSubmitted": {
-    "message": "已发送"
-  },
-  "reportFailed": {
-    "message": "失败"
-  },
-  "reportConsentTitle": {
-    "message": "通过 Discord 发送诊断数据"
-  },
-  "reportConsentBody": {
-    "message": "以下匿名数据将发送给开发者。"
-  },
-  "reportConsentAccept": {
-    "message": "同意并发送"
   },
   "cancel": {
     "message": "取消"

@@ -8,7 +8,6 @@ import {
     getPlatformConfig, manifestReady, getManifest,
     SELECTORS_MESSAGE_TYPE, SELECTORS_REQUEST_TYPE,
 } from "@/platform/host-selectors";
-import { registerDiagnoseListener } from "@/platform/diagnose";
 import { clearHostMarks, setupChannelOff } from "../base/channel-off";
 import { onTeardown, startInstance } from "../base/lifecycle";
 
@@ -35,7 +34,6 @@ async function bootstrap() {
     sendManifest();
 
     const adapter = new TwitchAdapter();
-    registerDiagnoseListener(adapter, 'twitch');
 
     const SEL = getPlatformConfig('twitch').selectors;
 

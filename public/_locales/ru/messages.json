@@ -92,53 +92,8 @@
   "themeDark": {
     "message": "Тёмная"
   },
-  "diagNoActiveTab": {
-    "message": "Нет активной вкладки"
-  },
-  "diagNoResponse": {
-    "message": "Нет ответа (запускайте на странице CHZZK/Twitch)"
-  },
-  "onlyOnHostPage": {
-    "message": "Работает только на страницах CHZZK или Twitch."
-  },
-  "otaBundled": {
-    "message": "OTA-селекторы: встроенные по умолчанию"
-  },
-  "diagFailCount": {
-    "message": "Ошибок $1 / $2"
-  },
-  "diagRun": {
-    "message": "Диагностика"
-  },
-  "diagRunning": {
-    "message": "Проверка…"
-  },
-  "copy": {
-    "message": "Копировать"
-  },
   "copied": {
     "message": "Скопировано"
-  },
-  "report": {
-    "message": "Сообщить"
-  },
-  "reportSubmitting": {
-    "message": "Отправка…"
-  },
-  "reportSubmitted": {
-    "message": "Отправлено"
-  },
-  "reportFailed": {
-    "message": "Ошибка"
-  },
-  "reportConsentTitle": {
-    "message": "Отправить диагностические данные через Discord"
-  },
-  "reportConsentBody": {
-    "message": "Приведённые ниже анонимные данные будут отправлены разработчику."
-  },
-  "reportConsentAccept": {
-    "message": "Согласиться и отправить"
   },
   "cancel": {
     "message": "Отмена"

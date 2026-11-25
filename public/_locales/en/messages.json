@@ -11,8 +11,14 @@
   "generalSetting": {
     "message": "General Settings"
   },
-  "featureGuide": {
-    "message": "User guide"
+  "contact": {
+    "message": "Contact"
+  },
+  "resetRatioShort": {
+    "message": "Reset layout"
+  },
+  "featureGuideShort": {
+    "message": "Guide"
   },
   "reset_chat_ratio": {
     "message": "Reset Chat Layout"
@@ -95,53 +101,8 @@
   "themeDark": {
     "message": "Dark"
   },
-  "diagNoActiveTab": {
-    "message": "No active tab"
-  },
-  "diagNoResponse": {
-    "message": "No response (run this on a Chzzk/Twitch page)"
-  },
-  "onlyOnHostPage": {
-    "message": "Only works on Chzzk or Twitch pages."
-  },
-  "otaBundled": {
-    "message": "OTA selectors: bundled defaults"
-  },
-  "diagFailCount": {
-    "message": "Failed $1 / $2"
-  },
-  "diagRun": {
-    "message": "Diagnose"
-  },
-  "diagRunning": {
-    "message": "Checking…"
-  },
-  "copy": {
-    "message": "Copy"
-  },
   "copied": {
     "message": "Copied"
-  },
-  "report": {
-    "message": "Report"
-  },
-  "reportSubmitting": {
-    "message": "Sending…"
-  },
-  "reportSubmitted": {
-    "message": "Sent"
-  },
-  "reportFailed": {
-    "message": "Failed"
-  },
-  "reportConsentTitle": {
-    "message": "Send diagnostic data via Discord"
-  },
-  "reportConsentBody": {
-    "message": "The anonymous data below will be sent to the developer."
-  },
-  "reportConsentAccept": {
-    "message": "Agree and send"
   },
   "cancel": {
     "message": "Cancel"

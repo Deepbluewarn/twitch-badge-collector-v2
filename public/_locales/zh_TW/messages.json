@@ -92,53 +92,8 @@
   "themeDark": {
     "message": "深色"
   },
-  "diagNoActiveTab": {
-    "message": "沒有作用中的分頁"
-  },
-  "diagNoResponse": {
-    "message": "沒有回應（請在 CHZZK/Twitch 頁面上執行）"
-  },
-  "onlyOnHostPage": {
-    "message": "僅在 CHZZK 或 Twitch 頁面上有效。"
-  },
-  "otaBundled": {
-    "message": "OTA 選擇器：內建預設值"
-  },
-  "diagFailCount": {
-    "message": "失敗 $1 / $2"
-  },
-  "diagRun": {
-    "message": "診斷"
-  },
-  "diagRunning": {
-    "message": "檢查中…"
-  },
-  "copy": {
-    "message": "複製"
-  },
   "copied": {
     "message": "已複製"
-  },
-  "report": {
-    "message": "回報"
-  },
-  "reportSubmitting": {
-    "message": "傳送中…"
-  },
-  "reportSubmitted": {
-    "message": "已傳送"
-  },
-  "reportFailed": {
-    "message": "失敗"
-  },
-  "reportConsentTitle": {
-    "message": "透過 Discord 傳送診斷資料"
-  },
-  "reportConsentBody": {
-    "message": "以下匿名資料將傳送給開發者。"
-  },
-  "reportConsentAccept": {
-    "message": "同意並傳送"
   },
   "cancel": {
     "message": "取消"

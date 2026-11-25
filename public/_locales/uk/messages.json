@@ -92,53 +92,8 @@
   "themeDark": {
     "message": "Темна"
   },
-  "diagNoActiveTab": {
-    "message": "Немає активної вкладки"
-  },
-  "diagNoResponse": {
-    "message": "Немає відповіді (запускайте на сторінці CHZZK/Twitch)"
-  },
-  "onlyOnHostPage": {
-    "message": "Працює лише на сторінках CHZZK або Twitch."
-  },
-  "otaBundled": {
-    "message": "OTA-селектори: вбудовані типові"
-  },
-  "diagFailCount": {
-    "message": "Помилок $1 / $2"
-  },
-  "diagRun": {
-    "message": "Діагностика"
-  },
-  "diagRunning": {
-    "message": "Перевірка…"
-  },
-  "copy": {
-    "message": "Копіювати"
-  },
   "copied": {
     "message": "Скопійовано"
-  },
-  "report": {
-    "message": "Повідомити"
-  },
-  "reportSubmitting": {
-    "message": "Надсилання…"
-  },
-  "reportSubmitted": {
-    "message": "Надіслано"
-  },
-  "reportFailed": {
-    "message": "Помилка"
-  },
-  "reportConsentTitle": {
-    "message": "Надіслати діагностичні дані через Discord"
-  },
-  "reportConsentBody": {
-    "message": "Наведені нижче анонімні дані буде надіслано розробнику."
-  },
-  "reportConsentAccept": {
-    "message": "Погодитися й надіслати"
   },
   "cancel": {
     "message": "Скасувати"

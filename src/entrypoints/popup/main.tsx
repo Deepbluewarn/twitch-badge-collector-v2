@@ -8,16 +8,13 @@ import { markUsage } from "@/telemetry/usage-mark";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
-import { Button, Dialog, LinkButton, Stack, Switch, Tag } from "@/ui";
+import { Button, LinkButton, Stack, Switch, Tag } from "@/ui";
 import { CHANNEL_INFO_MESSAGE, setChannelOff, type ChannelInfo } from "@/utils/channel-off";
 import { fetchChzzkChannel } from "@/api/chzzk-channel";
 import { ChannelAvatar } from "@/components/filter/ChannelSearch";
-import { featureGuideUrl, hasFeatureGuide, siteUrl } from "@/utils/site-link";
+import { contactUrl, featureGuideUrl, hasFeatureGuide, siteUrl } from "@/utils/site-link";
 import "./popup.css";
 
-/** 진단 줄의 작은 글자 버튼 — 좁은 팝업 하단 한 줄에 들어가게. */
-const metaButtonStyle: React.CSSProperties = { height: 24, fontSize: 12, fontWeight: 700 };
-const metaTextStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, lineHeight: 1.2 };
 
 /** 좌측 라벨(+선택 hint) + 우측 컨트롤 한 줄 레이아웃. */
 function SettingRow({ label, hint, children }: { label: React.ReactNode; hint?: React.ReactNode; children: React.ReactNode }) {
@@ -33,206 +30,6 @@ function SettingRow({ label, hint, children }: { label: React.ReactNode; hint?: 
       </div>
       {children}
     </Stack>
-  );
-}
-
-/**
- * OTA selector 버전 + 진단 — 지금 방송 탭의 content script에 진단을 요청하므로 팝업에 남긴다
- * (설정 페이지는 별도 탭이라 대상이 될 수 없다). 문제 보고 시 참고용.
- */
-function DiagnoseBar({ enabled, leading }: { enabled: boolean; leading: React.ReactNode }) {
-  const t = (k: string) => browser.i18n.getMessage(k as any);
-  const [otaInfo, setOtaInfo] = React.useState<{ rev: number | null; fetchedAt: number | null }>({ rev: null, fetchedAt: null });
-  useEffect(() => {
-    browser.storage.local.get(['tbcv2-selectors-manifest', 'tbcv2-selectors-fetched-at']).then((r) => {
-      const m = r['tbcv2-selectors-manifest'] as { rev?: number } | undefined;
-      const fa = r['tbcv2-selectors-fetched-at'] as number | undefined;
-      setOtaInfo({ rev: m?.rev ?? null, fetchedAt: fa ?? null });
-    });
-    // 제보 cooldown 초기 조회 — popup 열 때마다 남은 시간 표시.
-    import('@/platform/report').then(m => m.getReportCooldownRemainingMs()).then(ms => {
-      if (ms > 0) setCooldownMin(Math.ceil(ms / 60000));
-    });
-  }, []);
-
-  // 진단: active tab의 content-script에 TBC_DIAGNOSE 보냄 → selector 매칭 카운트 +
-  // 샘플 chat extract 결과 리포트 받음. popup 좁으니 리포트 자체는 안 그리고, 요약
-  // 한 줄 + "복사"/"제보" 버튼.
-  type DiagState =
-    | { kind: 'idle' }
-    | { kind: 'running' }
-    | { kind: 'error'; message: string }
-    | { kind: 'done'; report: import('@/platform/diagnose').DiagnoseReport; passCount: number; failCount: number };
-  const [diag, setDiag] = React.useState<DiagState>({ kind: 'idle' });
-  const [copyState, setCopyState] = React.useState<'idle' | 'copied'>('idle');
-  const [submitState, setSubmitState] = React.useState<'idle' | 'submitting' | 'submitted' | 'failed'>('idle');
-  const [submitError, setSubmitError] = React.useState<string | null>(null);
-  const [consentDialog, setConsentDialog] = React.useState<{ open: boolean; preview: string }>({ open: false, preview: '' });
-  const [cooldownMin, setCooldownMin] = React.useState<number>(0);
-
-  const runDiagnose = async () => {
-    setDiag({ kind: 'running' });
-    setCopyState('idle');
-    try {
-      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-      const id = tabs[0]?.id;
-      if (id == null) { setDiag({ kind: 'error', message: t('diagNoActiveTab') }); return; }
-      const res = await browser.tabs.sendMessage(id, { type: 'tbc-diagnose' }) as
-        { ok: true; report: import('@/platform/diagnose').DiagnoseReport } | { ok: false; error: string } | undefined;
-      if (!res || !res.ok) {
-        setDiag({ kind: 'error', message: res && !res.ok ? res.error : t('diagNoResponse') });
-        return;
-      }
-      // required=true인 selector 중 count=0만 진짜 실패로 카운트.
-      // 나머지(도네/인증/풀스크린 등)는 지금 조건에 없어서 0인 게 정상.
-      const required = res.report.selectorResults.filter(r => r.required);
-      const failCount = required.filter(r => r.count === 0).length;
-      const passCount = required.length - failCount;
-      setDiag({ kind: 'done', report: res.report, passCount, failCount });
-    } catch {
-      setDiag({ kind: 'error', message: t('onlyOnHostPage') });
-    }
-  };
-
-  const copyReport = async () => {
-    if (diag.kind !== 'done') return;
-    try {
-      await navigator.clipboard.writeText(JSON.stringify(diag.report, null, 2));
-      setCopyState('copied');
-      setTimeout(() => setCopyState('idle'), 2000);
-    } catch { /* 클립보드 실패 — silent */ }
-  };
-
-  const doSubmit = async () => {
-    if (diag.kind !== 'done') return;
-    const { submitReport } = await import('@/platform/report');
-    setSubmitState('submitting');
-    setSubmitError(null);
-    try {
-      await submitReport(diag.report);
-      setSubmitState('submitted');
-      setTimeout(() => setSubmitState('idle'), 3000);
-      setCooldownMin(60);
-    } catch (e) {
-      setSubmitState('failed');
-      setSubmitError(String(e).replace('Error: ', ''));
-      setTimeout(() => setSubmitState('idle'), 4000);
-    }
-  };
-
-  const onSubmitClick = async () => {
-    if (diag.kind !== 'done') return;
-    const { REPORT_CONSENT_STORAGE_KEY, sanitizeReport, getReportCooldownRemainingMs } = await import('@/platform/report');
-    const cooldown = await getReportCooldownRemainingMs();
-    if (cooldown > 0) {
-      setCooldownMin(Math.ceil(cooldown / 60000));
-      return;
-    }
-    const r = await browser.storage.local.get(REPORT_CONSENT_STORAGE_KEY);
-    if (r[REPORT_CONSENT_STORAGE_KEY]) {
-      // 동의 이미 있음 — 바로 전송
-      doSubmit();
-      return;
-    }
-    // 첫 사용 — 미리보기 다이얼로그
-    const preview = JSON.stringify(sanitizeReport(diag.report), null, 2);
-    setConsentDialog({ open: true, preview });
-  };
-
-  // Dialog의 Esc 리스너가 onClose 바뀔 때마다 다시 붙지 않게 고정.
-  const closeConsentDialog = React.useCallback(() => setConsentDialog({ open: false, preview: '' }), []);
-
-  const onConsentAccept = async () => {
-    const { REPORT_CONSENT_STORAGE_KEY } = await import('@/platform/report');
-    await browser.storage.local.set({ [REPORT_CONSENT_STORAGE_KEY]: true });
-    setConsentDialog({ open: false, preview: '' });
-    doSubmit();
-  };
-
-  const otaText = otaInfo.rev !== null ? `OTA rev ${otaInfo.rev}` : t('otaBundled');
-  const reportUrl: string | undefined = (import.meta as unknown as { env?: Record<string, string> }).env?.WXT_PUBLIC_REPORT_WEBHOOK_URL;
-  const reportLabel =
-    submitState === 'submitted' ? t('reportSubmitted') :
-    submitState === 'submitting' ? t('reportSubmitting') :
-    submitState === 'failed' ? t('reportFailed') :
-    cooldownMin > 0 ? `${cooldownMin}m` :
-    t('report');
-
-  return (
-    <>
-      {/* 가끔 쓰는 동작 한 줄 — 비율 초기화와 진단을 같은 작은 글자 버튼으로 */}
-      <Stack dir='row' align='center' justify='space-between' gap={8}>
-        {leading}
-        <Button
-          variant='text'
-          size='sm'
-          icon='troubleshoot'
-          onClick={runDiagnose}
-          disabled={!enabled || diag.kind === 'running'}
-          title={otaText}
-          style={{ color: 'var(--ui-muted)' }}
-        >
-          {diag.kind === 'running' ? t('diagRunning') : t('diagRun')}
-        </Button>
-      </Stack>
-      {/* 진단을 돌렸을 때만 결과 한 줄 — OTA 판, 통과 수, 복사·제보 */}
-      {(diag.kind === 'done' || diag.kind === 'error') && (
-        <Stack dir='row' align='center' gap={8} style={{ ...metaTextStyle, padding: '0 6px', color: 'var(--ui-muted)' }}>
-          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {otaText}
-            {diag.kind === 'done' && (
-              <b style={{ marginLeft: 8, color: diag.failCount > 0 ? 'var(--ui-bad-fg)' : 'var(--ui-ok-fg)' }}>
-                {diag.failCount > 0 ? browser.i18n.getMessage('diagFailCount' as any, [String(diag.failCount), String(diag.passCount + diag.failCount)]) : `OK ${diag.passCount}`}
-              </b>
-            )}
-            {diag.kind === 'error' && <b style={{ marginLeft: 8, color: 'var(--ui-bad-fg)' }}>{diag.message}</b>}
-          </span>
-          {diag.kind === 'done' && (
-            <Button size='sm' variant='text' onClick={copyReport} style={metaButtonStyle}>
-              {copyState === 'copied' ? t('copied') : t('copy')}
-            </Button>
-          )}
-          {diag.kind === 'done' && reportUrl && (
-            <Button size='sm' variant='text' onClick={onSubmitClick} disabled={submitState === 'submitting' || cooldownMin > 0} style={metaButtonStyle}>
-              {reportLabel}
-            </Button>
-          )}
-        </Stack>
-      )}
-      {submitError && (
-        <span style={{ ...metaTextStyle, padding: '0 6px', color: 'var(--ui-bad-fg)' }}>{submitError}</span>
-      )}
-      <Dialog
-        open={consentDialog.open}
-        onClose={closeConsentDialog}
-        width='sm'
-        title={t('reportConsentTitle')}
-        actions={<>
-          <Button size='sm' onClick={closeConsentDialog}>{t('cancel')}</Button>
-          <Button size='sm' variant='primary' onClick={onConsentAccept}>{t('reportConsentAccept')}</Button>
-        </>}
-      >
-        <Stack gap={8}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ui-muted)' }}>
-            {t('reportConsentBody')}
-          </span>
-          <pre
-            style={{
-              fontSize: 10,
-              margin: 0,
-              padding: 8,
-              borderRadius: 8,
-              background: 'var(--ui-tint)',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-all',
-              userSelect: 'text',
-            }}
-          >
-            {consentDialog.preview}
-          </pre>
-        </Stack>
-      </Dialog>
-    </>
   );
 }
 
@@ -410,30 +207,26 @@ function Popup() {
       )}
 
 
-      {/* 가끔 쓰는 동작: 비율 초기화(어디서나) + 진단(방송 페이지에서만) */}
-      <DiagnoseBar enabled={!!host} leading={
-        <Button
-          variant='text'
-          size='sm'
-          icon='restart_alt'
-          onClick={onRatioResetButtonClicked}
-          style={{ color: 'var(--ui-muted)' }}
-        >
-          {browser.i18n.getMessage('reset_chat_ratio')}
-        </Button>
-      } />
-
-      {/* 푸터: 사용 설명서(한국어 브라우저만, 페이지가 한국어뿐) + socials */}
+      {/* 하단 한 줄: 비율 초기화(어디서나) + 사용 설명서, 문의(한국어 브라우저만, 페이지가 한국어뿐).
+          문의 페이지에 Discord, GitHub, 메일 경로가 같이 있다. 그 밖의 언어는 설명서, 문의 대신 socials 아이콘 */}
       <Stack dir='row' align='center' justify='space-between' style={{ marginTop: 4, borderTop: '1px solid var(--ui-hair)', paddingTop: 8 }}>
-        {hasFeatureGuide() && (
-          <LinkButton variant='text' size='sm' icon='menu_book' href={featureGuideUrl('popup_guide')} target='_blank' rel='noreferrer'
-            onClick={() => markUsage('guideOpen')} style={{ color: 'var(--ui-muted)' }}>
-            {browser.i18n.getMessage('featureGuide' as any)}
-          </LinkButton>
+        {/* 한국어는 설명서, 문의와 한 줄에 들어가게 짧은 이름 */}
+        <Button variant='text' size='sm' icon='restart_alt' onClick={onRatioResetButtonClicked} style={{ color: 'var(--ui-muted)' }}>
+          {browser.i18n.getMessage(hasFeatureGuide() ? 'resetRatioShort' as any : 'reset_chat_ratio')}
+        </Button>
+        {hasFeatureGuide() ? (
+          <Stack dir='row' align='center'>
+            <LinkButton variant='text' size='sm' icon='menu_book' href={featureGuideUrl('popup_guide')} target='_blank' rel='noreferrer'
+              onClick={() => markUsage('guideOpen')} style={{ color: 'var(--ui-muted)' }}>
+              {browser.i18n.getMessage('featureGuideShort' as any)}
+            </LinkButton>
+            <LinkButton variant='text' size='sm' icon='mail' href={contactUrl()} target='_blank' rel='noreferrer' style={{ color: 'var(--ui-muted)' }}>
+              {browser.i18n.getMessage('contact' as any)}
+            </LinkButton>
+          </Stack>
+        ) : (
+          <div><SocialFooter showExtensionInfo={false} /></div>
         )}
-        <div style={{ flex: hasFeatureGuide() ? undefined : 1 }}>
-          <SocialFooter showExtensionInfo={false} />
-        </div>
       </Stack>
     </Stack>
   );
