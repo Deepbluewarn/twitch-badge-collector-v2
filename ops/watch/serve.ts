@@ -24,14 +24,14 @@ function kst(at: string): string {
 async function contactPage(): Promise<string> {
     let rows: Awaited<ReturnType<typeof sql>>;
     try {
-        rows = await sql(`SELECT timestamp AS at, blob1 AS text, blob2 AS v, blob3 AS b FROM tbc_contact
+        rows = await sql(`SELECT timestamp AS at, blob1 AS text, blob2 AS v, blob3 AS b, blob4 AS email FROM tbc_contact
             WHERE timestamp > NOW() - INTERVAL '${CONTACT_DAYS}' DAY ORDER BY timestamp DESC`);
     } catch (e) {
         // 데이터셋은 첫 문의가 들어올 때 생긴다. 그 전엔 열을 못 찾는다며 422
         if (!String(e).includes('unable to find type of column')) throw e;
         rows = [];
     }
-    const items = rows.map((r) => `<li><div class="meta">${esc(kst(String(r.at)))} ${esc([r.v && `v${r.v}`, r.b].filter(Boolean).join(' '))}</div><p>${esc(String(r.text))}</p></li>`);
+    const items = rows.map((r) => `<li><div class="meta">${esc(kst(String(r.at)))} ${esc([r.v && `v${r.v}`, r.b, r.email].filter(Boolean).join(' '))}</div><p>${esc(String(r.text))}</p></li>`);
     return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>익명 문의</title><style>
 body{font:15px/1.6 system-ui,sans-serif;max-width:760px;margin:24px auto;padding:0 16px;background:#fff;color:#111}
