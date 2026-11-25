@@ -34,6 +34,7 @@ run() {
             if ! git diff --quiet "$before" HEAD -- package-lock.json; then npm ci --no-audit --no-fund || return 1; fi
             # 상주 서비스는 pull로 바뀌지 않는다. 코드가 바뀌었으면 다시 띄운다
             if ! git diff --quiet "$before" HEAD -- ops/watch/mentions.ts ops/watch/mention-match.ts ops/watch/state.ts scripts/capture/socket-client.ts; then systemctl --user try-restart badge-mentions; fi
+            if ! git diff --quiet "$before" HEAD -- ops/watch/serve.ts ops/usage-report.ts; then systemctl --user try-restart badge-dashboard; fi
             ;;
         deploy) npx tsx ops/watch/deploy.ts ;;
         canary) npx tsx ops/watch/canary.ts selector ;;
@@ -49,6 +50,7 @@ run() {
         stats) npx tsx ops/stats-report.ts ;;
         usage) npx tsx ops/watch/usage.ts ;;
         spike) npx tsx ops/spike-alert.ts ;;
+        contact) npx tsx ops/contact-digest.ts ;;
         *) echo "unknown job: $job" >&2; return 2 ;;
     esac
 }

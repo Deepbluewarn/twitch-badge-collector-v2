@@ -86,9 +86,9 @@ const SETTING_TEXT: Record<SettingFlag, [string, string]> = {
     copyIdOff: ['ID 복사 끔', '치지직 프로필 창의 ID 복사 버튼을 껐다'],
 };
 
-type SqlRow = Record<string, string | number>;
+export type SqlRow = Record<string, string | number>;
 
-async function sql(query: string): Promise<SqlRow[]> {
+export async function sql(query: string): Promise<SqlRow[]> {
     const { CF_ACCOUNT_ID: account, CF_ANALYTICS_TOKEN: token } = process.env;
     if (!account || !token) throw new Error('cloudflare.env 없음');
     const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}/analytics_engine/sql`, {

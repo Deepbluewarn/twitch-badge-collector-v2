@@ -55,10 +55,11 @@ ovm (odroid, 192.168.1.162, ssh ovm)
 | `spike` | 30분 | GA 실시간 30분 방문 20명 이상 (6시간 동안 같은 사건) | `spike` (참고) |
 | `mentions` (상주 서비스) | 20분마다 방송 다시 고름 | 시청자 많은 치지직 라이브 40개(채팅 채널 있는 것만) 채팅을 계속 듣는다. 확장 이름(뱃지 콜렉터, badgecollector, 스토어 ID)이 나오면 강한 언급, 배지와 확장, 모아보기가 같이 나오면 약한 언급으로 `mentions.jsonl`에 남긴다. 언급된 채팅 본문만 남기고 닉네임, 사용자 ID는 남기지 않는다 (`ops/watch/mentions.ts`, 판정 `mention-match.ts`). 새벽 스토어 방문 몰림이 어느 방송 소개인지 그 시각에 잡으려고 둔다. 코드가 바뀌면 `pull`이 서비스를 다시 띄운다 | `mention`: 방송, 한국 시각 한 시간마다 (참고, `mention:<채널>:<YYYYMMDDHH>`). 강한 언급 1건 이상이거나 약한 언급 3건 이상. 6시간 지나면 보고서에서 빠진다 |
 | `stats` | 매일 10시 | 어제 스토어 페이지 방문, 유입 경로, 사이트 방문, 확장 사용자 수 한 줄 | 보고서 없이 Discord로 바로 (보고) |
+| `contact` | 매주 월요일 10시 5분 | badgecollector.dev/contact/ 익명 문의(Analytics Engine `tbc_contact`) 지난 7일치. Jev로 욕설, 스팸을 빼고 건수만 적는다 (`ops/contact-digest.ts`) | 보고서 없이 Discord로 바로 (보고). 문의가 없으면 보내지 않음 |
 
 같은 작업은 겹쳐 돌지 않는다. 브라우저를 쓰는 `canary`, `vod`, `live`, `main`은 서로 끝나기를 기다린다(메모리 7GB).
 
-커뮤니티 언급 감시(`~/badge-collector-community-watch`, 매일 10시)는 이 리포 밖에 있고 crontab에만 같이 들어 있다.
+커뮤니티 언급 감시(`~/badge-collector-community-watch`, 이틀에 한 번 10시)는 이 리포 밖에 있고 crontab에만 같이 들어 있다.
 
 ### 알림 규칙 (상황실)
 
@@ -174,3 +175,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-15 | 확장 사용 탭 설정 표에 진행 중인 이번 주 칸. 끝난 지난주 칸과 4주 판정은 그대로, 이번 주 칸은 지금까지 온 주간 기록 |
 | 2026-11-17 | 소켓 카나리가 처음 보는 msgTypeCode도 드문 메시지 `type:<코드>`로 모양을 모은다. 121이 한 번 잡혔는데 원본이 안 남아 무슨 메시지인지 알 수 없었다 |
 | 2026-11-21 | 방송 언급 감시 `badge-mentions` 상주 서비스. 스토어 방문이 새벽에 몰린 날(11-15, 11-18, 11-21)이 어느 방송 소개인지 몰라서. heartbeat에 작업 `mentions`와 서비스 등록, `pull`이 코드 변경 때 다시 띄움. 서비스 설치 |
+| 2026-11-25 | 익명 문의 주간 묶음 `contact`(매주 월요일). 사이트 /contact/ 폼이 Analytics Engine에 쓴 것을 읽어 Jev로 욕설, 스팸을 거른다. 거르지 않은 원문은 현황판 `/contact`에서 바로 본다(열 때마다 읽음). 커뮤니티 언급 감시는 이틀에 한 번으로(검색어 14개, SerpAPI 월 250회 안) |

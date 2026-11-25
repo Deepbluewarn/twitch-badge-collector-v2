@@ -40,6 +40,7 @@ export const JOBS: { job: string; label: string; maxAgeMin: number }[] = [
     { job: 'ota', label: 'OTA 전달 확인 (10분)', maxAgeMin: 40 },
     { job: 'spike', label: '방문 급증 알림 (30분)', maxAgeMin: 90 },
     { job: 'stats', label: '일일 통계 리포트 (매일 10시)', maxAgeMin: 26 * 60 },
+    { job: 'contact', label: '익명 문의 묶음 (매주 월요일 10시 5분)', maxAgeMin: 8 * 24 * 60 },
     { job: 'channels', label: '구독 배지 페이지 데이터 (매일 5시 20분)', maxAgeMin: 26 * 60 },
     // 상주 서비스 badge-mentions가 20분마다 남긴다
     { job: 'mentions', label: '방송 언급 감시 (20분)', maxAgeMin: 60 },

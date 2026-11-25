@@ -30,6 +30,8 @@ RUN=sh /home/bluewarn/tbc/ops/run.sh
 # GA 통계 (Discord)
 */30 * * * * $RUN spike
 0 10 * * * $RUN stats
+# 익명 문의 주간 묶음 (Discord)
+5 10 * * 1 $RUN contact
 
 # 커뮤니티 언급 감시 (이 리포 밖, ~/badge-collector-community-watch)
-0 10 * * * cd $HOME/badge-collector-community-watch && PATH=$HOME/.nvm/versions/node/v24.22.0/bin:/usr/bin:/bin npx tsx community-watch.ts >> $HOME/.local/state/badge-collector/community-watch.log 2>&1
+0 10 */2 * * cd $HOME/badge-collector-community-watch && PATH=$HOME/.nvm/versions/node/v24.22.0/bin:/usr/bin:/bin npx tsx community-watch.ts >> $HOME/.local/state/badge-collector/community-watch.log 2>&1
