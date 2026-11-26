@@ -39,10 +39,11 @@ interface Contact {
 }
 
 // 데이터셋은 첫 문의가 들어올 때 생긴다. 그 전엔 SQL API가 열을 못 찾는다며 422를 낸다
+// (별칭을 붙인 열을 ORDER BY에 원래 이름으로 써도 같은 422가 나서 빈 결과로 보인다)
 async function fetchContacts(): Promise<Awaited<ReturnType<typeof sql>>> {
     try {
         return await sql(`SELECT timestamp AS at, blob1 AS text, blob2 AS v, blob3 AS b, blob4 AS email FROM tbc_contact
-            WHERE timestamp > NOW() - INTERVAL '${DAYS}' DAY ORDER BY timestamp`);
+            WHERE timestamp > NOW() - INTERVAL '${DAYS}' DAY ORDER BY at`);
     } catch (e) {
         if (String(e).includes('unable to find type of column')) return [];
         throw e;

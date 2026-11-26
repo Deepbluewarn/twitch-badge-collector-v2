@@ -177,3 +177,4 @@ journalctl --user -u badge-harvester -f     # 연결 수, 분당 채팅, 배지 
 | 2026-11-21 | 방송 언급 감시 `badge-mentions` 상주 서비스. 스토어 방문이 새벽에 몰린 날(11-15, 11-18, 11-21)이 어느 방송 소개인지 몰라서. heartbeat에 작업 `mentions`와 서비스 등록, `pull`이 코드 변경 때 다시 띄움. 서비스 설치 |
 | 2026-11-25 | 익명 문의 주간 묶음 `contact`(매주 월요일). 사이트 /contact/ 폼이 Analytics Engine에 쓴 것을 읽어 Jev로 욕설, 스팸을 거른다. 거르지 않은 원문은 현황판 `/contact`에서 바로 본다(열 때마다 읽음). 커뮤니티 언급 감시는 이틀에 한 번으로(검색어 14개, SerpAPI 월 250회 안) |
 | 2026-11-25 | 문의 폼에 답장 받을 메일(선택) 칸. `contact`는 Discord에 "메일 있음"만 적고, 주소는 현황판 `/contact`에서만 본다 |
+| 2026-11-26 | 익명 문의 조회가 늘 빈 목록이던 것 고침(`ORDER BY timestamp`를 별칭 `at`으로). 현황판 `/contact`와 `contact` 작업 |

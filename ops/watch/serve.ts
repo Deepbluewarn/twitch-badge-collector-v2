@@ -25,9 +25,10 @@ async function contactPage(): Promise<string> {
     let rows: Awaited<ReturnType<typeof sql>>;
     try {
         rows = await sql(`SELECT timestamp AS at, blob1 AS text, blob2 AS v, blob3 AS b, blob4 AS email FROM tbc_contact
-            WHERE timestamp > NOW() - INTERVAL '${CONTACT_DAYS}' DAY ORDER BY timestamp DESC`);
+            WHERE timestamp > NOW() - INTERVAL '${CONTACT_DAYS}' DAY ORDER BY at DESC`);
     } catch (e) {
         // 데이터셋은 첫 문의가 들어올 때 생긴다. 그 전엔 열을 못 찾는다며 422
+        // (별칭을 붙인 열을 ORDER BY에 원래 이름으로 써도 같은 422가 나서 빈 목록으로 보인다)
         if (!String(e).includes('unable to find type of column')) throw e;
         rows = [];
     }
