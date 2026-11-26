@@ -21,11 +21,15 @@ const STRONG = /(뱃|배|벳)지(콜|컬)렉터|badgecollector|gbcdobpip/;
 // 이름 없이 기능으로 말하는 경우. 혼자서는 알리지 않고 기록만 한다
 const WEAK_BADGE = /(뱃|배|벳)지/;
 const WEAK_WHAT = /확장|모아보기|모아보는|따로보는|따로보기/;
+// 스트리머 화면에 수집 창이 보이면 시청자는 이름 대신 "확프", "콜렉터 쓰네"라고 쓴다(2026-11-25 15시 몰림).
+// 다른 확장 얘기도 걸리지만 약한 언급이라 한 시간에 3건 이상 몰려야 사건이 된다
+const WEAK_EXT = /확프|확장프로그램|(콜|컬)렉터.{0,4}(쓰|써|깔|설치)/;
 
 export function matchMention(text: string): Strength | null {
     const s = text.toLowerCase().replace(/[\s\p{P}\p{S}]+/gu, '');
     if (STRONG.test(s)) return 'strong';
     if (WEAK_BADGE.test(s) && WEAK_WHAT.test(s)) return 'weak';
+    if (WEAK_EXT.test(s)) return 'weak';
     return null;
 }
 

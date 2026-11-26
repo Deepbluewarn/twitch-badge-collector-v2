@@ -20,6 +20,11 @@ describe('matchMention', () => {
         expect(matchMention('뱃지 모아보기 확장 있음')).toBe('weak');
         expect(matchMention('배지 단 사람 채팅 따로 보는 거')).toBe('weak');
     });
+    it('확프, 콜렉터 쓰네처럼 이름 없이 말해도 약한 언급', () => {
+        for (const t of ['확프 쓰는구나', '확장 프로그램 있으면 보여요', '콜렉터 쓰는구나 ㅋㅋㅋ', '저는 콜렉터 빼고 다써요']) {
+            expect(matchMention(t)).toBe('weak');
+        }
+    });
     it('그 밖은 언급 아님', () => {
         expect(matchMention('구독 뱃지 이쁘다')).toBeNull();
         expect(matchMention('확장팩 언제 나옴')).toBeNull();
