@@ -1,0 +1,28 @@
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0); }
+    15% { transform: rotate(-14deg); }
+    30% { transform: rotate(12deg); }
+    45% { transform: rotate(-8deg); }
+    60% { transform: rotate(5deg); }
+    75% { transform: rotate(-2deg); }
+}
+
+.heart {
+    display: inline-flex;
+    flex: none;
+    color: #e5484d;
+    transform-origin: 50% 60%;
+    animation: wiggle 0.8s ease-in-out 0.4s 1;
+}
+
+a:hover .heart {
+    animation: wiggle 0.8s ease-in-out 1;
+}
+
+a:hover .heart svg {
+    fill: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .heart { animation: none; }
+}

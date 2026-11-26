@@ -6,7 +6,8 @@ import { getPlatformConfig, manifestReady } from '@/platform/host-selectors';
 import { ensureRolloutBucket, isSocketRenderEnabled } from '@/content-scripts/chzzk/socket-mode';
 import { GeneralRow, searchGeneral } from './GeneralSetting';
 import { PlatformChip, SettingsCard } from './settings/SettingsUI';
-import { siteUrl } from '@/utils/site-link';
+import { DONATE_URL, hasFeatureGuide, siteUrl } from '@/utils/site-link';
+import DonateHeart from './DonateHeart';
 import SocialFooter from './SocialFooter';
 import s from './SettingLayout.module.css';
 
@@ -74,6 +75,14 @@ export default function SettingLayout() {
                         <span>badgecollector.dev</span>
                         <Icon name="open_in_new" />
                     </a>
+                    {/* 후원(Fairy). 후원 페이지가 한국어뿐이라 한국어 브라우저만 */}
+                    {hasFeatureGuide() && (
+                        <a className={s.item} href={DONATE_URL} target="_blank" rel="noreferrer">
+                            <DonateHeart size={14} />
+                            <span>{t('nav.donate')}</span>
+                            <Icon name="open_in_new" />
+                        </a>
+                    )}
                 </nav>
                 <main className={s.main}>
                     {query ? (

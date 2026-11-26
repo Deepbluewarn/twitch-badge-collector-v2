@@ -399,7 +399,8 @@
         "title": "Settings",
         "search": "Search settings",
         "search_results": "Results for '{{q}}'",
-        "no_results": "No matching settings"
+        "no_results": "No matching settings",
+        "donate": "Donate"
     },
     "general": {
         "group_look": "Display",
