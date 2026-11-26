@@ -19,15 +19,27 @@ async function getJson(url: string) {
     return res.json() as Promise<any>;
 }
 
-/** 인기 라이브 n개 + 각자의 채팅 채널 id. 채팅 채널이 없는 방송은 뺀다. */
-export async function discoverLives(n: number): Promise<LiveTarget[]> {
-    const { content } = await getJson(`https://api.chzzk.naver.com/service/v1/lives?size=${n}&sortType=POPULAR`);
-    const targets: LiveTarget[] = content.data.map((d: any) => ({
-        channelId: d.channel.channelId,
-        channelName: d.channel.channelName,
-        viewers: d.concurrentUserCount,
-        category: d.liveCategoryValue,
-    }));
+/**
+ * 인기 라이브 n개 + 각자의 채팅 채널 id. 채팅 채널이 없는 방송은 뺀다.
+ * minViewers를 주면 시청자가 그보다 적은 방송이 나올 때까지 다음 쪽을 이어 받는다(최대 n개).
+ */
+export async function discoverLives(n: number, minViewers = 0): Promise<LiveTarget[]> {
+    const targets: LiveTarget[] = [];
+    let next: Record<string, string> | undefined;
+    do {
+        const query = new URLSearchParams({ size: String(Math.min(50, n - targets.length)), sortType: 'POPULAR', ...next });
+        const { content } = await getJson(`https://api.chzzk.naver.com/service/v1/lives?${query}`);
+        for (const d of content.data) {
+            if (d.concurrentUserCount < minViewers) { next = undefined; break; }
+            targets.push({
+                channelId: d.channel.channelId,
+                channelName: d.channel.channelName,
+                viewers: d.concurrentUserCount,
+                category: d.liveCategoryValue,
+            });
+            next = content.page?.next;
+        }
+    } while (minViewers > 0 && next && targets.length < n);
     for (const t of targets) {
         try {
             t.chatChannelId = (await getJson(`https://api.chzzk.naver.com/polling/v2/channels/${t.channelId}/live-status`)).content?.chatChannelId;

@@ -3,7 +3,8 @@
  * 스토어 방문이 새벽에 한꺼번에 몰리는데(2026-11-15, 11-18, 11-21) 경로가 구글과 direct로 섞여 있어
  * 어느 방송에서 소개됐는지 알 수 없었다. 그걸 그 시각에 잡으려고 만들었다.
  *
- * 상주 서비스(ops/systemd/badge-mentions.service). CYCLE마다 인기 라이브 TOP개를 다시 골라 붙는다.
+ * 상주 서비스(ops/systemd/badge-mentions.service). CYCLE마다 시청자 MIN_VIEWERS명 이상 라이브를 (많아야 MAX개) 다시 골라 붙는다.
+ * 처음엔 상위 40개만 봤는데 2026-11-25 15시 몰림(전국에서 3분 안에 구글 검색 유입)을 못 잡아 넓혔다.
  * 채팅 본문은 언급으로 판정된 것만, 닉네임과 사용자 ID 없이 남긴다. 판정 규칙은 mention-match.ts.
  *
  * 남기는 것 (~/.local/state/badge-collector/)
@@ -18,7 +19,8 @@ import { collectChat, discoverLives, type LiveTarget } from '../../scripts/captu
 import { matchMention, mentionFindings, type Mention } from './mention-match.ts';
 import { writeCheck } from './state.ts';
 
-const TOP = 40;
+const MIN_VIEWERS = 100;
+const MAX = 500;
 const CYCLE = 20 * 60_000;
 /** 이만큼 지난 언급은 보고서에서 뺀다(참고 사건이라 사라져도 알리지 않는다) */
 const KEEP = 6 * 3_600_000;
@@ -82,7 +84,7 @@ function onRaw(live: LiveTarget, raw: string): void {
 async function cycle(): Promise<void> {
     const start = Date.now();
     const until = start + CYCLE;
-    const lives = await discoverLives(TOP);
+    const lives = await discoverLives(MAX, MIN_VIEWERS);
     chats = 0;
     const joined = await Promise.allSettled(lives.map((l) => collectChat(l.chatChannelId!, until, (raw) => onRaw(l, raw))));
     const ok = joined.filter((r) => r.status === 'fulfilled').length;
