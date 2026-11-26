@@ -19,7 +19,7 @@
 ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?logo=reactquery&logoColor=white)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?logo=googlechrome&logoColor=white)
 
-[Chrome 웹 스토어](https://chromewebstore.google.com/detail/badge-collector/gbcdobpipglclbhabpkacoecddmopojp) &nbsp;|&nbsp; [Firefox 부가 기능](https://addons.mozilla.org/ko/firefox/addon/twitch-badge-collector-v2/) &nbsp;|&nbsp; [badgecollector.dev](https://badgecollector.dev)
+[Chrome 웹 스토어](https://chromewebstore.google.com/detail/badge-collector/gbcdobpipglclbhabpkacoecddmopojp) &nbsp;|&nbsp; [Firefox 부가 기능](https://addons.mozilla.org/ko/firefox/addon/twitch-badge-collector-v2/) &nbsp;|&nbsp; [badgecollector.dev](https://badgecollector.dev) &nbsp;|&nbsp; [후원](https://fairy.hada.io/@badge-collector)
 
 </div>
 
