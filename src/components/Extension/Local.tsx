@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGlobalSettingContext } from "@/context/GlobalSetting";
 import useFilterGroup from "@/hooks/useFilterGroup";
-import useChatStream from "@/hooks/useChatStream";
+import useChatStream, { TBC_VOD_REWOUND_EVENT } from "@/hooks/useChatStream";
 import { useStoredTemplates } from "@/render/template-store";
 import { ensureStyleFont, styleCss, useStoredStyleState } from "@/render/chzzk-style";
 import { createArchiveRecorder, type ArchiveRecorder } from "@/archive/archive-recorder";
@@ -428,6 +428,7 @@ export default function Local({
                 const time = (e.target as HTMLMediaElement).currentTime;
                 if (currentTimeRef.current - time > 0) {
                     clear();
+                    window.dispatchEvent(new CustomEvent(TBC_VOD_REWOUND_EVENT));
                     Logger('Local', 'All clone chats removed');
                 }
                 currentTimeRef.current = time;

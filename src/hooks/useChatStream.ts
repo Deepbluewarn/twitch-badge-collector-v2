@@ -16,6 +16,13 @@ import { renderChzzkChat, type ChzzkTemplates } from "@/render/chzzk-render";
 import { getPlatformConfig } from "@/platform/host-selectors";
 import type { ArchiveKind } from "@/archive/chat-archive";
 
+/**
+ * 다시보기를 뒤로 감아 수집 창을 비웠을 때 Local이 보낸다. 처리 기록도 같이 지워야
+ * 되감은 구간의 채팅이 다시 지나갈 때 창에 다시 들어간다(안 지우면 수집 표시만 붙고 창은 빈다).
+ * 사용자가 창을 비운 경우엔 보내지 않는다 — 원본 채팅창을 위로 스크롤할 때 옛 채팅이 다시 들어오면 안 된다.
+ */
+export const TBC_VOD_REWOUND_EVENT = 'tbc-vod-rewound';
+
 export interface PassedChat {
     /** 후처리 완료된 복제 노드 (DOM 삽입 직전 상태) */
     clone: HTMLElement;
@@ -472,6 +479,11 @@ export default function useChatStream(
         }
 
         window.addEventListener('message', handleMessage);
+        const onRewound = () => {
+            seenKeys.clear();
+            processedColors.clear();
+        };
+        window.addEventListener(TBC_VOD_REWOUND_EVENT, onRewound);
         // 차단 목록은 페이지를 열 때 한 번만 오고 우리는 대개 그 뒤에 뜬다 — 기억해 둔 목록을 달라고 한다
         if (socketMode) window.postMessage({ action: TBC_BLOCK_LIST_REQUEST }, '*');
 
@@ -485,6 +497,7 @@ export default function useChatStream(
 
         return () => {
             window.removeEventListener('message', handleMessage);
+            window.removeEventListener(TBC_VOD_REWOUND_EVENT, onRewound);
             attrMo?.disconnect();
             stopShadow?.();
             pendingNative.forEach(p => clearTimeout(p.timer));
