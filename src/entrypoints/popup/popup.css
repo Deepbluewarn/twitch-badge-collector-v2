@@ -37,3 +37,27 @@ a:active {
     gap: 12px;
     padding: 0 18px;
 }
+/* 헤더 후원 하트. 팝업을 열 때 한 번 흔들고, 올리면 속이 찬다. 동작 줄이기 설정이면 흔들지 않는다 */
+@keyframes tbc-popup-wiggle {
+    0%, 100% { transform: rotate(0); }
+    15% { transform: rotate(-14deg); }
+    30% { transform: rotate(12deg); }
+    45% { transform: rotate(-8deg); }
+    60% { transform: rotate(5deg); }
+    75% { transform: rotate(-2deg); }
+}
+.tbc-popup-donate {
+    display: inline-flex;
+    color: #e5484d !important;
+    transform-origin: 50% 60%;
+    animation: tbc-popup-wiggle 0.8s ease-in-out 0.4s 1;
+}
+.tbc-popup-donate:hover {
+    animation: tbc-popup-wiggle 0.8s ease-in-out 1;
+}
+.tbc-popup-donate:hover svg {
+    fill: currentColor;
+}
+@media (prefers-reduced-motion: reduce) {
+    .tbc-popup-donate { animation: none !important; }
+}

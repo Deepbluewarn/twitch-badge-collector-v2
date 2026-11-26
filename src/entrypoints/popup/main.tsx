@@ -12,7 +12,7 @@ import { Button, LinkButton, Stack, Switch, Tag } from "@/ui";
 import { CHANNEL_INFO_MESSAGE, setChannelOff, type ChannelInfo } from "@/utils/channel-off";
 import { fetchChzzkChannel } from "@/api/chzzk-channel";
 import { ChannelAvatar } from "@/components/filter/ChannelSearch";
-import { contactUrl, featureGuideUrl, hasFeatureGuide, siteUrl } from "@/utils/site-link";
+import { contactUrl, DONATE_URL, featureGuideUrl, hasFeatureGuide, siteUrl } from "@/utils/site-link";
 import "./popup.css";
 
 
@@ -144,6 +144,15 @@ function Popup() {
           <img src={browser.runtime.getURL('/assets/icon.png')} alt="" style={{ width: '1rem', height: '1rem' }} />
           <span>{browser.i18n.getMessage('ExtensionName')}</span>
         </a>
+        {/* 후원(Fairy) 하트. 후원 페이지가 한국어뿐이라 한국어 브라우저만. 열 때 한 번 흔들고 올리면 속이 찬다(popup.css) */}
+        {hasFeatureGuide() && (
+          <a href={DONATE_URL} target='_blank' rel='noreferrer' className='tbc-popup-donate'
+            aria-label={browser.i18n.getMessage('donate' as any)} title={browser.i18n.getMessage('donate' as any)}>
+            <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'>
+              <path d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z' />
+            </svg>
+          </a>
+        )}
         <Tag tone='off'>{`v${browser.runtime.getManifest().version}`}</Tag>
       </Stack>
 

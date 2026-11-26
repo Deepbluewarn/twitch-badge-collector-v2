@@ -12,6 +12,9 @@ export function siteUrl(path: string, spot: string) {
 export const hasFeatureGuide = () => browser.i18n.getUILanguage().toLowerCase().startsWith('ko');
 export const featureGuideUrl = (spot: string) => siteUrl('/extension/guide/', spot);
 
+// 후원 페이지(Fairy). 한국어로만 있어 팝업에서도 한국어 브라우저에만 링크를 둔다.
+export const DONATE_URL = 'https://fairy.hada.io/@badge-collector';
+
 // 익명 문의 페이지(badgecollector.dev/contact/). 사용 설명서처럼 한국어로만 있다.
 // 버전과 브라우저를 붙여 버그 문의에 따로 묻지 않게 한다(사이트 functions/api/contact.ts가 받는다).
 export function contactUrl() {
