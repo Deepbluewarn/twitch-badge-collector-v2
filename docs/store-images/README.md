@@ -8,6 +8,7 @@ Chrome 웹 스토어, Firefox 부가 기능, Edge 추가 기능에 올리는 이
 | `screenshot-2-filters-1280x800.png` | 스크린샷 2. 필터 목록 (실제 설정 화면) |
 | `promo-small-440x280.png` | 작은 프로모션 타일 |
 | `promo-marquee-1400x560.png` | 마키 프로모션 타일 (Edge에서는 큰 프로모션 타일) |
+| `sponsor-1280x720.png` (`ko-`만) | 후원 페이지(fairy.hada.io) 소개 이미지. 16:9로 잘려 보인다 |
 
 Chrome 대시보드에서는 전 언어 공통 애셋에 `en-`, 한국어 현지화 애셋에 `ko-`를 올린다. Firefox는 스크린샷만 받는다.
 

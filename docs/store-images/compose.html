@@ -29,6 +29,9 @@ body { margin: 0; background: #888; display: flex; flex-wrap: wrap; align-items:
 .shot.list .brand { font-size: 24px; gap: 14px; }
 .shot.list .headline { font-size: 50px; line-height: 1.16; }
 .shot.list .win { position: absolute; left: 470px; right: -3px; top: 50%; transform: translateY(-50%); background: #fff; border: 3px solid #111; border-right: 0; border-radius: 18px 0 0 18px; padding: 20px 0; overflow: hidden; }
+/* 후원 페이지 소개 이미지 (1280x720, fairy.hada.io가 16:9로 잘라 보여 준다) */
+.shot.wide { height: 720px; }
+.shot.wide .panel { top: 60px; }
 .crop { overflow: hidden; }
 .crop img { display: block; }
 
@@ -162,6 +165,9 @@ const FRAMES = lang => {
     { out: `${lang}-promo-marquee-1400x560.png`, cls: "marquee", html: `
       <div class="copy">${brand(c, 64)}<p class="headline">${c.hero}</p><div class="chips">${c.chips.map(x => `<span>${x}</span>`).join("")}</div></div>
       ${panel(lang, 238, 6)}` },
+    ...(lang === "ko" ? [{ out: `${lang}-sponsor-1280x720.png`, cls: "shot hero wide", html: `
+      <div class="copy">${brand(c, 64)}<p class="headline">${c.hero}</p><div class="chips">${c.chips.map(x => `<span>${x}</span>`).join("")}</div></div>
+      ${panel(lang, 262, 8)}` }] : []),
   ];
 };
 
