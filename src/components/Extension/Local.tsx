@@ -419,19 +419,25 @@ export default function Local({
         });
     }, []);
 
-    // VOD seek 시 누적 채팅 비움 (뒤로 감기면 미래 채팅을 표시하면 안 됨).
+    // VOD를 뒤로 감으면 누적 채팅을 비운다 (되감은 위치보다 뒤의 채팅을 표시하면 안 됨).
+    // 지금 시각은 재생 중에도 따라간다(timeupdate). 탐색할 때만 갱신하면 쭉 재생하다 되감은 것을 놓친다.
+    // 비우기는 탐색이 끝날 때(seeked)가 아니라 시작할 때(seeking) 한다. 끝날 때 비우면 그사이 호스트가 그린
+    // 새 위치의 채팅까지 지워지고, 그 채팅은 다시 오지 않는다.
     useEffect(() => {
         if (!videoSelector) return;
         findElement(videoSelector, (elem) => {
             if (!elem) return;
-            elem.addEventListener('seeked', e => {
-                const time = (e.target as HTMLMediaElement).currentTime;
-                if (currentTimeRef.current - time > 0) {
+            const video = elem as HTMLMediaElement;
+            video.addEventListener('timeupdate', () => {
+                if (!video.seeking) currentTimeRef.current = video.currentTime;
+            });
+            video.addEventListener('seeking', () => {
+                if (currentTimeRef.current - video.currentTime > 0) {
                     clear();
                     window.dispatchEvent(new CustomEvent(TBC_VOD_REWOUND_EVENT));
                     Logger('Local', 'All clone chats removed');
                 }
-                currentTimeRef.current = time;
+                currentTimeRef.current = video.currentTime;
             });
         });
     }, []);
