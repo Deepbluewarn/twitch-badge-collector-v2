@@ -6,7 +6,7 @@ import { getPlatformConfig, manifestReady } from '@/platform/host-selectors';
 import { ensureRolloutBucket, isSocketRenderEnabled } from '@/content-scripts/chzzk/socket-mode';
 import { GeneralRow, searchGeneral } from './GeneralSetting';
 import { PlatformChip, SettingsCard } from './settings/SettingsUI';
-import { DONATE_URL, hasFeatureGuide, siteUrl } from '@/utils/site-link';
+import { DONATE_URL, MONGLE_URL, hasFeatureGuide, siteUrl } from '@/utils/site-link';
 import DonateHeart from './DonateHeart';
 import SocialFooter from './SocialFooter';
 import s from './SettingLayout.module.css';
@@ -83,6 +83,12 @@ export default function SettingLayout() {
                             <Icon name="open_in_new" />
                         </a>
                     )}
+                    {/* 같은 개발자의 확장 몽글. 다른 링크와 같은 줄 모양에 몽글 색(하늘색) 아이콘과 글자 */}
+                    <a className={`${s.item} ${s.mongle}`} href={MONGLE_URL} target="_blank" rel="noreferrer">
+                        <img src={browser.runtime.getURL('/assets/mongle.png' as any)} alt="" />
+                        <span>{t('nav.mongle')}</span>
+                        <Icon name="open_in_new" />
+                    </a>
                 </nav>
                 <main className={s.main}>
                     {query ? (

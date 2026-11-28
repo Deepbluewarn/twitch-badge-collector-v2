@@ -399,7 +399,8 @@
         "title": "Ajustes",
         "search": "Buscar ajustes",
         "search_results": "Resultados de «{{q}}»",
-        "no_results": "No hay ajustes que coincidan"
+        "no_results": "No hay ajustes que coincidan",
+        "mongle": "Mongle"
     },
     "general": {
         "group_look": "Pantalla",

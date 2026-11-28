@@ -399,7 +399,8 @@
         "title": "Paramètres",
         "search": "Rechercher dans les paramètres",
         "search_results": "Résultats pour « {{q}} »",
-        "no_results": "Aucun paramètre trouvé"
+        "no_results": "Aucun paramètre trouvé",
+        "mongle": "Mongle"
     },
     "general": {
         "group_look": "Affichage",

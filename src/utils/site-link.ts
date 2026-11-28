@@ -15,6 +15,9 @@ export const featureGuideUrl = (spot: string) => siteUrl('/extension/guide/', sp
 // 후원 페이지(Fairy). 한국어로만 있어 팝업에서도 한국어 브라우저에만 링크를 둔다.
 export const DONATE_URL = 'https://fairy.hada.io/@badge-collector';
 
+/** 같은 개발자의 탭 소리 확장 몽글. 스토어에 올리면 스토어 주소로 바꾼다 */
+export const MONGLE_URL = 'https://github.com/Deepbluewarn/mongle';
+
 // 익명 문의 페이지(badgecollector.dev/contact/). 사용 설명서처럼 한국어로만 있다.
 // 버전과 브라우저를 붙여 버그 문의에 따로 묻지 않게 한다(사이트 functions/api/contact.ts가 받는다).
 export function contactUrl() {

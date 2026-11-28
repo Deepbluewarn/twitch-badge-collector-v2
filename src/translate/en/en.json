@@ -400,7 +400,8 @@
         "search": "Search settings",
         "search_results": "Results for '{{q}}'",
         "no_results": "No matching settings",
-        "donate": "Donate"
+        "donate": "Donate",
+        "mongle": "Mongle"
     },
     "general": {
         "group_look": "Display",

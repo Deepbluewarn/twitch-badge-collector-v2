@@ -399,7 +399,8 @@
         "title": "設定",
         "search": "設定を検索",
         "search_results": "「{{q}}」の検索結果",
-        "no_results": "該当する設定がありません"
+        "no_results": "該当する設定がありません",
+        "mongle": "Mongle"
     },
     "general": {
         "group_look": "画面",

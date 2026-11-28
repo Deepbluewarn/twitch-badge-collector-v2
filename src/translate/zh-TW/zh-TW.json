@@ -399,7 +399,8 @@
         "title": "設定",
         "search": "搜尋設定",
         "search_results": "「{{q}}」的搜尋結果",
-        "no_results": "找不到設定"
+        "no_results": "找不到設定",
+        "mongle": "Mongle"
     },
     "general": {
         "group_look": "畫面",

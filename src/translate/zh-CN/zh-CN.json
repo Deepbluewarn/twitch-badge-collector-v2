@@ -399,7 +399,8 @@
         "title": "设置",
         "search": "搜索设置",
         "search_results": "“{{q}}”的搜索结果",
-        "no_results": "没有找到设置"
+        "no_results": "没有找到设置",
+        "mongle": "Mongle"
     },
     "general": {
         "group_look": "画面",

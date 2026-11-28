@@ -399,7 +399,8 @@
         "search": "설정 검색",
         "search_results": "'{{q}}' 검색 결과",
         "no_results": "찾은 설정이 없습니다",
-        "donate": "후원"
+        "donate": "후원",
+        "mongle": "몽글"
     },
     "general": {
         "group_look": "화면",

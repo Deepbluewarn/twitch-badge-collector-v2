@@ -399,7 +399,8 @@
         "title": "Einstellungen",
         "search": "Einstellungen durchsuchen",
         "search_results": "Ergebnisse für „{{q}}“",
-        "no_results": "Keine passenden Einstellungen"
+        "no_results": "Keine passenden Einstellungen",
+        "mongle": "Mongle"
     },
     "general": {
         "group_look": "Anzeige",

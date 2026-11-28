@@ -399,7 +399,8 @@
         "title": "Configurações",
         "search": "Buscar configurações",
         "search_results": "Resultados para \"{{q}}\"",
-        "no_results": "Nenhuma configuração encontrada"
+        "no_results": "Nenhuma configuração encontrada",
+        "mongle": "Mongle"
     },
     "general": {
         "group_look": "Tela",

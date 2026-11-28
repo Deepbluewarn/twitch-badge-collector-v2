@@ -399,7 +399,8 @@
         "title": "Настройки",
         "search": "Поиск настроек",
         "search_results": "Результаты по запросу «{{q}}»",
-        "no_results": "Подходящих настроек нет"
+        "no_results": "Подходящих настроек нет",
+        "mongle": "Mongle"
     },
     "general": {
         "group_look": "Экран",

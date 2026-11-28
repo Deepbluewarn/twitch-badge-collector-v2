@@ -124,6 +124,22 @@
     margin-top: 32px;
 }
 
+/* 몽글 링크. 글자는 몽글 key 색, 밝은 바탕에서는 읽히게 한 단 진하게 */
+.mongle {
+    color: #1a8fd1;
+}
+
+:global([data-theme='dark']) .mongle {
+    color: #4cc2ff;
+}
+
+.mongle img {
+    width: 20px;
+    height: 20px;
+    /* 다른 메뉴 아이콘(14px) 칸에 가운데를 맞춰, 글자 시작이 칼같이 같게 */
+    margin: 0 -3px;
+}
+
 /* 좁은 창 — 메뉴를 위쪽 탭 줄로 */
 @media (max-width: 760px) {
     .bar {
