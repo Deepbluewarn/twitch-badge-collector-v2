@@ -172,14 +172,5 @@
   },
   "privacyPolicy": {
     "message": "プライバシーポリシー"
-  },
-  "audioCompressor": {
-    "message": "オーディオコンプレッサー"
-  },
-  "audioUpdated": {
-    "message": "拡張機能を更新済み。再読み込み後に適用"
-  },
-  "audioOtherExtension": {
-    "message": "別の拡張機能がこの動画の音声を使用中"
   }
 }

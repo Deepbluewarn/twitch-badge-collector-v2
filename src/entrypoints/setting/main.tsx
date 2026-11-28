@@ -20,7 +20,6 @@ import Filter from "@/components/Filter";
 import TemplateSetting from "@/components/TemplateSetting";
 import Archive from "@/components/Archive";
 import GeneralSetting from "@/components/GeneralSetting";
-import AudioSetting from "@/components/AudioSetting";
 import SettingLayout from "@/components/SettingLayout";
 import "@/render/chzzk-chat.css";
 import i18n from '@/translate/i18n';
@@ -88,7 +87,6 @@ function Router() {
             <Route path="/general" element={<GeneralSetting />} />
             <Route path="/template" element={<TemplateSetting />} />
             <Route path="/archive" element={<Archive />} />
-            <Route path="/audio" element={<AudioSetting />} />
             <Route path="*" element={<Navigate to="/filter" replace />} />
           </Route>
         </Routes>

@@ -50,9 +50,7 @@ export default defineConfig({
 
     // 처음 채널을 검색할 때 요청한다 (업데이트만으로 확장이 꺼지지 않게 optional).
     optional_host_permissions: [
-      "https://api.chzzk.naver.com/*",
-      // 설정 '소리'에 Jev API 키를 넣을 때 요청한다(src/utils/audio-jev.ts). Jev API가 확장 출처의 CORS를 막는다.
-      "https://api.typesafe.ai/*"
+      "https://api.chzzk.naver.com/*"
     ],
 
     // 호스트 권한

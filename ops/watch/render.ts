@@ -226,7 +226,7 @@ ${empty ? '<p class="meta">아직 하루 기록 없음 (배포 다음 날부터)
 
     // 설정은 기본값이 무엇이냐에 따라 읽는 법이 달라 네 묶음으로 나눈다
     const GROUPS: { title: string; keys: string[]; text: string; judged: boolean; label: string }[] = [
-        { title: '켜서 쓰는 기능', keys: ['advancedFilter', 'floating', 'template', 'chatTime', 'archiveOn', 'channelOff', 'audioCompressor', 'audioJevOwnKey'], judged: true, label: '켠 비율',
+        { title: '켜서 쓰는 기능', keys: ['advancedFilter', 'floating', 'template', 'chatTime', 'archiveOn', 'channelOff'], judged: true, label: '켠 비율',
           text: '기본이 꺼진 기능을 지금 켜 두고 있는 사람. 이 숫자가 곧 그 기능을 쓰는 사람의 비율이다. 낮으면 모르거나 필요 없다는 뜻이라 접을지 판단하는 주 대상.' },
         { title: '직접 만든 필터', keys: ['filterBadge', 'filterName', 'filterKeyword', 'filterExclude', 'filterSleep', 'filterChannel', 'filterPerson', 'filterMarker', 'filterNote'], judged: true, label: '있는 비율',
           text: '설치 때 들어가는 기본 필터 말고, 그런 필터를 직접 하나 이상 만든 사람. 그 종류의 필터를 쓰는 사람의 비율이다.' },

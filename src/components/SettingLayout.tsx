@@ -12,7 +12,7 @@ import SocialFooter from './SocialFooter';
 import s from './SettingLayout.module.css';
 
 /**
- * 설정 페이지 틀 (Chrome 설정형) — 위쪽 검색 막대, 왼쪽 메뉴(필터 설정·일반 설정·채팅 모양·채팅 보관함·소리),
+ * 설정 페이지 틀 (Chrome 설정형) — 위쪽 검색 막대, 왼쪽 메뉴(필터 설정·일반 설정·채팅 모양·채팅 보관함),
  * 가운데 열에 화면 제목 + 화면. 팝업에는 '필터 설정'과 '일반 설정' 두 진입점만 둔다.
  * 좁은 창에서는 메뉴가 위쪽 탭 줄이 된다.
  */
@@ -21,7 +21,6 @@ const ITEMS = [
     { path: '/general', icon: 'settings', label: 'nav.general' },
     { path: '/template', icon: 'palette', label: 'nav.template', platform: 'chzzk', socketOnly: true },
     { path: '/archive', icon: 'inventory_2', label: 'nav.archive' },
-    { path: '/audio', icon: 'graphic_eq', label: 'nav.audio' },
 ] as const;
 
 export default function SettingLayout() {

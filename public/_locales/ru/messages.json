@@ -172,14 +172,5 @@
   },
   "privacyPolicy": {
     "message": "Политика конфиденциальности"
-  },
-  "audioCompressor": {
-    "message": "Аудиокомпрессор"
-  },
-  "audioUpdated": {
-    "message": "Расширение обновлено, применится после перезагрузки"
-  },
-  "audioOtherExtension": {
-    "message": "Звук этого видео использует другое расширение"
   }
 }

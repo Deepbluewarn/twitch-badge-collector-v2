@@ -400,43 +400,12 @@
         "search": "Search settings",
         "search_results": "Results for '{{q}}'",
         "no_results": "No matching settings",
-        "donate": "Donate",
-        "audio": "Sound"
+        "donate": "Donate"
     },
     "general": {
         "group_look": "Display",
         "group_layout": "Layout",
         "group_chat": "Collected chat",
         "group_stats": "Privacy"
-    },
-    "audio": {
-        "enable": "Audio compressor",
-        "where": "It can be disabled per channel in the popup.",
-        "params": "Manual settings",
-        "reset": "Reset to default",
-        "meter": "Gain reduction",
-        "no_tab": "No stream tab with it on",
-        "jev": {
-            "title": "Set by description",
-            "note": "Uses Jev, an AI model by TypeSafe.",
-            "placeholder": "e.g. Voices are quiet but sound effects are too loud",
-            "send": "Send",
-            "seconds": "{{n}}s",
-            "remaining": "{{n}} left today",
-            "failed": "The request failed.",
-            "unclear": "This was not recognized as a description of a sound problem.",
-            "bad_key": "The API key is not valid.",
-            "user_limit": "You have used all of today's requests. Available again from {{time}}.",
-            "global_limit": "Today's shared allowance for all users is used up. Available again from {{time}}.",
-            "get_key": "Get a Jev API key",
-            "open_advanced": "Open advanced settings",
-            "history": "History",
-            "apply": "Apply",
-            "applied": "Applied",
-            "rename": "Rename",
-            "delete_confirm": "Delete this entry?",
-            "advanced": "Advanced settings",
-            "key": "Jev API key"
-        }
     }
 }

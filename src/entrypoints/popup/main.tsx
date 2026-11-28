@@ -8,9 +8,8 @@ import { markUsage } from "@/telemetry/usage-mark";
 import { useResolvedDarkMode } from "@/hooks/useResolvedDarkMode";
 import useExtensionGlobalSetting from "@/hooks/useGlobalSettingExtension";
 import { useDocumentTheme } from "@/ui/useDocumentTheme";
-import { Button, Icon, LinkButton, Stack, Switch, Tag } from "@/ui";
-import { CHANNEL_INFO_MESSAGE, channelKey, setChannelOff, type ChannelInfo } from "@/utils/channel-off";
-import { AUDIO_KEY, AUDIO_STATUS_MESSAGE, getAudioConfig, setAudioChannel, type AudioConfig, type AudioStatus, type AudioStatusReply } from "@/utils/audio-compressor";
+import { Button, LinkButton, Stack, Switch, Tag } from "@/ui";
+import { CHANNEL_INFO_MESSAGE, setChannelOff, type ChannelInfo } from "@/utils/channel-off";
 import { fetchChzzkChannel } from "@/api/chzzk-channel";
 import { ChannelAvatar } from "@/components/filter/ChannelSearch";
 import { contactUrl, DONATE_URL, featureGuideUrl, hasFeatureGuide, siteUrl } from "@/utils/site-link";
@@ -83,48 +82,6 @@ function ChannelPower({ info, setInfo }: { info: HostInfo | null | undefined; se
         hint={t('channelEnabled')}>
         <Switch checked={!info.off} onChange={toggle} />
       </SettingRow>
-      {!info.off && <AudioRow info={info} channelId={channelId} />}
-    </div>
-  );
-}
-
-/**
- * 채널 카드 둘째 줄: 이 채널에서 컴프레서 끄기. 설정의 '소리'에서 활성화했을 때만 보인다.
- * 켜 두었는데 영상 소리를 못 잡았으면(업데이트 직후, 다른 확장) 스위치는 켜진 채 회색, 아래에 이유.
- */
-function AudioRow({ info, channelId }: { info: HostInfo; channelId: string }) {
-  const [cfg, setCfg] = React.useState<AudioConfig | null>(null);
-  const [status, setStatus] = React.useState<AudioStatus>('ok');
-  useEffect(() => {
-    getAudioConfig().then(setCfg);
-    addStorageUpdateListener(key => { if (key === AUDIO_KEY) getAudioConfig().then(setCfg); });
-    // 켜면 탭이 영상에 붙는 데 잠깐 걸린다 — 팝업이 열려 있는 동안 1초마다 묻는다
-    const ask = async () => {
-      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-      if (tab?.id == null) return;
-      const r = await browser.tabs.sendMessage(tab.id, { type: AUDIO_STATUS_MESSAGE }, { frameId: 0 }).catch(() => null) as AudioStatusReply | null;
-      setStatus(r?.status ?? 'ok');
-    };
-    ask();
-    const timer = setInterval(ask, 1000);
-    return () => clearInterval(timer);
-  }, []);
-  if (!cfg?.enabled) return null;
-  const on = !(channelKey(info.platform, channelId) in cfg.off);
-  const blocked = on && status !== 'ok';
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--ui-hair)' }}>
-      <Icon name='graphic_eq' size={20} style={{ color: on && !blocked ? 'var(--ui-ink)' : 'var(--ui-muted)' }} />
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 800 }}>{browser.i18n.getMessage('audioCompressor' as any)}</div>
-        {blocked && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 3, fontSize: 12, fontWeight: 700, lineHeight: 1.3, color: 'var(--ui-muted)' }}>
-            <Icon name={status === 'update' ? 'refresh' : 'info'} size={13} style={{ marginTop: 1 }} />
-            {browser.i18n.getMessage(status === 'update' ? 'audioUpdated' as any : 'audioOtherExtension' as any)}
-          </div>
-        )}
-      </span>
-      <Switch checked={on} dimmed={blocked} onChange={v => setAudioChannel(info.platform, channelId, v, info.name, info.image)} />
     </div>
   );
 }

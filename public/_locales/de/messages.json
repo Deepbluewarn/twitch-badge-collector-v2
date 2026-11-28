@@ -172,14 +172,5 @@
   },
   "privacyPolicy": {
     "message": "Datenschutzerklärung"
-  },
-  "audioCompressor": {
-    "message": "Audio-Kompressor"
-  },
-  "audioUpdated": {
-    "message": "Erweiterung aktualisiert, gilt nach Neuladen"
-  },
-  "audioOtherExtension": {
-    "message": "Eine andere Erweiterung nutzt den Ton dieses Videos"
   }
 }

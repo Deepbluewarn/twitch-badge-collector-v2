@@ -399,43 +399,12 @@
         "search": "설정 검색",
         "search_results": "'{{q}}' 검색 결과",
         "no_results": "찾은 설정이 없습니다",
-        "donate": "후원",
-        "audio": "소리"
+        "donate": "후원"
     },
     "general": {
         "group_look": "화면",
         "group_layout": "배치",
         "group_chat": "수집된 채팅",
         "group_stats": "개인정보"
-    },
-    "audio": {
-        "enable": "오디오 컴프레서",
-        "where": "팝업에서 채널별 비활성화가 가능합니다.",
-        "params": "직접 설정",
-        "reset": "기본값으로",
-        "meter": "압축량",
-        "no_tab": "켜진 방송 탭 없음",
-        "jev": {
-            "title": "설명으로 설정",
-            "note": "TypeSafe의 AI 모델 Jev를 사용합니다.",
-            "placeholder": "예: 목소리는 작은데 효과음이 너무 커",
-            "send": "보내기",
-            "seconds": "{{n}}초",
-            "remaining": "오늘 {{n}}번 남음",
-            "failed": "요청에 실패했습니다.",
-            "unclear": "소리 문제에 관한 설명으로 인식하지 못했습니다.",
-            "bad_key": "API 키가 올바르지 않습니다.",
-            "user_limit": "오늘 사용 횟수를 모두 사용했습니다. {{time}}부터 다시 사용할 수 있습니다.",
-            "global_limit": "오늘 전체 제공량이 소진되었습니다. {{time}}부터 다시 사용할 수 있습니다.",
-            "get_key": "Jev API 키 받기",
-            "open_advanced": "고급 설정 열기",
-            "history": "히스토리",
-            "apply": "적용",
-            "applied": "적용됨",
-            "rename": "이름 바꾸기",
-            "delete_confirm": "이 기록을 삭제합니까?",
-            "advanced": "고급 설정",
-            "key": "Jev API 키"
-        }
     }
 }

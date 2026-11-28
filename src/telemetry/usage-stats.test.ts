@@ -207,13 +207,6 @@ describe('setting-snapshot', () => {
         });
     });
 
-    it('소리: 컴프레서 활성화, Jev 키를 넣어 두었는지만', () => {
-        expect(settingFlags({ audioCompressor: { enabled: true }, audioJev: { apiKey: 'sk-x', history: [] } }))
-            .toMatchObject({ audioCompressor: 1, audioJevOwnKey: 1 });
-        expect(settingFlags({ audioCompressor: { enabled: false }, audioJev: { apiKey: '' } }))
-            .toMatchObject({ audioCompressor: 0, audioJevOwnKey: 0 });
-    });
-
     it('업데이트 때 채워 넣은 옛 값은 바꾼 것으로 보지 않는다', () => {
         expect(settingFlags({ maximumNumberChats: 1000, darkTheme: 'off' })).toMatchObject({ maxChats: 0, theme: 0 });
         expect(settingFlags({ maximumNumberChats: 300, darkTheme: 'on' })).toMatchObject({ maxChats: 1, theme: 1 });

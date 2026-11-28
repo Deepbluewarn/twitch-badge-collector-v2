@@ -399,43 +399,12 @@
         "title": "Einstellungen",
         "search": "Einstellungen durchsuchen",
         "search_results": "Ergebnisse für „{{q}}“",
-        "no_results": "Keine passenden Einstellungen",
-        "audio": "Ton"
+        "no_results": "Keine passenden Einstellungen"
     },
     "general": {
         "group_look": "Anzeige",
         "group_layout": "Anordnung",
         "group_chat": "Gesammelter Chat",
         "group_stats": "Datenschutz"
-    },
-    "audio": {
-        "enable": "Audio-Kompressor",
-        "where": "Im Popup lässt er sich pro Kanal deaktivieren.",
-        "params": "Manuelle Einstellung",
-        "reset": "Auf Standard zurücksetzen",
-        "meter": "Pegelreduktion",
-        "no_tab": "Kein Stream-Tab mit aktivem Kompressor",
-        "jev": {
-            "title": "Per Beschreibung einstellen",
-            "note": "Verwendet Jev, ein KI-Modell von TypeSafe.",
-            "placeholder": "z. B. Stimmen sind leise, Soundeffekte zu laut",
-            "send": "Senden",
-            "seconds": "{{n}} s",
-            "remaining": "Heute noch {{n}}",
-            "failed": "Die Anfrage ist fehlgeschlagen.",
-            "unclear": "Dies wurde nicht als Beschreibung eines Tonproblems erkannt.",
-            "bad_key": "Der API-Schlüssel ist ungültig.",
-            "user_limit": "Die heutigen Anfragen sind aufgebraucht. Ab {{time}} wieder verfügbar.",
-            "global_limit": "Das heutige Kontingent für alle Nutzer ist aufgebraucht. Ab {{time}} wieder verfügbar.",
-            "get_key": "Jev-API-Schlüssel holen",
-            "open_advanced": "Erweiterte Einstellungen öffnen",
-            "history": "Verlauf",
-            "apply": "Anwenden",
-            "applied": "Angewendet",
-            "rename": "Umbenennen",
-            "delete_confirm": "Diesen Eintrag löschen?",
-            "advanced": "Erweiterte Einstellungen",
-            "key": "Jev-API-Schlüssel"
-        }
     }
 }

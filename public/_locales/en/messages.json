@@ -184,14 +184,5 @@
   },
   "privacyPolicy": {
     "message": "Privacy policy"
-  },
-  "audioCompressor": {
-    "message": "Audio compressor"
-  },
-  "audioUpdated": {
-    "message": "Extension updated, applies after refresh"
-  },
-  "audioOtherExtension": {
-    "message": "Another extension is using this video’s audio"
   }
 }

@@ -172,14 +172,5 @@
   },
   "privacyPolicy": {
     "message": "隐私政策"
-  },
-  "audioCompressor": {
-    "message": "音频压缩器"
-  },
-  "audioUpdated": {
-    "message": "扩展已更新，刷新后生效"
-  },
-  "audioOtherExtension": {
-    "message": "其他扩展正在使用此视频的声音"
   }
 }

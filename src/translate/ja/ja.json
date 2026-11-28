@@ -399,43 +399,12 @@
         "title": "設定",
         "search": "設定を検索",
         "search_results": "「{{q}}」の検索結果",
-        "no_results": "該当する設定がありません",
-        "audio": "サウンド"
+        "no_results": "該当する設定がありません"
     },
     "general": {
         "group_look": "画面",
         "group_layout": "配置",
         "group_chat": "収集チャット",
         "group_stats": "プライバシー"
-    },
-    "audio": {
-        "enable": "オーディオコンプレッサー",
-        "where": "ポップアップでチャンネルごとに無効にできます。",
-        "params": "手動設定",
-        "reset": "初期値に戻す",
-        "meter": "圧縮量",
-        "no_tab": "オンになっている配信タブなし",
-        "jev": {
-            "title": "説明で設定",
-            "note": "TypeSafeのAIモデルJevを使用します。",
-            "placeholder": "例: 声は小さいのに効果音が大きすぎる",
-            "send": "送信",
-            "seconds": "{{n}}秒",
-            "remaining": "本日残り{{n}}回",
-            "failed": "リクエストに失敗しました。",
-            "unclear": "音の問題の説明として認識できませんでした。",
-            "bad_key": "APIキーが正しくありません。",
-            "user_limit": "本日の利用回数をすべて使用しました。{{time}}から再び利用できます。",
-            "global_limit": "本日の全ユーザー向け提供量が上限に達しました。{{time}}から再び利用できます。",
-            "get_key": "Jev APIキーを取得",
-            "open_advanced": "詳細設定を開く",
-            "history": "履歴",
-            "apply": "適用",
-            "applied": "適用済み",
-            "rename": "名前を変更",
-            "delete_confirm": "この履歴を削除しますか?",
-            "advanced": "詳細設定",
-            "key": "Jev APIキー"
-        }
     }
 }

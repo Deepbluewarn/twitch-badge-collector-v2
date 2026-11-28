@@ -25,7 +25,6 @@ export const USAGE_FLAGS = [
     'copyId',
     'channelToggle',
     'guideOpen',
-    'audioJevReapply',
 ] as const;
 export type UsageFlag = typeof USAGE_FLAGS[number];
 
@@ -57,7 +56,5 @@ export const SETTING_FLAGS = [
     'chatSideLeft',
     'pointBoxOff',
     'copyIdOff',
-    'audioCompressor',
-    'audioJevOwnKey',
 ] as const;
 export type SettingFlag = typeof SETTING_FLAGS[number];

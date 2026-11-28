@@ -399,43 +399,12 @@
         "title": "Paramètres",
         "search": "Rechercher dans les paramètres",
         "search_results": "Résultats pour « {{q}} »",
-        "no_results": "Aucun paramètre trouvé",
-        "audio": "Son"
+        "no_results": "Aucun paramètre trouvé"
     },
     "general": {
         "group_look": "Affichage",
         "group_layout": "Disposition",
         "group_chat": "Chat collecté",
         "group_stats": "Confidentialité"
-    },
-    "audio": {
-        "enable": "Compresseur audio",
-        "where": "Il peut être désactivé par chaîne dans la fenêtre contextuelle.",
-        "params": "Réglage manuel",
-        "reset": "Valeurs par défaut",
-        "meter": "Réduction de gain",
-        "no_tab": "Aucun onglet de live ne l’utilise",
-        "jev": {
-            "title": "Régler par description",
-            "note": "Utilise Jev, un modèle d'IA de TypeSafe.",
-            "placeholder": "ex. : les voix sont faibles mais les effets sonores trop forts",
-            "send": "Envoyer",
-            "seconds": "{{n}} s",
-            "remaining": "Encore {{n}} aujourd'hui",
-            "failed": "La requête a échoué.",
-            "unclear": "Ceci n'a pas été reconnu comme la description d'un problème de son.",
-            "bad_key": "La clé API n'est pas valide.",
-            "user_limit": "Toutes les requêtes du jour ont été utilisées. De nouveau disponible à partir de {{time}}.",
-            "global_limit": "Le quota du jour partagé par tous les utilisateurs est épuisé. De nouveau disponible à partir de {{time}}.",
-            "get_key": "Obtenir une clé API Jev",
-            "open_advanced": "Ouvrir les paramètres avancés",
-            "history": "Historique",
-            "apply": "Appliquer",
-            "applied": "Appliqué",
-            "rename": "Renommer",
-            "delete_confirm": "Supprimer cette entrée ?",
-            "advanced": "Paramètres avancés",
-            "key": "Clé API Jev"
-        }
     }
 }
