@@ -399,12 +399,43 @@
         "title": "设置",
         "search": "搜索设置",
         "search_results": "“{{q}}”的搜索结果",
-        "no_results": "没有找到设置"
+        "no_results": "没有找到设置",
+        "audio": "声音"
     },
     "general": {
         "group_look": "画面",
         "group_layout": "布局",
         "group_chat": "收集的聊天",
         "group_stats": "隐私"
+    },
+    "audio": {
+        "enable": "音频压缩器",
+        "where": "可在弹出窗口中按频道停用。",
+        "params": "手动设置",
+        "reset": "恢复默认",
+        "meter": "压缩量",
+        "no_tab": "没有开启的直播标签页",
+        "jev": {
+            "title": "按描述设置",
+            "note": "使用 TypeSafe 的 AI 模型 Jev。",
+            "placeholder": "例如:人声很小,音效却太大",
+            "send": "发送",
+            "seconds": "{{n}} 秒",
+            "remaining": "今日剩余 {{n}} 次",
+            "failed": "请求失败。",
+            "unclear": "未能识别为对声音问题的描述。",
+            "bad_key": "API 密钥无效。",
+            "user_limit": "今日使用次数已用完。{{time}} 起可再次使用。",
+            "global_limit": "今日面向所有用户的额度已用完。{{time}} 起可再次使用。",
+            "get_key": "获取 Jev API 密钥",
+            "open_advanced": "打开高级设置",
+            "history": "历史记录",
+            "apply": "应用",
+            "applied": "已应用",
+            "rename": "重命名",
+            "delete_confirm": "删除这条记录?",
+            "advanced": "高级设置",
+            "key": "Jev API 密钥"
+        }
     }
 }

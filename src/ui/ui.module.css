@@ -195,6 +195,15 @@
     transform: translateX(16px);
     background: var(--ui-on-yellow);
 }
+/* 켜 두었지만 지금은 동작하지 않음 — 켜진 자리 그대로 회색 */
+.switch.dimmed[aria-checked='true'],
+:global([data-theme='dark']) .switch.dimmed[aria-checked='true'] {
+    background: var(--ui-off-bg);
+    border-color: var(--ui-line);
+}
+.switch.dimmed[aria-checked='true']::after {
+    background: var(--ui-muted);
+}
 .switch:disabled {
     opacity: 0.4;
     cursor: default;

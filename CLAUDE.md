@@ -16,6 +16,10 @@ Default canonical labels: `needs-triage`, `needs-info`, `ready-for-agent`, `read
 
 Single-context layout — `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
+## 문구
+
+화면 문구, 설정 설명, 안내 글은 구어체 대신 문어체로 쓴다. "썼습니다", "끌 수 있습니다" 대신 "사용했습니다", "비활성화가 가능합니다".
+
 ## Operations
 
 ### OTA — host selector hotfix

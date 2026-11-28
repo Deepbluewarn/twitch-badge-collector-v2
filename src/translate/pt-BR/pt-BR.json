@@ -399,12 +399,43 @@
         "title": "Configurações",
         "search": "Buscar configurações",
         "search_results": "Resultados para \"{{q}}\"",
-        "no_results": "Nenhuma configuração encontrada"
+        "no_results": "Nenhuma configuração encontrada",
+        "audio": "Som"
     },
     "general": {
         "group_look": "Tela",
         "group_layout": "Disposição",
         "group_chat": "Chat coletado",
         "group_stats": "Privacidade"
+    },
+    "audio": {
+        "enable": "Compressor de áudio",
+        "where": "Pode ser desativado por canal no pop-up.",
+        "params": "Ajuste manual",
+        "reset": "Restaurar padrão",
+        "meter": "Redução de ganho",
+        "no_tab": "Nenhuma aba de transmissão com ele ativo",
+        "jev": {
+            "title": "Ajustar por descrição",
+            "note": "Usa o Jev, um modelo de IA da TypeSafe.",
+            "placeholder": "ex.: as vozes estão baixas, mas os efeitos sonoros altos demais",
+            "send": "Enviar",
+            "seconds": "{{n}} s",
+            "remaining": "Restam {{n}} hoje",
+            "failed": "A solicitação falhou.",
+            "unclear": "Não foi reconhecido como a descrição de um problema de som.",
+            "bad_key": "A chave de API não é válida.",
+            "user_limit": "Todas as solicitações de hoje foram usadas. Disponível novamente a partir das {{time}}.",
+            "global_limit": "A cota diária compartilhada entre todos os usuários se esgotou. Disponível novamente a partir das {{time}}.",
+            "get_key": "Obter uma chave de API do Jev",
+            "open_advanced": "Abrir configurações avançadas",
+            "history": "Histórico",
+            "apply": "Aplicar",
+            "applied": "Aplicado",
+            "rename": "Renomear",
+            "delete_confirm": "Excluir este registro?",
+            "advanced": "Configurações avançadas",
+            "key": "Chave de API do Jev"
+        }
     }
 }

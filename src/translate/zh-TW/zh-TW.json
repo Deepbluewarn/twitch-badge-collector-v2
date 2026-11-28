@@ -399,12 +399,43 @@
         "title": "設定",
         "search": "搜尋設定",
         "search_results": "「{{q}}」的搜尋結果",
-        "no_results": "找不到設定"
+        "no_results": "找不到設定",
+        "audio": "聲音"
     },
     "general": {
         "group_look": "畫面",
         "group_layout": "配置",
         "group_chat": "收集的聊天",
         "group_stats": "隱私"
+    },
+    "audio": {
+        "enable": "音訊壓縮器",
+        "where": "可在彈出視窗中依頻道停用。",
+        "params": "手動設定",
+        "reset": "恢復預設",
+        "meter": "壓縮量",
+        "no_tab": "沒有開啟的直播分頁",
+        "jev": {
+            "title": "依描述設定",
+            "note": "使用 TypeSafe 的 AI 模型 Jev。",
+            "placeholder": "例如:人聲很小,音效卻太大",
+            "send": "送出",
+            "seconds": "{{n}} 秒",
+            "remaining": "今日剩餘 {{n}} 次",
+            "failed": "請求失敗。",
+            "unclear": "無法辨識為對聲音問題的描述。",
+            "bad_key": "API 金鑰無效。",
+            "user_limit": "今日使用次數已用完。{{time}} 起可再次使用。",
+            "global_limit": "今日提供給所有使用者的額度已用完。{{time}} 起可再次使用。",
+            "get_key": "取得 Jev API 金鑰",
+            "open_advanced": "開啟進階設定",
+            "history": "歷史記錄",
+            "apply": "套用",
+            "applied": "已套用",
+            "rename": "重新命名",
+            "delete_confirm": "刪除這筆記錄?",
+            "advanced": "進階設定",
+            "key": "Jev API 金鑰"
+        }
     }
 }

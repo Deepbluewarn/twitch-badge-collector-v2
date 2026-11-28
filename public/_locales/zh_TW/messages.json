@@ -172,5 +172,14 @@
   },
   "privacyPolicy": {
     "message": "隱私權政策"
+  },
+  "audioCompressor": {
+    "message": "音訊壓縮器"
+  },
+  "audioUpdated": {
+    "message": "擴充功能已更新，重新整理後套用"
+  },
+  "audioOtherExtension": {
+    "message": "其他擴充功能正在使用此影片的聲音"
   }
 }

@@ -85,18 +85,20 @@ export function Segmented<T extends string>({ value, options, onChange, size = '
 }
 
 // ── 스위치 ───────────────────────────
-export function Switch({ checked, onChange, label, disabled, className }: {
+export function Switch({ checked, onChange, label, disabled, dimmed, className }: {
     checked: boolean;
     onChange: (checked: boolean) => void;
     /** 있으면 스위치 옆에 글자로 보인다. 없으면 aria-label로만. */
     label?: React.ReactNode;
     disabled?: boolean;
+    /** 켜 두었지만 지금은 동작하지 않음 — 켜진 자리 그대로 회색. 누를 수는 있다. */
+    dimmed?: boolean;
     className?: string;
 }) {
     const btn = (
         <button type="button" role="switch" aria-checked={checked} disabled={disabled}
             aria-label={typeof label === 'string' ? label : undefined}
-            className={cx(s.switch, !label && className)} onClick={() => onChange(!checked)} />
+            className={cx(s.switch, dimmed && s.dimmed, !label && className)} onClick={() => onChange(!checked)} />
     );
     if (!label) return btn;
     return <label className={cx(s.switchLabel, className)}>{btn}<span>{label}</span></label>;

@@ -399,12 +399,43 @@
         "title": "Ajustes",
         "search": "Buscar ajustes",
         "search_results": "Resultados de «{{q}}»",
-        "no_results": "No hay ajustes que coincidan"
+        "no_results": "No hay ajustes que coincidan",
+        "audio": "Sonido"
     },
     "general": {
         "group_look": "Pantalla",
         "group_layout": "Disposición",
         "group_chat": "Chat recopilado",
         "group_stats": "Privacidad"
+    },
+    "audio": {
+        "enable": "Compresor de audio",
+        "where": "Se puede desactivar por canal en la ventana emergente.",
+        "params": "Ajuste manual",
+        "reset": "Restablecer",
+        "meter": "Reducción de ganancia",
+        "no_tab": "Ninguna pestaña de directo lo tiene activo",
+        "jev": {
+            "title": "Ajustar por descripción",
+            "note": "Usa Jev, un modelo de IA de TypeSafe.",
+            "placeholder": "p. ej., las voces se oyen bajas y los efectos demasiado altos",
+            "send": "Enviar",
+            "seconds": "{{n}} s",
+            "remaining": "Quedan {{n}} hoy",
+            "failed": "La solicitud ha fallado.",
+            "unclear": "No se ha reconocido como una descripción de un problema de sonido.",
+            "bad_key": "La clave de API no es válida.",
+            "user_limit": "Has usado todas las solicitudes de hoy. Disponible de nuevo a partir de las {{time}}.",
+            "global_limit": "Se ha agotado la cuota diaria compartida por todos los usuarios. Disponible de nuevo a partir de las {{time}}.",
+            "get_key": "Obtener una clave de API de Jev",
+            "open_advanced": "Abrir ajustes avanzados",
+            "history": "Historial",
+            "apply": "Aplicar",
+            "applied": "Aplicado",
+            "rename": "Cambiar nombre",
+            "delete_confirm": "¿Eliminar esta entrada?",
+            "advanced": "Ajustes avanzados",
+            "key": "Clave de API de Jev"
+        }
     }
 }

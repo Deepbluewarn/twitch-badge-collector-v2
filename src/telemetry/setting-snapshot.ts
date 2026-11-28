@@ -7,6 +7,8 @@ import type { CompositeFilterElement, FilterCategory } from '@/interfaces/filter
 import { DEFAULT_MAX_CHATS, LEGACY_MAX_CHATS } from '@/reducer/setting';
 import { ARCHIVE_SETTING_KEY, DEFAULT_ARCHIVE_SETTING, sanitizeArchiveSetting } from '@/archive/chat-archive';
 import { CHANNEL_OFF_KEY } from '@/utils/channel-off';
+import { AUDIO_KEY } from '@/utils/audio-compressor';
+import { AUDIO_JEV_KEY } from '@/utils/audio-jev';
 import { SETTING_FLAGS, type SettingFlag } from './flags';
 
 export { SETTING_FLAGS, type SettingFlag };
@@ -14,7 +16,7 @@ export { SETTING_FLAGS, type SettingFlag };
 export const SETTING_SOURCE_KEYS = [
     'advancedFilter', 'displayMode', 'chzzkCustomTemplate', 'filter', ARCHIVE_SETTING_KEY, CHANNEL_OFF_KEY,
     'position', 'chatTime', 'maximumNumberChats', 'darkTheme', 'collectedChatMarker', 'jumpToBottomButton',
-    'chatPersistence', 'floatingBgColor', 'chzzkChatSide', 'pointBoxAuto', 'chzzkProfileCopyId',
+    'chatPersistence', 'floatingBgColor', 'chzzkChatSide', 'pointBoxAuto', 'chzzkProfileCopyId', AUDIO_KEY, AUDIO_JEV_KEY,
 ];
 
 // 설치할 때 들어가는 기본 필터는 세지 않는다. 세면 배지, 닉네임, 제외 필터가 거의 모두 1이 된다.
@@ -80,5 +82,8 @@ export function settingFlags(s: Record<string, unknown>): Record<SettingFlag, 0 
     on('chatSideLeft', s.chzzkChatSide === 'left');
     on('pointBoxOff', s.pointBoxAuto === 'off');
     on('copyIdOff', s.chzzkProfileCopyId === 'off');
+    on('audioCompressor', (s[AUDIO_KEY] as { enabled?: unknown } | undefined)?.enabled === true);
+    // 키 값은 보내지 않는다. 넣어 두었는지만
+    on('audioJevOwnKey', (s[AUDIO_JEV_KEY] as { apiKey?: unknown } | undefined)?.apiKey);
     return out;
 }

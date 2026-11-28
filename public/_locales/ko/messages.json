@@ -181,5 +181,14 @@
   },
   "privacyPolicy": {
     "message": "개인정보 처리방침"
+  },
+  "audioCompressor": {
+    "message": "오디오 컴프레서"
+  },
+  "audioUpdated": {
+    "message": "확장 업데이트됨, 새로고침 후 적용"
+  },
+  "audioOtherExtension": {
+    "message": "다른 확장이 이 영상 소리를 사용 중"
   }
 }

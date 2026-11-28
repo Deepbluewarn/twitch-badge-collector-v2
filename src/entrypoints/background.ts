@@ -7,6 +7,7 @@ import { fetchChzzkBadgeGroups } from "@/api/chzzk";
 import { fetchAndApplyOta, fetchIfStale } from "@/platform/ota-fetch";
 import { installChzzkApiOriginRule } from "@/api/chzzk-channel";
 import { CHANNEL_OFF_BADGE_MESSAGE } from "@/utils/channel-off";
+import { AUDIO_BADGE_MESSAGE } from "@/utils/audio-compressor";
 import { clearAllChatHistory } from "@/utils/chat-history-store";
 import { migrateBadgeLook, migrateLargeLook, migrateLegacyTemplates } from "@/render/chzzk-style";
 import { ARCHIVE_HIDE_MESSAGE, ARCHIVE_PUT_MESSAGE, hideArchivedChats, loadArchiveSetting, purgeArchive, putArchivedChats, sanitizeArchivedChat } from "@/archive/chat-archive";
@@ -276,6 +277,11 @@ export default defineBackground(() => {
       setChannelOffBadge(_sender.tab.id, !!msg.off);
       return false;
     }
+    if (msg?.type === AUDIO_BADGE_MESSAGE && _sender.tab?.id != null) {
+      // 업데이트 전 스크립트가 영상 소리를 잡고 있어 컴프레서를 못 건 탭 — 새로고침하면 걸린다
+      setAudioRefreshBadge(_sender.tab.id, !!msg.refresh);
+      return false;
+    }
     // 보관함 (src/archive) — 콘텐츠 스크립트가 2초마다 묶어 보낸다. 실패하면 ok:false로 알려 다시 보내게 한다.
     if (msg?.type === ARCHIVE_PUT_MESSAGE && Array.isArray(msg.chats) && _sender.id === browser.runtime.id) {
       const chats = msg.chats.map(sanitizeArchivedChat).filter((c: unknown) => c !== null);
@@ -360,6 +366,20 @@ async function setChannelOffBadge(tabId: number, off: boolean) {
     else await action.setIcon({ tabId, path: ICON_PATH });
   } catch (e) {
     console.warn('[tbcv2 bg] channel off icon failed', e);
+  }
+}
+
+async function setAudioRefreshBadge(tabId: number, refresh: boolean) {
+  const action = browser.action ?? (browser as unknown as { browserAction: typeof browser.action }).browserAction;
+  if (!action) return;
+  try {
+    await action.setBadgeText({ tabId, text: refresh ? '↻' : '' });
+    if (refresh) {
+      await action.setBadgeBackgroundColor({ tabId, color: '#ffd60a' });
+      await action.setBadgeTextColor?.({ tabId, color: '#111111' });
+    }
+  } catch (e) {
+    console.warn('[tbcv2 bg] audio badge failed', e);
   }
 }
 

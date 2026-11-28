@@ -13,6 +13,7 @@ import { applyChatSide, trackSidebarSwap } from "./chat-side";
 import { ensureRolloutBucket } from "./socket-mode";
 import { addStorageUpdateListener } from "@/utils/utils-browser";
 import { clearHostMarks, setupChannelOff } from "../base/channel-off";
+import { setupAudioCompressor } from "../base/audio-compressor";
 import { isChannelOffNow } from "../base/channel-off-flag";
 import { onTeardown, startInstance } from "../base/lifecycle";
 import { createArchiveRecorder } from "@/archive/archive-recorder";
@@ -66,6 +67,7 @@ async function bootstrap() {
     // 이 채널에서 끄기 — 끄면 창을 걷어 수집·보관까지 멈추고 화면 조정도 원래대로, 다시 켜면 창을 새로 만든다
     // (채팅 유지가 켜져 있으면 끄기 전 채팅을 다시 불러온다).
     const channelOff = setupChannelOff(adapter, async off => {
+        audio.evaluate();
         applyChatSide(off ? undefined : (await browser.storage.local.get('chzzkChatSide')).chzzkChatSide);
         trackSidebarSwap();
         if (off) {
@@ -77,6 +79,8 @@ async function bootstrap() {
             init();
         }
     });
+    // 방송 소리 컴프레서 — 채널별. 채널을 끄면 같이 꺼진다
+    const audio = setupAudioCompressor(adapter, () => channelOff.isOff());
     // 원래 채팅의 프로필 창에 "ID 복사"
     onTeardown(setupProfileActions());
 
@@ -105,7 +109,9 @@ async function bootstrap() {
     // (양쪽 container destroy/swap 복잡성 회피).
     let lastDisplayMode: 'inline' | 'floating' | null = null;
     async function init() {
-        if (await channelOff.evaluate()) return;
+        const off = await channelOff.evaluate();
+        audio.evaluate();
+        if (off) return;
         const mode = adapter.getPageMode();
         const setting = await browser.storage.local.get('displayMode');
         const displayMode: 'inline' | 'floating' = setting.displayMode === 'floating' ? 'floating' : 'inline';

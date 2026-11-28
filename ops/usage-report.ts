@@ -27,8 +27,9 @@ const QUERY_DAYS = WINDOW_DAYS + 12;
 const ROW_DOUBLES = 20;
 // day2 행 항목(guideOpen)을 처음 보낸 버전
 const DAY2_SINCE = '2.28.0';
-// 주간 기록에 나중에 덧붙인 항목과 그 항목을 처음 보낸 버전. 옛 버전 기록엔 그 칸이 없어 0으로 읽히므로 비율의 분모에서 뺀다
-const SETTING_SINCE: Partial<Record<SettingFlag, string>> = { copyIdOff: '2.29.0' };
+// 나중에 덧붙인 항목과 그 항목을 처음 보낸 버전. 옛 버전 기록엔 그 칸이 없어 0으로 읽히므로 비율의 분모에서 뺀다
+const SETTING_SINCE: Partial<Record<SettingFlag, string>> = { copyIdOff: '2.29.0', audioCompressor: '2.32.0', audioJevOwnKey: '2.32.0' };
+const USAGE_SINCE: Partial<Record<UsageFlag, string>> = { audioJevReapply: '2.32.0' };
 const olderThan = (v: string, base: string) => {
     const a = v.split('.').map(Number), b = base.split('.').map(Number);
     for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i];
@@ -56,6 +57,7 @@ const USAGE_TEXT: Record<UsageFlag, [string, string]> = {
     copyId: ['ID 복사', '치지직 프로필 창의 ID 복사를 눌렀다'],
     channelToggle: ['채널 끄기', '팝업이나 설정에서 채널별 사용을 끄거나 켰다'],
     guideOpen: ['사용 설명서', '팝업의 사용 설명서 링크를 눌렀다 (v2.28.0은 빈 수집 창 링크도 포함)'],
+    audioJevReapply: ['소리 다시 적용', "설정 '소리'의 히스토리에서 Jev로 받았던 값을 다시 적용했다"],
 };
 const SETTING_TEXT: Record<SettingFlag, [string, string]> = {
     advancedFilter: ['고급 필터', '고급 필터 모드를 켜 두었다'],
@@ -84,6 +86,8 @@ const SETTING_TEXT: Record<SettingFlag, [string, string]> = {
     chatSideLeft: ['채팅 왼쪽', '치지직 채팅창을 왼쪽에 둔다'],
     pointBoxOff: ['포인트 자동 끔', '치지직 채널 포인트 자동 받기를 껐다'],
     copyIdOff: ['ID 복사 끔', '치지직 프로필 창의 ID 복사 버튼을 껐다'],
+    audioCompressor: ['오디오 컴프레서', "설정 '소리'에서 컴프레서를 켜 두었다 (기본 꺼짐)"],
+    audioJevOwnKey: ['내 Jev 키', "설정 '소리'의 고급 설정에 Jev API 키를 넣어 두었다"],
 };
 
 export type SqlRow = Record<string, string | number>;
@@ -213,19 +217,24 @@ export async function fetchUsage(yesterday: string): Promise<UsageSummary> {
     // 그 항목이 생기기 전 버전에서 만든 하루 기록은 업데이트 뒤 표시된 항목만 키가 생겨(값은 늘 1) day2 행이 눌린 사람에게만 생긴다.
     // 그런 행은 분모를 깎고 비율을 부풀리므로(11-08 v2.27.0 기록 guideOpen 100%) 뺀다.
     const FIRST2 = ROW_DOUBLES - 2;
-    let day2Y = 0, day2_28 = 0;
+    // 나중에 덧붙인 항목(USAGE_SINCE)은 그 버전 이후 기록만 분모로 — 항목마다 분모가 다르다
+    const day2Y = USAGE_FLAGS.map(() => 0), day2_28 = USAGE_FLAGS.map(() => 0);
     for (const r of day2Rows) {
         if (!released.has(String(r.v)) || olderThan(String(r.v), DAY2_SINCE)) continue;
         const date = String(r.date), n = num(r.n), d = doubles(r);
         if (date > yesterday || !byDate.has(date)) continue;
-        day2_28 += n;
-        if (date === yesterday) day2Y += n;
-        d.forEach((x, i) => { const k = FIRST2 + i; if (k < USAGE_FLAGS.length) { flags28[k] += x; if (date === yesterday) flagsY[k] += x; } });
+        d.forEach((x, i) => {
+            const k = FIRST2 + i, since = USAGE_SINCE[USAGE_FLAGS[k]];
+            if (k >= USAGE_FLAGS.length || (since && olderThan(String(r.v), since))) return;
+            flags28[k] += x;
+            day2_28[k] += n;
+            if (date === yesterday) { flagsY[k] += x; day2Y[k] += n; }
+        });
     }
     const dau = byDate.get(yesterday)?.users ?? 0;
     const dataDays = daily.filter((d) => d.users > 0).length || 1;
     const features = USAGE_FLAGS.map((key, i) => {
-        const [baseY, base28] = i < FIRST2 ? [dau, n28] : [day2Y, day2_28];
+        const [baseY, base28] = i < FIRST2 ? [dau, n28] : [day2Y[i], day2_28[i]];
         return {
             key, label: USAGE_TEXT[key][0], desc: USAGE_TEXT[key][1], now: baseY ? flagsY[i] / baseY : 0, avg: base28 ? flags28[i] / base28 : 0,
             nowN: Math.round(flagsY[i]), avgN: Math.round(flags28[i] / dataDays),
